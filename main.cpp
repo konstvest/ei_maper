@@ -1,17 +1,13 @@
-//#include <QtGui/QApplication>
-#include <QtGui>
-#include <QApplication>
 #include "mainwindow.h"
-#include "mainscene.h"
+#include <QApplication>
+
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    MainWindow w;
+    //w.resize(100, 100);
+    w.show();
 
-    MainScene scene;
-
-    scene.resize(600, 600);
-    scene.show();
-    
     return a.exec();
 }

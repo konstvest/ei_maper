@@ -22,6 +22,10 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget (parent)
     orthosize = 6;
 }
 
+GLWidget::~GLWidget(){
+    qDebug() << "potracheno\n";
+}
+
 void GLWidget::initializeGL(){
     glClearColor(0.2, 0.2, 0.2, 1);
 }
@@ -37,23 +41,22 @@ void GLWidget::resizeGL(int w, int h){
 
 void GLWidget::paintGL(){
 
-    glViewport(xViewPos, yViewPos, size, size);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glViewport(0, 0, currentWidth, currentHeight);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-orthosize, orthosize, -orthosize, orthosize, -10.01f, 1000.0f);
+    gluPerspective(45.0f, (GLfloat)currentWidth/currentHeight, 0.1f, 100.0f);
     gluLookAt(xCamPos, yCamPos, zCamPos, 0, 0, 0, 0, 1, 0);
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glRotatef(xAxisRotation, 0.0, 1.0, 0.0);
     glRotatef(yAxisRotation, 1.0, 0.0, 0.0);
-
     glScalef(zoom, zoom, zoom);
+
     drawCube(width, length, height);
 }
 

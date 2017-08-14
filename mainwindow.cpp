@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "glwidget.h"
-
+#include "figure.h"
+#include <string.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -98,3 +99,20 @@ void MainWindow::on_pushButton_6_clicked()
     this->ui->widget->update();
 }
 
+
+void MainWindow::on_pushButton_7_clicked()
+{
+    QFileDialog fldlg;
+    fldlg.setFileMode(QFileDialog::AnyFile);
+    figure figa;
+    figa.loadFromFile(fldlg.getOpenFileName(this, tr("Open File"), "",
+                                           tr("Figure file (*.fig);;"
+                                              "Link file (*.lnk);;"
+                                              "Bone file (*.bon)")
+                                               ));
+    this->ui->widget->fig = figa;
+    this->ui->widget->open_file = true;
+
+
+
+}

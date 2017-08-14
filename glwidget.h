@@ -9,6 +9,8 @@
 #include <QDebug>
 #include <QString>
 
+#include "figure.h"
+
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -37,6 +39,9 @@ public:
     QString name;
     QPoint pressPosition;
 
+    bool open_file;
+    figure fig;
+
 protected:
     void initializeGL();
     void resizeGL(int w, int h);
@@ -46,6 +51,7 @@ protected:
     void wheelEvent(QWheelEvent *event);
     void keyPressEvent(QKeyEvent *event);
     void drawCube (float width, float length, float height);
+    void drawFigure(figure fig);
 };
 
 #endif // GLWIDGET_H

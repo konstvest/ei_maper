@@ -11,7 +11,7 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget (parent)
     length = 1;
     width = 1;
     height = 1;
-    name = "default cube";
+    name = "";
 
     xCamPos = 0;
     yCamPos = 0;
@@ -20,10 +20,12 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget (parent)
     size = 300;
     zoom = 1;
     orthosize = 6;
+
+    open_file = false;
 }
 
 GLWidget::~GLWidget(){
-    qDebug() << "potracheno\n";
+    qDebug() << "GLWidget destructor :(";
 }
 
 void GLWidget::initializeGL(){
@@ -52,12 +54,14 @@ void GLWidget::paintGL(){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);   //render depend on normals (use in game)
     glRotatef(xAxisRotation, 0.0, 1.0, 0.0);
     glRotatef(yAxisRotation, 1.0, 0.0, 0.0);
     glScalef(zoom, zoom, zoom);
 
-    drawCube(width, length, height);
+    //if (open_file == true){
+        drawFigure(fig);
+    //}
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event){
@@ -148,4 +152,32 @@ void GLWidget::drawCube(float width, float length, float height){
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, indices);
     glDisableClientState(GL_VERTEX_ARRAY);
     triangles = sizeof (indices)/3/sizeof(GLubyte);
+}
+
+void GLWidget::drawFigure(figure fig){
+    //translate on class func
+    GLfloat figVertices[fig.vertices.size()*3];
+    int arsize = fig.vertices.size();
+    for (int i(0); i<arsize; i++){
+        figVertices[i*3] = fig.vertices[i][0].x;
+        figVertices[i*3+1] = fig.vertices[i][0].y;
+        figVertices[i*3+2] = fig.vertices[i][0].z;
+    }
+
+    GLubyte figColors[fig.vertices.size()*3];
+    //std::fill_n(figColors, fig.vertices.size()*3, 230);
+
+    GLubyte figIndices[fig.indices.size()];
+    for (int i(0); i<fig.indices.size(); i++){
+        figIndices[i] = (unsigned int)fig.vert_comp[fig.indices[i]].vertex_ind;
+    }
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glColorPointer(3, GL_UNSIGNED_BYTE, 0, figColors);
+    glVertexPointer(3, GL_FLOAT, 0, figVertices);
+    glDrawElements(GL_TRIANGLES, fig.indices.size(), GL_UNSIGNED_BYTE, figIndices);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    triangles = sizeof (figIndices)/3/sizeof(GLubyte);
+
 }

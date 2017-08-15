@@ -105,11 +105,13 @@ void MainWindow::on_pushButton_7_clicked()
     QFileDialog fldlg;
     fldlg.setFileMode(QFileDialog::AnyFile);
     figure figa;
-    figa.loadFromFile(fldlg.getOpenFileName(this, tr("Open File"), "",
+    figa.loadFromFile(fldlg.getOpenFileName(this, tr("Open File"), "f:\\temp\\",
                                            tr("Figure file (*.fig);;"
                                               "Link file (*.lnk);;"
                                               "Bone file (*.bon)")
                                                ));
+    figa.recalcConstitution(0,0,0);
+    figa.convertToGLIndices();
     this->ui->widget->fig = figa;
     this->ui->widget->open_file = true;
 

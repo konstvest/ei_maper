@@ -38,22 +38,28 @@ public:
     figure();
 
     QString name;
+    QVector <float> vertices;
+    QVector <vec4> normals;
+    QVector <vec2> t_coords;
+    QVector <unsigned int> indices;
+    void loadFromFile(QString pathFile);
+    void recalcConstitution (float str, float dex, float scale);
+    void recalcTextureCoordinates (QString type);
+    void convertToGLIndices ();
+private:
+    QVector <vec3> tvertices;
+    QVector <vec4> tnormals;
+
     QVector <int> header;
     QVector <vec3> center;
     QVector <vec3> min;
     QVector <vec3> max;
     QVector <float> radius;
-    QVector <QVector <vec3>> vertices;
-    QVector <vec4> normals;
-    QVector <vec2> t_coords;
-    QVector <short> indices;
+    QVector <QVector <vec3>> preVertices;
+    QVector <vec2> preT_coords;
+    QVector <short> preIndices;
     QVector <indices_link> vert_comp;
     QVector <short> light_comp;
-
-    QVector <vec3> tvertices;
-    QVector <vec4> tnormals;
-    void show();
-    void loadFromFile(QString pathFile);
 };
 
 #endif // FIGURE_H

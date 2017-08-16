@@ -5,10 +5,6 @@ figure::figure()
 
 }
 
-void figure::show(){
-    qDebug() << "hello";
-}
-
 void figure::loadFromFile(QString pathFile){
     qDebug() << "load";
     std::ifstream figFile;
@@ -28,12 +24,6 @@ void figure::loadFromFile(QString pathFile){
             //qDebug() << buffer;
             signature +=buffer;
         }
-        //second way
-        /*figFile.read((char*)&buffer1, 4);
-        buffer1[5]='\0';
-        signature = buffer1;
-        qDebug() << signature;
-        */
         if (signature == "FIG8"){
             qDebug()<< "correct signature, continue...";
             for (int i(0); i<9; i++){
@@ -88,24 +78,24 @@ void figure::loadFromFile(QString pathFile){
                     for (int j(0); j<8; j++){
                         tvertices.push_back(temp);
                     }
-                    vertices.push_back(tvertices);
+                    preVertices.push_back(tvertices);
                 }
                 for (int morph(0); morph<8; morph++){
                     for (int block(0); block<4; block++){
                         figFile.read((char*)&fbuf, sizeof (float));
-                        vertices[i*4+block][morph].x=fbuf;
+                        preVertices[i*4+block][morph].x=fbuf;
                     }
                 }
                 for (int morph(0); morph<8; morph++){
                     for (int block(0); block<4; block++){
                         figFile.read((char*)&fbuf, sizeof (float));
-                        vertices[i*4+block][morph].y=fbuf;
+                        preVertices[i*4+block][morph].y=fbuf;
                     }
                 }
                 for (int morph(0); morph<8; morph++){
                     for (int block(0); block<4; block++){
                         figFile.read((char*)&fbuf, sizeof (float));
-                        vertices[i*4+block][morph].z=fbuf;
+                        preVertices[i*4+block][morph].z=fbuf;
                     }
                 }
             }
@@ -144,12 +134,12 @@ void figure::loadFromFile(QString pathFile){
                 tex_coords.x=fbuf;
                 figFile.read((char*)&fbuf, sizeof (float));
                 tex_coords.y=fbuf;
-                t_coords.push_back(tex_coords);
+                preT_coords.push_back(tex_coords);
             }
             //loading indices
             for (int i(0); i<header[3]; i++){
                 figFile.read((char*)&sbuf, sizeof (short));
-                indices.push_back(sbuf);
+                preIndices.push_back(sbuf);
             }
             //loading vertex components
             indices_link il;
@@ -195,5 +185,30 @@ void figure::loadFromFile(QString pathFile){
         }
     }else{
         qDebug() << "Can't load file " << pathFile;
+    }
+}
+
+void figure::recalcConstitution(float str, float dex, float scale){
+    //recalc morphing vertices
+    //GLfloat figVertices[fig.vertices.size()*3];
+    int size = preVertices.size();
+    for (int i(0); i<size; i++){
+        //vertices[i*3] = fig.vertices[i][0].x;
+        //figVertices[i*3+1] = fig.vertices[i][0].y;
+        //figVertices[i*3+2] = fig.vertices[i][0].z;
+        vertices.push_back(preVertices[i][0].x);
+        vertices.push_back(preVertices[i][0].y);
+        vertices.push_back(preVertices[i][0].z);
+    }
+}
+
+void figure::recalcTextureCoordinates(QString type){
+    //convert texture coords via type: world\weapon\etc
+}
+
+void figure::convertToGLIndices(){
+    int size = preIndices.size();
+    for (int i(0); i<size; i++){
+        indices.push_back( (unsigned int)vert_comp[preIndices[i]].vertex_ind );
     }
 }

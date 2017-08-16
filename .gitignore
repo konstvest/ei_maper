@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # C++ objects and libs
 
 *.slo
@@ -44,3 +45,6 @@ target_wrapper.*
 
 # QtCtreator CMake
 CMakeLists.txt.user*
+=======
+*.user
+>>>>>>> 905584c9b0bfdd02d14336d67217895e9e15fbde

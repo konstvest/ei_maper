@@ -156,28 +156,16 @@ void GLWidget::drawCube(float width, float length, float height){
 
 void GLWidget::drawFigure(figure fig){
     //translate on class func
-    GLfloat figVertices[fig.vertices.size()*3];
-    int arsize = fig.vertices.size();
-    for (int i(0); i<arsize; i++){
-        figVertices[i*3] = fig.vertices[i][0].x;
-        figVertices[i*3+1] = fig.vertices[i][0].y;
-        figVertices[i*3+2] = fig.vertices[i][0].z;
+    if (open_file){
+        GLubyte figColors[fig.vertices.size()*3];
+        //std::fill_n(figColors, fig.vertices.size()*3, 230);
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        glColorPointer(3, GL_UNSIGNED_BYTE, 0, figColors);
+        glVertexPointer(3, GL_FLOAT, 0, fig.vertices.data());
+        glDrawElements(GL_TRIANGLES, fig.indices.size(), GL_UNSIGNED_INT, fig.indices.data());
+        glDisableClientState(GL_VERTEX_ARRAY);
+        triangles = fig.indices.count()/3;
     }
-
-    GLubyte figColors[fig.vertices.size()*3];
-    //std::fill_n(figColors, fig.vertices.size()*3, 230);
-
-    GLubyte figIndices[fig.indices.size()];
-    for (int i(0); i<fig.indices.size(); i++){
-        figIndices[i] = (unsigned int)fig.vert_comp[fig.indices[i]].vertex_ind;
-    }
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glColorPointer(3, GL_UNSIGNED_BYTE, 0, figColors);
-    glVertexPointer(3, GL_FLOAT, 0, figVertices);
-    glDrawElements(GL_TRIANGLES, fig.indices.size(), GL_UNSIGNED_BYTE, figIndices);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    triangles = sizeof (figIndices)/3/sizeof(GLubyte);
-
 }

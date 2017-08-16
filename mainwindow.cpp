@@ -23,14 +23,17 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    this->ui->widget->name = "brick";
+    /*this->ui->widget->name = "brick";
     this->ui->widget->width = 0.5;
     this->ui->widget->length = 1;
     this->ui->widget->height = 0.3;
     this->ui->widget->update();
     this->ui->horizontalSlider->setVisible(false);
     this->ui->horizontalSlider_2->setVisible(false);
-    this->ui->horizontalSlider_3->setVisible(false);
+    this->ui->horizontalSlider_3->setVisible(false);*/
+    QVector <float> v1 = {1.0, 2.2, 0.7};
+    QVector <float> v2 = {3.0, 1.1, 2.3};
+    //qDebug() << v2.;
 }
 
 void MainWindow::on_pushButton_3_clicked()
@@ -112,8 +115,8 @@ void MainWindow::on_pushButton_7_clicked()
                                                ));
     figa.recalcConstitution(0,0,0);
     figa.convertToGLIndices();
-    this->ui->widget->fig = figa;
-    this->ui->widget->open_file = true;
+    this->ui->widget->fig.push_back(figa);
+    //this->ui->widget->open_file = true;
 
 
 

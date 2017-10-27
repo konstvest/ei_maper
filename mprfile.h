@@ -13,7 +13,7 @@ public:
     float WarpSpeed;
 
     MprMaterial(MpMaterial mat);
-    MpMaterial *ToMpMaterial();
+    MpMaterial* ToMpMaterial();
 };
 
 struct MprAnimTile
@@ -23,7 +23,7 @@ public:
     ushort PhasesCount;
 
     MprAnimTile(MpAnimTile mpAnimTile);
-    MpAnimTile *ToMpAnimTile();
+    MpAnimTile* ToMpAnimTile();
 };
 
 struct MprTile
@@ -80,13 +80,13 @@ public:
     int GetTextureSize();
     int GetTileSize();
 
-    QVector<MprMaterial>  Materials;
-    eTileType    TileTypes;
-    QVector<MprAnimTile>  AnimTiles;
-    QVector<QVector<MprVertex>>  LandVertices;
-    QVector<QVector<MprVertex>>   WaterVertices;
-    QVector<QVector<MprTile>>     LandTiles;
-    QVector<QVector<MprTile>>     WaterTiles;
+    QVector<MprMaterial> Materials;
+    eTileType TileTypes;
+    QVector<MprAnimTile> AnimTiles;
+    QVector<QVector<MprVertex>> LandVertices;
+    QVector<QVector<MprVertex>> WaterVertices;
+    QVector<QVector<MprTile>> LandTiles;
+    QVector<QVector<MprTile>> WaterTiles;
     int WaterMaterials[];
 private:
     float MaxZ;

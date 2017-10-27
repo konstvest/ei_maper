@@ -161,6 +161,6 @@ void GLWidget::calc_select_line(float mouse_x, float mouse_y){
 
 }
 
-bool GLWidget::intersect_triangle_line(figure fig, QVector<float> p1, QVector<float> p2){
+//bool GLWidget::intersect_triangle_line(figure fig, QVector<float> p1, QVector<float> p2){
 
-}
+//}

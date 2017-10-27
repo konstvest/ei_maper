@@ -28,12 +28,21 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     glwidget.cpp \
     figure.cpp \
-    mprfile.cpp
+    mprfile.cpp \
+    scene.cpp \
+    particle.cpp \
+    sound.cpp \
+    object.cpp \
+    unit.cpp
 
 HEADERS  += mainwindow.h \
     glwidget.h \
-    figure.h \
     mprfile.h \
-    mpfile.h
+    mpfile.h \
+    scene.h \
+    ei_types.h \
+    ei_object.h \
+    ei_map.h \
+    ei_mob.h
 
 FORMS    += mainwindow.ui

@@ -1,11 +1,12 @@
-#include "figure.h"
 
-figure::figure()
+#include "ei_object.h"
+
+ei::CFigure::CFigure()
 {
 
 }
 
-void figure::loadFromFile(QString pathFile){
+void ei::CFigure::loadFromFile(QString pathFile){
     qDebug() << "load";
     std::ifstream figFile;
     figFile.open(pathFile.toLatin1(), std::ios::binary);
@@ -188,7 +189,7 @@ void figure::loadFromFile(QString pathFile){
     }
 }
 
-void figure::recalcConstitution(float str, float dex, float scale){
+void ei::CFigure::recalcConstitution(float str, float dex, float scale){
     //recalc morphing vertices
     //GLfloat figVertices[fig.vertices.size()*3];
     int size = preVertices.size();
@@ -202,11 +203,11 @@ void figure::recalcConstitution(float str, float dex, float scale){
     }
 }
 
-void figure::recalcTextureCoordinates(QString type){
+void ei::CFigure::recalcTextureCoordinates(QString type){
     //convert texture coords via type: world\weapon\etc
 }
 
-void figure::convertToGLIndices(){
+void ei::CFigure::convertToGLIndices(){
     int size = preIndices.size();
     for (int i(0); i<size; i++){
         indices.push_back( (unsigned int)vert_comp[preIndices[i]].vertex_ind );

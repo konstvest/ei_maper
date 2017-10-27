@@ -6,10 +6,9 @@
 #include <QWheelEvent>
 #include <QKeyEvent>
 #include <Qpoint>
-#include <QDebug>
-#include <QString>
 
-#include "figure.h"
+#include "ei_types.h"
+#include "scene.h"
 
 class GLWidget : public QGLWidget
 {
@@ -44,7 +43,7 @@ public:
     void calc_select_line (float mouse_x, float mouse_y);
     bool intersect_triangle_line (figure fig, QVector <float> p1, QVector <float> p2);
 
-protected:
+private:
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();

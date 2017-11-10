@@ -7,8 +7,6 @@
 #include "QDebug"
 #include <fstream>
 
-namespace ei {
-
 struct indices_link
 {
     short normal_ind;
@@ -36,8 +34,5 @@ struct vec4
     float z;
     float w;
 };
-
-}
-
 
 #endif

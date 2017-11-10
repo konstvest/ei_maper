@@ -7,16 +7,17 @@ namespace ei {
 
 class CObjectInterface{
 public:
-    virtual bool add();
-    virtual bool remove();
-    virtual bool move(vec3);
-    virtual bool rotate(vec4);
-    virtual bool copy();
-    virtual bool paste();
-    virtual bool cut();
-    virtual void hide();
-    virtual void show();
-    virtual bool isHide();
+    virtual bool add() = 0;
+    virtual bool remove() = 0;
+    virtual bool move(vec3) = 0;
+    virtual bool rotate(vec4) = 0;
+    virtual bool copy() = 0;
+    virtual bool paste() = 0;
+    virtual bool cut() = 0;
+    virtual void hide() = 0;
+    virtual void show() = 0;
+    virtual bool isHide() = 0;
+    virtual bool select() = 0;
     //virtual bool clearComplex();
     //virtual bool clearPosition();
     //virtual bool clearRotation();
@@ -25,7 +26,7 @@ public:
 class CFigure{
 public:
     CFigure();
-
+    ~CFigure();
     void vertices();
     void normals();
     void uvCoords();
@@ -35,7 +36,7 @@ public:
     //QVector <vec4> normals;
     //QVector <vec2> t_coords;
     //QVector <unsigned int> indices;
-    void loadFromFile(QString pathFile);
+    bool loadFromFile(QString pathFile);
     //void recalcConstitution (double str, double dex, double scale);
     //void recalcTextureCoordinates (QString type);
     //void convertToGLIndices ();
@@ -43,7 +44,8 @@ private:
 
     QVector <int> m_header;
     QVector <vec3> m_vertices;
-    QVector <vec4> m_normals;
+    QVector<QVector<vec3>> m_morphingVertices;
+    QVector<vec4> m_normals;
     //m_boundBoox;  // box of min and max coordinates
     /*QVector <vec3> min;
     QVector <vec3> max;
@@ -59,19 +61,31 @@ private:
 class CObject : public CObjectInterface{
 
 public:
-    bool move();
-    bool rotate();
+    // virtuals
+    bool add();
+    bool remove();
+    bool move(vec3);
+    bool rotate(vec4);
+    bool copy();
+    bool paste();
+    bool cut();
+    void hide();
+    void show();
     bool isHide();
+    bool select();
+    // quiries
     int id();
     double scale();
     double strenght();
-
+    //sets
     void setStrenght(float d);
     void setDexterity(float d);
     void setScale(float d);
     void setName(const char* s);
     bool isQuest();
     bool constructModel();   //construct model from loaded figures
+    bool loadFromFile(QString path);    //for single import object
+
 private:
     QString m_modelName;
     QVector <CFigure> m_figures; //!!!!replace to model, not vector of figures
@@ -90,9 +104,9 @@ private:
     vec4 m_rotation;    // quaternion x,y,z,w
 };
 
-class Unit : public CObject{
+class CUnit : public CObject{
 public:
-    Unit();
+    CUnit();
     bool add();
     bool remove();
     bool move(vec3);
@@ -102,6 +116,10 @@ public:
     bool cut();
     void hide();
     void show();
+    bool isHide();
+    bool select();
+
+    bool setStrenght(float d);
 private:
     QString m_prototypeName;
     QString m_questItem; // ?!
@@ -113,64 +131,75 @@ class CParticle : public CObjectInterface{
 
 public:
     CParticle();
-
+    //virtuals
     bool add();
     bool remove();
-    bool move();
-    bool rotate();
+    bool move(vec3);
+    bool rotate(vec4);
     bool copy();
     bool paste();
     bool cut();
     void hide();
     void show();
+    bool isHide();
+    bool select();
 };
 
 class CSound : public CObjectInterface{
 
 public:
     CSound();
-
+    //virtuals
     bool add();
     bool remove();
-    bool move();
-    bool rotate();
+    bool move(vec3);
+    bool rotate(vec4);
     bool copy();
     bool paste();
     bool cut();
     void hide();
     void show();
+    bool isHide();
+    bool select();
 };
 
 class CLight : public CObjectInterface{
 
 public:
     CLight();
-
+    //virtuals
     bool add();
     bool remove();
-    bool move();
-    bool rotate();
+    bool move(vec3);
+    bool rotate(vec4);
     bool copy();
     bool paste();
     bool cut();
     void hide();
     void show();
+    bool isHide();
+    bool select();
 };
 
 class CTrap : public CObjectInterface{
 
 public:
     CTrap();
-
+    //virtuals
     bool add();
     bool remove();
-    bool move();
-    bool rotate();
+    bool move(vec3);
+    bool rotate(vec4);
     bool copy();
     bool paste();
     bool cut();
     void hide();
     void show();
+    bool isHide();
+    bool select();
+private:
+    float m_radius;
+    float m_position;
 };
 
 }

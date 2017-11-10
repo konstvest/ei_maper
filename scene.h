@@ -7,16 +7,16 @@
 #include "ei_mob.h"
 
 class CScene{
-    CScene();
 public:
-
+    CScene();
+    ~CScene();
     //objects: model, sound, particle, trap (light?!)
-    bool addObject(ei::CObjectInterface& obj);
-    bool removeObject(ei::CObjectInterface& obj);
-    bool hideObject(ei::CObjectInterface& obj, int id);
-    bool copyObject(ei::CObjectInterface& obj);
-    bool pasteObject(ei::CObjectInterface& obj);
-    bool cutObject(ei::CObjectInterface& obj);
+    bool addObject(ei::CObjectInterface* obj);
+    bool removeObject(ei::CObjectInterface* obj);
+    bool hideObject(ei::CObjectInterface* obj, int id);
+    bool copyObject(ei::CObjectInterface* obj);
+    bool pasteObject(ei::CObjectInterface* obj);
+    bool cutObject(ei::CObjectInterface* obj);
     QVector <ei::CObject> objects(); //for objects tree view;
 
     //map
@@ -40,6 +40,6 @@ private:
     QVector <ei::CObject> m_objects;
     QVector <ei::CMob> m_mobs;
     ei::CMap* m_map = nullptr;
-}
+};
 
 #endif // SCENE_H

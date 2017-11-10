@@ -38,10 +38,10 @@ public:
     QString name;
     QPoint pressPosition;
 
-    QVector <figure> fig;
+    //QVector <figure> fig;
 
     void calc_select_line (float mouse_x, float mouse_y);
-    bool intersect_triangle_line (figure fig, QVector <float> p1, QVector <float> p2);
+    //bool intersect_triangle_line (figure fig, QVector <float> p1, QVector <float> p2);
 
 private:
     void initializeGL();
@@ -51,7 +51,7 @@ private:
     void mouseMoveEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
     void keyPressEvent(QKeyEvent *event);
-    void drawFigure(QVector <figure> fig);
+    //void drawFigure(QVector <figure> fig);
 };
 
 #endif // GLWIDGET_H

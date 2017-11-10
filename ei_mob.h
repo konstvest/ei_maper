@@ -12,8 +12,8 @@ public:
     bool saveInFile();
     void getData(); //get data of this one: need to save all mobs in one file
 private:
-    QString name;
-    QString path;
+    QString m_name;
+    QString m_path;
 };
 }
 #endif // EI_MOB_H

@@ -3,9 +3,9 @@
 #include <QString>
 #include <mpfile.h>
 
-struct MprMaterial
+struct MprMaterial  //=+=+=+=+do you realy need MpMaterial and MprMaterial?!
 {
-public:
+public: //=+=+=+public on default
     eMaterialType Type;
     float R, G, B, A;
     float SelfIllum;

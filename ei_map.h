@@ -21,7 +21,10 @@ public:
     bool saveHeightMap();
 
 private:
-    QString name;
+    QString m_name;
+    int m_Vertices; //change type
+    int m_Tiles;   //change type
+    QVector </*struct sector*/float > m_Sectors;
 
 };
 

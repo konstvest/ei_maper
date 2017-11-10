@@ -33,7 +33,9 @@ SOURCES += main.cpp\
     particle.cpp \
     sound.cpp \
     object.cpp \
-    unit.cpp
+    unit.cpp \
+    trap.cpp \
+    mob.cpp
 
 HEADERS  += mainwindow.h \
     glwidget.h \

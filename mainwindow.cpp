@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "glwidget.h"
-#include "figure.h"
 #include <string.h>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -23,14 +22,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_2_clicked()
 {
-    /*this->ui->widget->name = "brick";
-    this->ui->widget->width = 0.5;
-    this->ui->widget->length = 1;
-    this->ui->widget->height = 0.3;
-    this->ui->widget->update();
-    this->ui->horizontalSlider->setVisible(false);
-    this->ui->horizontalSlider_2->setVisible(false);
-    this->ui->horizontalSlider_3->setVisible(false);*/
     QVector <float> v1 = {1.0, 2.2, 0.7};
     QVector <float> v2 = {3.0, 1.1, 2.3};
     //qDebug() << v2.;
@@ -63,7 +54,12 @@ void MainWindow::on_pushButton_4_clicked()
 void MainWindow::on_pushButton_5_clicked()
 {
     QMessageBox msg;
-    msg.setText("Input\nRight Mouse Button - rotate object\nMouse wheel - zoom object\nW,S - move depth camera\nA,D - move side camera\nQ,E - move height camera\n\nNote: check keyboard layout and click on viewport if key buttons don't work");
+    msg.setText("Input\nRight Mouse Button - rotate object\n"
+                "Mouse wheel - zoom object\n"
+                "W,S - move depth camera\n"
+                "A,D - move side camera\n"
+                "Q,E - move height camera\n\n"
+                "Note: check keyboard layout and click on viewport if key buttons don't work");
     msg.exec();
 }
 
@@ -105,17 +101,19 @@ void MainWindow::on_pushButton_6_clicked()
 
 void MainWindow::on_pushButton_7_clicked()
 {
-    QFileDialog fldlg;
-    fldlg.setFileMode(QFileDialog::AnyFile);
-    figure figa;
-    figa.loadFromFile(fldlg.getOpenFileName(this, tr("Open File"), "f:\\temp\\",
-                                           tr("Figure file (*.fig);;"
-                                              "Link file (*.lnk);;"
-                                              "Bone file (*.bon)")
-                                               ));
-    figa.recalcConstitution(0,0,0);
-    figa.convertToGLIndices();
-    this->ui->widget->fig.push_back(figa);
+//    QFileDialog fldlg;
+//    fldlg.setFileMode(QFileDialog::AnyFile);
+//    figure figa;
+//    figa.loadFromFile(fldlg.getOpenFileName(this, tr("Open File"), "f:\\temp\\",
+//                                           tr("Figure file (*.fig);;"
+//                                              "Link file (*.lnk);;"
+//                                              "Bone file (*.bon)")
+//                                               ));
+//    figa.recalcConstitution(0,0,0);
+//    figa.convertToGLIndices();
+//    this->ui->widget->fig.push_back(figa);
+
+
     //this->ui->widget->open_file = true;
 
 

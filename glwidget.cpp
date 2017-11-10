@@ -56,7 +56,7 @@ void GLWidget::paintGL(){
     glRotatef(yAxisRotation, 1.0, 0.0, 0.0);
     glScalef(zoom, zoom, zoom);
 
-    drawFigure(fig);
+    //drawFigure(fig);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event){
@@ -117,22 +117,22 @@ void GLWidget::keyPressEvent(QKeyEvent *event){
     update();
 }
 
-void GLWidget::drawFigure(QVector <figure> fig){
-    //translate on class func
-    triangles = 0;
-    for (int i(0); i<fig.size(); i++){
-        GLubyte figColors[fig[i].vertices.size()*3];
-        //std::fill_n(figColors, fig.vertices.size()*3, 230);
+//void GLWidget::drawFigure(QVector <figure> fig){
+//    //translate on class func
+//    triangles = 0;
+//    for (int i(0); i<fig.size(); i++){
+//        GLubyte figColors[fig[i].vertices.size()*3];
+//        //std::fill_n(figColors, fig.vertices.size()*3, 230);
 
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
-        glColorPointer(3, GL_UNSIGNED_BYTE, 0, figColors);
-        glVertexPointer(3, GL_FLOAT, 0, fig[i].vertices.data());
-        glDrawElements(GL_TRIANGLES, fig[i].indices.size(), GL_UNSIGNED_INT, fig[i].indices.data());
-        glDisableClientState(GL_VERTEX_ARRAY);
-        triangles += fig[i].indices.count()/3;
-    }
-}
+//        glEnableClientState(GL_VERTEX_ARRAY);
+//        glEnableClientState(GL_COLOR_ARRAY);
+//        glColorPointer(3, GL_UNSIGNED_BYTE, 0, figColors);
+//        glVertexPointer(3, GL_FLOAT, 0, fig[i].vertices.data());
+//        glDrawElements(GL_TRIANGLES, fig[i].indices.size(), GL_UNSIGNED_INT, fig[i].indices.data());
+//        glDisableClientState(GL_VERTEX_ARRAY);
+//        triangles += fig[i].indices.count()/3;
+//    }
+//}
 
 void GLWidget::calc_select_line(float mouse_x, float mouse_y){
     GLint vport[4];

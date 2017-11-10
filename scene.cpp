@@ -1,43 +1,50 @@
 #include "scene.h"
 
-bool CScene::addObject(ei::CObjectInterface &obj){
-    if (obj.add()){
+CScene::CScene(){
+
+}
+
+CScene::~CScene(){
+
+}
+
+bool CScene::addObject(ei::CObjectInterface* obj){
+    if (obj->add()){
         this->turn();
         return true;
     }
     return false;
 }
 
-bool CScene::removeObject(ei::CObjectInterface &obj){
-    if (obj.remove()){
+bool CScene::removeObject(ei::CObjectInterface* obj){
+    if (obj->remove()){
         this->turn();
         return true;
     }
     return false;
 }
 
-bool CScene::hideObject(ei::CObjectInterface &obj, int id){
-    if (obj.hide())
+bool CScene::hideObject(ei::CObjectInterface* obj, int id){
+    obj->hide();
+    return true;
+}
+
+bool CScene::copyObject(ei::CObjectInterface* obj){
+    if (obj->copy())
         return true;
     return false;
 }
 
-bool CScene::copyObject(ei::CObjectInterface &obj){
-    if (obj.copy())
-        return true;
-    return false;
-}
-
-bool CScene::pasteObject(ei::CObjectInterface &obj){
-    if (obj.paste()){
+bool CScene::pasteObject(ei::CObjectInterface* obj){
+    if (obj->paste()){
         this->turn();
         return true;
     }
     return false;
 }
 
-bool CScene::cutObject(ei::CObjectInterface &obj){
-    if (obj.cut()){
+bool CScene::cutObject(ei::CObjectInterface* obj){
+    if (obj->cut()){
         this->turn();
         return true;
     }
@@ -59,11 +66,11 @@ void CScene::turn(){
     m_isChanged = true;
 }
 
-bool CScene::createMap(){
-    this->m_map->saveInFile("c:\\map.mpr");
-    this->turn();
-    return true;
-}
+//bool CScene::createMap(){
+//    this->m_map->saveInFile("c:\\map.mpr");
+//    this->turn();
+//    return true;
+//}
 
 bool CScene::clearMap(){
     this->turn();
@@ -74,6 +81,8 @@ bool CScene::loadMob(QString path){
     return true;
 }
 bool CScene::saveMob(ei::CMob& mob){
-
+    return true;
 }
-bool CScene::saveMobInOne(QString path);
+bool CScene::saveMobInOne(QString path){
+    return true;
+}

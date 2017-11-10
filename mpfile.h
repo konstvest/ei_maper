@@ -28,7 +28,7 @@ enum eTileType
    Snowballs = 12,
    Lava = 13,
    Swamp = 14,
-   Undefined = 8,
+   Undefined = 8,   //+=+=+=+=rly?! 14, 8, 15?+=+=+=+=
    Highrock = 15,
    Last = 16
 };
@@ -37,7 +37,7 @@ enum eTileType
 struct MpMaterial
 {
     eMaterialType Type;
-    float R, G, B, A;     // Diffuse color of object
+    float R, G, B, A;     // Diffuse color of object    Try to use array instead 4 variables.
     float SelfIllum;      // Self illumination of object
     float WaveMultiplier;
     float WarpSpeed;
@@ -72,9 +72,9 @@ struct MpAnimTile
 struct MpFile
 {
     MpFileHeader Header;
-    MpMaterial Materials[];
-    eTileType  TileTypes[];
-    MpAnimTile AnimTiles[];
+    MpMaterial Materials[]; //+=+= replace to vector, not array, QVector<MpMaterial> Materials. May be storage pointer instead? (<MpMaterial*>)
+    eTileType  TileTypes[]; //+=+= replace to vector, not array
+    MpAnimTile AnimTiles[]; //+=+= replace to vector, not array
 };
 
 struct SecFileHeader

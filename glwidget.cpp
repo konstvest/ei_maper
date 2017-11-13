@@ -7,7 +7,7 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget (parent)
     xViewPos = 0;
     yViewPos = 0;
 
-    triangles = 0;
+    //triangles = 0;
     length = 1;
     width = 1;
     height = 1;
@@ -17,11 +17,8 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget (parent)
     yCamPos = 0;
     zCamPos = 5;
 
-    size = 300;
     zoom = 1;
-    orthosize = 6;
 
-    open_file = false;
 }
 
 GLWidget::~GLWidget(){
@@ -59,9 +56,7 @@ void GLWidget::paintGL(){
     glRotatef(yAxisRotation, 1.0, 0.0, 0.0);
     glScalef(zoom, zoom, zoom);
 
-    //if (open_file == true){
-        drawFigure(fig);
-    //}
+    //drawFigure(fig);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event){
@@ -75,6 +70,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event){
         /*xViewPos +=(GLfloat)event->x() - (GLfloat)pressPosition.x();
         yViewPos -=(GLfloat)event->y() - (GLfloat)pressPosition.y();
         pressPosition = event->pos();*/
+        calc_select_line((float)event->x(), (float)event->y());
     } else if (event->buttons() & Qt::RightButton){
         xAxisRotation += 2*((GLfloat)event->x()-(GLfloat)pressPosition.x());
         yAxisRotation += 2*((GLfloat)event->y()-(GLfloat)pressPosition.y());
@@ -114,58 +110,57 @@ void GLWidget::keyPressEvent(QKeyEvent *event){
     case Qt::Key_Down:
         size -=10;
         break;
+    case Qt::Key_C:
+
+        break;
     }
     update();
 }
 
-void GLWidget::drawCube(float width, float length, float height){
+//void GLWidget::drawFigure(QVector <figure> fig){
+//    //translate on class func
+//    triangles = 0;
+//    for (int i(0); i<fig.size(); i++){
+//        GLubyte figColors[fig[i].vertices.size()*3];
+//        //std::fill_n(figColors, fig.vertices.size()*3, 230);
 
-    GLfloat verticesCube[] = {0,0,0,
-                          width,0,0,
-                          width,height,0,
-                          0, height, 0,
-                          0, 0, -length,
-                          width, 0, -length,
-                          width, height, -length,
-                          0, height, -length};
+//        glEnableClientState(GL_VERTEX_ARRAY);
+//        glEnableClientState(GL_COLOR_ARRAY);
+//        glColorPointer(3, GL_UNSIGNED_BYTE, 0, figColors);
+//        glVertexPointer(3, GL_FLOAT, 0, fig[i].vertices.data());
+//        glDrawElements(GL_TRIANGLES, fig[i].indices.size(), GL_UNSIGNED_INT, fig[i].indices.data());
+//        glDisableClientState(GL_VERTEX_ARRAY);
+//        triangles += fig[i].indices.count()/3;
+//    }
+//}
 
-    GLubyte colorsCube[] = {255,0,0,
-                        155,0,0,
-                        55,0,0,
-                        55,55,0,
-                        0,155,0,
-                        0,255,255,
-                        0,0,255,
-                        0,0,155};
+void GLWidget::calc_select_line(float mouse_x, float mouse_y){
+    GLint vport[4];
+    GLdouble projection[16];
+    GLdouble modelView[16];
+    double vx;
+    double vy;
+    double vz;
+    float wx, wy, wz;
+    GLdouble nearPoint[3];
+    GLdouble farPoint[3];
 
-    GLubyte indices[] = {0,1,2, 2,3,0,
-                        1,5,6, 6,2,1,
-                        3,2,6, 6,7,3,
-                        7,4,0, 0,3,7,
-                        1,0,4, 4,5,1,
-                        6,5,4, 4,7,6};
+    glGetIntegerv(GL_VIEWPORT, vport);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelView);
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glColorPointer(3, GL_UNSIGNED_BYTE, 0, colorsCube);
-    glVertexPointer(3, GL_FLOAT, 0, verticesCube);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, indices);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    triangles = sizeof (indices)/3/sizeof(GLubyte);
+    vx = mouse_x;
+    vy = currentHeight-mouse_y;
+    glReadPixels(vx, vy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &vz);
+    //vz = -1;
+
+    gluUnProject(vx, vy, vz, modelView, projection, vport, &nearPoint[0], &nearPoint[1], &nearPoint[2]);
+    vz = 1;
+    gluUnProject(wx, wy, wz, modelView, projection, vport, &farPoint[0], &farPoint[1], &farPoint[2]);
+    qDebug() << "near x:" << *(nearPoint) << " y:" << *(nearPoint+1) << " z:" << *(nearPoint+2) << " far x:" << *(farPoint) << " y:" << *(farPoint+1) << " z:" << *(farPoint+2);
+
 }
 
-void GLWidget::drawFigure(figure fig){
-    //translate on class func
-    if (open_file){
-        GLubyte figColors[fig.vertices.size()*3];
-        //std::fill_n(figColors, fig.vertices.size()*3, 230);
+//bool GLWidget::intersect_triangle_line(figure fig, QVector<float> p1, QVector<float> p2){
 
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
-        glColorPointer(3, GL_UNSIGNED_BYTE, 0, figColors);
-        glVertexPointer(3, GL_FLOAT, 0, fig.vertices.data());
-        glDrawElements(GL_TRIANGLES, fig.indices.size(), GL_UNSIGNED_INT, fig.indices.data());
-        glDisableClientState(GL_VERTEX_ARRAY);
-        triangles = fig.indices.count()/3;
-    }
-}
+//}

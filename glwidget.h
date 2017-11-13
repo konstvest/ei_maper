@@ -6,10 +6,9 @@
 #include <QWheelEvent>
 #include <QKeyEvent>
 #include <Qpoint>
-#include <QDebug>
-#include <QString>
 
-#include "figure.h"
+#include "ei_types.h"
+#include "scene.h"
 
 class GLWidget : public QGLWidget
 {
@@ -39,10 +38,12 @@ public:
     QString name;
     QPoint pressPosition;
 
-    bool open_file;
-    figure fig;
+    //QVector <figure> fig;
 
-protected:
+    void calc_select_line (float mouse_x, float mouse_y);
+    //bool intersect_triangle_line (figure fig, QVector <float> p1, QVector <float> p2);
+
+private:
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
@@ -50,8 +51,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
     void keyPressEvent(QKeyEvent *event);
-    void drawCube (float width, float length, float height);
-    void drawFigure(figure fig);
+    //void drawFigure(QVector <figure> fig);
 };
 
 #endif // GLWIDGET_H

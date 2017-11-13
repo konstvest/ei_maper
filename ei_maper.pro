@@ -28,12 +28,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     glwidget.cpp \
     figure.cpp \
-    mprfile.cpp
+    mprfile.cpp \
+    resfile.cpp
 
 HEADERS  += mainwindow.h \
     glwidget.h \
     figure.h \
     mprfile.h \
-    mpfile.h
+    mpfile.h \
+    resfile.h
 
 FORMS    += mainwindow.ui

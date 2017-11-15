@@ -32,30 +32,28 @@ public:
     void uvCoords();
     void boundBox();
     void setComplex(float str, float dex, float tall);
-    //QVector <float> vertices;
-    //QVector <vec4> normals;
-    //QVector <vec2> t_coords;
-    //QVector <unsigned int> indices;
-    bool loadFromFile(QString pathFile);
-    //void recalcConstitution (double str, double dex, double scale);
-    //void recalcTextureCoordinates (QString type);
-    //void convertToGLIndices ();
+    //TODO return methods of vertices, uv, normals, vert.indices, uv.indices
+    bool loadFromFile(QString& pathFile);
+    void calculateConstitution (float str, float dex, float scale);
 private:
-
+    //TODO: change vector to array
     QVector <int> m_header;
-    QVector <vec3> m_vertices;
-    QVector<QVector<vec3>> m_morphingVertices;
-    QVector<vec4> m_normals;
-    //m_boundBoox;  // box of min and max coordinates
-    /*QVector <vec3> min;
-    QVector <vec3> max;
-    QVector <vec3> center;
-    QVector <float> radius;
-    QVector <QVector <vec3>> preVertices;
-    QVector <vec2> preT_coords;
-    QVector <short> preIndices;
-    QVector <indices_link> vert_comp;
-    QVector <short> light_comp;*/
+    QVector<float> m_BoundBox;
+
+    QVector<QVector<QVector<float>>> m_vertices;
+    QVector<int> m_vertIndices;
+    QVector<QVector<float>> m_normals;
+    QVector<int> m_normIndices;
+    QVector<QVector<float>> m_uvCoords;
+    QVector<int> m_uvIndices;
+
+    // vectors include morph components
+    QVector<QVector<QVector<float>>> m_morphVertices;
+    //TODO: change vector to array or bbox class
+    QVector <QVector<float>> m_morphMin;   // 8x3
+    QVector <QVector<float>> m_morphMax;   // 8x3
+    QVector <QVector<float>> m_morphCenter; //8x3
+    QVector <float> m_morphRadius;  //8
 };
 
 class CObject : public CObjectInterface{

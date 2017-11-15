@@ -42,6 +42,7 @@ void read24(std::ifstream& file, QVector<vec3>& points){
     }
 }
 
+// read morph components(8)
 void read8(std::ifstream& file, QVector<float>& points){
     float buf;
     for (int i(0); i<8;i++){
@@ -49,7 +50,6 @@ void read8(std::ifstream& file, QVector<float>& points){
         points.push_back(buf);
     }
 }
-
 
 //     vertex#1           vertex#2
 // m |{x00,y00,z00}| |{x10,y10,z10}| .......
@@ -121,7 +121,6 @@ void readTextureCoords(std::ifstream& file, QVector<QVector<float>>& tCoords, in
         }
 }
 
-//TODO fix reading. it has some bugs
 void readIndices(std::ifstream& file, QVector<short>& indices, int indCount){
     short buf;
     for (int i(0); i<indCount; i++){

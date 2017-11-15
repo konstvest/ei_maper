@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "glwidget.h"
 #include <string.h>
+#include "scene.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -13,6 +14,12 @@ MainWindow::MainWindow(QWidget *parent) :
     this->ui->horizontalSlider->setVisible(false);
     this->ui->horizontalSlider_2->setVisible(false);
     this->ui->horizontalSlider_3->setVisible(false);
+
+    //CScene scene;
+    ei::CFigure fig;
+    QString path("c:\\Users\\konstantin.bezelians\\files\\temp\\hd.fig");
+    fig.loadFromFile(path);
+    //scene.addObject(&obj);
 }
 
 MainWindow::~MainWindow()
@@ -64,8 +71,11 @@ void MainWindow::on_pushButton_5_clicked()
 }
 
 void MainWindow::updateProperty(){
-    this->ui->label->setText("Object "+this->ui->widget->name+" has "+QString::number(this->ui->widget->triangles)+" triangle(s).\nProperty: "+
-                             "length="+QString::number(this->ui->widget->length)+" width="+QString::number(this->ui->widget->width)+" height="+QString::number(this->ui->widget->height)+"." );
+    this->ui->label->setText("Object "+this->ui->widget->name+
+                                " has "+QString::number(this->ui->widget->triangles)+" triangle(s).\n"
+                             "Property: length="+QString::number(this->ui->widget->length)+
+                                " width="+QString::number(this->ui->widget->width)+
+                                " height="+QString::number(this->ui->widget->height)+"." );
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)

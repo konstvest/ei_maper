@@ -1,6 +1,10 @@
 #ifndef SUPPORTMPRTYPES_H
 #define SUPPORTMPRTYPES_H
 #include <QString>
+#include <QDataStream>
+
+using namespace std;
+
 
 enum eMaterialType
 {
@@ -37,60 +41,87 @@ enum eTileType
 struct MpMaterial
 {
     eMaterialType Type;
-    float R, G, B, A;     // Diffuse color of object    Try to use array instead 4 variables.
+    float R, G, B, A;     // Diffuse color of object    Try to use array instead 4 variables. //Можно создать структурку Palette, но возиться с массивами, я не хочу.
     float SelfIllum;      // Self illumination of object
     float WaveMultiplier;
     float WarpSpeed;
     float Reserved1;
     float Reserved2;
     float Reserved3;
+
+    friend QDataStream& operator<< (QDataStream &os, MpMaterial const &mat)
+    {
+        return os << (int)mat.Type << mat.R << mat.G << mat.B << mat.A << mat.SelfIllum <<
+                     mat.WaveMultiplier << mat.WarpSpeed << mat.Reserved1 <<
+                     mat.Reserved2 << mat.Reserved3;
+    }
+
+    friend QDataStream& operator>> (QDataStream &is, MpMaterial &mat)
+    {
+        return is >> (qint32&)mat.Type >> mat.R >> mat.G >> mat.B >> mat.A >> mat.SelfIllum >>
+                     mat.WaveMultiplier >> mat.WarpSpeed >> mat.Reserved1 >>
+                     mat.Reserved2 >> mat.Reserved3;
+    }
 };
 
 struct MpFileHeader
 {
-    const uint MpFileSignature = 0xce4af672;
-
     uint   Signature;
-    float  MaxZ;
+    float   MaxZ;
     uint   SectorsXCount;
     uint   SectorsYCount;
     uint   TexturesCount;
     uint   TextureSize;
     uint   TilesCount;
     uint   TileSize;
-    ushort MaterialsCount;
+    unsigned short MaterialsCount;
     uint   AnimTilesCount;
+
+    friend QDataStream& operator>> (QDataStream &is, MpFileHeader &head)
+    {
+        return is >> head.Signature >> head.MaxZ >> head.SectorsXCount >> head.SectorsYCount  >>
+                    head.TexturesCount >> head.TextureSize >> head.TilesCount >> head.TileSize >>
+                    head.MaterialsCount >> head.AnimTilesCount;
+    }
+
+    friend QDataStream& operator<< (QDataStream &os, MpFileHeader const &head)
+    {
+        return os << head.Signature << head.MaxZ  << head.SectorsXCount << head.SectorsYCount <<
+                     head.TexturesCount << head.TextureSize << head.TilesCount << head.TileSize <<
+                     head.MaterialsCount << head.AnimTilesCount;
+    }
 };
 
 struct MpAnimTile
 {
     ushort TileIndex;
     ushort PhasesCount;
+
+    friend QDataStream& operator>> (QDataStream &st, MpAnimTile &tile)
+    {
+        return st >> tile.TileIndex >> tile.PhasesCount;
+    }
+
+    friend QDataStream& operator<< (QDataStream &st, MpAnimTile &tile)
+    {
+        return st << tile.TileIndex << tile.PhasesCount;
+    }
 };
 
-
-struct MpFile
+class MpFile
 {
+public:
+    void ReadFromFile(QString& path);
+    MpFileHeader& getHeader();
+    QVector<MpMaterial>& getMaterals();
+    QVector<eTileType>& getTitleType();
+    QVector<MpAnimTile>& getAnimTiles();
+private:
     MpFileHeader Header;
-    MpMaterial Materials[]; //+=+= replace to vector, not array, QVector<MpMaterial> Materials. May be storage pointer instead? (<MpMaterial*>)
-    eTileType  TileTypes[]; //+=+= replace to vector, not array
-    MpAnimTile AnimTiles[]; //+=+= replace to vector, not array
-};
+    QVector<MpMaterial> Materials;
+    QVector<eTileType>  TileTypes;
+    QVector<MpAnimTile> AnimTiles;
 
-struct SecFileHeader
-{
-   const uint SecFileSignature = 0xcf4bf774;
-
-    uint Signature;
-    char Type;
-};
-
-struct SecVertex
-{
-    signed char  OffsetX;
-    signed char  OffsetY;
-    ushort Z;
-    uint   PackedNormal;
 };
 
 

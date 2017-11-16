@@ -35,7 +35,9 @@ SOURCES += main.cpp\
     object.cpp \
     unit.cpp \
     trap.cpp \
-    mob.cpp
+    mob.cpp \
+    mpfile.cpp \
+    secfile.cpp
 
 HEADERS  += mainwindow.h \
     glwidget.h \
@@ -45,6 +47,7 @@ HEADERS  += mainwindow.h \
     ei_types.h \
     ei_object.h \
     ei_map.h \
-    ei_mob.h
+    ei_mob.h \
+    secfile.h
 
 FORMS    += mainwindow.ui

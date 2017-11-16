@@ -3,6 +3,7 @@
 #include "glwidget.h"
 #include <string.h>
 #include "scene.h"
+#include <mpfile.h>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -133,10 +134,12 @@ void MainWindow::on_pushButton_7_clicked()
 void MainWindow::on_btnLoadmp_clicked()
 {
     QFileDialog fileDialog;
-    QString mpFile = fileDialog.getOpenFileName(this,
+    QString mpFilePath = "e:\\projects\\qt\\build-ei_maper-Desktop_Qt_5_9_1_MinGW_32bit-Debug\\base_camp.mp";/*fileDialog.getOpenFileName(this,
         QString::fromUtf8("Открыть файл"),
         QDir::currentPath(),
-        "Mpr Headers (*.mp);;All files (*.*)");
+        "Mpr Headers (*.mp);;All files (*.*)");*/
     //qDebug() << mpFile;
-    int a = 0;
+    //int a = 0;
+    MpFile mpData;
+    mpData.ReadFromFile(mpFilePath);
 }

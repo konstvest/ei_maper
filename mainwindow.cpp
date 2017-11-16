@@ -129,3 +129,14 @@ void MainWindow::on_pushButton_7_clicked()
 
 
 }
+
+void MainWindow::on_btnLoadmp_clicked()
+{
+    QFileDialog fileDialog;
+    QString mpFile = fileDialog.getOpenFileName(this,
+        QString::fromUtf8("Открыть файл"),
+        QDir::currentPath(),
+        "Mpr Headers (*.mp);;All files (*.*)");
+    //qDebug() << mpFile;
+    int a = 0;
+}

@@ -36,4 +36,33 @@ void SecFile::ReadSecFile(QString &path)
             WaterVertex.append(sv);
         }
     }
+
+    for(int i(0); i<TilesCount; i++)
+    {
+        ushort lt;
+        st >> lt;
+        LandTiles.append(lt);
+    }
+
+    if(Header.Type == 3)
+    {
+        for(int i(0); i<TilesCount; i++)
+        {
+            ushort wt;
+            st >> wt;
+            WaterTiles.append(wt);
+        }
+
+        for(int i(0); i<TilesCount; i++)
+        {
+            ushort wa;
+            st >> wa;
+            WaterAllow.append(wa);
+        }
+    }
+    else
+    {
+        WaterTiles.append(0);
+        WaterAllow.append(65535);
+    }
 }

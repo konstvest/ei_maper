@@ -12,7 +12,7 @@ bool ei::CTrap::remove(){
     return true;
 }
 
-bool ei::CTrap::move(vec3){
+bool ei::CTrap::move(float3& coord){
     return true;
 }
 

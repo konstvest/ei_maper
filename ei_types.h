@@ -6,6 +6,7 @@
 #include "QList"
 #include "QDebug"
 #include <fstream>
+#include "ei_vectors.h"
 
 struct indices_link
 {
@@ -20,12 +21,7 @@ struct vec2
     float y;
 };
 
-struct vec3
-{
-    float x;
-    float y;
-    float z;
-};
+typedef ei::vec3<float> float3;
 
 struct vec4
 {

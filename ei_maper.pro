@@ -45,6 +45,7 @@ HEADERS  += mainwindow.h \
     ei_types.h \
     ei_object.h \
     ei_map.h \
-    ei_mob.h
+    ei_mob.h \
+    ei_vectors.h
 
 FORMS    += mainwindow.ui

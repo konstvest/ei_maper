@@ -8,7 +8,7 @@ bool ei::CObject::remove(){
     return true;
 }
 
-bool ei::CObject::move(vec3){
+bool ei::CObject::move(float3& coord){
 
     return true;
 }

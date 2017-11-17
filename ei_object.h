@@ -9,7 +9,7 @@ class CObjectInterface{
 public:
     virtual bool add() = 0;
     virtual bool remove() = 0;
-    virtual bool move(vec3) = 0;
+    virtual bool move(float3& coord) = 0;
     virtual bool rotate(vec4) = 0;
     virtual bool copy() = 0;
     virtual bool paste() = 0;
@@ -37,7 +37,6 @@ public:
     void calculateConstitution (float str, float dex, float scale);
 private:
     //TODO: change vector to array
-    QVector <int> m_header;
     QVector<float> m_BoundBox;
 
     QVector<QVector<QVector<float>>> m_vertices;
@@ -62,7 +61,7 @@ public:
     // virtuals
     bool add();
     bool remove();
-    bool move(vec3);
+    bool move(float3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -97,8 +96,8 @@ private:
     int m_id;
     int m_player;
     int m_type;
-    vec3 m_complex;   // str, dex, tall
-    vec3 m_position;    // x, y ,z
+    float3 m_complex;   // str, dex, tall
+    float3 m_position;    // x, y ,z
     vec4 m_rotation;    // quaternion x,y,z,w
 };
 
@@ -107,7 +106,7 @@ public:
     CUnit();
     bool add();
     bool remove();
-    bool move(vec3);
+    bool move(float3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -132,7 +131,7 @@ public:
     //virtuals
     bool add();
     bool remove();
-    bool move(vec3);
+    bool move(float3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -150,7 +149,7 @@ public:
     //virtuals
     bool add();
     bool remove();
-    bool move(vec3);
+    bool move(float3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -168,7 +167,7 @@ public:
     //virtuals
     bool add();
     bool remove();
-    bool move(vec3);
+    bool move(float3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -186,7 +185,7 @@ public:
     //virtuals
     bool add();
     bool remove();
-    bool move(vec3);
+    bool move(float3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();

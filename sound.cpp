@@ -11,7 +11,7 @@ bool ei::CSound::add(){
 bool ei::CSound::remove(){
     return true;
 }
-bool ei::CSound::move(vec3){
+bool ei::CSound::move(float3& coord){
     return true;
 }
 bool ei::CSound::rotate(vec4){

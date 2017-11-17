@@ -61,6 +61,7 @@ private:
     QVector<SecVertex> WaterVertex;
     QVector<ushort> LandTiles;
     QVector<ushort> WaterTiles;
+    QVector<ushort> WaterAllow;
 };
 
 #endif // SECFILE_H

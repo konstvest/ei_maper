@@ -1,4 +1,5 @@
 #include "ei_object.h"
+#include "ei_utils.h"
 
 ei::CFigure::CFigure()
 {
@@ -21,17 +22,6 @@ struct SHeader{
     int group = 0;
     int textureNumber = 0;
 };
-
-bool checkSignature(std::ifstream& file){
-    char signature[4];
-    file.read(signature, sizeof(signature));
-    if (!strcmp(signature, "FIG8")){
-        qDebug() << "incorrect signature";
-        file.close();
-        return false;
-    }
-    return true;
-}
 
 void readHeader(std::ifstream& file, SHeader& hd){
     file.read((char*)&hd, sizeof(hd));
@@ -192,7 +182,7 @@ bool ei::CFigure::loadFromFile(QString& pathFile){
         return false;
     }
     //check signature
-    if (!checkSignature(figFile))
+    if (!EI_Utils::checkSignature(figFile, EI_Utils::Signatures::fig8))
         return false;
     //read header
     readHeader(figFile, header);

@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //CScene scene;
     ei::CFigure fig;
-    QString path("c:\\Users\\konstantin.bezelians\\files\\temp\\hd.fig");
+    QString path("f:\\temp\\deer\\hd.fig");
     fig.loadFromFile(path);
     //scene.addObject(&obj);
 }

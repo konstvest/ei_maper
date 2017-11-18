@@ -10,16 +10,6 @@ ei::CFigure::~CFigure()
 
 }
 
-// 0 - vertex block count
-// 1 - normal block count
-// 2 - texcoord count
-// 3 - index count
-// 4 - vertex component count
-// 5 - morphing component count
-// 6 - unknown
-// 7 - group
-// 8 - texture number
-
 struct SHeader{
     int vertBlocks = 0;
     int normalBlocks = 0;
@@ -34,8 +24,7 @@ struct SHeader{
 
 bool checkSignature(std::ifstream& file){
     char signature[4];
-    for (int i(0); i<4; i++)
-        file>>signature[i];
+    file.read(signature, sizeof(signature));
     if (!strcmp(signature, "FIG8")){
         qDebug() << "incorrect signature";
         file.close();
@@ -51,14 +40,8 @@ void readHeader(std::ifstream& file, SHeader& hd){
 // read xyz(3) for morph components(8)
 void read24(std::ifstream& file, QVector<f3>& points){
     f3 temp;
-    float buf;
     for (int i(0); i<8; i++){
-        file.read((char*)&buf, sizeof (buf));
-        temp.x = buf;
-        file.read((char*)&buf, sizeof (buf));
-        temp.y = buf;
-        file.read((char*)&buf, sizeof (buf));
-        temp.z = buf;
+        file.read((char*)&temp, sizeof(temp));
         points.push_back(temp);
     }
 }
@@ -78,13 +61,11 @@ void read8(std::ifstream& file, QVector<float>& points){
 // r |.............| |.............| .......
 // p |.............| |.............| .......
 // h |{x07,y07,z07}| |{x17,y17,z17}| .......
-void readVertices(std::ifstream& file, QVector <QVector <QVector<float>>>& morphVerts, const int blockCount){
-    QVector<float> pt;  //xyz
-    QVector<QVector<float>> vertices;   //array of pt
+void readVertices(std::ifstream& file, QVector <QVector <f3>>& morphVerts, const int blockCount){
+    f3 pt;
+    QVector<f3> vertices;
     float buf;
     //fill zeroes
-    for (int coord(0); coord<3; ++coord)
-        pt.append(0.0);
     for (int block(0); block<blockCount*4; ++block)
         vertices.append(pt);
     for (int morph(0); morph<8; ++morph)
@@ -101,6 +82,7 @@ void readVertices(std::ifstream& file, QVector <QVector <QVector<float>>>& morph
             }
         }
     }
+
 }
 
 //     nrml#1          nrml#2
@@ -200,12 +182,7 @@ void convertUVCoords(QVector<QVector<float>>& coordsUV, int convertCount){
 
 //load morphing_vertices, indices, normals, texture coordinates
 bool ei::CFigure::loadFromFile(QString& pathFile){
-
     SHeader header;
-    QVector<f3> fCenter;
-    QVector<f3> fMin;
-    QVector<f3> fMax;
-    QVector<float> fRadius;
     QVector<short> fIndices;
     QVector<indices_link> vComponents;
     std::ifstream figFile;
@@ -220,13 +197,13 @@ bool ei::CFigure::loadFromFile(QString& pathFile){
     //read header
     readHeader(figFile, header);
     //read center
-    read24(figFile, fCenter);
+    read24(figFile, m_morphCenter);
     //read min
-    read24(figFile, fMin);
+    read24(figFile, m_morphMin);
     //read max
-    read24(figFile, fMax);
+    read24(figFile, m_morphMax);
     //read radius
-    read8(figFile, fRadius);
+    read8(figFile, m_morphRadius);
     //read vertices
     readVertices(figFile, m_morphVertices, header.vertBlocks);
     //read normals

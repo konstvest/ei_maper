@@ -21,6 +21,13 @@ public:
     {
         x = y = z = T(0);
     }
+
+    void assign(const T& value){
+        x = value;
+        y = value;
+        z = value;
+    }
+
     vector3 (const T* array) {
         if (array == nullptr)
             throw std::out_of_range("array is null");

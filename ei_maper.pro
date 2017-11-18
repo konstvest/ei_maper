@@ -48,6 +48,10 @@ HEADERS  += mainwindow.h \
     ei_object.h \
     ei_map.h \
     ei_mob.h \
+<<<<<<< HEAD
     secfile.h
+=======
+    ei_vectors.h
+>>>>>>> c614149c10f6c666a0993e67d9afd94e3ec99bf6
 
 FORMS    += mainwindow.ui

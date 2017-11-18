@@ -1,6 +1,6 @@
 #include "ei_object.h"
 
-bool ei::CParticle::move(vec3){
+bool ei::CParticle::move(f3& coord){
     return true;
 }
 

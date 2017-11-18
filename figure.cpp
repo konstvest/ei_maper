@@ -49,8 +49,8 @@ void readHeader(std::ifstream& file, SHeader& hd){
 }
 
 // read xyz(3) for morph components(8)
-void read24(std::ifstream& file, QVector<float3>& points){
-    float3 temp;
+void read24(std::ifstream& file, QVector<f3>& points){
+    f3 temp;
     float buf;
     for (int i(0); i<8; i++){
         file.read((char*)&buf, sizeof (buf));
@@ -200,10 +200,11 @@ void convertUVCoords(QVector<QVector<float>>& coordsUV, int convertCount){
 
 //load morphing_vertices, indices, normals, texture coordinates
 bool ei::CFigure::loadFromFile(QString& pathFile){
+
     SHeader header;
-    QVector<float3> fCenter;
-    QVector<float3> fMin;
-    QVector<float3> fMax;
+    QVector<f3> fCenter;
+    QVector<f3> fMin;
+    QVector<f3> fMax;
     QVector<float> fRadius;
     QVector<short> fIndices;
     QVector<indices_link> vComponents;

@@ -60,7 +60,7 @@ MpAnimTile* MprAnimTile::ToMpAnimTile()
     mpAnimTile.TileIndex = TileIndex;
     mpAnimTile.PhasesCount = PhasesCount;
 
-    return &mpAnimTile;
+    return &mpAnimTile; //!!!! ti vozvraschaew' to, 4to ydal9etsya posle vihoda iz fynkcii
 }
 
 MprMaterial::MprMaterial(MpMaterial mat)
@@ -87,7 +87,7 @@ MpMaterial *MprMaterial::ToMpMaterial()
     mat.WaveMultiplier = WaveMultiplier;
     mat.WarpSpeed = WarpSpeed;
     mat.Reserved1 = mat.Reserved2 = mat.Reserved3 = 0;
-    return &mat;
+    return &mat;    //!!!! ti vozvraschaew' to, 4to ydal9etsya posle vihoda iz fynkcii
 }
 
 MprVertex::MprVertex(SecVertex *secVertex)
@@ -119,7 +119,7 @@ SecVertex* MprVertex::ToSecVertex()
     normal |= (uint)floor(NormalZ * 1000.0f) << 22;
     secVertex.PackedNormal = normal;
 
-    return &secVertex;
+    return &secVertex;  //!!!! ti vozvraschaew' to, 4to ydal9etsya posle vihoda iz fynkcii
 }
 
 MprTile::MprTile(ushort secTile)

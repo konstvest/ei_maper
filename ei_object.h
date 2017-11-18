@@ -9,7 +9,7 @@ class CObjectInterface{
 public:
     virtual bool add() = 0;
     virtual bool remove() = 0;
-    virtual bool move(float3& coord) = 0;
+    virtual bool move(f3& coord) = 0;
     virtual bool rotate(vec4) = 0;
     virtual bool copy() = 0;
     virtual bool paste() = 0;
@@ -61,7 +61,7 @@ public:
     // virtuals
     bool add();
     bool remove();
-    bool move(float3& coord);
+    bool move(f3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -96,8 +96,8 @@ private:
     int m_id;
     int m_player;
     int m_type;
-    float3 m_complex;   // str, dex, tall
-    float3 m_position;    // x, y ,z
+    f3 m_complex;   // str, dex, tall
+    f3 m_position;    // x, y ,z
     vec4 m_rotation;    // quaternion x,y,z,w
 };
 
@@ -106,7 +106,7 @@ public:
     CUnit();
     bool add();
     bool remove();
-    bool move(float3& coord);
+    bool move(f3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -131,7 +131,7 @@ public:
     //virtuals
     bool add();
     bool remove();
-    bool move(float3& coord);
+    bool move(f3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -149,7 +149,7 @@ public:
     //virtuals
     bool add();
     bool remove();
-    bool move(float3& coord);
+    bool move(f3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -167,7 +167,7 @@ public:
     //virtuals
     bool add();
     bool remove();
-    bool move(float3& coord);
+    bool move(f3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();
@@ -185,7 +185,7 @@ public:
     //virtuals
     bool add();
     bool remove();
-    bool move(float3& coord);
+    bool move(f3& coord);
     bool rotate(vec4);
     bool copy();
     bool paste();

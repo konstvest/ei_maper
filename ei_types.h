@@ -21,7 +21,10 @@ struct vec2
     float y;
 };
 
-typedef ei::vec3<float> float3;
+typedef ei::vector3<short> s3;
+typedef ei::vector3<int> i3;
+typedef ei::vector3<float> f3;
+typedef ei::vector3<double> d3;
 
 struct vec4
 {

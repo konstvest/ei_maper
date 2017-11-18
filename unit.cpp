@@ -11,7 +11,7 @@ bool ei::CUnit::remove(){
     return true;
 }
 
-bool ei::CUnit::move(float3& coord){
+bool ei::CUnit::move(f3& coord){
     return true;
 }
 

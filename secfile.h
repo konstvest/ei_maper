@@ -49,7 +49,7 @@ public:
     const int TilesCount = 16 * 16;
     const int TilesSideSize = 16;
 
-    void ReadSecFile(QString& path);
+    bool ReadSecFile(QString& path);
     SecFileHeader& getHeader();
     QVector<SecVertex>& getLandVertex();
     QVector<SecVertex>& getWaterVertex();

@@ -5,7 +5,7 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QKeyEvent>
-#include <Qpoint>
+//#include <Qpoint>
 
 #include "ei_types.h"
 #include "scene.h"

@@ -40,7 +40,7 @@ private:
     QVector <int> m_header;
     QVector<float> m_BoundBox;
 
-    QVector<QVector<QVector<float>>> m_vertices;
+    QVector<f3> m_vertices;
     QVector<int> m_vertIndices;
     QVector<QVector<float>> m_normals;
     QVector<int> m_normIndices;
@@ -48,11 +48,11 @@ private:
     QVector<int> m_uvIndices;
 
     // vectors include morph components
-    QVector<QVector<QVector<float>>> m_morphVertices;
+    QVector<QVector<f3>> m_morphVertices;
     //TODO: change vector to array or bbox class
-    QVector <QVector<float>> m_morphMin;   // 8x3
-    QVector <QVector<float>> m_morphMax;   // 8x3
-    QVector <QVector<float>> m_morphCenter; //8x3
+    QVector <f3> m_morphMin;   // 8x3
+    QVector <f3> m_morphMax;   // 8x3
+    QVector <f3> m_morphCenter; //8x3
     QVector <float> m_morphRadius;  //8
 };
 

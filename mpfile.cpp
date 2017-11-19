@@ -1,40 +1,106 @@
 #include <QDebug>
 #include <QString>
-#include <QDataStream>
-#include "qmath.h"
-#include <qfile.h>
-#include <QDataStream>
+#include "ei_utils.h"
 #include <mpfile.h>
 
-void MpFile::ReadFromFile(QString& path)
+bool MpFile::ReadFromFile(QString& path)
 {
-    //QDataStream &is;
-    QFile mpFile(path);
-    mpFile.open(QIODevice::ReadOnly);
-    QDataStream is(&mpFile);
-    is.setByteOrder(QDataStream::ByteOrder::LittleEndian);
-    is.setFloatingPointPrecision(QDataStream::SinglePrecision);
+    std::ifstream st;
+    st.open(path.toStdString(), std::ios::binary);
 
-    is >> Header;
+    if(!st)
+    {
+        qDebug() << EI_Utils::messages.CantLoadFile << path;
+        return false;
+    }
 
-    for(int i(0); i<Header.MaterialsCount; i++)
+    if(!EI_Utils::checkSignature(st, EI_Utils::eSignatures::mp))
+        return false;
+
+    st.read((char*)&Header, sizeof(Header));
+
+    for(uint i(0); i<Header.MaterialsCount; i++)
     {
         MpMaterial mat;
-        is >> mat;
+        st.read((char*)&mat, sizeof(mat));
         Materials.append(mat);
     }
 
-    for(int i(0); i<Header.TilesCount; i++)
+    for(uint i(0); i<Header.TilesCount; i++)
     {
         eTileType tileType;
-        is >> (int&)tileType;
+        st.read((char*)&tileType, sizeof(tileType));
         TileTypes.append(tileType);
     }
 
-    for(int i(0); i<Header.AnimTilesCount; i++)
+    for(uint i(0); i<Header.AnimTilesCount; i++)
     {
         MpAnimTile animTitle;
-        is >> animTitle;
+        st.read((char*)&animTitle, sizeof(animTitle));
         AnimTiles.append(animTitle);
     }
+    st.close();
+
+    IsRead = true;
+    return IsRead;
+}
+
+MpFileHeader& MpFile::getHeader()
+{
+    if(!IsRead)
+        throw EI_Utils::messages.MpOpenError;
+    return Header;
+}
+
+MpFileHeader* MpFile::getHeader(bool ptr)
+{
+    ptr = IsRead;
+    if(!ptr)
+        throw EI_Utils::messages.MpOpenError;
+    return &Header;
+}
+
+QVector<MpMaterial>& MpFile::getMaterals()
+{
+    if(!IsRead)
+        throw EI_Utils::messages.MpOpenError;
+    return Materials;
+}
+
+QVector<MpMaterial>* MpFile::getMaterals(bool ptr)
+{
+    ptr = IsRead;
+    if(!ptr)
+        throw EI_Utils::messages.MpOpenError;
+    return &Materials;
+}
+
+QVector<eTileType>& MpFile::getTitleType()
+{
+    if(!IsRead)
+        throw EI_Utils::messages.MpOpenError;
+    return TileTypes;
+}
+
+QVector<eTileType>* MpFile::getTitleType(bool ptr)
+{
+    ptr = IsRead;
+    if(!ptr)
+        throw EI_Utils::messages.MpOpenError;
+    return &TileTypes;
+}
+
+QVector<MpAnimTile>& MpFile::getAnimTiles()
+{
+    if(!IsRead)
+        throw EI_Utils::messages.MpOpenError;
+    return AnimTiles;
+}
+
+QVector<MpAnimTile>* MpFile::getAnimTiles(bool ptr)
+{
+    ptr = IsRead;
+    if(!ptr)
+        throw EI_Utils::messages.MpOpenError;
+    return &AnimTiles;
 }

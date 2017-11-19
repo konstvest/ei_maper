@@ -2,24 +2,11 @@
 #define SUPPORTMPRTYPES_H
 #include <QString>
 #include <QVector>
-#include <QDataStream>
 
 struct SecFileHeader
 {
-   const uint SecFileSignature = 0xcf4bf774;
-
     uint Signature;
     quint8 Type;
-
-    friend QDataStream& operator>> (QDataStream &st, SecFileHeader &head)
-    {
-        return st >> head.Signature >> head.Type;
-    }
-
-    friend QDataStream& operator<< (QDataStream &st, SecFileHeader const &head)
-    {
-        return st << head.Signature << head.Type;
-    }
 };
 
 struct SecVertex
@@ -28,34 +15,31 @@ struct SecVertex
     qint8  OffsetY;
     ushort Z;
     uint   PackedNormal;
-
-    friend QDataStream& operator>> (QDataStream &st, SecVertex &vert)
-    {
-        return st >> vert.OffsetX >> vert.OffsetY >> vert.Z >> vert.PackedNormal;
-    }
-
-    friend QDataStream& operator<< (QDataStream &st, SecVertex const &vert)
-    {
-        return st << vert.OffsetX << vert.OffsetY << vert.Z << vert.PackedNormal;
-    }
-
 };
 
 class SecFile
 {
 public:
-    const int VerticesCount = 33 * 33;
-    const int VerticesSideSize = 33;
-    const int TilesCount = 16 * 16;
-    const int TilesSideSize = 16;
-
-    bool ReadSecFile(QString& path);
+    bool ReadFromFile(QString& path);
     SecFileHeader& getHeader();
+    SecFileHeader* getHeader(bool ptr);
     QVector<SecVertex>& getLandVertex();
+    QVector<SecVertex>* getLandVertex(bool ptr);
     QVector<SecVertex>& getWaterVertex();
+    QVector<SecVertex>* getWaterVertex(bool ptr);
     QVector<ushort>& getLandTiles();
+    QVector<ushort>* getLandTiles(bool ptr);
     QVector<ushort>& getWaterTiles();
+    QVector<ushort>* getWaterTiles(bool ptr);
+    QVector<ushort>& getWaterAllow();
+    QVector<ushort>* getWaterAllow(bool ptr);
 private:
+    static const int VerticesCount = 33 * 33;
+    static const int VerticesSideSize = 33;
+    static const int TilesCount = 16 * 16;
+    static const int TilesSideSize = 16;
+
+    bool IsRead = false;
     SecFileHeader Header;
     QVector<SecVertex> LandVertex;
     QVector<SecVertex> WaterVertex;

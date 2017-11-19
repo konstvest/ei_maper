@@ -178,11 +178,11 @@ bool ei::CFigure::loadFromFile(QString& pathFile){
     std::ifstream figFile;
     figFile.open(pathFile.toLatin1(), std::ios::binary);
     if (!figFile){
-        qDebug() << "Can't load file " << pathFile;
+        qDebug() << EI_Utils::messages.CantLoadFile << pathFile;
         return false;
     }
     //check signature
-    if (!EI_Utils::checkSignature(figFile, EI_Utils::Signatures::fig8))
+    if (!EI_Utils::checkSignature(figFile, EI_Utils::eSignatures::fig8))
         return false;
     //read header
     readHeader(figFile, header);

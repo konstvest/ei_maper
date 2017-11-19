@@ -1,25 +1,25 @@
 #include "ei_utils.h"
 
-static QMap<int, std::string> SetCollection()
+static QMap<int, uint> SetCollection()
 {
-    QMap<int, std::string> map;
-    map.insert(1, "FIG8");
-    map.insert(2, "");
-    map.insert(3, "");
+    QMap<int, uint> map;
+    map.insert(1, 0x38474946); //fig8
+    map.insert(2, 0xce4af672); //mp
+    map.insert(3, 0xcf4bf774); //sec
 
     return map;
 }
 
-QMap<int, std::string> EI_Utils::SignaturesCollect = SetCollection();
+QMap<int, uint> EI_Utils::SignaturesCollection = SetCollection();
 
-bool EI_Utils::checkSignature(std::ifstream& file, Signatures sigKey)
+EI_Utils::Messages EI_Utils::messages;
+
+bool EI_Utils::checkSignature(std::ifstream& file, eSignatures sigKey)
 {
-
-    std::string signature = SignaturesCollect.value(sigKey, 0);
-    char buf[signature.length()];
-    file.read(buf, sizeof(buf));
-    std::string readString(buf);
-    if (readString != signature)
+    uint readsign;
+    uint signature = SignaturesCollection[sigKey];
+    file.read((char*)&readsign, sizeof(signature));
+    if (readsign != signature)
     {
         qDebug() << "incorrect signature";
         file.close();

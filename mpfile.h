@@ -70,14 +70,10 @@
     {
     public:
         bool ReadFromFile(QString& path);
-        MpFileHeader& getHeader();
-        MpFileHeader* getHeader(bool ptr);
-        QVector<MpMaterial>& getMaterals();
-        QVector<MpMaterial>* getMaterals(bool ptr);
-        QVector<eTileType>& getTitleType();
-        QVector<eTileType>* getTitleType(bool ptr);
-        QVector<MpAnimTile>& getAnimTiles();
-        QVector<MpAnimTile>* getAnimTiles(bool ptr);
+        MpFileHeader& header();
+        QVector<MpMaterial>& materals();
+        QVector<eTileType>& titleType();
+        QVector<MpAnimTile>& animTiles();
     private:
         bool IsRead = false;
         MpFileHeader Header;

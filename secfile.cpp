@@ -83,7 +83,7 @@ bool SecFile::ReadFromFile(QString &path)
     return IsRead;
 }
 
-SecFileHeader& SecFile::getHeader()
+SecFileHeader& SecFile::header()
 {
     if(!IsRead)
     {
@@ -92,17 +92,7 @@ SecFileHeader& SecFile::getHeader()
     return Header;
 }
 
-SecFileHeader* SecFile::getHeader(bool ptr)
-{
-    ptr = IsRead; //Подавление предупреждений
-    if(!ptr)
-    {
-        throw EI_Utils::messages.SecOpenError;
-    }
-    return &Header;
-}
-
-QVector<SecVertex>& SecFile::getLandVertex()
+QVector<SecVertex>& SecFile::landVertex()
 {
     if(!IsRead)
     {
@@ -111,17 +101,7 @@ QVector<SecVertex>& SecFile::getLandVertex()
     return LandVertex;
 }
 
-QVector<SecVertex>* SecFile::getLandVertex(bool ptr)
-{
-    ptr = IsRead;
-    if(!ptr)
-    {
-        throw EI_Utils::messages.SecOpenError;
-    }
-    return &LandVertex;
-}
-
-QVector<SecVertex>& SecFile::getWaterVertex()
+QVector<SecVertex>& SecFile::waterVertex()
 {
     if(!IsRead)
     {
@@ -130,17 +110,7 @@ QVector<SecVertex>& SecFile::getWaterVertex()
     return WaterVertex;
 }
 
-QVector<SecVertex>* SecFile::getWaterVertex(bool ptr)
-{
-    ptr = IsRead;
-    if(!ptr)
-    {
-        throw EI_Utils::messages.SecOpenError;
-    }
-    return &WaterVertex;
-}
-
-QVector<ushort>& SecFile::getLandTiles()
+QVector<ushort>& SecFile::landTiles()
 {
     if(!IsRead)
     {
@@ -149,17 +119,7 @@ QVector<ushort>& SecFile::getLandTiles()
     return LandTiles;
 }
 
-QVector<ushort>* SecFile::getLandTiles(bool ptr)
-{
-    ptr = IsRead;
-    if(!ptr)
-    {
-        throw EI_Utils::messages.SecOpenError;
-    }
-    return &LandTiles;
-}
-
-QVector<ushort>& SecFile::getWaterTiles()
+QVector<ushort>& SecFile::waterTiles()
 {
 
     if(!IsRead)
@@ -169,31 +129,12 @@ QVector<ushort>& SecFile::getWaterTiles()
     return WaterTiles;
 }
 
-QVector<ushort>* SecFile::getWaterTiles(bool ptr)
-{
-    ptr = IsRead;
-    if(!ptr)
-    {
-        throw EI_Utils::messages.SecOpenError;
-    }
-    return &WaterTiles;
-}
 
-QVector<ushort>& SecFile::getWaterAllow()
+QVector<ushort>& SecFile::waterAllow()
 {
     if(!IsRead)
     {
         throw EI_Utils::messages.SecOpenError;
     }
     return WaterAllow;
-}
-
-QVector<ushort>* SecFile::getWaterAllow(bool ptr)
-{
-    ptr = IsRead;
-    if(!ptr)
-    {
-        throw EI_Utils::messages.SecOpenError;
-    }
-    return &WaterAllow;
 }

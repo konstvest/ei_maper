@@ -21,18 +21,12 @@ class SecFile
 {
 public:
     bool ReadFromFile(QString& path);
-    SecFileHeader& getHeader();
-    SecFileHeader* getHeader(bool ptr);
-    QVector<SecVertex>& getLandVertex();
-    QVector<SecVertex>* getLandVertex(bool ptr);
-    QVector<SecVertex>& getWaterVertex();
-    QVector<SecVertex>* getWaterVertex(bool ptr);
-    QVector<ushort>& getLandTiles();
-    QVector<ushort>* getLandTiles(bool ptr);
-    QVector<ushort>& getWaterTiles();
-    QVector<ushort>* getWaterTiles(bool ptr);
-    QVector<ushort>& getWaterAllow();
-    QVector<ushort>* getWaterAllow(bool ptr);
+    SecFileHeader& header();
+    QVector<SecVertex>& landVertex();
+    QVector<SecVertex>& waterVertex();
+    QVector<ushort>& landTiles();
+    QVector<ushort>& waterTiles();
+    QVector<ushort>& waterAllow();
 private:
     static const int VerticesCount = 33 * 33;
     static const int VerticesSideSize = 33;

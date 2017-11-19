@@ -45,62 +45,31 @@ bool MpFile::ReadFromFile(QString& path)
     return IsRead;
 }
 
-MpFileHeader& MpFile::getHeader()
+MpFileHeader& MpFile::header()
 {
     if(!IsRead)
         throw EI_Utils::messages.MpOpenError;
     return Header;
 }
 
-MpFileHeader* MpFile::getHeader(bool ptr)
-{
-    ptr = IsRead;
-    if(!ptr)
-        throw EI_Utils::messages.MpOpenError;
-    return &Header;
-}
-
-QVector<MpMaterial>& MpFile::getMaterals()
+QVector<MpMaterial>& MpFile::materals()
 {
     if(!IsRead)
         throw EI_Utils::messages.MpOpenError;
     return Materials;
 }
 
-QVector<MpMaterial>* MpFile::getMaterals(bool ptr)
-{
-    ptr = IsRead;
-    if(!ptr)
-        throw EI_Utils::messages.MpOpenError;
-    return &Materials;
-}
 
-QVector<eTileType>& MpFile::getTitleType()
+QVector<eTileType>& MpFile::titleType()
 {
     if(!IsRead)
         throw EI_Utils::messages.MpOpenError;
     return TileTypes;
 }
 
-QVector<eTileType>* MpFile::getTitleType(bool ptr)
-{
-    ptr = IsRead;
-    if(!ptr)
-        throw EI_Utils::messages.MpOpenError;
-    return &TileTypes;
-}
-
-QVector<MpAnimTile>& MpFile::getAnimTiles()
+QVector<MpAnimTile>& MpFile::animTiles()
 {
     if(!IsRead)
         throw EI_Utils::messages.MpOpenError;
     return AnimTiles;
-}
-
-QVector<MpAnimTile>* MpFile::getAnimTiles(bool ptr)
-{
-    ptr = IsRead;
-    if(!ptr)
-        throw EI_Utils::messages.MpOpenError;
-    return &AnimTiles;
 }

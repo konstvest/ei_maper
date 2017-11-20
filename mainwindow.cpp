@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //CScene scene;
     ei::CFigure fig;
-    QString path("f:\\temp\\deer\\hd.fig");
+    QString path("/home/mirilled/temp/efar1arrow.fig");
     fig.loadFromFile(path);
     //scene.addObject(&obj);
 }
@@ -128,4 +128,16 @@ void MainWindow::on_pushButton_7_clicked()
 
 
 
+}
+
+void MainWindow::on_btnLoadmp_clicked()
+{
+//    QFileDialog fldlg;
+//        fldlg.setFileMode(QFileDialog::AnyFile);
+//        figure figa;
+//        figa.loadFromFile(fldlg.getOpenFileName(this, tr("Open File"), "f:\\temp\\",
+//                                               tr("Map header file (*.fig);;"
+//                                                  "All files (*.*)")
+//                                                   ));
+    //QString path = "";
 }

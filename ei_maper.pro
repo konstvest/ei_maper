@@ -28,24 +28,28 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     glwidget.cpp \
     figure.cpp \
-    mprfile.cpp \
     scene.cpp \
     particle.cpp \
     sound.cpp \
     object.cpp \
     unit.cpp \
     trap.cpp \
-    mob.cpp
+    mob.cpp \
+    mpfile.cpp \
+    secfile.cpp \
+    ei_utils.cpp
 
 HEADERS  += mainwindow.h \
     glwidget.h \
-    mprfile.h \
     mpfile.h \
     scene.h \
     ei_types.h \
     ei_object.h \
     ei_map.h \
     ei_mob.h \
-    ei_vectors.h
+    secfile.h \
+    ei_vectors.h \
+    ei_utils.h
+#>>>>>>> c614149c10f6c666a0993e67d9afd94e3ec99bf6
 
 FORMS    += mainwindow.ui

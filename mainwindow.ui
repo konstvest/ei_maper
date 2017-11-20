@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>502</width>
-    <height>475</height>
+    <height>524</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -144,6 +144,13 @@
        <widget class="QPushButton" name="pushButton_7">
         <property name="text">
          <string>Load figure</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnLoadmp">
+        <property name="text">
+         <string>Load mp-file</string>
         </property>
        </widget>
       </item>

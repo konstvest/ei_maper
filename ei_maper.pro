@@ -9,7 +9,7 @@ QT       += core gui opengl
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = ei_maper
-LIBS += -lglut -lGLU
+LIBS += -lglu32 -lopengl32
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -47,9 +47,7 @@ HEADERS  += mainwindow.h \
     ei_object.h \
     ei_map.h \
     ei_mob.h \
-#<<<<<<< HEAD
     secfile.h \
-#=======
     ei_vectors.h \
     ei_utils.h
 #>>>>>>> c614149c10f6c666a0993e67d9afd94e3ec99bf6

@@ -2,11 +2,23 @@
 #define SUPPORTMPRTYPES_H
 #include <QString>
 #include <QVector>
+#include <QFile>
+#include <QDataStream>
 
 struct SecFileHeader
 {
     uint Signature;
     quint8 Type;
+
+    friend QDataStream& operator>> (QDataStream &st, SecFileHeader &head)
+    {
+        return st >> head.Signature >> head.Type;
+    }
+
+    friend QDataStream& operator<< (QDataStream &st, SecFileHeader const &head)
+    {
+        return st << head.Signature << head.Type;
+    }
 };
 
 struct SecVertex
@@ -15,11 +27,23 @@ struct SecVertex
     qint8  OffsetY;
     ushort Z;
     uint   PackedNormal;
+
+    friend QDataStream& operator>> (QDataStream &st, SecVertex &vert)
+    {
+        return st >> vert.OffsetX >> vert.OffsetY >> vert.Z >> vert.PackedNormal;
+    }
+
+    friend QDataStream& operator<< (QDataStream &st, SecVertex const &vert)
+    {
+        return st << vert.OffsetX << vert.OffsetY << vert.Z << vert.PackedNormal;
+    }
 };
 
 class SecFile
 {
 public:
+    static const uint Signature = 0xcf4bf774;
+
     bool ReadFromFile(QString& path);
     SecFileHeader& header();
     QVector<SecVertex>& landVertex();

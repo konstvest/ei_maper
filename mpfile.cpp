@@ -5,41 +5,43 @@
 
 bool MpFile::ReadFromFile(QString& path)
 {
-    std::ifstream st;
-    st.open(path.toStdString(), std::ios::binary);
-
-    if(!st)
+    QFile mpFile(path);
+    mpFile.open(QIODevice::ReadOnly);
+    if(mpFile.error() != QFile::NoError)
     {
-        qDebug() << EI_Utils::messages.CantLoadFile << path;
+        if(mpFile.error() != QFile::OpenError)
+            mpFile.close();
         return false;
     }
+    mpFile.close();
+    QDataStream stream(&mpFile);
+    stream.setByteOrder(QDataStream::ByteOrder::LittleEndian);
+    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
-    if(!EI_Utils::checkSignature(st, EI_Utils::eSignatures::mp))
+    stream >> Header;
+    if (Header.Signature != Signature)
         return false;
 
-    st.read((char*)&Header, sizeof(Header));
-
+    MpMaterial mat;
     for(uint i(0); i<Header.MaterialsCount; i++)
     {
-        MpMaterial mat;
-        st.read((char*)&mat, sizeof(mat));
+        stream >> mat;
         Materials.append(mat);
     }
 
+    eTileType tileType;
     for(uint i(0); i<Header.TilesCount; i++)
     {
-        eTileType tileType;
-        st.read((char*)&tileType, sizeof(tileType));
+        stream >> (int&)tileType;
         TileTypes.append(tileType);
     }
 
+    MpAnimTile animTitle;
     for(uint i(0); i<Header.AnimTilesCount; i++)
     {
-        MpAnimTile animTitle;
-        st.read((char*)&animTitle, sizeof(animTitle));
+        stream >> animTitle;
         AnimTiles.append(animTitle);
     }
-    st.close();
 
     IsRead = true;
     return IsRead;

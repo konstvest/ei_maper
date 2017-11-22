@@ -5,28 +5,29 @@
 
 bool SecFile::ReadFromFile(QString &path)
 {
-    std::ifstream st;
-    st.open(path.toStdString(), std::ios::binary);
-
-    if(!st)
+    QFile secFile(path);
+    secFile.open(QIODevice::ReadOnly);
+    if(secFile.error() != QFile::NoError)
     {
-        qDebug() << EI_Utils::messages.CantLoadFile << path;
+        if(secFile.error() != QFile::OpenError)
+            secFile.close();
         return false;
     }
+    secFile.close();
 
-    if(!EI_Utils::checkSignature(st, EI_Utils::sec))
-    {
-        //qDebug() << "incorrect signature";
-        st.close();
+    QDataStream stream(&secFile);
+    stream.setByteOrder(QDataStream::ByteOrder::LittleEndian);
+    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+
+
+    stream >> Header;
+    if(Header.Signature != Signature)
         return false;
-    }
 
-    st.read((char*)&Header.Type, sizeof(Header.Type));
-
+    SecVertex sv;
     for(int i(0); i<VerticesCount; i++)
     {
-        SecVertex sv;
-        st.read((char*)&sv, sizeof(sv));
+        stream >> sv;
         LandVertex.append(sv);
     }
 
@@ -34,8 +35,8 @@ bool SecFile::ReadFromFile(QString &path)
     {
         for(int i(0); i<VerticesCount; i++)
         {
-            SecVertex sv;
-            st.read((char*)&sv, sizeof(sv));
+            //SecVertex sv;
+            stream >> sv;
             WaterVertex.append(sv);
         }
     }
@@ -43,31 +44,31 @@ bool SecFile::ReadFromFile(QString &path)
     {
         for(int i(0); i<VerticesCount; i++)
         {
-            SecVertex sv = {0, 0, 0, 0};
+            sv = {0, 0, 0, 0};
             WaterVertex.append(sv);
         }
     }
 
+    ushort lt;
     for(int i(0); i<TilesCount; i++)
     {
-        ushort lt;
-        st.read((char*)&lt, sizeof(lt));
+        stream >> lt;
         LandTiles.append(lt);
     }
 
     if(Header.Type == 3)
     {
+        ushort wt;
         for(int i(0); i<TilesCount; i++)
         {
-            ushort wt;
-            st.read((char*)&wt, sizeof(wt));
+            stream >> wt;
             WaterTiles.append(wt);
         }
 
+        ushort wa;
         for(int i(0); i<TilesCount; i++)
         {
-            ushort wa;
-            st.read((char*)&wa, sizeof(wa));
+            stream >> wa;
             WaterAllow.append(wa);
         }
     }
@@ -76,8 +77,6 @@ bool SecFile::ReadFromFile(QString &path)
         WaterTiles.append(0);
         WaterAllow.append(65535);
     }
-
-    st.close();
 
     IsRead = true;
     return IsRead;

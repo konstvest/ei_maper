@@ -1,86 +1,128 @@
 #ifndef SUPPORTMPRTYPES_H
 #define SUPPORTMPRTYPES_H
 #include <QString>
+#include <QFile>
+#include <QDataStream>
 
-    enum eMaterialType
+enum eMaterialType
+{
+    UndefMat,
+    Terrain,
+    WaterWithoutTexture,
+    WaterMat,
+    GrassMat
+};
+
+
+enum eTileType
+{
+    Grass = 0,
+    Ground = 1,
+    Stone = 2,
+    Sand = 3,
+    Rock = 4,
+    Field = 5,
+    Water = 6,
+    Road = 7,
+    Undefined = 8,
+    Snow = 9,
+    Ice = 10,
+    Drygrass = 11,
+    Snowballs = 12,
+    Lava = 13,
+    Swamp = 14,
+    Highrock = 15,
+    Last = 16
+};
+
+
+struct MpMaterial
+{
+    eMaterialType Type;
+    float R, G, B, A;
+    float SelfIllum;
+    float WaveMultiplier;
+    float WarpSpeed;
+    float Reserved1;
+    float Reserved2;
+    float Reserved3;
+
+    friend QDataStream& operator<< (QDataStream &os, MpMaterial const &mat)
     {
-        UndefMat,
-        Terrain,
-        WaterWithoutTexture,
-        WaterMat,
-        GrassMat
-    };
+        return os << (int)mat.Type << mat.R << mat.G << mat.B << mat.A << mat.SelfIllum <<
+                     mat.WaveMultiplier << mat.WarpSpeed << mat.Reserved1 <<
+                     mat.Reserved2 << mat.Reserved3;
+    }
 
-
-    enum eTileType
+    friend QDataStream& operator>> (QDataStream &is, MpMaterial &mat)
     {
-       Grass = 0,
-       Ground = 1,
-       Stone = 2,
-       Sand = 3,
-       Rock = 4,
-       Field = 5,
-       Water = 6,
-       Road = 7,
-       Undefined = 8,
-       Snow = 9,
-       Ice = 10,
-       Drygrass = 11,
-       Snowballs = 12,
-       Lava = 13,
-       Swamp = 14,
-       Highrock = 15,
-       Last = 16
-    };
+        return is >> (qint32&)mat.Type >> mat.R >> mat.G >> mat.B >> mat.A >> mat.SelfIllum >>
+                     mat.WaveMultiplier >> mat.WarpSpeed >> mat.Reserved1 >>
+                     mat.Reserved2 >> mat.Reserved3;
+    }
+};
 
+struct MpFileHeader
+{
+    uint   Signature;
+    float   MaxZ;
+    uint   SectorsXCount;
+    uint   SectorsYCount;
+    uint   TexturesCount;
+    uint   TextureSize;
+    uint   TilesCount;
+    uint   TileSize;
+    unsigned short MaterialsCount;
+    uint   AnimTilesCount;
 
-    struct MpMaterial
+    friend QDataStream& operator>> (QDataStream &is, MpFileHeader &head)
     {
-        eMaterialType Type;
-        float R, G, B, A;
-        float SelfIllum;
-        float WaveMultiplier;
-        float WarpSpeed;
-        float Reserved1;
-        float Reserved2;
-        float Reserved3;
-    };
+        return is >> head.Signature >> head.MaxZ >> head.SectorsXCount >> head.SectorsYCount  >>
+                     head.TexturesCount >> head.TextureSize >> head.TilesCount >> head.TileSize >>
+                     head.MaterialsCount >> head.AnimTilesCount;
+    }
 
-    struct MpFileHeader
+    friend QDataStream& operator<< (QDataStream &os, MpFileHeader const &head)
     {
-        //uint   Signature;
-        float   MaxZ;
-        uint   SectorsXCount;
-        uint   SectorsYCount;
-        uint   TexturesCount;
-        uint   TextureSize;
-        uint   TilesCount;
-        uint   TileSize;
-        unsigned short MaterialsCount;
-        uint   AnimTilesCount;
-    };
+        return os << head.Signature << head.MaxZ  << head.SectorsXCount << head.SectorsYCount <<
+                     head.TexturesCount << head.TextureSize << head.TilesCount << head.TileSize <<
+                     head.MaterialsCount << head.AnimTilesCount;
+    }
+};
 
-    struct MpAnimTile
-    {
-        ushort TileIndex;
-        ushort PhasesCount;
-    };
+struct MpAnimTile
+{
+    ushort TileIndex;
+    ushort PhasesCount;
 
-    class MpFile
+    friend QDataStream& operator>> (QDataStream &st, MpAnimTile &tile)
     {
-    public:
-        bool ReadFromFile(QString& path);
-        MpFileHeader& header();
-        QVector<MpMaterial>& materals();
-        QVector<eTileType>& titleType();
-        QVector<MpAnimTile>& animTiles();
-    private:
-        bool IsRead = false;
-        MpFileHeader Header;
-        QVector<MpMaterial> Materials;
-        QVector<eTileType>  TileTypes;
-        QVector<MpAnimTile> AnimTiles;
-    };
+        return st >> tile.TileIndex >> tile.PhasesCount;
+    }
+
+    friend QDataStream& operator<< (QDataStream &st, MpAnimTile &tile)
+    {
+        return st << tile.TileIndex << tile.PhasesCount;
+    }
+};
+
+class MpFile
+{
+public:
+    static const uint Signature = 0xce4af672;
+
+    bool ReadFromFile(QString& path);
+    MpFileHeader& header();
+    QVector<MpMaterial>& materals();
+    QVector<eTileType>& titleType();
+    QVector<MpAnimTile>& animTiles();
+private:
+    bool IsRead = false;
+    MpFileHeader Header;
+    QVector<MpMaterial> Materials;
+    QVector<eTileType>  TileTypes;
+    QVector<MpAnimTile> AnimTiles;
+};
 
 
 #endif // SUPPORTMPRTYPES_H

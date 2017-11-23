@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //CScene scene;
     ei::CFigure fig;
     QString path("/home/mirilled/temp/efar1arrow.fig");
-    fig.loadFromFile(path);
+    //fig.loadFromFile(path);
     //scene.addObject(&obj);
 }
 

@@ -1,5 +1,4 @@
 #include "ei_object.h"
-#include "ei_utils.h"
 
 ei::CFigure::CFigure()
 {
@@ -21,26 +20,33 @@ struct SHeader{
     int unknown = 0;
     int group = 0;
     int textureNumber = 0;
+    //todo read(QDataStream*& stream);
 };
 
-void readHeader(std::ifstream& file, SHeader& hd){
-    file.read((char*)&hd, sizeof(hd));
+bool readSignature(FILE*& file){
+    unsigned int sign;
+    fread(&sign, sizeof(sign), 1, file);
+    return sign == 0x38474946;
+}
+
+void readHeader(FILE*& file, SHeader& hd){
+    fread(&hd, sizeof(hd), 1, file);
 }
 
 // read xyz(3) for morph components(8)
-void read24(std::ifstream& file, QVector<f3>& points){
+void read24(FILE*& file, QVector<f3>& points){
     f3 temp;
     for (int i(0); i<8; i++){
-        file.read((char*)&temp, sizeof(temp));
+        fread(&temp, sizeof(temp), 1, file);
         points.push_back(temp);
     }
 }
 
 // read morph components(8)
-void read8(std::ifstream& file, QVector<float>& points){
+void read8(FILE*& file, QVector<float>& points){
     float buf;
     for (int i(0); i<8;i++){
-        file.read((char*)&buf, sizeof (buf));
+        fread(&buf, sizeof (buf), 1, file);
         points.push_back(buf);
     }
 }
@@ -51,45 +57,37 @@ void read8(std::ifstream& file, QVector<float>& points){
 // r |.............| |.............| .......
 // p |.............| |.............| .......
 // h |{x07,y07,z07}| |{x17,y17,z17}| .......
-void readVertices(std::ifstream& file, QVector <QVector <f3>>& morphVerts, const int blockCount){
+void readVertices(FILE*& file, QVector <QVector <f3>>& morphVerts, const int blockCount){
     f3 pt;
     QVector<f3> vertices;
     float buf;
-    //fill zeroes
-    for (int block(0); block<blockCount*4; ++block)
-        vertices.append(pt);
-    for (int morph(0); morph<8; ++morph)
-        morphVerts.append(vertices);
 
+    vertices.fill(pt, blockCount*4);
+    morphVerts.fill(vertices, 8);
     //mb change header[0] to header[morph component count]
     for (int block(0); block<blockCount; ++block){
         for (int xyz(0); xyz<3; ++xyz){
             for (int morph(0); morph<8; ++morph){
                 for (int point(0); point<4; ++point){
-                    file.read((char*)&buf, sizeof (buf));
+                    fread(&buf, sizeof (buf), 1, file);
                     morphVerts[morph][block*4+point][xyz]=buf;
                 }
             }
         }
     }
-
 }
 
 //     nrml#1          nrml#2
 // |{x0,y0,z0,w0}| |{x1,y1,z1,w1}| ....
-void readNormals(std::ifstream& file, QVector<QVector<float>>& nrmls, const int blockCount){
-    QVector<float> pt; //xyzw
+void readNormals(FILE*& file, QVector<f4>& nrmls, const int blockCount){
+    f4 pt(1.0); //xyzw
     float buf;
-    //fill 1.0 for all normals
-    for (int curN(0); curN<4; ++curN)
-        pt.push_back(1.0);
-    for (int block(0); block<blockCount*4; ++block)
-        nrmls.push_back(pt);
 
+    nrmls.fill(pt, blockCount*4);
     for (int block(0); block<blockCount; ++block){   //mb change header[0] to header[morph component count]
         for (int xyzw(0); xyzw<4; ++xyzw){
             for (int point(0); point<4; ++point){
-                file.read((char*)&buf, sizeof (buf));
+                fread(&buf, sizeof (buf), 1, file);
                 nrmls[block*4+point][xyzw]=buf;
             }
         }
@@ -98,70 +96,60 @@ void readNormals(std::ifstream& file, QVector<QVector<float>>& nrmls, const int 
 
 //     UV#1     UV#2
 // |{x0,y0}| |{x1,y1}| ....
-void readTextureCoords(std::ifstream& file, QVector<QVector<float>>& tCoords, const int uvCount){
-    QVector<float> pt;    //xy
+void readTextureCoords(FILE*& file, QVector<f2>& tCoords, const int uvCount){
+    f2 pt;    //xy
     float buf;
-    //fill 0.0
-    for (int t(0); t<2; ++t)
-        pt.push_back(0.0);
-    for (int pts(0); pts<uvCount; ++pts)
-        tCoords.push_back(pt);
 
+    tCoords.fill(pt, uvCount);
     for (int point(0); point<uvCount; point++)
         for (int xy(0); xy<2; ++xy){
-            file.read((char*)&buf, sizeof (buf));
+            fread(&buf, sizeof (buf), 1, file);
             tCoords[point][xy]=buf;
         }
 }
 
-void readIndices(std::ifstream& file, QVector<short>& indices, const int indCount){
+void readIndices(FILE*& file, QVector<short>& indices, const int indCount){
     short buf;
     for (int i(0); i<indCount; i++){
-        file.read((char*)&buf, sizeof(buf));
+        fread(&buf, sizeof(buf), 1, file);
         indices.push_back(buf);
     }
 }
 
-void readVertexComponents(std::ifstream& file, QVector<indices_link>& vComp, const int vcCount){
+void readVertexComponents(FILE*& file, QVector<f3>& vComp, const int vcCount){
     short buf;
-    indices_link temp;
-    for (int i(0); i<vcCount; i++){
-        file.read((char*)&buf, sizeof(buf));
-        temp.normal_ind = buf;
-        file.read((char*)&buf, sizeof(buf));
-        temp.vertex_ind = buf;
-        file.read((char*)&buf, sizeof(buf));
-        temp.texture_ind = buf;
-        vComp.push_back(temp);
+    f3 vertexComponent; // x==normal y==vertex z==texture
+    for (int i(0); i<vcCount; ++i){
+        for (int c(0); c<3; ++c){
+            fread(&buf, sizeof(buf), 1, file);
+            vertexComponent[c] = buf;
+        }
+        vComp.push_back(vertexComponent);
     }
 }
 
 //convert indices from ei_fig format to dif arrays for vertices, normals and texture coordinates
-void convertIndices(QVector<short>& inds, QVector<indices_link>& comps, QVector<int>& vertInds, QVector<int>& normInds, QVector<int>& uvInds){
+void convertIndices(QVector<short>& inds, QVector<f3>& comps, QVector<int>& normInds, QVector<int>& vertInds, QVector<int>& uvInds){
     for (int i(0); i<inds.size(); ++i){
-        vertInds.push_back(comps[inds[i]].vertex_ind);
-        normInds.push_back(comps[inds[i]].normal_ind);
-        uvInds.push_back(comps[inds[i]].texture_ind);
+        normInds.push_back(comps[inds[i]].x);
+        vertInds.push_back(comps[inds[i]].y);
+        uvInds.push_back(comps[inds[i]].z);
     }
 }
 
 int recalcUV(const int typeUV){
-    int t = 0;
     switch (typeUV){
     case 2:
-        t=1;
-        break;
+        return 1;
     case 8:
-        t=2;
-        break;
+        return 2;
     default:
-        t=0;
-        break;
+        return 0;
     }
-    return t;
+
 }
 
-void convertUVCoords(QVector<QVector<float>>& coordsUV, int convertCount){
+void convertUVCoords(QVector<f2>& coordsUV, int convertCount){
     for (int i(0); i<convertCount; ++i){
         for (auto& pt:coordsUV){
             pt[0]/=2;
@@ -171,19 +159,24 @@ void convertUVCoords(QVector<QVector<float>>& coordsUV, int convertCount){
 }
 
 //load morphing_vertices, indices, normals, texture coordinates
-bool ei::CFigure::loadFromFile(QString& pathFile){
+bool ei::CFigure::loadFromFile(const wchar_t* path){
     SHeader header;
     QVector<short> fIndices;
-    QVector<indices_link> vComponents;
-    std::ifstream figFile;
-    figFile.open(pathFile.toLatin1(), std::ios::binary);
+    QVector<f3> vComponents;
+    FILE* figFile = nullptr;
+
+    figFile = _wfopen(path, L"rb");
     if (!figFile){
-        qDebug() << EI_Utils::messages.CantLoadFile << pathFile;
+        qDebug() << "Can't load file " << path;
         return false;
     }
     //check signature
-    if (!EI_Utils::checkSignature(figFile, EI_Utils::eSignatures::fig8))
+    if (!readSignature(figFile)){   // 0x38474946 == FIG8
+        qDebug() << "incorrect signature";
+        fclose(figFile);
         return false;
+        }
+
     //read header
     readHeader(figFile, header);
     //read center
@@ -196,6 +189,7 @@ bool ei::CFigure::loadFromFile(QString& pathFile){
     read8(figFile, m_morphRadius);
     //read vertices
     readVertices(figFile, m_morphVertices, header.vertBlocks);
+    m_vertices.fill(f3(), m_morphVertices[0].size());
     //read normals
     readNormals(figFile, m_normals, header.normalBlocks);
     //read texture coordinates
@@ -205,24 +199,26 @@ bool ei::CFigure::loadFromFile(QString& pathFile){
     //read vertex components
     readVertexComponents(figFile, vComponents, header.vertexComponentCount);
     //create indicies array of vertices, uv coords and normals
-    convertIndices(fIndices, vComponents, m_vertIndices, m_normIndices, m_uvIndices);
+    convertIndices(fIndices, vComponents, m_normIndices, m_vertIndices, m_uvIndices);
     //convert x,y uvCoords from type of object
     convertUVCoords(m_uvCoords, recalcUV(header.textureNumber));
 
-    calculateConstitution(1.0, 1.0, 1.0);
+    calculateConstitution(f3(1.0, 1.0, 1.0));
 
-    figFile.close();
+    fclose(figFile);
     return true;
 }
 
-void ei::CFigure::calculateConstitution(float str, float dex, float scale){
-    //TODO: fill m_vertices
-//    float temp1, temp2, res1, res2;
-//    temp1 = m_morphVertices[0]+(m_morphVertices[1]-m_morphVertices[0])*str;
-//    temp2 = m_morphVertices[2]+(m_morphVertices[3]-m_morphVertices[2])*str;
-//    res1 = temp1+(temp2-temp1)*dex;
-//    temp1 = m_morphVertices[4]+(m_morphVertices[5]-m_morphVertices[4])*str;
-//    temp2 = m_morphVertices[6]+(m_morphVertices[7]-m_morphVertices[6])*str;
-//    res2 = temp1+(temp2-temp1)*dex;
-//    m_vertices[0]=res1+(res2-res1)*scale;
+void ei::CFigure::calculateConstitution(f3 constitute){ //x == str, y == dex, z == scale
+    f3 res0, res1, res2;
+    for (int i(0); i<m_morphVertices[0].size(); ++i){
+        res0 = m_morphVertices[0][i] + (m_morphVertices[1][i] - m_morphVertices[0][i]) * constitute.x;
+        res1 = m_morphVertices[2][i] + (m_morphVertices[3][i] - m_morphVertices[2][i]) * constitute.x;
+        res2 = res0 + (res1 - res0) * constitute.y;
+        res0 = m_morphVertices[4][i] + (m_morphVertices[5][i] - m_morphVertices[4][i]) * constitute.x;
+        res1 = m_morphVertices[6][i] + (m_morphVertices[7][i] - m_morphVertices[6][i]) * constitute.x;
+        res0 = res0 + (res1 - res0) * constitute.y;
+        //need check it
+        m_vertices[i] = res2 + (res0 - res2) * constitute.z;
+    }
 }

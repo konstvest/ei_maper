@@ -10,7 +10,7 @@ public:
     virtual bool add() = 0;
     virtual bool remove() = 0;
     virtual bool move(f3& coord) = 0;
-    virtual bool rotate(vec4) = 0;
+    virtual bool rotate(f4) = 0;
     virtual bool copy() = 0;
     virtual bool paste() = 0;
     virtual bool cut() = 0;
@@ -33,17 +33,17 @@ public:
     void boundBox();
     void setComplex(float str, float dex, float tall);
     //TODO return methods of vertices, uv, normals, vert.indices, uv.indices
-    bool loadFromFile(QString& pathFile);
-    void calculateConstitution (float str, float dex, float scale);
+    bool loadFromFile(const wchar_t* path);
+    void calculateConstitution (f3 constitute);
 private:
     //TODO: change vector to array
     QVector<float> m_BoundBox;
 
     QVector<f3> m_vertices;
     QVector<int> m_vertIndices;
-    QVector<QVector<float>> m_normals;
+    QVector<f4> m_normals;
     QVector<int> m_normIndices;
-    QVector<QVector<float>> m_uvCoords;
+    QVector<f2> m_uvCoords;
     QVector<int> m_uvIndices;
 
     // vectors include morph components
@@ -62,7 +62,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(vec4);
+    bool rotate(f4);
     bool copy();
     bool paste();
     bool cut();
@@ -97,8 +97,8 @@ private:
     int m_player;
     int m_type;
     f3 m_complex;   // str, dex, tall
-    f3 m_position;    // x, y ,z
-    vec4 m_rotation;    // quaternion x,y,z,w
+    f3 m_position;
+    f4 m_rotation;    // quaternion x,y,z,w
 };
 
 class CUnit : public CObject{
@@ -107,7 +107,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(vec4);
+    bool rotate(f4);
     bool copy();
     bool paste();
     bool cut();
@@ -132,7 +132,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(vec4);
+    bool rotate(f4);
     bool copy();
     bool paste();
     bool cut();
@@ -150,7 +150,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(vec4);
+    bool rotate(f4);
     bool copy();
     bool paste();
     bool cut();
@@ -168,7 +168,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(vec4);
+    bool rotate(f4);
     bool copy();
     bool paste();
     bool cut();
@@ -186,7 +186,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(vec4);
+    bool rotate(f4);
     bool copy();
     bool paste();
     bool cut();

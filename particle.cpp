@@ -4,7 +4,7 @@ bool ei::CParticle::move(f3& coord){
     return true;
 }
 
-bool ei::CParticle::rotate(vec4){
+bool ei::CParticle::rotate(f4){
     return true;
 }
 

@@ -13,7 +13,7 @@ bool ei::CObject::move(f3& coord){
     return true;
 }
 
-bool ei::CObject::rotate(vec4){
+bool ei::CObject::rotate(f4){
 
     return true;
 }

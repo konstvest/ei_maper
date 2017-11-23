@@ -15,7 +15,7 @@ bool ei::CUnit::move(f3& coord){
     return true;
 }
 
-bool ei::CUnit::rotate(vec4){
+bool ei::CUnit::rotate(f4){
     return true;
 }
 

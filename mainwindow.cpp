@@ -11,14 +11,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     connect (&timerProperty, SIGNAL(timeout()), this, SLOT(updateProperty()));
     timerProperty.start(100);
-    this->ui->horizontalSlider->setVisible(false);
-    this->ui->horizontalSlider_2->setVisible(false);
-    this->ui->horizontalSlider_3->setVisible(false);
+//    this->ui->horizontalSlider->setVisible(false);
+//    this->ui->horizontalSlider_2->setVisible(false);
+//    this->ui->horizontalSlider_3->setVisible(false);
 
     //CScene scene;
-    ei::CFigure fig;
-    QString path("/home/mirilled/temp/efar1arrow.fig");
-    fig.loadFromFile(path);
+
     //scene.addObject(&obj);
 }
 
@@ -36,26 +34,26 @@ void MainWindow::on_pushButton_2_clicked()
 
 void MainWindow::on_pushButton_3_clicked()
 {
-    this->ui->widget->name = "big cube";
-    this->ui->widget->width = 2;
-    this->ui->widget->length = 2;
-    this->ui->widget->height = 2;
-    this->ui->widget->update();
-    this->ui->horizontalSlider->setVisible(false);
-    this->ui->horizontalSlider_2->setVisible(false);
-    this->ui->horizontalSlider_3->setVisible(false);
+//    this->ui->widget->name = "big cube";
+//    this->ui->widget->width = 2;
+//    this->ui->widget->length = 2;
+//    this->ui->widget->height = 2;
+//    this->ui->widget->update();
+//    this->ui->horizontalSlider->setVisible(false);
+//    this->ui->horizontalSlider_2->setVisible(false);
+//    this->ui->horizontalSlider_3->setVisible(false);
 }
 
 void MainWindow::on_pushButton_4_clicked()
 {
-    this->ui->widget->name = "column";
-    this->ui->widget->width = 0.3;
-    this->ui->widget->length = 0.3;
-    this->ui->widget->height = 1.4;
-    this->ui->widget->update();
-    this->ui->horizontalSlider->setVisible(false);
-    this->ui->horizontalSlider_2->setVisible(false);
-    this->ui->horizontalSlider_3->setVisible(false);
+//    this->ui->widget->name = "column";
+//    this->ui->widget->width = 0.3;
+//    this->ui->widget->length = 0.3;
+//    this->ui->widget->height = 1.4;
+//    this->ui->widget->update();
+//    this->ui->horizontalSlider->setVisible(false);
+//    this->ui->horizontalSlider_2->setVisible(false);
+//    this->ui->horizontalSlider_3->setVisible(false);
 }
 
 void MainWindow::on_pushButton_5_clicked()
@@ -71,41 +69,41 @@ void MainWindow::on_pushButton_5_clicked()
 }
 
 void MainWindow::updateProperty(){
-    this->ui->label->setText("Object "+this->ui->widget->name+
-                                " has "+QString::number(this->ui->widget->triangles)+" triangle(s).\n"
-                             "Property: length="+QString::number(this->ui->widget->length)+
-                                " width="+QString::number(this->ui->widget->width)+
-                                " height="+QString::number(this->ui->widget->height)+"." );
+//    this->ui->label->setText("Object "+this->ui->widget->name+
+//                                " has "+QString::number(this->ui->widget->triangles)+" triangle(s).\n"
+//                             "Property: length="+QString::number(this->ui->widget->length)+
+//                                " width="+QString::number(this->ui->widget->width)+
+//                                " height="+QString::number(this->ui->widget->height)+"." );
 }
 
 void MainWindow::on_horizontalSlider_valueChanged(int value)
 {
-    this->ui->widget->width = (float)value/10;
-    this->ui->widget->update();
+//    this->ui->widget->width = (float)value/10;
+//    this->ui->widget->update();
 }
 
 void MainWindow::on_horizontalSlider_2_valueChanged(int value)
 {
-    this->ui->widget->length = (float)value/10;
-    this->ui->widget->update();
+//    this->ui->widget->length = (float)value/10;
+//    this->ui->widget->update();
 }
 
 void MainWindow::on_horizontalSlider_3_valueChanged(int value)
 {
-    this->ui->widget->height = (float)value/10;
-    this->ui->widget->update();
+//    this->ui->widget->height = (float)value/10;
+//    this->ui->widget->update();
 }
 
 void MainWindow::on_pushButton_6_clicked()
 {
-    this->ui->widget->name = "custom box";
-    this->ui->horizontalSlider->setVisible(true);
-    this->ui->horizontalSlider_2->setVisible(true);
-    this->ui->horizontalSlider_3->setVisible(true);
-    this->ui->widget->width = (float)this->ui->horizontalSlider->value()/10;
-    this->ui->widget->length = (float)this->ui->horizontalSlider_2->value()/10;
-    this->ui->widget->height = (float)this->ui->horizontalSlider_3->value()/10;
-    this->ui->widget->update();
+//    this->ui->widget->name = "custom box";
+//    this->ui->horizontalSlider->setVisible(true);
+//    this->ui->horizontalSlider_2->setVisible(true);
+//    this->ui->horizontalSlider_3->setVisible(true);
+//    this->ui->widget->width = (float)this->ui->horizontalSlider->value()/10;
+//    this->ui->widget->length = (float)this->ui->horizontalSlider_2->value()/10;
+//    this->ui->widget->height = (float)this->ui->horizontalSlider_3->value()/10;
+//    this->ui->widget->update();
 }
 
 

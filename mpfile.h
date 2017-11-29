@@ -1,8 +1,9 @@
-#ifndef SUPPORTMPRTYPES_H
-#define SUPPORTMPRTYPES_H
+#ifndef MPFILE_H
+#define MPFILE_H
 #include <QString>
 #include <QFile>
 #include <QDataStream>
+#include <QVector>
 
 enum eMaterialType
 {
@@ -125,4 +126,4 @@ private:
 };
 
 
-#endif // SUPPORTMPRTYPES_H
+#endif // MPFILE_H

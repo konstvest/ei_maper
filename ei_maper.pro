@@ -38,7 +38,8 @@ SOURCES += main.cpp\
     mpfile.cpp \
     secfile.cpp \
     ei_utils.cpp \
-    resfile.cpp
+    resfile.cpp \
+    mprfile.cpp
 
 HEADERS  += mainwindow.h \
     glwidget.h \
@@ -51,7 +52,8 @@ HEADERS  += mainwindow.h \
     secfile.h \
     ei_vectors.h \
     ei_utils.h \
-    resfile.h
+    resfile.h \
+    mprfile.h
 #>>>>>>> c614149c10f6c666a0993e67d9afd94e3ec99bf6
 
 FORMS    += mainwindow.ui

@@ -1,5 +1,5 @@
-#ifndef SUPPORTMPRTYPES_H
-#define SUPPORTMPRTYPES_H
+#ifndef SECFILE_H
+#define SECFILE_H
 #include <QString>
 #include <QVector>
 #include <QFile>

@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QFile>
 #include <QDateTime>
+#include <QMap>
 #include <QBuffer>
 #include <QDataStream>
 
@@ -65,20 +66,22 @@ class ResFile
 {
 public:
     ResFile(QString& path);
-    ResFileHeader Header;
-    QMap<QString, ResFileEntry>& GetFiles();
-    void AddFile(QString& name, QDateTime time);
     ~ResFile();
+    ResFileHeader Header;
+    QMap<QString, ResFileEntry>& GetFiles(QDataStream& stream);
+    void AddFile(QString& name, QDateTime time);
 private:
     static const uint Signature =  0x019CE23C;
     qint64 StreamStartPosition;
-    QDataStream Stream;
+    //QDataStream* Stream;
+    QByteArray Buffer;
     QVector<ResFileEntry> Entries;
+    QMap<QString, QByteArray> bufferOfFiles;
 
     void CompletePreviousFile();
     void WriteAlign();
     static QMap<QString, ResFileEntry>& BuildFileTableDictonary(
-            QVector<ResFileHashTableEntry> fileTable, long offsetStream,
+            QVector<ResFileHashTableEntry>& fileTable, long offsetStream,
             long streamLength, QString& names);
     static QBuffer& ReadNamesByffer();
     static void BuildResHashTable(

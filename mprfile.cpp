@@ -39,7 +39,7 @@ MprTile::MprTile(ushort secTile)
     Angle = secTile >> 14;
 }
 
-MprTile::ToSecTile()
+ushort MprTile::ToSecTile()
 {
     if (Index < 0 || Index > 0x3FFF || Angle < 0 || Angle > 3)
         throw "Invalid index or angle";
@@ -56,7 +56,7 @@ MprAnimTile::MprAnimTile(MpAnimTile mpAnimTile)
     PhasesCount = mpAnimTile.PhasesCount;
 }
 
-MprAnimTile::ToMpAnimTile()
+MpAnimTile MprAnimTile::ToMpAnimTile()
 {
     MpAnimTile mpAnimTile;
     mpAnimTile.TileIndex = TileIndex;
@@ -76,9 +76,9 @@ MprMaterial::MprMaterial(MpMaterial mat)
     WarpSpeed = mat.WarpSpeed;
 }
 
-MprMaterial::ToMpMaterial()
+MpMaterial MprMaterial::ToMpMaterial()
 {
-    var mat = new MpMaterial();
+    MpMaterial mat;
     mat.Type = Type;
     mat.R = R;
     mat.G = G;

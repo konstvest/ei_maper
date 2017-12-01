@@ -6,11 +6,10 @@ ResFile::~ResFile()
     //this->Stream.device()->close();
 }
 
-QMap<QString, ResFileEntry>& ResFile::BuildFileTableDictonary(
+void ResFile::BuildFileTableDictonary(
         QVector<ResFileHashTableEntry>& fileTable, long offsetStream,
-        long streamLength, QString &names)
+        long streamLength, QString &names, QMap<QString, ResFileEntry>& entries)
 {
-    QMap<QString, ResFileEntry> result;
 
     ResFileEntry entry;
     foreach (ResFileHashTableEntry file, fileTable)
@@ -24,13 +23,13 @@ QMap<QString, ResFileEntry>& ResFile::BuildFileTableDictonary(
         entry.Position = offsetStream + file.DataOffset;
         entry.Size = file.DataSize;
 
-        result.insert(name, entry);
+        entries.insert(name, entry);
     }
 
-    return result;
+    //return result;
 }
 
-QMap<QString, ResFileEntry>& ResFile::GetFiles(QDataStream &stream)
+void ResFile::GetFiles(QDataStream &stream, QMap<QString, ResFileEntry>& entries)
 {
     qint64 startPos = stream.device()->pos();
     
@@ -52,8 +51,19 @@ QMap<QString, ResFileEntry>& ResFile::GetFiles(QDataStream &stream)
     QTextCodec* codec = QTextCodec::codecForName("CP1251"); //m
     QString names = codec->toUnicode((char*)&bufferNames);
 
-    return BuildFileTableDictonary(fileTable, startPos, Buffer.length(), names);
+    BuildFileTableDictonary(fileTable, startPos, Buffer.length(), names, entries);
     
+}
+
+void ResFile::GetBufferList(QMap<QString, ResFileEntry> &entries, QDataStream &stream)
+{
+    foreach(auto entry, entries.values())
+    {
+        char arr[entry.Size];
+        stream.writeRawData(arr, entry.Size);
+        QByteArray ba(arr, entry.Size);
+        bufferOfFiles.insert(entry.FileName, ba);
+    }
 }
 
 ResFile::ResFile(QString &path)
@@ -74,5 +84,7 @@ ResFile::ResFile(QString &path)
     tmpStream.setByteOrder(QDataStream::ByteOrder::LittleEndian);
     tmpStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
     StreamStartPosition = tmpStream.device()->pos();
-    QMap<QString, ResFileEntry> resEntry = GetFiles(tmpStream);
+    QMap<QString, ResFileEntry> resEntries;
+    GetFiles(tmpStream, resEntries);
+    GetBufferList(resEntries, tmpStream);
 }

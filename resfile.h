@@ -68,7 +68,7 @@ public:
     ResFile(QString& path);
     ~ResFile();
     ResFileHeader Header;
-    QMap<QString, ResFileEntry>& GetFiles(QDataStream& stream);
+    void GetFiles(QDataStream& stream, QMap<QString, ResFileEntry>& entries);
     void AddFile(QString& name, QDateTime time);
 private:
     static const uint Signature =  0x019CE23C;
@@ -80,9 +80,10 @@ private:
 
     void CompletePreviousFile();
     void WriteAlign();
-    static QMap<QString, ResFileEntry>& BuildFileTableDictonary(
+    void GetBufferList(QMap<QString, ResFileEntry>& entries, QDataStream& stream);
+    void BuildFileTableDictonary(
             QVector<ResFileHashTableEntry>& fileTable, long offsetStream,
-            long streamLength, QString& names);
+            long streamLength, QString& names, QMap<QString, ResFileEntry>& entries);
     static QBuffer& ReadNamesByffer();
     static void BuildResHashTable(
             QVector<ResFileEntry>& entries, long headerPositon,

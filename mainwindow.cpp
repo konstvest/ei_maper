@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "glwidget.h"
+#include "resfile.h"
 #include <string.h>
 #include "scene.h"
 
@@ -17,7 +18,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //CScene scene;
     ei::CFigure fig;
-    QString path("/home/mirilled/temp/efar1arrow.fig");
+    QString path("c:\\tmp\\testSuS.mpr");
+    ResFile res(path);
     //fig.loadFromFile(path);
     //scene.addObject(&obj);
 }

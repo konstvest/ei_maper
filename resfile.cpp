@@ -1,9 +1,23 @@
 #include "resfile.h"
+#include "QDebug"
 #include <QTextCodec>
 
 ResFile::~ResFile()
 {
     //this->Stream.device()->close();
+}
+
+QMap<QString, QByteArray>& ResFile::bufferOfFiles()
+{
+    if(!IsRead)
+        throw std::runtime_error("Res-file must be initialize");
+    return BufferOfFiles;
+}
+QVector<ResFileEntry>& ResFile::entries()
+{
+    if(!IsRead)
+        throw std::runtime_error("Res-file must be initialize");
+    return Entries;
 }
 
 void ResFile::BuildFileTableDictonary(
@@ -15,7 +29,7 @@ void ResFile::BuildFileTableDictonary(
     foreach (ResFileHashTableEntry file, fileTable)
     {
         if((long)(file.DataOffset + file.DataSize) > streamLength - offsetStream)
-            throw "Invalid stream!";
+            throw new std::runtime_error("Invalid stream!");
 
         QString name = names.mid(file.NameOffset, file.NameLength);
         entry.FileName = name;
@@ -47,11 +61,11 @@ void ResFile::GetFiles(QDataStream &stream, QMap<QString, ResFileEntry>& entries
         fileTable.append(hashTable);
     }
 
-    int res = stream.readRawData((char*)&bufferNames, Header.NamesLenght);
+    int res = stream.readRawData(bufferNames, Header.NamesLenght);
     QTextCodec* codec = QTextCodec::codecForName("CP1251"); //m
-    QString names = codec->toUnicode((char*)&bufferNames);
+    QString names = codec->toUnicode(bufferNames);
 
-    BuildFileTableDictonary(fileTable, startPos, Buffer.length(), names, entries);
+    BuildFileTableDictonary(fileTable, startPos, BufferLength, names, entries);
     
 }
 
@@ -62,29 +76,39 @@ void ResFile::GetBufferList(QMap<QString, ResFileEntry> &entries, QDataStream &s
         char arr[entry.Size];
         stream.writeRawData(arr, entry.Size);
         QByteArray ba(arr, entry.Size);
-        bufferOfFiles.insert(entry.FileName, ba);
+        BufferOfFiles.insert(entry.FileName, ba);
     }
 }
 
 ResFile::ResFile(QString &path)
 {
-    QFile file(path);
-    file.open(QIODevice::ReadOnly);
-    if(file.error() != QFile::NoError)
+    try
     {
-        if(file.error() != QFile::OpenError)
-            file.close();
-        throw "Error while open res-file";
+        QFile file(path);
+        file.open(QIODevice::ReadOnly);
+        if(file.error() != QFile::NoError)
+        {
+            if(file.error() != QFile::OpenError)
+                file.close();
+            throw new std::runtime_error("Error while open res-file");
+        }
+        QByteArray buffer = file.readAll();
+        BufferLength = buffer.length();
+        file.close();
+
+        QDataStream tmpStream(buffer);
+
+        tmpStream.setByteOrder(QDataStream::ByteOrder::LittleEndian);
+        tmpStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+        StreamStartPosition = tmpStream.device()->pos();
+        QMap<QString, ResFileEntry> resEntries;
+        GetFiles(tmpStream, resEntries);
+        GetBufferList(resEntries, tmpStream);
+        buffer.clear();
+        IsRead = true;
     }
-    Buffer = file.readAll();
-    file.close();
-
-    QDataStream tmpStream(Buffer);
-
-    tmpStream.setByteOrder(QDataStream::ByteOrder::LittleEndian);
-    tmpStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
-    StreamStartPosition = tmpStream.device()->pos();
-    QMap<QString, ResFileEntry> resEntries;
-    GetFiles(tmpStream, resEntries);
-    GetBufferList(resEntries, tmpStream);
+    catch(std::exception ex)
+    {
+        qDebug() << ex.what();
+    }
 }

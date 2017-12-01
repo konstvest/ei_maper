@@ -112,10 +112,11 @@ class MpFile
 public:
     static const uint Signature = 0xce4af672;
 
-    bool ReadFromFile(QString& path);
+    bool Read(QString& path);
+    bool Read(QByteArray& buffer);
     MpFileHeader& header();
     QVector<MpMaterial>& materals();
-    QVector<eTileType>& titleType();
+    QVector<eTileType>& titleTypes();
     QVector<MpAnimTile>& animTiles();
 private:
     bool IsRead = false;

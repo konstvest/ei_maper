@@ -53,10 +53,24 @@ struct MprMaterial
 class MprFile
 {
 public:
+    void LoadFile(QString& path);
+
     QVector<MprMaterial> Materials;
     QVector<eTileType> TileTypes;
     QVector<MprAnimTile> AnimTiles;
 
+    float maxZ();
+    int sectorsXCount();
+    int sectorsYCount();
+    int texturesCount();
+    int textureSize();
+    int tileSize();
+
+    QVector<QVector<MprVertex>>& landVertices();
+    QVector<QVector<MprVertex>>& waterVertices();
+    QVector<QVector<MprTile>>& landTiles();
+    QVector<QVector<MprTile>>& waterTiles();
+    QVector<QVector<int>>& waterMaterials();
 private:
     float MaxZ;
     int SectorsXCount;

@@ -43,8 +43,13 @@ class SecFile
 {
 public:
     static const uint Signature = 0xcf4bf774;
+    static const int VerticesCount = 33 * 33;
+    static const int VerticesSideSize = 33;
+    static const int TilesCount = 16 * 16;
+    static const int TilesSideSize = 16;
 
-    bool ReadFromFile(QString& path);
+    bool Read(QString& path);
+    bool Read(QByteArray& buffer);
     SecFileHeader& header();
     QVector<SecVertex>& landVertex();
     QVector<SecVertex>& waterVertex();
@@ -52,11 +57,6 @@ public:
     QVector<ushort>& waterTiles();
     QVector<ushort>& waterAllow();
 private:
-    static const int VerticesCount = 33 * 33;
-    static const int VerticesSideSize = 33;
-    static const int TilesCount = 16 * 16;
-    static const int TilesSideSize = 16;
-
     bool IsRead = false;
     SecFileHeader Header;
     QVector<SecVertex> LandVertex;

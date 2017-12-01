@@ -68,15 +68,20 @@ public:
     ResFile(QString& path);
     ~ResFile();
     ResFileHeader Header;
+
     void GetFiles(QDataStream& stream, QMap<QString, ResFileEntry>& entries);
     void AddFile(QString& name, QDateTime time);
+
+    QMap<QString, QByteArray>& bufferOfFiles();
+    QVector<ResFileEntry>& entries();
 private:
     static const uint Signature =  0x019CE23C;
+    bool IsRead = false;
     qint64 StreamStartPosition;
     //QDataStream* Stream;
-    QByteArray Buffer;
+    int BufferLength;
     QVector<ResFileEntry> Entries;
-    QMap<QString, QByteArray> bufferOfFiles;
+    QMap<QString, QByteArray> BufferOfFiles;
 
     void CompletePreviousFile();
     void WriteAlign();

@@ -35,21 +35,23 @@ SOURCES += main.cpp\
     unit.cpp \
     trap.cpp \
     mob.cpp \
-    mpfile.cpp \
-    secfile.cpp \
-    ei_utils.cpp
+    resfile.cpp \
+    MapUtils/mpfile.cpp \
+    MapUtils/mprfile.cpp \
+    MapUtils/secfile.cpp
 
 HEADERS  += mainwindow.h \
     glwidget.h \
-    mpfile.h \
     scene.h \
     ei_types.h \
     ei_object.h \
     ei_map.h \
     ei_mob.h \
-    secfile.h \
     ei_vectors.h \
-    ei_utils.h
+    resfile.h \
+    MapUtils/mpfile.h \
+    MapUtils/mprfile.h \
+    MapUtils/secfile.h
 #>>>>>>> c614149c10f6c666a0993e67d9afd94e3ec99bf6
 
 FORMS    += mainwindow.ui

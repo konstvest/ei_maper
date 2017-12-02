@@ -55,3 +55,6 @@ HEADERS  += mainwindow.h \
 #>>>>>>> c614149c10f6c666a0993e67d9afd94e3ec99bf6
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    shaders.qrc

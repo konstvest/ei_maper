@@ -20,11 +20,13 @@ struct SHeader{
     int unknown = 0;
     int group = 0;
     int textureNumber = 0;
+
     //todo read(QDataStream*& stream);
 };
 
 bool readSignature(FILE*& file){
     unsigned int sign;
+
     fread(&sign, sizeof(sign), 1, file);
     return sign == 0x38474946;
 }
@@ -36,6 +38,7 @@ void readHeader(FILE*& file, SHeader& hd){
 // read xyz(3) for morph components(8)
 void read24(FILE*& file, QVector<f3>& points){
     f3 temp;
+
     for (int i(0); i<8; i++){
         fread(&temp, sizeof(temp), 1, file);
         points.push_back(temp);
@@ -45,6 +48,7 @@ void read24(FILE*& file, QVector<f3>& points){
 // read morph components(8)
 void read8(FILE*& file, QVector<float>& points){
     float buf;
+
     for (int i(0); i<8;i++){
         fread(&buf, sizeof (buf), 1, file);
         points.push_back(buf);
@@ -110,6 +114,7 @@ void readTextureCoords(FILE*& file, QVector<f2>& tCoords, const int uvCount){
 
 void readIndices(FILE*& file, QVector<short>& indices, const int indCount){
     short buf;
+
     for (int i(0); i<indCount; i++){
         fread(&buf, sizeof(buf), 1, file);
         indices.push_back(buf);
@@ -119,6 +124,7 @@ void readIndices(FILE*& file, QVector<short>& indices, const int indCount){
 void readVertexComponents(FILE*& file, QVector<f3>& vComp, const int vcCount){
     short buf;
     f3 vertexComponent; // x==normal y==vertex z==texture
+
     for (int i(0); i<vcCount; ++i){
         for (int c(0); c<3; ++c){
             fread(&buf, sizeof(buf), 1, file);
@@ -128,7 +134,7 @@ void readVertexComponents(FILE*& file, QVector<f3>& vComp, const int vcCount){
     }
 }
 
-//convert indices from ei_fig format to dif arrays for vertices, normals and texture coordinates
+//convert indices from ei_fig format to dif arrays of vertices, normals and texture coordinates
 void convertIndices(QVector<short>& inds, QVector<f3>& comps, QVector<int>& normInds, QVector<int>& vertInds, QVector<int>& uvInds){
     for (int i(0); i<inds.size(); ++i){
         normInds.push_back(comps[inds[i]].x);
@@ -139,14 +145,10 @@ void convertIndices(QVector<short>& inds, QVector<f3>& comps, QVector<int>& norm
 
 int recalcUV(const int typeUV){
     switch (typeUV){
-    case 2:
-        return 1;
-    case 8:
-        return 2;
-    default:
-        return 0;
+    case 2: return 1;
+    case 8: return 2;
+    default: return 0;
     }
-
 }
 
 void convertUVCoords(QVector<f2>& coordsUV, int convertCount){
@@ -221,4 +223,8 @@ void ei::CFigure::calculateConstitution(f3 constitute){ //x == str, y == dex, z 
         //need check it
         m_vertices[i] = res2 + (res0 - res2) * constitute.z;
     }
+}
+
+QVector<f3>& ei::CFigure::vertices(){
+    return m_vertices;
 }

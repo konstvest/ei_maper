@@ -1,24 +1,19 @@
 #include "glwidget.h"
 #include "GL/glu.h"
 
-GLWidget::GLWidget(QWidget *parent) : QGLWidget (parent)
+GLWidget::GLWidget(QWidget *parent) :
+    QGLWidget (parent),
+    m_xAxisRotation (0),
+    m_yAxisRotation (0),
+    m_xViewPos (0),
+    m_yViewPos (0),
+    m_zoom (1.0),
+    m_camPos (0.0, 0.0, 5.0),
+    m_volume (1.0, 1.0, 1.0)
 {
-    xAxisRotation = yAxisRotation = 0;
-    xViewPos = 0;
-    yViewPos = 0;
 
-    //triangles = 0;
-    length = 1;
-    width = 1;
-    height = 1;
-    name = "";
-
-    xCamPos = 0;
-    yCamPos = 0;
-    zCamPos = 5;
-
-    zoom = 1;
-
+    QString path("c:\\Users\\konstantin.bezelians\\files\\temp\\hd.fig");
+    m_figure.loadFromFile((wchar_t*)QString(path).utf16());
 }
 
 GLWidget::~GLWidget(){
@@ -27,40 +22,38 @@ GLWidget::~GLWidget(){
 
 void GLWidget::initializeGL(){
     glClearColor(0.2, 0.2, 0.2, 1);
+    initShaders();
 }
 
 void GLWidget::resizeGL(int w, int h){
-    currentWidth = w;
-    currentHeight = h;
-    if (w<h)
-        size = w;
-    else
-        size = h;
+    m_currentWidth = w;
+    m_currentHeight = h;
+    m_size = w < h ? w : h;
 }
 
 void GLWidget::paintGL(){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glViewport(0, 0, currentWidth, currentHeight);
+    glViewport(0, 0, m_currentWidth, m_currentHeight);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0f, (GLfloat)currentWidth/currentHeight, 0.1f, 100.0f);
-    gluLookAt(xCamPos, yCamPos, zCamPos, 0, 0, 0, 0, 1, 0);
+    gluPerspective(45.0f, (GLfloat)m_currentWidth/m_currentHeight, 0.1f, 100.0f);
+    gluLookAt(m_camPos.x, m_camPos.y, m_camPos.z, 0, 0, 0, 0, 1, 0);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glEnable(GL_DEPTH_TEST);
     //glEnable(GL_CULL_FACE);   //render depend on normals (use in game)
-    glRotatef(xAxisRotation, 0.0, 1.0, 0.0);
-    glRotatef(yAxisRotation, 1.0, 0.0, 0.0);
-    glScalef(zoom, zoom, zoom);
+    glRotatef(m_xAxisRotation, 0.0, 1.0, 0.0);
+    glRotatef(m_yAxisRotation, 1.0, 0.0, 0.0);
+    glScalef(m_zoom, m_zoom, m_zoom);
 
-    //drawFigure(fig);
+    drawFigure(m_figure);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event){
-    pressPosition = event->pos();
+    m_pressPosition = event->pos();
     setFocus();
     update();
 }
@@ -72,43 +65,51 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event){
         pressPosition = event->pos();*/
         calc_select_line((float)event->x(), (float)event->y());
     } else if (event->buttons() & Qt::RightButton){
-        xAxisRotation += 2*((GLfloat)event->x()-(GLfloat)pressPosition.x());
-        yAxisRotation += 2*((GLfloat)event->y()-(GLfloat)pressPosition.y());
-        pressPosition = event->pos();
+        m_xAxisRotation += 2*((GLfloat)event->x()-(GLfloat)m_pressPosition.x());
+        m_yAxisRotation += 2*((GLfloat)event->y()-(GLfloat)m_pressPosition.y());
+        m_pressPosition = event->pos();
     }
     update();
 }
 
 void GLWidget::wheelEvent(QWheelEvent *event){
-    zoom += (float)event->delta()/500;
+    m_zoom += (float)event->delta()/500;
     update();
 }
 
 void GLWidget::keyPressEvent(QKeyEvent *event){
     switch (event->key()){
-    case Qt::Key_W:
-        zCamPos -=0.35;
+    case Qt::Key_D:{
+        m_camPos.x += 0.4;
+    }
         break;
-    case Qt::Key_S:
-        zCamPos +=0.35;
+    case Qt::Key_A:{
+        m_camPos.x -= 0.4;
+    }
         break;
-    case Qt::Key_A:
-        xCamPos -= 0.4;
+    case Qt::Key_Q:{
+        m_camPos.y +=0.2;
+    }
         break;
-    case Qt::Key_D:
-        xCamPos += 0.4;
+    case Qt::Key_E:{
+        m_camPos.y -=0.2;
+    }
         break;
-    case Qt::Key_Q:
-        yCamPos +=0.2;
+    case Qt::Key_S:{
+        m_camPos.z +=0.35;
+    }
         break;
-    case Qt::Key_E:
-        yCamPos -=0.2;
+    case Qt::Key_W:{
+        m_camPos.z -=0.35;
+    }
         break;
-    case Qt::Key_Up:
-        size +=10;
+    case Qt::Key_Up:{
+        m_size +=10;
+    }
         break;
-    case Qt::Key_Down:
-        size -=10;
+    case Qt::Key_Down:{
+        m_size -=10;
+    }
         break;
     case Qt::Key_C:
 
@@ -117,22 +118,11 @@ void GLWidget::keyPressEvent(QKeyEvent *event){
     update();
 }
 
-//void GLWidget::drawFigure(QVector <figure> fig){
-//    //translate on class func
-//    triangles = 0;
-//    for (int i(0); i<fig.size(); i++){
-//        GLubyte figColors[fig[i].vertices.size()*3];
-//        //std::fill_n(figColors, fig.vertices.size()*3, 230);
+void GLWidget::drawFigure(ei::CFigure& fig){
 
-//        glEnableClientState(GL_VERTEX_ARRAY);
-//        glEnableClientState(GL_COLOR_ARRAY);
-//        glColorPointer(3, GL_UNSIGNED_BYTE, 0, figColors);
-//        glVertexPointer(3, GL_FLOAT, 0, fig[i].vertices.data());
-//        glDrawElements(GL_TRIANGLES, fig[i].indices.size(), GL_UNSIGNED_INT, fig[i].indices.data());
-//        glDisableClientState(GL_VERTEX_ARRAY);
-//        triangles += fig[i].indices.count()/3;
-//    }
-//}
+    fig.vertices();
+
+}
 
 void GLWidget::calc_select_line(float mouse_x, float mouse_y){
     GLint vport[4];
@@ -150,7 +140,7 @@ void GLWidget::calc_select_line(float mouse_x, float mouse_y){
     glGetDoublev(GL_MODELVIEW_MATRIX, modelView);
 
     vx = mouse_x;
-    vy = currentHeight-mouse_y;
+    vy = m_currentHeight-mouse_y;
     glReadPixels(vx, vy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &vz);
     //vz = -1;
 
@@ -158,6 +148,11 @@ void GLWidget::calc_select_line(float mouse_x, float mouse_y){
     vz = 1;
     gluUnProject(wx, wy, wz, modelView, projection, vport, &farPoint[0], &farPoint[1], &farPoint[2]);
     qDebug() << "near x:" << *(nearPoint) << " y:" << *(nearPoint+1) << " z:" << *(nearPoint+2) << " far x:" << *(farPoint) << " y:" << *(farPoint+1) << " z:" << *(farPoint+2);
+
+}
+
+void initShaders(){
+    //todo initialize shaders
 
 }
 

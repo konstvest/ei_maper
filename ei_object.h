@@ -27,7 +27,7 @@ class CFigure{
 public:
     CFigure();
     ~CFigure();
-    void vertices();
+    QVector<f3>& vertices();
     void normals();
     void uvCoords();
     void boundBox();

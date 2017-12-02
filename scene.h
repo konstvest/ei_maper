@@ -34,7 +34,6 @@ public:
     void turn();
     void state();   //editing map/object/other
 
-
 private:
     bool m_isChanged;
     QVector <ei::CObject> m_objects;

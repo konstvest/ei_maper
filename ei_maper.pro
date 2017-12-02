@@ -48,15 +48,10 @@ HEADERS  += mainwindow.h \
     ei_map.h \
     ei_mob.h \
     ei_vectors.h \
-<<<<<<< HEAD
-    ei_utils.h
-=======
     resfile.h \
     MapUtils/mpfile.h \
     MapUtils/mprfile.h \
     MapUtils/secfile.h
-#>>>>>>> c614149c10f6c666a0993e67d9afd94e3ec99bf6
->>>>>>> a889b82294bdb8a9fcd1fdb22bc48c955756be6a
 
 FORMS    += mainwindow.ui
 

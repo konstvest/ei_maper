@@ -50,7 +50,6 @@ HEADERS  += mainwindow.h \
     secfile.h \
     ei_vectors.h \
     ei_utils.h
-#>>>>>>> c614149c10f6c666a0993e67d9afd94e3ec99bf6
 
 FORMS    += mainwindow.ui
 

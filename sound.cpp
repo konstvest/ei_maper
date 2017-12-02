@@ -14,7 +14,7 @@ bool ei::CSound::remove(){
 bool ei::CSound::move(f3& coord){
     return true;
 }
-bool ei::CSound::rotate(f4){
+bool ei::CSound::rotate(f4& quat){
     return true;
 }
 bool ei::CSound::copy(){

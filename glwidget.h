@@ -30,7 +30,6 @@ private:
     void mouseMoveEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
     void keyPressEvent(QKeyEvent *event);
-    void drawFigure(ei::CFigure& fig);  //!TEMP#1
 private:
     QPoint m_pressPosition;
 
@@ -46,7 +45,7 @@ private:
     f3 m_camPos;
     f3 m_volume;  // x==length y==width z==height
 
-    ei::CFigure m_figure; //!TEMP#1
+    QVector<ei::CFigure*> m_figure; //!TEMP#1
 };
 
 #endif // GLWIDGET_H

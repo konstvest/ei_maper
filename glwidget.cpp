@@ -23,6 +23,7 @@ GLWidget::~GLWidget(){
 void GLWidget::initializeGL(){
     glClearColor(0.2, 0.2, 0.2, 1);
     initShaders();
+    //initTexture();
 }
 
 void GLWidget::resizeGL(int w, int h){
@@ -49,7 +50,9 @@ void GLWidget::paintGL(){
     glRotatef(m_yAxisRotation, 1.0, 0.0, 0.0);
     glScalef(m_zoom, m_zoom, m_zoom);
 
-    drawFigure(m_figure);
+    for(auto fig: m_figure){
+        fig->draw();
+    }
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event){
@@ -116,12 +119,6 @@ void GLWidget::keyPressEvent(QKeyEvent *event){
         break;
     }
     update();
-}
-
-void GLWidget::drawFigure(ei::CFigure& fig){
-
-    fig.vertices();
-
 }
 
 void GLWidget::calc_select_line(float mouse_x, float mouse_y){

@@ -10,7 +10,9 @@ public:
     CMap();
     bool loadFromFile();
     bool saveInFile(QString* path);
-    bool vertices();
+    QVector<f3> vertices();
+    void vertIndices(); //change return type
+    void vertNormals(); //change return type
     bool name();
 
     void tiles();   //change return type to tiles

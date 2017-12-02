@@ -1,6 +1,8 @@
 #include "scene.h"
 
-CScene::CScene(){
+CScene::CScene():
+m_map (nullptr)
+{
 
 }
 

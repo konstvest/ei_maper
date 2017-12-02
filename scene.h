@@ -38,7 +38,7 @@ private:
     bool m_isChanged;
     QVector <ei::CObject> m_objects;
     QVector <ei::CMob> m_mobs;
-    ei::CMap* m_map = nullptr;
+    ei::CMap* m_map;
 };
 
 #endif // SCENE_H

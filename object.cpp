@@ -13,7 +13,7 @@ bool ei::CObject::move(f3& coord){
     return true;
 }
 
-bool ei::CObject::rotate(f4){
+bool ei::CObject::rotate(f4& quat){
 
     return true;
 }
@@ -50,6 +50,10 @@ bool ei::CObject::select(){
 int ei::CObject::id(){
 
     return 0;
+}
+
+void ei::CObject::draw(){
+
 }
 
 double ei::CObject::scale(){

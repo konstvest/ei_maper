@@ -16,7 +16,7 @@ bool ei::CTrap::move(f3& coord){
     return true;
 }
 
-bool ei::CTrap::rotate(f4){
+bool ei::CTrap::rotate(f4& quat){
     return true;
 }
 

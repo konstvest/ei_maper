@@ -10,7 +10,7 @@ public:
     virtual bool add() = 0;
     virtual bool remove() = 0;
     virtual bool move(f3& coord) = 0;
-    virtual bool rotate(f4) = 0;
+    virtual bool rotate(f4& quat) = 0;
     virtual bool copy() = 0;
     virtual bool paste() = 0;
     virtual bool cut() = 0;
@@ -18,6 +18,7 @@ public:
     virtual void show() = 0;
     virtual bool isHide() = 0;
     virtual bool select() = 0;
+    virtual void draw();
     //virtual bool clearComplex();
     //virtual bool clearPosition();
     //virtual bool clearRotation();
@@ -35,6 +36,7 @@ public:
     //TODO return methods of vertices, uv, normals, vert.indices, uv.indices
     bool loadFromFile(const wchar_t* path);
     void calculateConstitution (f3 constitute);
+    void draw();
 private:
     //TODO: change vector to array
     QVector<float> m_BoundBox;
@@ -62,7 +64,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(f4);
+    bool rotate(f4& quat);
     bool copy();
     bool paste();
     bool cut();
@@ -70,6 +72,7 @@ public:
     void show();
     bool isHide();
     bool select();
+    void draw();
     // quiries
     int id();
     double scale();
@@ -104,10 +107,11 @@ private:
 class CUnit : public CObject{
 public:
     CUnit();
+    //virtuals
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(f4);
+    bool rotate(f4& quat);
     bool copy();
     bool paste();
     bool cut();
@@ -115,6 +119,7 @@ public:
     void show();
     bool isHide();
     bool select();
+    void draw();
 
     bool setStrenght(float d);
 private:
@@ -132,7 +137,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(f4);
+    bool rotate(f4& quat);
     bool copy();
     bool paste();
     bool cut();
@@ -140,6 +145,7 @@ public:
     void show();
     bool isHide();
     bool select();
+    void draw();
 };
 
 class CSound : public CObjectInterface{
@@ -150,7 +156,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(f4);
+    bool rotate(f4& quat);
     bool copy();
     bool paste();
     bool cut();
@@ -158,6 +164,7 @@ public:
     void show();
     bool isHide();
     bool select();
+    void draw();
 };
 
 class CLight : public CObjectInterface{
@@ -168,7 +175,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(f4);
+    bool rotate(f4& quat);
     bool copy();
     bool paste();
     bool cut();
@@ -176,6 +183,7 @@ public:
     void show();
     bool isHide();
     bool select();
+    void draw();
 };
 
 class CTrap : public CObjectInterface{
@@ -186,7 +194,7 @@ public:
     bool add();
     bool remove();
     bool move(f3& coord);
-    bool rotate(f4);
+    bool rotate(f4& quat);
     bool copy();
     bool paste();
     bool cut();
@@ -194,6 +202,7 @@ public:
     void show();
     bool isHide();
     bool select();
+    void draw();
 private:
     float m_radius;
     float m_position;

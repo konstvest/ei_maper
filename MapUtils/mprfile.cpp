@@ -34,6 +34,7 @@ SecVertex MprVertex::ToSecVertex()
     normal |= (uint)floor(NormalY * 1000.0f + 1000.0f);
     normal |= (uint)floor(NormalZ * 1000.0f) << 22;
     secVertex.PackedNormal = normal;
+    return secVertex;
 }
 
 MprTile::MprTile(ushort secTile)
@@ -53,6 +54,11 @@ ushort MprTile::ToSecTile()
     return secTile;
 }
 
+MprAnimTile::MprAnimTile()
+{
+
+}
+
 MprAnimTile::MprAnimTile(MpAnimTile mpAnimTile)
 {
     TileIndex = mpAnimTile.TileIndex;
@@ -65,6 +71,11 @@ MpAnimTile MprAnimTile::ToMpAnimTile()
     mpAnimTile.TileIndex = TileIndex;
     mpAnimTile.PhasesCount = PhasesCount;
     return mpAnimTile;
+}
+
+MprMaterial::MprMaterial()
+{
+
 }
 
 MprMaterial::MprMaterial(MpMaterial mat)
@@ -145,16 +156,16 @@ void MprFile::LoadFile(QString &path)
         AnimTiles.append(mprAnimTile);
     }
 
-    int secXcount = (int)mpHeader.SectorsXCount;
-    int secYcount = (int)mpHeader.SectorsYCount;
-    int verXSize = secXcount * (SecFile::VerticesSideSize - 1) + 1;
-    int verYSize = secYcount * (SecFile::VerticesSideSize - 1) + 1;
-    int tilesXSize = secXcount * SecFile::TilesSideSize;
-    int tilesYSize = secYcount * SecFile::TilesSideSize;
+//    int secXcount = (int)mpHeader.SectorsXCount;
+//    int secYcount = (int)mpHeader.SectorsYCount;
+//    int verXSize = secXcount * (SecFile::VerticesSideSize - 1) + 1;
+//    int verYSize = secYcount * (SecFile::VerticesSideSize - 1) + 1;
+//    int tilesXSize = secXcount * SecFile::TilesSideSize;
+//    int tilesYSize = secYcount * SecFile::TilesSideSize;
 
-    for(int y(0); y < mpHeader.SectorsYCount; y++)
+    for(uint y(0); y < mpHeader.SectorsYCount; y++)
     {
-        for(int x(0); x < mpHeader.SectorsXCount; x++)
+        for(uint x(0); x < mpHeader.SectorsXCount; x++)
         {
             QString xCoord = QString::number(x);
             QString yCoord = QString::number(y);

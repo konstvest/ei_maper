@@ -112,3 +112,13 @@ ResFile::ResFile(QString &path)
         qDebug() << ex.what();
     }
 }
+
+ResFile::~ResFile()
+{
+    foreach (QByteArray buff, BufferOfFiles.values())
+    {
+        buff.clear();
+    }
+    BufferOfFiles.clear();
+    Entries.clear();
+}

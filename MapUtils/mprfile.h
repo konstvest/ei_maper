@@ -32,6 +32,7 @@ struct MprAnimTile
     ushort TileIndex;
     ushort PhasesCount;
 
+    MprAnimTile();
     MprAnimTile(MpAnimTile mpAnimTile);
 
     MpAnimTile ToMpAnimTile();
@@ -45,6 +46,7 @@ struct MprMaterial
     float WaveMultiplier;
     float WarpSpeed;
 
+    MprMaterial();
     MprMaterial(MpMaterial mat);
 
     MpMaterial ToMpMaterial();

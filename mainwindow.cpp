@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "glwidget.h"
+#include "resfile.h"
 #include <string.h>
 #include "scene.h"
 

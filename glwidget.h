@@ -18,9 +18,9 @@ public:
     explicit GLWidget (QWidget* parent = 0);
     ~GLWidget();
 
-    //QVector <figure> fig;
    void calc_select_line (float mouse_x, float mouse_y);
     //bool intersect_triangle_line (figure fig, QVector <float> p1, QVector <float> p2);
+   bool setScene(CScene* scn) {return (m_scene = scn);}
 
 private:
     void initializeGL();
@@ -45,7 +45,7 @@ private:
     f3 m_camPos;
     f3 m_volume;  // x==length y==width z==height
 
-    QVector<ei::CFigure*> m_figure; //!TEMP#1
+    CScene* m_scene;
 };
 
 #endif // GLWIDGET_H

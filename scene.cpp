@@ -1,13 +1,14 @@
 #include "scene.h"
 
 CScene::CScene():
-m_map (nullptr)
+    m_map (nullptr),
+    m_name("unnamed")
 {
 
 }
 
 CScene::~CScene(){
-
+    delete m_map;
 }
 
 bool CScene::addObject(ei::CObjectInterface* obj){
@@ -52,6 +53,14 @@ bool CScene::cutObject(ei::CObjectInterface* obj){
     }
     return false;
 }
+
+void CScene::draw(){
+    //todo iterate by objects and draw()
+//    for (QVector::iterator it(m_objects.begin()); it!=m_objects.end(); ++it){
+//        *it
+//    }
+}
+
 void CScene::saveAll(){
     for (auto mob=this->m_mobs.begin(); mob!=this->m_mobs.end(); ++mob)
     {
@@ -86,5 +95,12 @@ bool CScene::saveMob(ei::CMob& mob){
     return true;
 }
 bool CScene::saveMobInOne(QString path){
+    return true;
+}
+
+bool CScene::loadResFile(QString path){
+    ResFile res(path);
+    QMap<QString, QByteArray> files = res.bufferOfFiles();
+    QByteArray fig = files["initwesw3weapon.fig"];
     return true;
 }

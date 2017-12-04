@@ -1,5 +1,6 @@
 #include "glwidget.h"
 #include "GL/glu.h"
+#include "scene.h"
 
 GLWidget::GLWidget(QWidget *parent) :
     QGLWidget (parent),
@@ -9,20 +10,21 @@ GLWidget::GLWidget(QWidget *parent) :
     m_yViewPos (0),
     m_zoom (1.0),
     m_camPos (0.0, 0.0, 5.0),
-    m_volume (1.0, 1.0, 1.0)
+    m_volume (1.0, 1.0, 1.0),
+    m_scene(0)
 {
-
-    QString path("c:\\Users\\konstantin.bezelians\\files\\temp\\hd.fig");
-    m_figure.loadFromFile((wchar_t*)QString(path).utf16());
+    //QString path("c:\\Users\\konstantin.bezelians\\files\\temp\\hd.fig");
+    //m_figure.loadFromFile((wchar_t*)QString(path).utf16());
 }
 
 GLWidget::~GLWidget(){
+    delete m_scene;
     qDebug() << "GLWidget destructor :(";
 }
 
 void GLWidget::initializeGL(){
     glClearColor(0.2, 0.2, 0.2, 1);
-    initShaders();
+    //initShaders();
     //initTexture();
 }
 
@@ -50,9 +52,8 @@ void GLWidget::paintGL(){
     glRotatef(m_yAxisRotation, 1.0, 0.0, 0.0);
     glScalef(m_zoom, m_zoom, m_zoom);
 
-    for(auto fig: m_figure){
-        fig->draw();
-    }
+    //todo send a shader program in scene draw
+    m_scene->draw();
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event){

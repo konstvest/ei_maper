@@ -2,11 +2,6 @@
 #include "QDebug"
 #include <QTextCodec>
 
-ResFile::~ResFile()
-{
-    //this->Stream.device()->close();
-}
-
 QMap<QString, QByteArray>& ResFile::bufferOfFiles()
 {
     if(!IsRead)
@@ -73,9 +68,9 @@ void ResFile::GetBufferList(QMap<QString, ResFileEntry> &entries, QDataStream &s
 {
     foreach(auto entry, entries.values())
     {
-        char arr[entry.Size];
-        stream.writeRawData(arr, entry.Size);
-        QByteArray ba(arr, entry.Size);
+        QByteArray ba(entry.Size, 0);
+        stream.device()->seek(entry.Position);
+        stream.readRawData(ba.data(), entry.Size);
         BufferOfFiles.insert(entry.FileName, ba);
     }
 }

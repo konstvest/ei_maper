@@ -47,3 +47,7 @@ bool ei::CTrap::isHide(){
 bool ei::CTrap::select(){
     return true;
 }
+
+void ei::CTrap::draw(){
+
+}

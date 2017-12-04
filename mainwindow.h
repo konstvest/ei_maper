@@ -5,7 +5,7 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QFileDialog>
-
+#include "scene.h"
 
 namespace Ui {
 class MainWindow;
@@ -19,7 +19,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     QMessageBox msg;
-    QTimer timerProperty;
+    //QTimer timerProperty;
 
 private slots:
     void on_pushButton_2_clicked();
@@ -46,6 +46,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    CScene* m_scene;
 };
 
 #endif // MAINWINDOW_H

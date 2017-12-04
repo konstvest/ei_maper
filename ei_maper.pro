@@ -51,7 +51,8 @@ HEADERS  += mainwindow.h \
     resfile.h \
     MapUtils/mpfile.h \
     MapUtils/mprfile.h \
-    MapUtils/secfile.h
+    MapUtils/secfile.h \
+    figure.h
 
 FORMS    += mainwindow.ui
 

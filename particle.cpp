@@ -11,3 +11,7 @@ bool ei::CParticle::rotate(f4& quat){
 bool ei::CParticle::isHide(){
     return false;
 }
+
+void ei::CParticle::draw(){
+
+}

@@ -2,6 +2,7 @@
 #define EI_OBJECT_H
 
 #include "ei_types.h"
+#include "figure.h"
 
 namespace ei {
 
@@ -18,48 +19,17 @@ public:
     virtual void show() = 0;
     virtual bool isHide() = 0;
     virtual bool select() = 0;
-    virtual void draw();
+    virtual void draw() = 0;
     //virtual bool clearComplex();
     //virtual bool clearPosition();
     //virtual bool clearRotation();
 };
 
-class CFigure{
-public:
-    CFigure();
-    ~CFigure();
-    QVector<f3>& vertices();
-    void normals();
-    void uvCoords();
-    void boundBox();
-    void setComplex(float str, float dex, float tall);
-    //TODO return methods of vertices, uv, normals, vert.indices, uv.indices
-    bool loadFromFile(const wchar_t* path);
-    void calculateConstitution (f3 constitute);
-    void draw();
-private:
-    //TODO: change vector to array
-    QVector<float> m_BoundBox;
-
-    QVector<f3> m_vertices;
-    QVector<int> m_vertIndices;
-    QVector<f4> m_normals;
-    QVector<int> m_normIndices;
-    QVector<f2> m_uvCoords;
-    QVector<int> m_uvIndices;
-
-    // vectors include morph components
-    QVector<QVector<f3>> m_morphVertices;
-    //TODO: change vector to array or bbox class
-    QVector <f3> m_morphMin;   // 8x3
-    QVector <f3> m_morphMax;   // 8x3
-    QVector <f3> m_morphCenter; //8x3
-    QVector <float> m_morphRadius;  //8
-};
-
 class CObject : public CObjectInterface{
 
 public:
+    CObject();
+    ~CObject();
     // virtuals
     bool add();
     bool remove();
@@ -75,12 +45,13 @@ public:
     void draw();
     // quiries
     int id();
-    double scale();
+    f3& constitution();
     double strenght();
     //sets
-    void setStrenght(float d);
-    void setDexterity(float d);
-    void setScale(float d);
+    void setConstitution(f3 constitution);
+//    void setStrenght(float d);
+//    void setDexterity(float d);
+//    void setScale(float d);
     void setName(const char* s);
     bool isQuest();
     bool constructModel();   //construct model from loaded figures
@@ -88,7 +59,7 @@ public:
 
 private:
     QString m_modelName;
-    QVector <CFigure> m_figures; //!!!!replace to model, not vector of figures
+    QVector <CFigure> m_figures; //mb use pointers
     QString m_globalVariable;
     QString m_modelPrototype;
     QString m_texturePrimary;
@@ -125,6 +96,7 @@ public:
 private:
     QString m_prototypeName;
     QString m_questItem; // ?!
+    QVector <CFigure> m_figures; //mb use pointers
 
     //patrol point, agressive, ...
 };
@@ -165,26 +137,30 @@ public:
     bool isHide();
     bool select();
     void draw();
+private:
+    QVector <CFigure> m_figures; //mb use pointers
 };
 
-class CLight : public CObjectInterface{
+//class CLight : public CObjectInterface{
 
-public:
-    CLight();
-    //virtuals
-    bool add();
-    bool remove();
-    bool move(f3& coord);
-    bool rotate(f4& quat);
-    bool copy();
-    bool paste();
-    bool cut();
-    void hide();
-    void show();
-    bool isHide();
-    bool select();
-    void draw();
-};
+//public:
+//    CLight();
+//    //virtuals
+//    bool add();
+//    bool remove();
+//    bool move(f3& coord);
+//    bool rotate(f4& quat);
+//    bool copy();
+//    bool paste();
+//    bool cut();
+//    void hide();
+//    void show();
+//    bool isHide();
+//    bool select();
+//    void draw();
+//public:
+//    QVector <CFigure> m_figures; //mb use pointers
+//};
 
 class CTrap : public CObjectInterface{
 
@@ -206,6 +182,7 @@ public:
 private:
     float m_radius;
     float m_position;
+    QVector <CFigure> m_figures; //mb use pointers
 };
 
 }

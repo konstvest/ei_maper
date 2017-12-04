@@ -1,5 +1,13 @@
 #include "ei_object.h"
 
+ei::CObject::CObject(){
+
+}
+
+ei::CObject::~CObject(){
+
+}
+
 bool ei::CObject::add(){
     return true;
 }
@@ -56,26 +64,11 @@ void ei::CObject::draw(){
 
 }
 
-double ei::CObject::scale(){
-
-    return 0.0;
+f3& ei::CObject::constitution(){
+    return m_complex;
 }
 
-double ei::CObject::strenght(){
-
-    return 0.0;
-}
-
-
-void ei::CObject::setStrenght(float d){
-
-}
-
-void ei::CObject::setDexterity(float d){
-
-}
-
-void ei::CObject::setScale(float d){
+void ei::CObject::setConstitution(f3 constitution){
 
 }
 

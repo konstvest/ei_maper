@@ -10,27 +10,26 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    connect (&timerProperty, SIGNAL(timeout()), this, SLOT(updateProperty()));
-    timerProperty.start(100);
-//    this->ui->horizontalSlider->setVisible(false);
-//    this->ui->horizontalSlider_2->setVisible(false);
-//    this->ui->horizontalSlider_3->setVisible(false);
+    //connect (&timerProperty, SIGNAL(timeout()), this, SLOT(updateProperty()));
+    //timerProperty.start(100);
 
-    //CScene scene;
-
-    //scene.addObject(&obj);
+    m_scene = new CScene;
+    m_scene->setName(QString("init scene"));
+    this->ui->widget->setScene(m_scene);
 }
 
 MainWindow::~MainWindow()
 {
+    delete m_scene;
     delete ui;
 }
 
-void MainWindow::on_pushButton_2_clicked()
+void MainWindow::on_pushButton_2_clicked()  //"brick" -> load res file
 {
-    QVector <float> v1 = {1.0, 2.2, 0.7};
-    QVector <float> v2 = {3.0, 1.1, 2.3};
-    //qDebug() << v2.;
+    m_scene->setName(QString("button scene"));
+    m_scene->loadResFile(QString("f:\\temp\\figures.res"));
+    //m_scene->loadResFile(QString("f:\\temp\\menus.res"));
+
 }
 
 void MainWindow::on_pushButton_3_clicked()

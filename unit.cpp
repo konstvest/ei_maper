@@ -46,3 +46,7 @@ bool ei::CUnit::isHide(){
 bool ei::CUnit::select(){
     return true;
 }
+
+void ei::CUnit::draw(){
+
+}

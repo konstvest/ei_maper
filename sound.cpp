@@ -40,3 +40,7 @@ bool ei::CSound::isHide(){
 bool ei::CSound::select(){
     return true;
 }
+
+void ei::CSound::draw(){
+
+}

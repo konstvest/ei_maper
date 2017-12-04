@@ -228,3 +228,7 @@ void ei::CFigure::calculateConstitution(f3 constitute){ //x == str, y == dex, z 
 QVector<f3>& ei::CFigure::vertices(){
     return m_vertices;
 }
+
+void ei::CFigure::draw(){
+
+}

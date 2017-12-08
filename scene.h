@@ -31,20 +31,24 @@ public:
     bool saveMobInOne(QString path);
 
     //res files
-    bool loadResFile(QString path);
+    void addFigurePath(QString path) {m_figurePaths.push_back(path);}
+    //bool loadResFile(QString path);
+    bool loadFigures();
 
     //common
-    void draw();
+    void draw(QOpenGLShaderProgram* shaders);
     void saveAll();
     bool isChanged();
     void turn();
-    void state();   //editing map/object/other
+    void state();   //editing mode: map/object/other
     void setName(QString name) {m_name = name;}
     QString& name() {return m_name;}
 
 private:
     bool m_isChanged;
-    QVector <ei::CObject> m_objects;
+    QList<QString> m_figurePaths;
+    QVector <ei::CObject*> m_objects;
+    QVector <ei::CFigure*> m_figures;
     QVector <ei::CMob> m_mobs;
     ei::CMap* m_map;
     QString m_name;

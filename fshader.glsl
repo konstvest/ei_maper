@@ -1,7 +1,15 @@
-uniform sampler2D qt_Texture0;
-varying highp vec4 qt_TexCoord0;
+#ifdef GL_ES
+// Set default precision to medium
+precision mediump int;
+precision mediump float;
+#endif
 
-void main(void)
+uniform sampler2D texture;
+
+varying vec2 v_texcoord;
+
+void main()
 {
-    gl_FragColor = texture2D(qt_Texture0, qt_TexCoord0.st);
+    // Set fragment color from texture
+    gl_FragColor = texture2D(texture, v_texcoord);
 }

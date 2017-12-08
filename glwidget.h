@@ -5,13 +5,13 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <QKeyEvent>
+
 //#include <Qpoint>
 
 #include "ei_types.h"
 #include "scene.h"
-#include "ei_object.h"  //!TEMP#1 for test drawing
 
-class GLWidget : public QGLWidget
+class GLWidget : public QGLWidget, protected QOpenGLFunctions
 {
     Q_OBJECT
 public:
@@ -23,13 +23,16 @@ public:
    bool setScene(CScene* scn) {return (m_scene = scn);}
 
 private:
-    void initializeGL();
-    void resizeGL(int w, int h);
-    void paintGL();
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent *event);
-    void keyPressEvent(QKeyEvent *event);
+    void initializeGL() override;
+    void resizeGL(int w, int h) override;
+    void paintGL() override;
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+
+    void initShaders();
+    void initTextures();
 private:
     QPoint m_pressPosition;
 
@@ -39,13 +42,17 @@ private:
     GLfloat m_currentHeight;
     GLfloat m_xViewPos;
     GLfloat m_yViewPos;
+    QMatrix4x4 m_projection;
 
     float m_size;
-    float m_zoom;
+    QVector3D m_zoom;
     f3 m_camPos;
     f3 m_volume;  // x==length y==width z==height
 
     CScene* m_scene;
+
+    QOpenGLShaderProgram m_shaderPrograms;
+    QOpenGLTexture* m_texture;
 };
 
 #endif // GLWIDGET_H

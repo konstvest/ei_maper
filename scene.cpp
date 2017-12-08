@@ -1,14 +1,15 @@
 #include "scene.h"
 
 CScene::CScene():
-    m_map (nullptr),
+    //m_map (0),
     m_name("unnamed")
 {
 
 }
 
 CScene::~CScene(){
-    delete m_map;
+    //delete m_map;
+    qDebug() << "Scene destructor\n";
 }
 
 bool CScene::addObject(ei::CObjectInterface* obj){
@@ -54,11 +55,12 @@ bool CScene::cutObject(ei::CObjectInterface* obj){
     return false;
 }
 
-void CScene::draw(){
-    //todo iterate by objects and draw()
-//    for (QVector::iterator it(m_objects.begin()); it!=m_objects.end(); ++it){
-//        *it
-//    }
+void CScene::draw(QOpenGLShaderProgram* shaders){
+    foreach (ei::CFigure* fig, m_figures) {
+        fig->draw(shaders);
+    }
+    //todo iterate by objects (NOT FIGURES) and draw()
+
 }
 
 void CScene::saveAll(){
@@ -98,9 +100,16 @@ bool CScene::saveMobInOne(QString path){
     return true;
 }
 
-bool CScene::loadResFile(QString path){
-    ResFile res(path);
+bool CScene::loadFigures(){
+    ResFile res(m_figurePaths.first()); //change to loop for all figures
     QMap<QString, QByteArray> files = res.bufferOfFiles();
-    QByteArray fig = files["initwesw3weapon.fig"];
+    ei::CFigure* fig = new ei::CFigure;
+    QDataStream stream(files["tipy00.testfigloading"]);
+    stream.setByteOrder(QDataStream::ByteOrder::LittleEndian);
+    stream.setFloatingPointPrecision(QDataStream::SinglePrecision);
+    fig->readData(stream);
+    m_figures.push_back(fig);
+    //m_objects.push_back(fig);
+
     return true;
 }

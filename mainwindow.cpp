@@ -26,9 +26,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_2_clicked()  //"brick" -> load res file
 {
+    m_scene->addFigurePath(QString("c:\\Users\\konstantin.bezelians\\files\\ei\\figures.res"));
     m_scene->setName(QString("button scene"));
-    m_scene->loadResFile(QString("f:\\temp\\figures.res"));
-    //m_scene->loadResFile(QString("f:\\temp\\menus.res"));
+    m_scene->loadFigures();
 
 }
 

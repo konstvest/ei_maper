@@ -8,52 +8,69 @@ GLWidget::GLWidget(QWidget *parent) :
     m_yAxisRotation (0),
     m_xViewPos (0),
     m_yViewPos (0),
-    m_zoom (1.0),
-    m_camPos (0.0, 0.0, 5.0),
+    m_zoom (1.0, 1.0, 1.0),
+    //m_camPos (0.0, 0.0, 5.0),
+    m_camPos (0.0, 0.0, -7.0),
     m_volume (1.0, 1.0, 1.0),
-    m_scene(0)
+    m_scene(0),
+    m_shaderPrograms(0)
 {
     //QString path("c:\\Users\\konstantin.bezelians\\files\\temp\\hd.fig");
     //m_figure.loadFromFile((wchar_t*)QString(path).utf16());
 }
 
 GLWidget::~GLWidget(){
-    delete m_scene;
+//    makeCurrent();
+//    doneCurrent();
     qDebug() << "GLWidget destructor :(";
 }
 
 void GLWidget::initializeGL(){
+    initializeOpenGLFunctions();
     glClearColor(0.2, 0.2, 0.2, 1);
-    //initShaders();
-    //initTexture();
+    initShaders();
+    initTextures();
+    glEnable(GL_DEPTH_TEST);
 }
 
 void GLWidget::resizeGL(int w, int h){
-    m_currentWidth = w;
-    m_currentHeight = h;
-    m_size = w < h ? w : h;
+//    m_currentWidth = w;
+//    m_currentHeight = h;
+//    m_size = w < h ? w : h;
+    qreal aspect = qreal(w) / qreal(h ? h : 1);
+    const qreal zNear (0.5), zFar (10.0), fov (45.0);
+    m_projection.setToIdentity();
+    m_projection.perspective(fov, aspect, zNear, zFar);
 }
 
 void GLWidget::paintGL(){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    m_texture->bind();;
+//    glViewport(0, 0, m_currentWidth, m_currentHeight);
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    gluPerspective(45.0f, (GLfloat)m_currentWidth/m_currentHeight, 0.1f, 100.0f);
+//    gluLookAt(m_camPos.x, m_camPos.y, m_camPos.z, 0, 0, 0, 0, 1, 0);
 
-    glViewport(0, 0, m_currentWidth, m_currentHeight);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45.0f, (GLfloat)m_currentWidth/m_currentHeight, 0.1f, 100.0f);
-    gluLookAt(m_camPos.x, m_camPos.y, m_camPos.z, 0, 0, 0, 0, 1, 0);
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);   //render depend on normals (use in game)
-    glRotatef(m_xAxisRotation, 0.0, 1.0, 0.0);
-    glRotatef(m_yAxisRotation, 1.0, 0.0, 0.0);
-    glScalef(m_zoom, m_zoom, m_zoom);
+//    //glEnable(GL_CULL_FACE);   //render depend on normals (use in game)
+//    glRotatef(m_xAxisRotation, 0.0, 1.0, 0.0);
+//    glRotatef(m_yAxisRotation, 1.0, 0.0, 0.0);
+//    glScalef(m_zoom, m_zoom, m_zoom);
 
-    //todo send a shader program in scene draw
-    m_scene->draw();
+    //todo translate matrix and texture to shader
+
+    QMatrix4x4 matrix;
+    //matrix.translate(0.0, -1.0, -7.0);
+    matrix.scale(m_zoom);
+    matrix.translate(m_camPos.x, m_camPos.y, m_camPos.z);
+
+    m_shaderPrograms.setUniformValue("mvp_matrix", m_projection * matrix);
+    m_shaderPrograms.setUniformValue("texture", 0);
+    m_scene->draw(&m_shaderPrograms);
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event){
@@ -77,7 +94,8 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event){
 }
 
 void GLWidget::wheelEvent(QWheelEvent *event){
-    m_zoom += (float)event->delta()/500;
+    float dlt = float(event->delta())/500;
+    m_zoom += QVector3D(dlt, dlt, dlt);
     update();
 }
 
@@ -149,9 +167,30 @@ void GLWidget::calc_select_line(float mouse_x, float mouse_y){
 
 }
 
-void initShaders(){
-    //todo initialize shaders
+void GLWidget::initShaders(){
+    // Compile vertex shader
+    if (!m_shaderPrograms.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.glsl"))
+        close();
 
+    // Compile fragment shader
+    if (!m_shaderPrograms.addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fshader.glsl"))
+        close();
+
+    // Link shader pipeline
+    if (!m_shaderPrograms.link())
+        close();
+
+    // Bind shader pipeline for use
+    if (!m_shaderPrograms.bind())
+        close();
+
+}
+
+void GLWidget::initTextures(){
+    m_texture = new QOpenGLTexture(QImage(":/flipped_tipy.jpg").mirrored());
+    m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
+    m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    m_texture->setWrapMode(QOpenGLTexture::Repeat);
 }
 
 //bool GLWidget::intersect_triangle_line(figure fig, QVector<float> p1, QVector<float> p2){

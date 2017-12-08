@@ -8,21 +8,26 @@
 #include <fstream>
 #include "ei_vectors.h"
 
-struct indices_link
+#include <QOpenGLShaderProgram>
+#include <QOpenGLFunctions>
+#include <QOpenGLTexture>
+
+struct SVertexData
 {
-    short normal_ind;
-    short vertex_ind;
-    short texture_ind;
+    QVector3D position;
+    QVector2D texCoord;
 };
 
 typedef ei::vector2<short> s2;
 typedef ei::vector2<int> i2;
 typedef ei::vector2<float> f2;
+typedef QVector2D q_f2;
 typedef ei::vector2<double> d2;
 
 typedef ei::vector3<short> s3;
 typedef ei::vector3<int> i3;
 typedef ei::vector3<float> f3;
+typedef QVector3D q_f3;
 typedef ei::vector3<double> d3;
 
 typedef ei::vector4<short> s4;

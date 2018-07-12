@@ -46,7 +46,7 @@
       <item>
        <widget class="QPushButton" name="pushButton_2">
         <property name="text">
-         <string>&amp;brick</string>
+         <string>&amp;load res</string>
         </property>
        </widget>
       </item>

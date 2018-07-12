@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //connect (&timerProperty, SIGNAL(timeout()), this, SLOT(updateProperty()));
     //timerProperty.start(100);
 
-    m_scene = new CScene;
+    m_scene = new CScene; //todo replace on ptr shared
     m_scene->setName(QString("init scene"));
     this->ui->widget->setScene(m_scene);
 }
@@ -29,7 +29,7 @@ void MainWindow::on_pushButton_2_clicked()  //"brick" -> load res file
     m_scene->addFigurePath(QString("c:\\Users\\konstantin.bezelians\\files\\ei\\figures.res"));
     m_scene->setName(QString("button scene"));
     m_scene->loadFigures();
-
+    this->ui->widget->updateGL();
 }
 
 void MainWindow::on_pushButton_3_clicked()

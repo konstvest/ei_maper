@@ -7,6 +7,9 @@
 #include <QTimer>
 #include <QSharedPointer>
 
+#include "types.h"
+
+class QTextEdit;
 class CObjectList;
 class CTextureList;
 class CKeyManager;
@@ -15,6 +18,8 @@ class CCamera;
 class CNode;
 class CLandscape;
 class CKeyManager;
+class CLogger;
+class CSettings;
 
 class CView : public QGLWidget
 {
@@ -26,10 +31,16 @@ public:
 
     void loadLandscape(QFileInfo& filePath);
     void loadMob(QFileInfo& filePath);
+    void saveMob(QFileInfo& file);
+    void serializeMob(QFileInfo& file);
     CLandscape* land() {Q_ASSERT(m_landscape); return m_landscape;}
     bool isLandLoaded() {return nullptr != m_landscape;}
     CTextureList* texList();
     CObjectList* objList();
+    void attachLogWindow(QTextEdit* pTextEdit);
+    void attachSettings(CSettings* pSettings);
+    CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
+    void log(const char* msg);
 
 protected:
     void initializeGL();
@@ -46,9 +57,9 @@ private:
     void draw();
     CNode* pickObject(QList<CNode*>& aNode, QList<CNode*>& aNodeSelected, int x, int y);
     void delNodes();
-    void projectToLandscape(QList<CNode*>& aNode);
     void unloadMob();
     void unloadLand();
+    bool isResourceInitiated();
 
 private:
     QPoint m_lastPos; // for mouse action
@@ -65,10 +76,13 @@ private:
     QSharedPointer<CTextureList> m_textureList;
     QTimer* m_timer;
     QSharedPointer<CKeyManager> m_keyManager;
-
+    QSharedPointer<CLogger> m_logger;
+    CSettings* m_pSettings;
+    QVector<bool> m_aReadState;
 
 public slots:
     void updateWindow();
+    void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     //sliders for moving\rotating objects(value come from slider)
 //    void setXRot(int angle);
 //    void setYRot(int angle);
@@ -78,6 +92,8 @@ public slots:
 //    void setZOffset(int offset);
 
 signals:
+    void updateMsg(QString msg);
+
     //set signal to change slider value
 //    void xRotationChanged(int angle);
 //    void yRotationChanged(int angle);

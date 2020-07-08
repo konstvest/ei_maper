@@ -51,7 +51,7 @@ struct SMaterial
 
     friend QDataStream& operator<< (QDataStream& os, const SMaterial& mat)
     {
-        return os << (int)mat.type << mat.R << mat.G << mat.B << mat.A <<
+        return os << int(mat.type) << mat.R << mat.G << mat.B << mat.A <<
                      mat.selfIllumination << mat.waveMultiplier << mat.warpSpeed <<
                      mat.reserved1 << mat.reserved2 << mat.reserved3;
     }

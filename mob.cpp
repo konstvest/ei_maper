@@ -1,18 +1,26 @@
 #include <QDebug>
 #include <QSet>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QTextCodec>
+#include <QTextDecoder>
+#include <QDir>
+
 #include "mob.h"
 #include "utils.h"
-#include "lever.h"
-#include "light.h"
-#include "magictrap.h"
-#include "particle.h"
-#include "sound.h"
-#include "torch.h"
-#include "worldobj.h"
-#include "unit.h"
+#include "objects\lever.h"
+#include "objects\light.h"
+#include "objects\magictrap.h"
+#include "objects\particle.h"
+#include "objects\sound.h"
+#include "objects\torch.h"
+#include "objects\worldobj.h"
+#include "objects\unit.h"
 #include "view.h"
 #include "objectlist.h"
 #include "texturelist.h"
+#include "landscape.h"
 
 CMob::CMob()
 {
@@ -292,7 +300,7 @@ void CMob::updateObjects()
     }
     //preload figures
     m_view->objList()->loadFigures(aModelName);
-    m_view->texList()->loadTexture(aTextureName.toList());
+    m_view->texList()->loadTexture(aTextureName.values());
     QString texName;
     for(auto& node: m_aNode)
     {
@@ -311,6 +319,11 @@ void CMob::delNodes()
     m_aNodeSelected.clear();
 }
 
+void CMob::log(const char* msg)
+{
+    m_view->log(msg);
+}
+
 void CMob::readMob(QFileInfo &path)
 {
     if (!path.exists())
@@ -327,6 +340,7 @@ void CMob::readMob(QFileInfo &path)
             return;
         }
 
+        log("reading mob");
         deserialize(file.readAll());
         file.close();
     }
@@ -336,6 +350,177 @@ void CMob::readMob(QFileInfo &path)
         file.close();
     }
 
+    log("loading figures");
     updateObjects();
+}
+
+QString CMob::getAuxDirName()
+{
+    return "aux_files";
+}
+
+/// mob - inout. json object of Mob file
+/// file - in. map fileName
+/// key - type of data
+void CMob::writeData(QJsonObject& mob, const QFileInfo& file, const QString key, const QString value)
+{
+    const QString fileRelPath = getAuxDirName() + QDir::separator() + file.baseName() + '.' + key + ".txt";
+    const QFileInfo auxFolder(file.dir().path() + QDir::separator() + getAuxDirName());
+    if (!auxFolder.exists())
+    {
+        QDir().mkdir(auxFolder.filePath());
+    }
+
+    QFile temp(file.dir().path() + QDir::separator() + fileRelPath);
+
+    try
+    {
+        temp.open(QIODevice::WriteOnly);
+        if (temp.error() != QFile::NoError)
+        {
+            qDebug() << file.fileName() << " Error writing script";
+            return;
+        }
+
+        //convert string to unicode(win-1251 to utf-8)
+        QTextCodec* defaultTextCodec = QTextCodec::codecForName("Windows-1251");
+        QTextDecoder *decoder = new QTextDecoder(defaultTextCodec);
+        QString str = decoder->toUnicode(value.toLatin1());
+
+        QTextStream stream(&temp);
+        stream << str;
+        temp.close();
+    }
+    catch (std::exception ex)
+    {
+        qDebug() << ex.what();
+        temp.close();
+    }
+    mob.insert(key, fileRelPath);
+}
+
+/// mob - inout. json object of Mob file
+/// file - in. map fileName
+/// key - type of data
+void CMob::writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value)
+{
+    const QString fileRelPath = getAuxDirName() + QDir::separator() + file.baseName() + '.' + key;
+    const QFileInfo auxFolder(file.dir().path() + QDir::separator() + getAuxDirName());
+    if (!auxFolder.exists())
+    {
+        QDir().mkdir(auxFolder.filePath());
+    }
+
+    QFile temp(file.dir().path() + QDir::separator() + fileRelPath);
+    try
+    {
+        temp.open(QIODevice::WriteOnly);
+        if (temp.error() != QFile::NoError)
+        {
+            qDebug() << file.fileName() << " Error writing aux file";
+            return;
+        }
+        temp.write(value);
+        temp.close();
+    }
+    catch (std::exception ex)
+    {
+        qDebug() << ex.what();
+        temp.close();
+    }
+    mob.insert(key, fileRelPath);
+}
+
+/// file - inout. mob file
+void CMob::serializeJson(QFileInfo& file)
+{
+    //ranges
+    QJsonArray aRange;
+    auto prepareRange = [&aRange](QVector<SRange>& rangeList)
+    {
+        aRange = QJsonArray();
+        for(auto& mainRange : rangeList)
+        {
+            QJsonObject range;
+            range.insert("min", QJsonValue::fromVariant(mainRange.minRange));
+            range.insert("max", QJsonValue::fromVariant(mainRange.maxRange));
+            aRange.append(range);
+        }
+    };
+
+    QJsonObject rangeObj;
+    prepareRange(m_aMainRange);
+    rangeObj.insert("Main ranges", aRange);
+    prepareRange(m_aSecRange);
+    rangeObj.insert("Sec ranges", aRange);
+
+    QJsonArray diplomacyTable;
+    for(auto& line: m_diplomacyFoF)
+    {
+        QString rowStr;
+        for(auto& row: line)
+          rowStr += QString::number(row);
+        diplomacyTable.append(rowStr);
+
+    }
+
+    QJsonArray aDiplomacyName;
+    for(auto& name : m_aDiplomacyFieldName)
+    {
+        aDiplomacyName.append(name);
+    }
+
+    QJsonObject worldSetObj;
+    QJsonArray windDir;
+    windDir.append(QJsonValue::fromVariant(m_worldSet.m_windDirection.x()));
+    windDir.append(QJsonValue::fromVariant(m_worldSet.m_windDirection.y()));
+    windDir.append(QJsonValue::fromVariant(m_worldSet.m_windDirection.z()));
+    worldSetObj.insert("Wind direction", windDir);
+    worldSetObj.insert("Wind strength", QJsonValue::fromVariant(m_worldSet.m_windStrength));
+    worldSetObj.insert("Time", QJsonValue::fromVariant(m_worldSet.m_time));
+    worldSetObj.insert("Ambient", QJsonValue::fromVariant(m_worldSet.m_ambient));
+    worldSetObj.insert("Sun Light", QJsonValue::fromVariant(m_worldSet.m_sunLight));
+
+    QJsonObject mob;
+    mob.insert("Ranges", rangeObj);
+
+    //scripts
+    writeData(mob, file, "Script", m_script);
+    writeData(mob, file, "Old_script", m_textOld);
+
+    mob.insert("Diplomacy Names", aDiplomacyName);
+    mob.insert("Diplomacy table", diplomacyTable);
+    mob.insert("World set", worldSetObj);
+
+    //binary aux data
+    writeData(mob, file, "vss", m_vss_section);
+    writeData(mob, file, "dir", m_directory);
+    writeData(mob, file, "dirElem", m_directoryElements);
+    writeData(mob, file, "graph", m_aiGraph);
+
+    //units
+    QJsonArray unitArr;
+    for (auto& node: m_aNode)
+    {
+        QJsonObject unitObj;
+        node->serializeJson(unitObj);
+        unitArr.append(unitObj);
+    }
+    for (auto& node: m_aNodeSelected)
+    {
+        QJsonObject unitObj;
+        node->serializeJson(unitObj);
+        unitArr.append(unitObj);
+    }
+
+    mob.insert("Objects", unitArr);
+
+    QJsonDocument doc(mob);
+    QFile f(file.absoluteFilePath());
+    if (!f.open(QIODevice::WriteOnly)) {
+        Q_ASSERT("Couldn't open option file." && false);
+        return;
+    }
+    f.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
 }
 

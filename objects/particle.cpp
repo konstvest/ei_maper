@@ -46,3 +46,11 @@ uint CParticle::deserialize(util::CMobParser& parser)
     m_modelName = "particle.mod";
     return readByte;
 }
+
+void CParticle::serializeJson(QJsonObject& obj)
+{
+    CObjectBase::serializeJson(obj);
+    obj.insert("Type", QJsonValue::fromVariant(m_kind));
+    obj.insert("Scale", QJsonValue::fromVariant(m_scale));
+    return;
+}

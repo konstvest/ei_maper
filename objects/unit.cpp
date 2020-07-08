@@ -1,8 +1,11 @@
+#include <QJsonObject>
+#include <QJsonArray>
 #include "unit.h"
 #include "view.h"
 #include "objectlist.h"
 #include "texturelist.h"
 #include "landscape.h"
+#include "settings.h"
 
 CUnit::CUnit():
     m_mob(nullptr)
@@ -18,10 +21,8 @@ CUnit::~CUnit()
 void CUnit::draw(QOpenGLShaderProgram* program)
 {
     CObjectBase::draw(program);
-    for(auto& logic: m_aLogic)
-    {
-        logic->draw(program);
-    }
+    if (!m_aLogic.empty())
+        m_aLogic.front()->draw(program);
 }
 
 void CUnit::drawSelect(QOpenGLShaderProgram* program)
@@ -132,6 +133,41 @@ uint CUnit::deserialize(util::CMobParser& parser)
     return readByte;
 }
 
+void CUnit::serializeJson(QJsonObject& obj)
+{
+    CWorldObj::serializeJson(obj);
+    obj.insert("Prototype name", m_prototypeName);
+    //todo: m_stat
+    const auto serializeStringList = [&obj](QVector<QString>& aList, QString name)
+    {
+        QJsonArray aitem;
+        for(auto& item : aList)
+            aitem.append(item);
+        obj.insert(name, aitem);
+    };
+
+    serializeStringList(m_aQuestItem, "Quest items");
+    serializeStringList(m_aQuickItem, "Quick items");
+    serializeStringList(m_aSpell, "Spells");
+    serializeStringList(m_aWeapon, "Weapons");
+    serializeStringList(m_aArmor, "Armors");
+    obj.insert("Is import (use mob info instead database)?", m_bImport);
+    QJsonArray logicArr;
+    for(auto& logic: m_aLogic)
+    {
+        QJsonObject logicObj;
+        logic->serializeJson(logicObj);
+        logicArr.append(logicObj);
+    }
+
+    obj.insert("Logics", logicArr);
+}
+
+CSettings* CUnit::settings()
+{
+    return m_mob->view()->settings();
+}
+
 CLogic::CLogic(CUnit* unit):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
     ,m_use(false)
@@ -153,6 +189,11 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     if(!m_use || m_aDrawPoint.empty())
         return;
 
+    COptBool* pOpt = dynamic_cast<COptBool*>(m_parent->settings()->opt("drawLogic"));
+    if (pOpt && !pOpt->value())
+        return;
+
+    glDisable(GL_DEPTH_TEST);
     //todo: draw help radius
     QMatrix4x4 matrix;
     matrix.setToIdentity();
@@ -181,9 +222,12 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     m_indexBuf.bind();
     glDrawElements(GL_LINE_STRIP, m_aDrawPoint.count(), GL_UNSIGNED_SHORT, nullptr);
     program->setUniformValue("u_bUseColor", false);
-    //todo: choose guard behavior
-    for(auto& pp : m_aPatrolPt)
-        pp->draw(program);
+
+    if (m_model == EBehaviourType::ePath)
+        for(auto& pp : m_aPatrolPt)
+            pp->draw(program);
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 void CLogic::drawSelect(QOpenGLShaderProgram* program)
@@ -191,9 +235,16 @@ void CLogic::drawSelect(QOpenGLShaderProgram* program)
     if(!m_use)
         return;
 
+    COptBool* pOpt = dynamic_cast<COptBool*>(m_parent->settings()->opt("drawLogic"));
+    if (pOpt && !pOpt->value())
+        return;
+
+    glDisable(GL_DEPTH_TEST);
     //todo: choose guard behavior
     for(auto& pp : m_aPatrolPt)
         pp->drawSelect(program);
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 void CLogic::updatePointFigure(ei::CFigure* fig)
@@ -214,7 +265,9 @@ void CLogic::update()
     switch (m_model) {
     case EBehaviourType::eRadius:
     {
-        util::getCirclePoint(m_aDrawPoint, m_guardPlacement, double(m_guardRadius), 40);
+        QVector3D centr(m_guardPlacement);
+        centr.setZ(.0f);
+        util::getCirclePoint(m_aDrawPoint, centr, double(m_guardRadius), 40);
         m_mob->view()->land()->projectPt(m_aDrawPoint);
         break;
     }
@@ -227,10 +280,11 @@ void CLogic::update()
         m_aDrawPoint.append(pos);
         for (auto& pt: m_aPatrolPt)
         {
-            pos = pt->position();
+            CObjectBase* pObj = pt->model3d();
+            pos = pObj->position();
             pos.setZ(0.0f);
             m_mob->view()->land()->projectPt(pos);
-            pt->setDrawPosition(pos);
+            pObj->setDrawPosition(pos);
             m_aDrawPoint.append(pos);
             pt->update();
         }
@@ -347,20 +401,44 @@ uint CLogic::deserialize(util::CMobParser& parser)
     return readByte;
 }
 
+void CLogic::serializeJson(QJsonObject& obj)
+{
+    obj.insert("Is cyclyc?", m_bCyclic);
+    obj.insert("Model", QJsonValue::fromVariant(m_model));
+    obj.insert("Guard raidus", QJsonValue::fromVariant(m_guardRadius));
+
+    QJsonArray aPlacement;
+    aPlacement.append(QJsonValue::fromVariant(m_guardPlacement.x()));
+    aPlacement.append(QJsonValue::fromVariant(m_guardPlacement.y()));
+    aPlacement.append(QJsonValue::fromVariant(m_guardPlacement.z()));
+
+    obj.insert("Guard placement", aPlacement);
+    obj.insert("Alarm number", m_numAlarm);
+    obj.insert("Is logic use?", m_use);
+    obj.insert("Wait", QJsonValue::fromVariant(m_wait));
+    obj.insert("Alarm condition", m_alarmCondition);
+    obj.insert("Help radius", QJsonValue::fromVariant(m_help));
+    obj.insert("Always active", m_alwaysActive);
+    obj.insert("Aggression mode", m_agressionMode);
+
+    QJsonArray ppArr;
+    for(auto& pp: m_aPatrolPt)
+    {
+        QJsonObject ppObj;
+        pp->serializeJson(ppObj);
+        ppArr.append(ppObj);
+    }
+    obj.insert("Patrol Points", ppArr);
+}
+
 CPatrolPoint::CPatrolPoint():
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
     ,m_mob(nullptr)
 {
-    m_modelName = "ppoint.mod";
+    m_model3d = QSharedPointer<CObjectBase>(new CObjectBase);
+    m_model3d->setModelName("ppoint.mod");
 }
 
-CPatrolPoint::CPatrolPoint(CNode* node):
-    CObjectBase (node)
-    ,m_indexBuf(QOpenGLBuffer::IndexBuffer)
-    ,m_mob(nullptr)
-{
-
-}
 
 CPatrolPoint::~CPatrolPoint()
 {
@@ -372,7 +450,7 @@ CPatrolPoint::~CPatrolPoint()
 
 void CPatrolPoint::draw(QOpenGLShaderProgram* program)
 {
-    CObjectBase::draw(program);
+    m_model3d->draw(program);
 
     if(m_aDrawingLine.size() == 0) // do not draw looking point if absent
         return;
@@ -407,26 +485,32 @@ void CPatrolPoint::draw(QOpenGLShaderProgram* program)
     program->setUniformValue("u_bUseColor", false);
 
     for(auto& look: m_aLookPt)
-        look->draw(program);
+    {
+        look->model3d()->draw(program);
+    }
 }
 
 void CPatrolPoint::drawSelect(QOpenGLShaderProgram* program)
 {
-    CObjectBase::drawSelect(program);
+    m_model3d->drawSelect(program);
     for(auto& look: m_aLookPt)
-        look->drawSelect(program);
+    {
+        look->model3d()->drawSelect(program);
+    }
 }
 
 void CPatrolPoint::updateFigure(ei::CFigure* fig)
 {
-    CObjectBase::updateFigure(fig);
+    m_model3d->updateFigure(fig);
     for(auto& lp : m_aLookPt)
-        lp->updateFigure(fig);
+    {
+        lp->model3d()->updateFigure(fig);
+    }
 }
 
 void CPatrolPoint::setTexture(QOpenGLTexture* texture)
 {
-    CObjectBase::setTexture(texture);
+    m_model3d->setTexture(texture);
     for(auto& lp : m_aLookPt)
         lp->setTexture(texture);
 }
@@ -437,12 +521,12 @@ void CPatrolPoint::update()
     if(m_aLookPt.empty())
         return;
 
-    QVector3D pos(position());
+    QVector3D pos(m_model3d->position());
     pos.setZ(0.0f);
     m_aDrawingLine.append(pos); // self position
     for(auto& lp: m_aLookPt)
     {
-        pos=lp->position();
+        pos=lp->model3d()->position();
         pos.setZ(0.0f);
         m_aDrawingLine.append(pos);   //drawing position?!
     }
@@ -474,9 +558,11 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
     {
         if(parser.isNextTag("GUARD_PT_POSITION"))
         {
+            QVector3D pos;
             readByte += parser.skipHeader();
-            readByte += parser.readPlot(m_position);
-            m_drawPosition = m_position;
+            readByte += parser.readPlot(pos);
+            m_model3d->setPos(pos);
+            m_model3d->setDrawPosition(pos);
         }
         else if(parser.isNextTag("GUARD_PT_ACTION"))
         {
@@ -498,26 +584,43 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
     return readByte;
 }
 
+void CPatrolPoint::serializeJson(QJsonObject &obj)
+{
+    QJsonArray lpArr;
+    for(auto& lp: m_aLookPt)
+    {
+        QJsonObject lpObj;
+        lp->serializeJson(lpObj);
+        lpArr.append(lpObj);
+    }
+    QJsonArray posArr;
+    posArr.append(QJsonValue::fromVariant(m_model3d->position().x()));
+    posArr.append(QJsonValue::fromVariant(m_model3d->position().y()));
+    posArr.append(QJsonValue::fromVariant(m_model3d->position().z()));
+    obj.insert("Position", posArr);
+    obj.insert("Looking points", lpArr);
+}
+
 CLookPoint::CLookPoint()
 {
-    m_modelName = "ppoint.mod";
+    m_model3D = QSharedPointer<CObjectBase>(new CObjectBase);
+    m_model3D->setModelName("ppoint.mod");
 }
 
-CLookPoint::CLookPoint(CNode* node):
-    CObjectBase(node)
+void CLookPoint::setTexture(QOpenGLTexture* texture)
 {
-    m_modelName = "ppoint.mod";
+    m_model3D->setTexture(texture);
 }
 
-//void CLookPoint::draw(QOpenGLShaderProgram* program)
-//{
-//    CObjectBase::draw(program);
-//}
+void CLookPoint::draw(QOpenGLShaderProgram* program)
+{
+    m_model3D->draw(program);
+}
 
-//void CLookPoint::drawSelect(QOpenGLShaderProgram* program)
-//{
-//    CObjectBase::drawSelect(program);
-//}
+void CLookPoint::drawSelect(QOpenGLShaderProgram* program)
+{
+    m_model3D->drawSelect(program);
+}
 
 uint CLookPoint::deserialize(util::CMobParser& parser)
 {
@@ -526,9 +629,11 @@ uint CLookPoint::deserialize(util::CMobParser& parser)
     {
         if(parser.isNextTag("ACTION_PT_LOOK_PT"))
         {
+            QVector3D pos;
             readByte += parser.skipHeader();
-            readByte += parser.readPlot(m_position);
-            m_drawPosition = m_position;
+            readByte += parser.readPlot(pos);
+            m_model3D->setPos(pos);
+            m_model3D->setDrawPosition(pos);
         }
         else if(parser.isNextTag("ACTION_PT_WAIT_SEG"))
         {
@@ -553,4 +658,16 @@ uint CLookPoint::deserialize(util::CMobParser& parser)
     }
     return readByte;
 
+}
+
+void CLookPoint::serializeJson(QJsonObject &obj)
+{
+    obj.insert("Wait", QJsonValue::fromVariant(m_wait));
+    obj.insert("Turn speed", QJsonValue::fromVariant(m_turnSpeed));
+    obj.insert("Point flag", m_flag);
+    QJsonArray posArr;
+    posArr.append(QJsonValue::fromVariant(m_model3D->position().x()));
+    posArr.append(QJsonValue::fromVariant(m_model3D->position().y()));
+    posArr.append(QJsonValue::fromVariant(m_model3D->position().z()));
+    obj.insert("Position", posArr);
 }

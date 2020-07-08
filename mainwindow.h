@@ -51,6 +51,8 @@ private slots:
 
     void on_actionSettings_triggered();
 
+    void on_actionSave_as_triggered();
+
 private:
     Ui::MainWindow* m_ui;
     QSharedPointer<CSettings> m_settings;

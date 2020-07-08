@@ -23,8 +23,10 @@ public:
     QString& modelName() override {return m_modelName; }
     QString textureName() override {return QString("default00.mmp");}
     void updateFigure(ei::CFigure* fig) override;
+    void setModelName(QString name) {m_modelName = name;}
     QVector3D& minPosition() override { return m_minPoint; }
     void setTexture(QOpenGLTexture* texture) override;
+    void serializeJson(QJsonObject& obj) override;
 
 protected:
     void updateVisibility(QVector<QString>& aPart);

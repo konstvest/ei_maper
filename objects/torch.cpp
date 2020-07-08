@@ -1,3 +1,4 @@
+#include <QJsonArray>
 #include "torch.h"
 
 CTorch::CTorch()
@@ -35,4 +36,16 @@ uint CTorch::deserialize(util::CMobParser& parser)
         }
     }
     return readByte;
+}
+
+void CTorch::serializeJson(QJsonObject& obj)
+{
+    CWorldObj::serializeJson(obj);
+    obj.insert("Power", QJsonValue::fromVariant(m_power));
+    QJsonArray point;
+    point.append(QJsonValue::fromVariant(m_pointLink.x()));
+    point.append(QJsonValue::fromVariant(m_pointLink.y()));
+    point.append(QJsonValue::fromVariant(m_pointLink.z()));
+    obj.insert("Position", point);
+    obj.insert("Sound", m_sound);
 }

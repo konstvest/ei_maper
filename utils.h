@@ -4,7 +4,10 @@
 #include <QMap>
 #include <QVector>
 #include <QString>
+#include <QSharedPointer>
 #include "types.h"
+
+#define EPS 0.0000001
 
 namespace util
 {
@@ -14,6 +17,8 @@ void qNormalizeAngle(int& angle);
 void normalizeAngle(float& angle);
 void getCirclePoint(QVector<QVector3D>& aPoint, const QVector3D centr, const double radius, const int nPoint);
 void splitByLen(QVector<QVector3D>& aPoint, float len);
+bool isEqual(const double& a, const double& b, double Eps = EPS);
+
 
 enum EType
 {
@@ -76,7 +81,7 @@ public:
     uint readString(QString& data, uint len);
     uint readStringArray(QVector<QString>& data);
     uint readStringEncrypted(QString& data, uint len);
-    uint readUnitStats(QByteArray& data, uint len);
+    uint readUnitStats(QSharedPointer<SUnitStat>& data, uint len);
     bool isNextTag(const char* tagname);
     void checkTag (const char* tag);
     uint skipTag();

@@ -1,4 +1,6 @@
-#include "worldobj.h"
+#include <QJsonArray>
+
+#include "objects\worldobj.h"
 
 CWorldObj::CWorldObj()
 {
@@ -127,6 +129,29 @@ uint CWorldObj::deserialize(util::CMobParser& parser)
         }
     }
     return readByte;
+}
+
+void CWorldObj::serializeJson(QJsonObject& obj)
+{
+    CObjectBase::serializeJson(obj);
+    obj.insert("Type", QJsonValue::fromVariant(m_type));
+    obj.insert("Primary texture", m_primaryTexture);
+    obj.insert("Secondary texture", m_secondaryTexture);
+
+    //todo: use info in CObjectBase
+    QJsonArray aBodyParts;
+    for(auto& part : m_bodyParts)
+    {
+        aBodyParts.append(part);
+    }
+    obj.insert("Object parts", aBodyParts);
+    obj.insert("Object template", m_parentTemplate);
+    obj.insert("Player(dimpomacy group)", QJsonValue::fromVariant(int(m_player)));
+    obj.insert("Parent Id", QJsonValue::fromVariant(m_parentID));
+    obj.insert("Is used in script?", m_bUseInScript);
+    obj.insert("Is shadow?", m_bShadow);
+    obj.insert("Quest info", m_questInfo);
+    return;
 }
 
 void CWorldObj::updateVisibleParts()

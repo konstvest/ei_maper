@@ -183,6 +183,7 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     }
     case ETextureFormat::eMMP_PNT3    :
     {
+        // very slow. 50-100ms
         QImage img(header.m_width, header.m_height, QImage::Format_RGBA64);
         decompressPnt3(img, stream, uint(header.m_mipcount));
         texture->setData(img);
@@ -204,46 +205,52 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     m_aTexture.insert(name, texture);
 }
 
-void CTextureList::initResourceFile(QFileInfo& file)
+void CTextureList::addResourceFile(const QString& file)
+{
+    QFileInfo f(file);
+    addResourceFile(f);
+}
+
+void CTextureList::addResourceFile(QFileInfo& file)
 {
     if(file.path().isEmpty())
         return;
 
     Q_ASSERT(file.exists());
-    m_filePath = file;
+    if (!m_aFilePath.contains(file))
+        m_aFilePath.append(file);
 }
 
 void CTextureList::loadTexture(QList<QString> aName)
 {
-    ResFile res(m_filePath.filePath());
-    QMap<QString, QByteArray> aFile = res.bufferOfFiles();
-
-    for(auto& name: aName)
+    for(auto& file: m_aFilePath)
     {
-        if(!name.contains(".mmp")) continue;
-        if(m_aTexture.contains(name)) continue;
-        if(!aFile.contains(name)) continue;
+        ResFile res(file.filePath());
+        QMap<QString, QByteArray> aFile = res.bufferOfFiles();
 
-        parse(aFile[name], name);
+        for(auto& name: aName)
+        {
+            if(!name.contains(".mmp")) continue;
+            if(m_aTexture.contains(name)) continue;
+            if(!aFile.contains(name)) continue;
+
+            parse(aFile[name], name);
+        }
     }
 }
 
 void CTextureList::read(QString& name)
 {
-    ResFile res(m_filePath.filePath());
-    QMap<QString, QByteArray> aFile = res.bufferOfFiles();
-    // filter for preload textures (don't load this textures)
-    // original regex: (\d{3}\d?\.|_\d+.\d|cursor|footprints|face.?\d{2}|casting|un.{5,8}w)
-//    QRegExp mapTex("(\\d{3}\\d?\\.|_\\d+.\\d|cursor|footprints|face.?\\d{2}|casting|un.{5,8}w)", Qt::CaseInsensitive);
-//    for(auto& file: aFile.toStdMap())
-//    {
-//        if(!file.first.endsWith(".mmp")) continue;
-//        if(file.first.contains(mapTex)) continue;
-        if(!aFile.contains(name))
-            return;
-
-        parse(aFile[name], name);
-//    }
+    for(auto& file: m_aFilePath)
+    {
+        ResFile res(file.filePath());
+        QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+        if(aFile.contains(name))
+        {
+            parse(aFile[name], name);
+            break;
+        }
+    }
 }
 
 QOpenGLTexture* CTextureList::texture(QString& name)
@@ -277,25 +284,32 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
     }
 
     QString tex;
-    ResFile res(m_filePath.filePath());
-    QMap<QString, QByteArray> aFile = res.bufferOfFiles();
     QVector<STexSpecified> aPart;
-    for(int i(0); i<8; ++i)
+    for(auto& file: m_aFilePath)
     {
-        tex = name + "00" + QString::number(i) + ".mmp";
-        if(!aFile.contains(tex))
-        {
-            if(!aPart.empty())
-                break;
-            continue;
-        }
+        if(!aPart.isEmpty())
+            break;
 
-        STexSpecified part;
-        part.data = aFile[tex];
-        QDataStream stream(part.data);
-        util::formatStream(stream);
-        stream >> part.header;
-        aPart.append(part);
+        ResFile res(file.filePath());
+        QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+        for(int i(0); i<8; ++i)
+        {
+            tex = name + "00" + QString::number(i) + ".mmp";
+            if(!aFile.contains(tex))
+            {
+                if(!aPart.empty())
+                    break;
+
+                continue;
+            }
+
+            STexSpecified part;
+            part.data = aFile[tex];
+            QDataStream stream(part.data);
+            util::formatStream(stream);
+            stream >> part.header;
+            aPart.append(part);
+        }
     }
 
     Q_ASSERT(!aPart.empty());

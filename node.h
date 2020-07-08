@@ -6,6 +6,8 @@
 #include <QGLWidget>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
+#include <QJsonObject>
+
 #include "types.h"
 #include "utils.h"
 #include "figure.h"
@@ -53,6 +55,7 @@ public:
     virtual void updateFigure(ei::CFigure* fig) = 0;
     virtual void updateVisibleParts() {}
     virtual void setTexture(QOpenGLTexture* texture) {Q_UNUSED(texture);}
+    virtual void serializeJson(QJsonObject& obj) = 0;
 
     void addChild(CNode* child) {m_aChild.append(child); child->setParent(this); }
     void setParent(CNode* parent) {m_parent = parent;}
@@ -65,9 +68,9 @@ public:
     void setYPos(float y) {m_position.setY(y);}
     void setZPos(float z) {m_position.setZ(z);}
     void setRot(QVector4D& quat);
-    void setXRot(float xAngle) {m_rotation.x = xAngle; applyRotation();}
-    void setYRot(float yAngle) {m_rotation.y = yAngle; applyRotation();}
-    void setZRot(float zAngle) {m_rotation.z = zAngle; applyRotation();}
+//    void setXRot(float xAngle) {m_rotation.setX(xAngle); applyRotation();}
+//    void setYRot(float yAngle) {m_rotation.setY(yAngle); applyRotation();}
+//    void setZRot(float zAngle) {m_rotation.setZ(zAngle); applyRotation();}
     void rotate(QQuaternion& quat);
     void move(float x, float y, float z);
     QVector3D& position() {return m_position; }
@@ -80,7 +83,7 @@ private:
 protected:
     QVector3D m_position; // offset from landscape
     QVector3D m_drawPosition; // absolute position for object
-    F3 m_rotation;
+    //QVector3D m_rotation;
     uint m_mapID;
     QString m_name;
     QString m_comment;

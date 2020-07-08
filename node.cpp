@@ -23,16 +23,16 @@ void CNode::init()
 }
 
 CNode::CNode():
-    m_position(0.0, 0.0, 0.0),
-    m_rotation(0.0, 0.0, 0.0),
-    m_parent(nullptr)
+    m_position(0.0, 0.0, 0.0)
+    //,m_rotation(0.0, 0.0, 0.0)
+    ,m_parent(nullptr)
 {
     init();
 }
 
 CNode::CNode(CNode* parent):
-    m_position(0.0, 0.0, 0.0),
-    m_rotation(0.0, 0.0, 0.0)
+    m_position(0.0, 0.0, 0.0)
+    //,m_rotation(0.0, 0.0, 0.0)
 {
     if (m_parent)
         m_parent = parent;
@@ -69,7 +69,7 @@ void CNode::rotate(QQuaternion& quat)
 void CNode::applyRotation()
 {
     m_rotateMatrix.setToIdentity();
-    m_rotateMatrix.rotate(m_rotation.x, 1.0, 0.0, 0.0);
-    m_rotateMatrix.rotate(m_rotation.y, 0.0, 1.0, 0.0);
-    m_rotateMatrix.rotate(m_rotation.z, 0.0, 0.0, 1.0);
+//    m_rotateMatrix.rotate(m_rotation.x(), 1.0, 0.0, 0.0);
+//    m_rotateMatrix.rotate(m_rotation.y(), 0.0, 1.0, 0.0);
+//    m_rotateMatrix.rotate(m_rotation.z(), 0.0, 0.0, 1.0);
 }

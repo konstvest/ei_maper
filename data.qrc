@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>auxObjects.res</file>
+        <file>optSet.txt</file>
     </qresource>
 </RCC>

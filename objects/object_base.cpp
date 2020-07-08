@@ -1,4 +1,5 @@
-#include "object_base.h"
+#include "objects\object_base.h"
+#include <QJsonArray>
 
 CObjectBase::CObjectBase():
     m_texture(nullptr)
@@ -90,4 +91,31 @@ void CObjectBase::drawSelect(QOpenGLShaderProgram* program)
         part->drawSelect(program);
 }
 
+void CObjectBase::serializeJson(QJsonObject& obj)
+{
+    obj.insert("Model name", m_modelName);
+    obj.insert("Id", QJsonValue::fromVariant(m_mapID));
+    QJsonArray aComplection;
+    aComplection.append(QJsonValue::fromVariant(m_complection.x()));
+    aComplection.append(QJsonValue::fromVariant(m_complection.y()));
+    aComplection.append(QJsonValue::fromVariant(m_complection.z()));
+    obj.insert("Complection", aComplection);
 
+    QJsonArray pos;
+    pos.append(QJsonValue::fromVariant(m_position.x()));
+    pos.append(QJsonValue::fromVariant(m_position.y()));
+    pos.append(QJsonValue::fromVariant(m_position.z()));
+    obj.insert("Position", pos);
+
+    QJsonArray rot;
+    QMatrix3x3 mtrx3 = m_rotateMatrix.normalMatrix();
+    QQuaternion quat;
+    quat = QQuaternion::fromRotationMatrix(mtrx3);
+    rot.append(QJsonValue::fromVariant(quat.x()));
+    rot.append(QJsonValue::fromVariant(quat.y()));
+    rot.append(QJsonValue::fromVariant(quat.z()));
+    rot.append(QJsonValue::fromVariant(quat.scalar()));
+    obj.insert("Rotation", rot);
+
+    return;
+}

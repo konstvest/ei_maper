@@ -3,7 +3,7 @@
 
 #include <QListWidget>
 #include <QFileInfo>
-#include "object_base.h"
+#include "objects\object_base.h"
 
 class CObjectList
 {
@@ -11,8 +11,9 @@ public:
     CObjectList();
     ~CObjectList();
     //void attachView(CView* view);
-    void initResourceFile(QFileInfo& file);
-    void initResourceFile(QVector<QFileInfo>& aFile);
+    void addResourceFile(const QString& file);
+    void addResourceFile(QFileInfo& file);
+    void addResourceFile(QVector<QFileInfo>& aFile);
     void loadFigures(QSet<QString>& aFigure);
     void readFigure(const QByteArray& file, const QString& name);
     void readAssembly(const QMap<QString, QByteArray>& aFile, const QString& assemblyRoot);

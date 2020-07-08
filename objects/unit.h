@@ -1,18 +1,23 @@
 #ifndef UNIT_H
 #define UNIT_H
-#include "worldobj.h"
+#include "objects\worldobj.h"
 #include "mob.h"
 
-class CLookPoint : public CObjectBase
+class CSettings;
+
+class CLookPoint
 {
 public:
     CLookPoint();
-    CLookPoint(CNode* node);
+    //CLookPoint(CNode* node);
     ~CLookPoint() {}
-//    void draw(QOpenGLShaderProgram* program);
-//    void drawSelect(QOpenGLShaderProgram* program = nullptr);
+    void draw(QOpenGLShaderProgram* program);
+    void drawSelect(QOpenGLShaderProgram* program = nullptr);
+    void setTexture(QOpenGLTexture* texture);
     uint deserialize(util::CMobParser& parser);
+    void serializeJson(QJsonObject &obj);
     //void attachMob(CMob* mob) {m_mob = mob;}
+    CObjectBase* model3d() {return m_model3D.get();};
 
 private:
     //QVector3D m_lookPoint;//"ACTION_PT_LOOK_PT", ePlot}; //replaced by CNode pos
@@ -20,22 +25,24 @@ private:
     uint m_turnSpeed;//"ACTION_PT_TURN_SPEED", eDword};
     char m_flag;//"ACTION_PT_FLAGS", eByte};
     //CMob* m_mob;
+    QSharedPointer<CObjectBase> m_model3D;
 
 };
 
-class CPatrolPoint: public CObjectBase
+class CPatrolPoint
 {
 public:
     CPatrolPoint();
-    CPatrolPoint(CNode* node);
-    ~CPatrolPoint() override;
-    void draw(QOpenGLShaderProgram* program) override;
-    void drawSelect(QOpenGLShaderProgram* program = nullptr) override;
-    void updateFigure(ei::CFigure* fig) override;
-    void setTexture(QOpenGLTexture* texture) override;
+    ~CPatrolPoint();
+    void draw(QOpenGLShaderProgram* program);
+    void drawSelect(QOpenGLShaderProgram* program = nullptr);
+    void updateFigure(ei::CFigure* fig);
+    void setTexture(QOpenGLTexture* texture);
     void update();
-    uint deserialize(util::CMobParser& parser) override;
+    uint deserialize(util::CMobParser& parser);
+    void serializeJson(QJsonObject &obj);
     void attachMob(CMob* mob) {m_mob = mob;}
+    CObjectBase* model3d() {return m_model3d.get();};
 
 private:
     QOpenGLBuffer m_vertexBuf;
@@ -46,6 +53,7 @@ private:
 
     QVector<QVector3D> m_aDrawingLine; // openGL drawing look direction
     CMob* m_mob;
+    QSharedPointer<CObjectBase> m_model3d;
 };
 
 class CUnit;
@@ -68,6 +76,7 @@ public:
     void draw(QOpenGLShaderProgram* program);
     void drawSelect(QOpenGLShaderProgram* program = nullptr);
     uint deserialize(util::CMobParser& parser);
+    void serializeJson(QJsonObject& obj);
     void updatePointFigure(ei::CFigure* fig);
     void setPointTexture(QOpenGLTexture* pTexture);
     bool isUse() {return m_use;}
@@ -114,13 +123,15 @@ public:
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override;
     void updateFigure(ei::CFigure* fig) override;
     void setTexture(QOpenGLTexture* texture) override;
+    void serializeJson(QJsonObject& obj) override;
     void attachMob(CMob* mob) {m_mob = mob;}
+    CSettings* settings();
 
 private:
     //"UNIT_R", eNull};
     QString m_prototypeName;//"UNIT_PROTOTYPE", eString};
     //"UNIT_ITEMS", eNull};
-    QByteArray m_stat;//"UNIT_STATS", eUnitStats};
+    QSharedPointer<SUnitStat> m_stat;//"UNIT_STATS", eUnitStats};
     QVector<QString> m_aQuestItem;//"UNIT_QUEST_ITEMS", eStringArray};
     QVector<QString> m_aQuickItem;//"UNIT_QUICK_ITEMS", eStringArray};
     QVector<QString> m_aSpell;//"UNIT_SPELLS", eStringArray};

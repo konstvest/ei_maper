@@ -15,17 +15,23 @@ CObjectList::~CObjectList()
         fig->~CFigure();
 }
 
-void CObjectList::initResourceFile(QFileInfo &file)
+void CObjectList::addResourceFile(const QString& file)
+{
+    QFileInfo f(file);
+    addResourceFile(f);
+}
+
+void CObjectList::addResourceFile(QFileInfo &file)
 {
     Q_ASSERT(file.exists());
     if(!m_aFilePath.contains(file))
         m_aFilePath.append(file);
 }
 
-void CObjectList::initResourceFile(QVector<QFileInfo>& aFile)
+void CObjectList::addResourceFile(QVector<QFileInfo>& aFile)
 {
     for(auto& file: aFile)
-        initResourceFile(file);
+        addResourceFile(file);
 }
 
 void CObjectList::readFigure(const QByteArray& file, const QString& name)

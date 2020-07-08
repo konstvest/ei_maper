@@ -64,7 +64,8 @@ public:
     CTextureList();
     ~CTextureList();
 
-    void initResourceFile(QFileInfo& file);
+    void addResourceFile(const QString& file);
+    void addResourceFile(QFileInfo& file);
     void loadTexture(QList<QString> aName);
     QOpenGLTexture* texture(QString& name);
     QOpenGLTexture* buildLandTex(QString& name, int& texCount);
@@ -76,7 +77,7 @@ private:
 
 private:
     QMap<QString, QOpenGLTexture*> m_aTexture;
-    QFileInfo m_filePath;
+    QVector<QFileInfo> m_aFilePath;
 };
 
 #endif // TEXTURELIST_H

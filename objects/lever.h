@@ -1,6 +1,6 @@
 #ifndef LEVER_H
 #define LEVER_H
-#include "worldobj.h"
+#include "objects\worldobj.h"
 
 class CLever : public CWorldObj
 {
@@ -9,6 +9,7 @@ public:
     ~CLever() override {}
     ENodeType nodeType() override {return ENodeType::eLever; }
     uint deserialize(util::CMobParser& parser) override;
+    void serializeJson(QJsonObject& obj) override;
 
 private:
     char m_curState;

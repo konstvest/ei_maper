@@ -29,17 +29,22 @@ public:
     ~CMob();
     void attachView(CView* view) {m_view = view;}
     void readMob(QFileInfo& path);
+    void serializeJson(QFileInfo& file);
     void addNode(QList<CNode*>& aNode) {m_aNode.append(aNode); }
     void addNode(CNode* aNode) {m_aNode.append(aNode); }
-    QList<CNode*>& node() {return m_aNode; }
-    QList<CNode*>& nodeSelected() {return m_aNodeSelected; }
+    QList<CNode*>& nodes() {return m_aNode; }
+    QList<CNode*>& nodesSelected() {return m_aNodeSelected; }
     void delNodes();
     CView* view() {Q_ASSERT(m_view); return m_view;}
+    void log(const char* msg);
 
 private:
     void init();
+    QString getAuxDirName();
     bool deserialize(QByteArray data);
     void updateObjects();
+    void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, const QString value);
+    void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value);
 
 private:
     //todo: global text data, script
@@ -61,7 +66,5 @@ private:
     QList<CNode*> m_aNode;
     QList<CNode*> m_aNodeSelected;
 };
-
-
 
 #endif // MOB_H

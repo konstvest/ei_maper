@@ -2,8 +2,10 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
-#include "utils.h"
 #include <QtMath>
+#include <QTextCodec>
+
+#include "utils.h"
 
 void util::formatStream(QDataStream& stream)
 {
@@ -66,6 +68,11 @@ void util::splitByLen(QVector<QVector3D>& aPoint, float len)
                 aPoint.append(aSource[i] + dir*len*j);
         }
     }
+}
+
+bool isEqual(const double& a, const double& b, double Eps)
+{
+    return (qAbs(a - b) < Eps);
 }
 
 void util::CMobParser::initTypes()
@@ -265,7 +272,9 @@ void util::CMobParser::decryptScript(QString& script, QByteArray& data, uint key
         tmpKey = ((((key * 13) << 4) + key) << 8) - key;
         key += (tmpKey << 2) + 2531011;
         tmpKey = key >> 16;
-        script.append(data[i] ^ char(tmpKey));
+        const char sym = char(data[i] ^ char(tmpKey));
+        //todo: convert to qstringlist and utf-8? (mob.cpp writing has same code)
+        script += sym;
     }
 }
 
@@ -485,10 +494,10 @@ uint util::CMobParser::readStringEncrypted(QString& data, uint len)
     return len + 4;
 }
 
-uint util::CMobParser::readUnitStats(QByteArray& data, uint len)
+uint util::CMobParser::readUnitStats(QSharedPointer<SUnitStat>& data, uint len)
 {
-    //todo: try to find out parameters
-    data = m_stream.device()->read(len);
+    data = QSharedPointer<SUnitStat>(new SUnitStat);
+    m_stream.readRawData(reinterpret_cast<char*>(data.get()), sizeof(SUnitStat));
     return len;
 }
 

@@ -4,10 +4,12 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QCheckBox>
 
 #include "settings.h"
 #include "ui_settings.h"
 #include "mainwindow.h"
+#include "utils.h"
 
 CSettings::CSettings(QWidget *parent) :
     QWidget(parent)
@@ -16,6 +18,7 @@ CSettings::CSettings(QWidget *parent) :
 {
     ui->setupUi(this);
     m_aOptCategory.resize(eOptSetCount);
+    initOptions();
     readOptions();
 }
 
@@ -25,15 +28,23 @@ CSettings::~CSettings()
     saveOptions();
 }
 
+COpt* CSettings::opt(QString name)
+{
+    for(auto& cat : m_aOptCategory)
+        for (auto& opt: cat)
+        {
+            if (opt->name() == name)
+                return opt.get();
+        }
+    return nullptr;
+}
+
 COpt* CSettings::opt(EOptSet optSet, QString& name)
 {
     for(const auto& opt: m_aOptCategory[optSet])
-    {
         if(opt->name() == name)
-        {
             return opt.get();
-        }
-    }
+
     return nullptr;
 }
 
@@ -80,6 +91,7 @@ void CSettings::onShow(EOptSet optSet)
 bool CSettings::onClose()
 {
     m_mainWindow->setEnabled(true);
+    saveOptions();
     return QWidget::close();
 }
 
@@ -96,6 +108,7 @@ bool CSettings::close()
 
 void CSettings::on_buttonCancel_clicked()
 {
+    updateOptUi();
     close();
 }
 
@@ -105,35 +118,130 @@ void CSettings::resetOptions()
         m_fileOpt.remove();
 }
 
+void CSettings::updateOptUi()
+{
+    for (auto& cat: m_aOptCategory)
+    {
+        for(const auto& opt: cat)
+        {
+            if (COptString* pOpt = dynamic_cast<COptString*>(opt.get()))
+            {
+                //find label, text edit
+                QLineEdit* pLineEdit = ui->tabWidget->findChild<QLineEdit*>(pOpt->name());
+                if (pLineEdit)
+                {
+                    pLineEdit->setText(pOpt->value());
+                }
+            }
+            else if(COptBool* pOpt = dynamic_cast<COptBool*>(opt.get()))
+            {
+                // find checkbox
+                QCheckBox* pCheckBox = ui->tabWidget->findChild<QCheckBox*>(pOpt->name());
+                if (pCheckBox)
+                    pCheckBox->setChecked(pOpt->value());
+            }
+            else if(COptDouble* pOpt = dynamic_cast<COptDouble*>(opt.get()))
+            {
+                //todo
+                Q_UNUSED(pOpt);
+            }
+        }
+    }
+}
+
+void CSettings::updateOptFromUi()
+{
+    for (auto& cat: m_aOptCategory)
+    {
+        for(const auto& opt: cat)
+        {
+            if (COptString* pOpt = dynamic_cast<COptString*>(opt.get()))
+            {
+                //find label, text edit
+                QLineEdit* pLineEdit = ui->tabWidget->findChild<QLineEdit*>(pOpt->name());
+                if (pLineEdit)
+                {
+                    pOpt->setValue(pLineEdit->text());
+                }
+            }
+            else if(COptBool* pOpt = dynamic_cast<COptBool*>(opt.get()))
+            {
+                // find checkbox
+                QCheckBox* pCheckBox = ui->tabWidget->findChild<QCheckBox*>(pOpt->name());
+                if (pCheckBox)
+                    pOpt->setValue(pCheckBox->isChecked());
+            }
+            else if(COptDouble* pOpt = dynamic_cast<COptDouble*>(opt.get()))
+            {
+                //todo
+                Q_UNUSED(pOpt);
+            }
+        }
+    }
+}
+
 void CSettings::initOptions()
 {
-    QJsonObject resource;
-    resource.insert("FigurePath_1", QJsonValue::fromVariant(""));
-    resource.insert("FigurePath_2", QJsonValue::fromVariant(""));
-    resource.insert("TexturePath_1", QJsonValue::fromVariant(""));
-    resource.insert("TexturePath_2", QJsonValue::fromVariant(""));
-//    resource.insert("DatabasePath_1", QJsonValue::fromVariant(""));
-//    resource.insert("DatabasePath_2", QJsonValue::fromVariant(""));
-//    resource.insert("TextPath_1", QJsonValue::fromVariant(""));
-//    resource.insert("TextPath_2", QJsonValue::fromVariant(""));
+    QList<QSharedPointer<COpt>> aOpt;
 
-    QJsonObject general;
-    general.insert("LastVisitedFolder", "");
-    general.insert("opt1", false);
-    general.insert("opt2", true);
+    //init default options for strings
+    aOpt.append(QSharedPointer<COpt>(new COptString("figPath1", "")));
+    aOpt.append(QSharedPointer<COpt>(new COptString("figPath2", "")));
+    aOpt.append(QSharedPointer<COpt>(new COptString("texPath1", "")));
+    aOpt.append(QSharedPointer<COpt>(new COptString("texPath2", "")));
+    aOpt.append(QSharedPointer<COpt>(new COptString("lastVisitedFolder", "")));
 
-    QJsonObject optSection;
-    optSection.insert("Version", 0.1);
-    optSection.insert("General", general);
-    //todo: other options set
-    optSection.insert("Resource", resource);
-    QJsonDocument doc(optSection);
-    if (!m_fileOpt.open(QIODevice::WriteOnly)) {
-        Q_ASSERT("Couldn't open option file." && false);
-        return;
+    //init default options for bools
+    aOpt.append(QSharedPointer<COpt>(new COptBool("drawLogic", true)));
+
+    //init default options for digits
+    aOpt.append(QSharedPointer<COpt>(new COptDouble("version", 1.0)));
+
+    //split options into different category
+    QFile inputFile(":/optSet.txt");
+    QStringList aOptCategoryList;
+    if (inputFile.open(QIODevice::ReadOnly))
+    {
+       QTextStream in(&inputFile);
+       while (!in.atEnd())
+       {
+          QString line = in.readLine();
+          aOptCategoryList.append(line);
+       }
+       inputFile.close();
     }
-    m_fileOpt.write(doc.toJson());
-    m_fileOpt.close();
+
+    EOptSet set = eOptSetGeneral;
+    for (auto& line : aOptCategoryList)
+    {
+        if (line.isEmpty())
+            continue;
+
+        if (line.contains("Option set name"))
+        {
+            QString section = line.split(":").last();
+            section.remove(QRegExp("[\\n\\t\\r]"));
+            if (section == "General")
+                set = eOptSetGeneral;
+            else if (section == "Render")
+                set = eOptSetRender;
+            else if (section == "Resource")
+                set = eOptSetResource;
+            continue;
+        }
+
+        QString optName(line);
+        optName.remove(QRegExp("[\\n\\t\\r]"));
+        for (auto& opt : aOpt)
+        {
+            if (opt.get()->name() == optName)
+            {
+                m_aOptCategory[set].append(opt);
+                break;
+            }
+        }
+
+    }
 }
 
 void CSettings::updatePathOpt(const char* name, EOptSet optSet)
@@ -144,12 +252,21 @@ void CSettings::updatePathOpt(const char* name, EOptSet optSet)
     {
         val->setValue(le->text());
     }
+    COptBool* valB = dynamic_cast<COptBool*>(opt(optSet, name));
+    QCheckBox* chB = ui->tabWidget->findChild<QCheckBox*>(name);
+    if(chB && valB)
+    {
+        valB->setValue(chB->isChecked());
+    }
 }
 
 void CSettings::readOptions()
 {
     if(!m_fileOpt.exists())
-        initOptions();
+    {
+        updateOptUi();
+        return;
+    }
 
     QString json;
     if(!m_fileOpt.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -162,55 +279,76 @@ void CSettings::readOptions()
 
 
     QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
-    QJsonObject optSection = doc.object();
-    m_version = optSection.value(QString("Version")).toDouble(); //todo: check version
+    QJsonObject aOptObject = doc.object();
 
-    // #general tab
-    QJsonObject jsonObj = optSection.value(QString("General")).toObject();
-    EOptSet section = eOptSetGeneral;
-    auto readOptPath = [&section, &jsonObj](QVector<QVector<QSharedPointer<COpt>>>& optCategory, const char* name)
+
+    auto readOptionTab = [&aOptObject, this](QString tabName, EOptSet optSet)
     {
-        QString val = jsonObj[name].toString();
-        optCategory[section].append(QSharedPointer<COpt>(new COptString(name, val)));
+        QJsonValue val = aOptObject.value(tabName);
+        if (val.isObject())
+        {
+            QJsonObject obj =  val.toObject(); // General
+            for(auto& opt : m_aOptCategory[optSet])
+            {
+                QJsonValue jVal = obj.value(opt.get()->name()); // figPath1
+                if (jVal == QJsonValue::Null)
+                    continue;
+
+                if (COptString* pOpt = dynamic_cast<COptString*>(opt.get()))
+                {
+                    pOpt->setValue(jVal.toString());
+                }
+                else if(COptBool* pOpt = dynamic_cast<COptBool*>(opt.get()))
+                {
+                    pOpt->setValue(jVal.toBool());
+                }
+                else if(COptDouble* pOpt = dynamic_cast<COptDouble*>(opt.get()))
+                {
+                    pOpt->setValue(jVal.toDouble());
+                }
+            }
+        }
     };
-    readOptPath(m_aOptCategory, "LastVisitedFolder");
+    readOptionTab("General", eOptSetGeneral);
+    readOptionTab("Render", eOptSetRender);
+    readOptionTab("Resource", eOptSetResource);
+    readOptionTab("KeyBinding", eOptSetKeyBinding);
 
-    // #resource tab
-    jsonObj = optSection.value(QString("Resource")).toObject();
-    section = eOptSetResource;
-    readOptPath(m_aOptCategory, "FigurePath_1" );
-    readOptPath(m_aOptCategory, "FigurePath_2" );
-    readOptPath(m_aOptCategory, "TexturePath_1");
-    readOptPath(m_aOptCategory, "TexturePath_2");
-
+    updateOptUi();
 }
 
 void CSettings::saveOptions()
 {
-    QJsonObject resource;
-    for(auto& option: m_aOptCategory[eOptSetResource])
+    QJsonObject aOpt;
+
+    auto optToObj = [&aOpt, this](QString tabName, EOptSet optSet)
     {
-        resource.insert(option->name(), dynamic_cast<COptString*>(option.get())->value());
-    }
-//    resource.insert("FigurePath_1",   dynamic_cast<COptString*>(opt(eOptSetResource, "FigurePath_1"))->value());
-//    resource.insert("FigurePath_2",   dynamic_cast<COptString*>(opt(eOptSetResource, "FigurePath_2"))->value());
-//    resource.insert("TexturePath_1",  dynamic_cast<COptString*>(opt(eOptSetResource, "TexturePath_1"))->value());
-//    resource.insert("TexturePath_2",  dynamic_cast<COptString*>(opt(eOptSetResource, "TexturePath_2"))->value());
+        QJsonObject tabObj;
+        for(auto& opt : m_aOptCategory[optSet])
+        {
 
-//    resource.insert("DatabasePath_1", dynamic_cast<COptString*>(opt(eOptSetResource, "DatabasePath_1"))->value());
-//    resource.insert("DatabasePath_2", dynamic_cast<COptString*>(opt(eOptSetResource, "DatabasePath_2"))->value());
-//    resource.insert("TextPath_1",     dynamic_cast<COptString*>(opt(eOptSetResource, "TextPath_1"))->value());
-//    resource.insert("TextPath_2",     dynamic_cast<COptString*>(opt(eOptSetResource, "TextPath_2"))->value());
+            if (COptString* pOpt = dynamic_cast<COptString*>(opt.get()))
+            {
+                tabObj.insert(opt.get()->name(), pOpt->value());
+            }
+            else if(COptBool* pOpt = dynamic_cast<COptBool*>(opt.get()))
+            {
+                tabObj.insert(opt.get()->name(), pOpt->value());
+            }
+            else if(COptDouble* pOpt = dynamic_cast<COptDouble*>(opt.get()))
+            {
+                tabObj.insert(opt.get()->name(), pOpt->value());
+            }
+        }
+        aOpt.insert(tabName, tabObj);
+    };
 
-    QJsonObject general;
-    general.insert("LastVisitedFolder", dynamic_cast<COptString*>(opt(eOptSetGeneral, "LastVisitedFolder"))->value());
+    optToObj("General", eOptSetGeneral);
+    optToObj("Render", eOptSetRender);
+    optToObj("Resource", eOptSetResource);
+    optToObj("KeyBinding", eOptSetKeyBinding);
 
-    QJsonObject optSection;
-    optSection.insert("Version", m_version);
-    optSection.insert("General", general);
-    //todo: other options set
-    optSection.insert("Resource", resource);
-    QJsonDocument doc(optSection);
+    QJsonDocument doc(aOpt);
     if (!m_fileOpt.open(QIODevice::WriteOnly)) {
         Q_ASSERT("Couldn't open option file." && false);
         //todo: suggest choosing a folder to save
@@ -222,54 +360,50 @@ void CSettings::saveOptions()
 
 void CSettings::on_buttonApply_clicked()
 {
-    // #resource tab
-    updatePathOpt("FigurePath_1", eOptSetResource);
-    updatePathOpt("FigurePath_2", eOptSetResource);
-    updatePathOpt("TexturePath_1", eOptSetResource);
-    updatePathOpt("TexturePath_2", eOptSetResource);
+    updateOptFromUi();
     onClose();
 }
 
 void CSettings::on_FigurePath_1_open_clicked()
 {
-    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "LastVisitedFolder"));
+    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
     QFileInfo fileName = QFileDialog::getOpenFileName(this, "Open mob", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
-        ui->FigurePath_1->setText(fileName.filePath());
+        ui->figPath1->setText(fileName.filePath());
         option->setValue(fileName.path());
     }
 }
 
 void CSettings::on_FigurePath_2_open_clicked()
 {
-    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "LastVisitedFolder"));
+    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
     QFileInfo fileName = QFileDialog::getOpenFileName(this, "Open mob", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
-        ui->FigurePath_2->setText(fileName.filePath());
+        ui->figPath2->setText(fileName.filePath());
         option->setValue(fileName.path());
     }
 }
 
 void CSettings::on_TexturePath_1_open_clicked()
 {
-    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "LastVisitedFolder"));
+    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
     QFileInfo fileName = QFileDialog::getOpenFileName(this, "Open mob", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
-        ui->TexturePath_1->setText(fileName.filePath());
+        ui->texPath1->setText(fileName.filePath());
         option->setValue(fileName.path());
     }
 }
 
 void CSettings::on_TexturePath_2_open_clicked()
 {
-    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "LastVisitedFolder"));
+    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
     QFileInfo fileName = QFileDialog::getOpenFileName(this, "Open mob", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
-        ui->TexturePath_2->setText(fileName.filePath());
+        ui->texPath2->setText(fileName.filePath());
         option->setValue(fileName.path());
     }
 }

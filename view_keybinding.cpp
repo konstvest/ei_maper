@@ -2,6 +2,8 @@
 #include "view.h"
 #include "key_manager.h"
 #include "mob.h"
+#include "camera.h"
+#include "landscape.h"
 
 void CView::keyPressEvent(QKeyEvent* event)
 {
@@ -33,7 +35,10 @@ void CView::keyPressEvent(QKeyEvent* event)
         break;
     case Qt::Key_C:
         for(auto& mob: m_aMob)
-            projectToLandscape(mob->nodeSelected());
+            m_landscape->projectPositions(mob->nodesSelected());
+        break;
+    case Qt::Key_R:
+        m_cam->reset();
         break;
     default:
         break;

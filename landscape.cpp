@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "view.h"
 #include "texturelist.h"
+#include "node.h"
 
 CLandscape::CLandscape()
 {
@@ -150,4 +151,21 @@ bool CLandscape::projectPt(QVector<QVector3D>& aPoint)
     }
 
     return projectedPt == aPoint.size();
+}
+
+void CLandscape::projectPositions(QList<CNode*>& aNode)
+{
+    for(auto& node: aNode)
+    {
+        if(node->nodeType() == eParticle || node->nodeType() == eLight || node->nodeType() == eSound)
+        {
+            node->setDrawPosition(node->position());
+            continue;
+        }
+        QVector3D landPos(node->position());
+        if(node->nodeType() == eUnit)
+            landPos -= node->minPosition();
+        projectPt(landPos);
+        node->setDrawPosition(landPos);
+    }
 }

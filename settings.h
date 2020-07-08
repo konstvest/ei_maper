@@ -29,6 +29,7 @@ public:
     explicit CSettings(QWidget *parent = nullptr);
     ~CSettings();
 
+    COpt* opt(QString name);
     COpt* opt(EOptSet optSet, QString& name);
     COpt* opt(EOptSet optSet, const char* name);
     void onShow(EOptSet optSet = eOptSetGeneral);
@@ -55,13 +56,14 @@ private:
     void readOptions();
     void saveOptions();
     void updatePathOpt(const char* name, EOptSet optSet);
+    void updateOptUi();
+    void updateOptFromUi();
 
 private:
     Ui::CSettings *ui;
     MainWindow* m_mainWindow;
 
     QFile m_fileOpt;
-    double m_version;
     QVector<QVector<QSharedPointer<COpt>>> m_aOptCategory;
 
 };

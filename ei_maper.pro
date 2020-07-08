@@ -26,22 +26,24 @@ CONFIG += c++11
 
 SOURCES += \
     key_manager.cpp \
-    lever.cpp \
-    light.cpp \
-    magictrap.cpp \
-        main.cpp \
-        mainwindow.cpp \
+    objects/lever.cpp \
+    objects/light.cpp \
+    log.cpp \
+    logwindow.cpp \
+    objects/magictrap.cpp \
+    main.cpp \
+    mainwindow.cpp \
     math_utils.cpp \
-    object_base.cpp \
+    objects/object_base.cpp \
     options.cpp \
     part.cpp \
-    particle.cpp \
+    objects/particle.cpp \
     sector.cpp \
     settings.cpp \
-    sound.cpp \
+    objects/sound.cpp \
     texturelist.cpp \
-    torch.cpp \
-    unit.cpp \
+    objects/torch.cpp \
+    objects/unit.cpp \
     view.cpp \
     figure.cpp \
     res_file.cpp \
@@ -53,26 +55,28 @@ SOURCES += \
     camera.cpp \
     view_mouse_action.cpp \
     mob.cpp \
-    worldobj.cpp
+    objects/worldobj.cpp
 
 HEADERS += \
     color.h \
     key_manager.h \
-    lever.h \
-    light.h \
-    magictrap.h \
-        mainwindow.h \
+    objects/lever.h \
+    objects/light.h \
+    log.h \
+    logwindow.h \
+    objects/magictrap.h \
+    mainwindow.h \
     math_utils.h \
-    object_base.h \
+    objects/object_base.h \
     options.h \
     part.h \
-    particle.h \
+    objects/particle.h \
     sector.h \
     settings.h \
-    sound.h \
+    objects/sound.h \
     texturelist.h \
-    torch.h \
-    unit.h \
+    objects/torch.h \
+    objects/unit.h \
     view.h \
     figure.h \
     types.h \
@@ -85,7 +89,7 @@ HEADERS += \
     map_mp.h \
     camera.h \
     mob.h \
-    worldobj.h
+    objects/worldobj.h
 
 FORMS += \
         mainwindow.ui \
@@ -98,6 +102,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    objects.qrc \
+    data.qrc \
     shaders.qrc \
     textures.qrc

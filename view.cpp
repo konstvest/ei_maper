@@ -1,6 +1,6 @@
 #include <QtWidgets>
 #include <QDebug>
-#include <QtMath>   //for fabs
+#include <QtMath>       //for fabs
 
 #include "view.h"
 #include "camera.h"
@@ -10,20 +10,35 @@
 #include "node.h"
 #include "landscape.h"
 #include "key_manager.h"
+#include "log.h"
+#include "settings.h"
+
+class CLogic;
 
 CView::CView(QWidget* parent):
     QGLWidget (parent)
     , m_landscape(nullptr)
     , m_objList(nullptr)
     , m_textureList(nullptr)
+    , m_logger(nullptr)
+    , m_pSettings(nullptr)
 {
     setFocusPolicy(Qt::ClickFocus);
 
     m_cam.reset(new CCamera);
     m_timer = new QTimer;
     m_keyManager.reset(new CKeyManager);
+    m_aReadState.resize(eReadCount);
+
     m_cam->attachKeyManage(m_keyManager.get());
     connect(m_timer, SIGNAL(timeout()), this, SLOT(updateWindow()));
+}
+
+
+void CView::updateReadState(EReadState state)
+{
+    m_aReadState[state] = true;
+    qDebug() << state << " read";
 }
 
 CView::~CView()
@@ -48,6 +63,16 @@ CObjectList* CView::objList()
         m_objList.reset(new CObjectList);
 
     return m_objList.get();
+}
+
+void CView::attachLogWindow(QTextEdit* pTextEdit)
+{
+    m_logger.reset(new CLogger(pTextEdit));
+}
+
+void CView::attachSettings(CSettings* pSettings)
+{
+    m_pSettings = pSettings;
 }
 
 void CView::updateWindow()
@@ -143,6 +168,7 @@ void CView::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     initShaders();
+    //loadResource();
 }
 
 void CView::resizeGL(int width, int height)
@@ -197,13 +223,14 @@ void CView::draw()
     m_program.setUniformValue("u_highlight", false);
 
     for(auto& mob: m_aMob)
-        for (auto node: mob->node())
+        for (auto node: mob->nodes())
             node->draw(&m_program);
 
     m_program.setUniformValue("u_highlight", true);
     for(auto& mob: m_aMob)
-        for (auto& node: mob->nodeSelected())
+        for (auto& node: mob->nodesSelected())
             node->draw(&m_program);
+
 
 }
 
@@ -214,11 +241,55 @@ void CView::draw()
 //    updateGL();
 //}
 
+bool CView::isResourceInitiated()
+{
+    bool res = true;
+    COptString* opt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "figPath1"));
+    if(opt->value().isEmpty())
+    {
+        QMessageBox::warning(this, "Warning","Choose path to figures.res");
+        m_pSettings->onShow(eOptSetResource);
+        res = false;
+    }
+    else
+    {
+        objList()->addResourceFile(opt->value());
+        opt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "figPath2"));
+        if(!opt->value().isEmpty())
+            objList()->addResourceFile(opt->value());
+    }
+
+    if (res)
+    {
+        opt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath1"));
+        if(opt->value().isEmpty())
+        {
+            QMessageBox::warning(this, "Warning","Choose path to textures.res");
+            m_pSettings->onShow(eOptSetResource);
+            res = false;
+        }
+        else
+        {
+            texList()->addResourceFile(opt->value());
+            opt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath2"));
+            if(!opt->value().isEmpty())
+                texList()->addResourceFile(opt->value());
+        }
+    }
+
+    return res;
+}
+
 void CView::loadLandscape(QFileInfo& filePath)
 {
+    if(!isResourceInitiated())
+        return;
+
+    log("Loading landscape");
     m_landscape = new CLandscape;
     m_landscape->setParentView(this);
     m_landscape->readMap(filePath);
+    log("Landscape loaded");
     m_timer->setInterval(15);
     m_timer->start();
 }
@@ -229,6 +300,13 @@ void CView::unloadLand()
         delete m_landscape;
 
     m_landscape = nullptr;
+    log("landscape unloaded");
+}
+
+void CView::log(const char* msg)
+{
+    emit updateMsg(msg);
+    //m_logger->log(msg);
 }
 
 void CView::loadMob(QFileInfo &filePath)
@@ -242,7 +320,25 @@ void CView::loadMob(QFileInfo &filePath)
 
     // update position on the map for each node
     Q_ASSERT(m_landscape);
-    projectToLandscape(mob->node());
+    m_landscape->projectPositions(mob->nodes());
+}
+
+void CView::saveMob(QFileInfo& file)
+{
+//    for(auto& mob: m_aMob)
+//    {
+//        mob->serializeJson(file);
+//    }
+}
+
+void CView::serializeMob(QFileInfo &file)
+{
+
+
+    for(auto& mob: m_aMob)
+    {
+        mob->serializeJson(file);
+    }
 }
 
 void CView::unloadMob()
@@ -259,21 +355,4 @@ void CView::delNodes()
 {
     for(auto& mob: m_aMob)
         mob->delNodes();
-}
-
-void CView::projectToLandscape(QList<CNode*>& aNode)
-{
-    for(auto& node: aNode)
-    {
-        if(node->nodeType() == eParticle || node->nodeType() == eLight || node->nodeType() == eSound)
-        {
-            node->setDrawPosition(node->position());
-            continue;
-        }
-        QVector3D landPos(node->position());
-        if(node->nodeType() == eUnit)
-            landPos -= node->minPosition();
-        m_landscape->projectPt(landPos);
-        node->setDrawPosition(landPos);
-    }
 }

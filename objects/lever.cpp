@@ -1,3 +1,4 @@
+#include <QJsonArray>
 #include "lever.h"
 
 CLever::CLever()
@@ -61,4 +62,20 @@ uint CLever::deserialize(util::CMobParser& parser)
         }
     }
     return readByte;
+}
+
+void CLever::serializeJson(QJsonObject& obj)
+{
+    CWorldObj::serializeJson(obj);
+    obj.insert("State", QJsonValue::fromVariant(int(m_curState)));
+    obj.insert("State numbers", QJsonValue::fromVariant(int(m_totalState)));
+    obj.insert("Is cycled?", m_bCycled);
+    obj.insert("Is cast once?", m_bCastOnce);
+    QJsonArray aStat;
+    aStat.append(QJsonValue::fromVariant(m_stat.x()));
+    aStat.append(QJsonValue::fromVariant(m_stat.y()));
+    aStat.append(QJsonValue::fromVariant(m_stat.z()));
+    obj.insert("Science stats", aStat);
+    obj.insert("Is door?", m_bDoor);
+    obj.insert("Is recalculate graph?", m_bRecalcGraph);
 }

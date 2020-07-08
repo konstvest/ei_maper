@@ -260,6 +260,11 @@ void ei::CFigure::calculateConstitution(QVector<SVertexData>& aVrtData, QVector3
     Q_ASSERT(m_offset.size() == 8);
     calcComplection(offset, m_offset, constitute);
     QVector<QVector3D> aMorphVertex;
+    if(m_aMorphVertex.empty())
+    {
+        //TODO: process unknown models (figures)
+        return;
+    }
     for (int i(0); i<m_aMorphVertex[0].size(); ++i){
         res0 = m_aMorphVertex[0][i] + (m_aMorphVertex[1][i] - m_aMorphVertex[0][i]) * constitute.y();
         res1 = m_aMorphVertex[2][i] + (m_aMorphVertex[3][i] - m_aMorphVertex[2][i]) * constitute.y();

@@ -4,10 +4,14 @@
 #include <QString>
 #include <QFileInfo>
 #include <QOpenGLShaderProgram>
+#include <QList>
+
 #include "map_mp.h"
 #include "sector.h"
 
 class CView;
+class CNode;
+
 class CLandscape
 {
 public:
@@ -18,6 +22,7 @@ public:
     void draw(QOpenGLShaderProgram* program);
     bool projectPt(QVector3D& point);
     bool projectPt(QVector<QVector3D>& aPoint);
+    void projectPositions(QList<CNode*>& aNode);
 private:
     bool readHeader(QDataStream& stream);
 

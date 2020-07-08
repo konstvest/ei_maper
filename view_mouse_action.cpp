@@ -11,36 +11,36 @@ void CView::mousePressEvent(QMouseEvent* event)
     {   // process object selection
         for(auto& mob: m_aMob)
         {
-            if (CNode* node = pickObject(mob->node(), mob->nodeSelected(), event->pos().x(), event->pos().y()))
+            if (CNode* node = pickObject(mob->nodes(), mob->nodesSelected(), event->pos().x(), event->pos().y()))
             {
                 bool bFound = false;
                 int ind(-1);
-                for (auto& selNode: mob->nodeSelected())
+                for (auto& selNode: mob->nodesSelected())
                 {
                     if ((selNode == node) && m_keyManager->isPressed(Qt::Key_Shift))
                     {   // deselect selected node if we press SHIFT
-                        mob->node().append(selNode);
-                        mob->nodeSelected().removeOne(selNode);
+                        mob->nodes().append(selNode);
+                        mob->nodesSelected().removeOne(selNode);
                         bFound = true;
                         break;
                     }
                     else if ((selNode != node) && !m_keyManager->isPressed(Qt::Key_Shift))
                     {   // deselect all nodes for single selection (without SHIFT)
-                        mob->node().append(selNode);
-                        mob->nodeSelected().removeOne(selNode);
+                        mob->nodes().append(selNode);
+                        mob->nodesSelected().removeOne(selNode);
                     }
                 }
-                if (!bFound && (ind = mob->node().indexOf(node)) > -1)
+                if (!bFound && (ind = mob->nodes().indexOf(node)) > -1)
                 {
-                    mob->nodeSelected().append(mob->node().at(ind));
-                    mob->node().removeAt(ind);
+                    mob->nodesSelected().append(mob->nodes().at(ind));
+                    mob->nodes().removeAt(ind);
                 }
             }
             else if (!m_keyManager->isPressed(Qt::Key_Shift)) // clear selection buffer if we click out of objects in single selection mode
-                for (auto& selNode: mob->nodeSelected())
+                for (auto& selNode: mob->nodesSelected())
                 {
-                    mob->node().append(selNode);
-                    mob->nodeSelected().removeOne(selNode);
+                    mob->nodes().append(selNode);
+                    mob->nodesSelected().removeOne(selNode);
                 }
         }
     }

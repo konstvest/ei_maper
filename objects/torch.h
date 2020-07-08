@@ -1,6 +1,6 @@
 #ifndef TORCH_H
 #define TORCH_H
-#include "worldobj.h"
+#include "objects\worldobj.h"
 
 class CTorch : public CWorldObj
 {
@@ -8,6 +8,7 @@ public:
     CTorch();
     ENodeType nodeType() override {return ENodeType::eTorch; }
     uint deserialize(util::CMobParser& parser) override;
+    void serializeJson(QJsonObject& obj) override;
 
 private:
     float m_power;

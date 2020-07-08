@@ -1,6 +1,6 @@
 #ifndef MAGICTRAP_H
 #define MAGICTRAP_H
-#include "worldobj.h"
+#include "objects\worldobj.h"
 #include "types.h"
 
 class CMagicTrap : public CWorldObj
@@ -9,6 +9,7 @@ public:
     CMagicTrap();
     ENodeType nodeType() override {return ENodeType::eMagicTrap; }
     uint deserialize(util::CMobParser& parser) override;
+    void serializeJson(QJsonObject& obj) override;
 
 private:
     uint m_diplomacy;

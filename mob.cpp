@@ -6,6 +6,7 @@
 #include <QTextCodec>
 #include <QTextDecoder>
 #include <QDir>
+#include <QMessageBox>
 
 #include "mob.h"
 #include "utils.h"
@@ -21,20 +22,29 @@
 #include "objectlist.h"
 #include "texturelist.h"
 #include "landscape.h"
+#include "settings.h"
+#include "progressview.h"
+#include "log.h"
 
-CMob::CMob()
+CMob::CMob():
+    m_view(nullptr)
+    ,m_pProgress(nullptr)
 {
     m_aNode.clear();
-    m_aNodeSelected.clear();
+    m_worldSet.bInit = false;
+    m_order = eEMobOrderSeconddary;
 }
 
 CMob::~CMob()
 {
     for (auto& node: m_aNode)
         delete node;
+}
 
-    for (auto& node: m_aNodeSelected)
-        delete node;
+void CMob::attach(CView *view, CProgressView *pProgress)
+{
+    m_view = view;
+    m_pProgress = pProgress;
 }
 
 void CMob::init()
@@ -46,23 +56,34 @@ void CMob::init()
 
 bool CMob::deserialize(QByteArray data)
 {
+    ei::log(eLogInfo, "Start read mob");
     //todo: global check len of nodes
     uint readByte(0);
     util::CMobParser parser(data);
+    double step = double(50)/3;
     if (parser.isNextTag("OBJECT_DB_FILE"))
         readByte += parser.skipHeader();
     else
         return false;
 
-    if(parser.isNextTag("SC_OBJECT_DB_FILE") || parser.isNextTag("PR_OBJECT_DB_FILE"))
+    if(parser.isNextTag("SC_OBJECT_DB_FILE"))
+    {
         readByte += parser.skipHeader();
+        //readByte += parser.readHeader();
+        m_order = eEMobOrderSeconddary;
+    }
+    else if (parser.isNextTag("PR_OBJECT_DB_FILE"))
+    {
+        readByte += parser.skipHeader();
+        m_order = eEMobOrderPrimary;
+    }
 
     while(true)
     {
         if(parser.isNextTag("SS_TEXT"))
         {
             readByte += parser.readHeader();
-            readByte += parser.readStringEncrypted(m_script, parser.nodeLen());
+            readByte += parser.readStringEncrypted(m_script, m_scriptKey, parser.nodeLen());
         }
         else if(parser.isNextTag("SS_TEXT_OLD"))
         {
@@ -163,6 +184,7 @@ bool CMob::deserialize(QByteArray data)
                     break;
                 }
             }
+            m_worldSet.bInit = true;
         }
 
         //vss section
@@ -185,10 +207,10 @@ bool CMob::deserialize(QByteArray data)
             readByte += parser.readHeader();
             readByte += parser.readByteArray(m_directoryElements, parser.nodeLen());
         }
-
         //object section
         else if(parser.isNextTag("OBJECT_SECTION"))
         {
+            m_pProgress->update(step);
             uint objSecLen = parser.nodeLen();
             uint readSecByte(0);
             readByte += parser.skipHeader(); // object section
@@ -198,6 +220,7 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CWorldObj* obj = new CWorldObj();
                     readSecByte += parser.skipHeader(); // "OBJECT";
+                    obj->attachMob(this);
                     readSecByte += obj->deserialize(parser);
                     addNode(obj);
                 }
@@ -205,6 +228,7 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CLever* lever = new CLever();
                     readSecByte += parser.skipHeader(); // "LEVER";
+                    lever->attachMob(this);
                     readSecByte += lever->deserialize(parser);
                     addNode(lever);
                 }
@@ -220,6 +244,7 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CTorch* torch = new CTorch();
                     readSecByte += parser.skipHeader(); // "TORCH";
+                    torch->attachMob(this);
                     readSecByte += torch->deserialize(parser);
                     addNode(torch);
                 }
@@ -227,6 +252,7 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CMagicTrap* trap = new CMagicTrap();
                     readSecByte += parser.skipHeader();  // "MAGIC_TRAP";
+                    trap->attachMob(this);
                     readSecByte += trap->deserialize(parser);
                     addNode(trap);
                 }
@@ -234,6 +260,7 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CLight* light = new CLight();
                     readByte += parser.skipHeader(); // "LIGHT";
+                    light->attachMob(this);
                     readByte += light->deserialize(parser);
                     addNode(light);
                 }
@@ -241,6 +268,7 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CSound* sound = new CSound();
                     readByte += parser.skipHeader(); // "SOUND";
+                    sound->attachMob(this);
                     readByte += sound->deserialize(parser);
                     addNode(sound);
                 }
@@ -248,6 +276,7 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CParticle* particle = new CParticle();
                     readByte += parser.skipHeader(); // "PARTICL";
+                    particle->attachMob(this);
                     readByte += particle->deserialize(parser);
                     addNode(particle);
                 }
@@ -258,6 +287,7 @@ bool CMob::deserialize(QByteArray data)
             }
             Q_ASSERT(readSecByte <= objSecLen);
             readByte += readSecByte;
+            m_pProgress->update(step);
         }
         else if (parser.isNextTag("LIGHT_SECTION"))
         {
@@ -282,46 +312,60 @@ bool CMob::deserialize(QByteArray data)
         else
         {
             auto a = parser.nextTag();
-            Q_ASSERT(parser.nextTag() == "ROOT");
+            Q_ASSERT(parser.nextTag() == "ROOT"); // zone3obr.mob has current code
             break;
         }
     }
+    m_pProgress->update(step);
+    ei::log(eLogInfo, "End read mob");
     return true;
 }
 
 void CMob::updateObjects()
 {
+    ei::log(eLogInfo, "Start update objects");
     QSet<QString> aModelName;
     QSet<QString> aTextureName;
     for(auto& node: m_aNode)
     {
-        aModelName.insert(node->modelName());
+        aModelName.insert(node->modelName() + ".mod");
         aTextureName.insert(node->textureName());
     }
     //preload figures
     m_view->objList()->loadFigures(aModelName);
-    m_view->texList()->loadTexture(aTextureName.values());
+    m_pProgress->update(15);
+    m_view->texList()->loadTexture(aTextureName);
+    m_pProgress->update(15);
     QString texName;
+    double step = 21/double(m_aNode.size());
     for(auto& node: m_aNode)
     {
-        node->updateFigure(m_view->objList()->getFigure(node->modelName()));
-        node->updateVisibleParts();
-        texName = node->textureName();
-        node->setTexture(m_view->texList()->texture(texName));
+        node->loadFigure();
+        node->loadTexture();
+        m_pProgress->update(step);
     }
+    ei::log(eLogInfo, "End update objects");
 }
 
 void CMob::delNodes()
 {
-    for (auto& node: m_aNodeSelected)
-        delete node;
-
-    m_aNodeSelected.clear();
+    QVector<int> aInd;
+    for (int i(0); i < m_aNode.size(); ++i)
+    {
+        if(m_aNode[i]->nodeState() & ENodeState::eSelect)
+            aInd.append(i);
+    }
+    //aInd.
+    for (auto i = aInd.crbegin(); i != aInd.crend(); ++i)
+    {
+        delete m_aNode[*i];
+        m_aNode.removeAt(*i);
+    }
 }
 
-void CMob::log(const char* msg)
+QString CMob::mobName()
 {
-    m_view->log(msg);
+    return m_filePath.fileName();
 }
 
 void CMob::readMob(QFileInfo &path)
@@ -329,8 +373,8 @@ void CMob::readMob(QFileInfo &path)
     if (!path.exists())
         return;
 
-    QString m_filePath = path.filePath();
-    QFile file(m_filePath);
+    m_filePath = path;
+    QFile file(m_filePath.filePath());
     try
     {
         file.open(QIODevice::ReadOnly);
@@ -340,8 +384,8 @@ void CMob::readMob(QFileInfo &path)
             return;
         }
 
-        log("reading mob");
         deserialize(file.readAll());
+
         file.close();
     }
     catch (std::exception ex)
@@ -350,8 +394,19 @@ void CMob::readMob(QFileInfo &path)
         file.close();
     }
 
-    log("loading figures");
     updateObjects();
+
+}
+
+void CMob::checkUniqueId(QSet<uint> &aId)
+{
+    for(auto& node : m_aNode)
+    {
+        if(aId.contains(node->mapId()))
+            QMessageBox::warning(nullptr, "Map checker", "Object with ID " + QString::number(node->mapId()) + " has duplicate\nThis can occurs crash in Evil Islands.\nPlease set unique ID");
+        else
+            aId.insert(node->mapId());
+    }
 }
 
 QString CMob::getAuxDirName()
@@ -432,7 +487,7 @@ void CMob::writeData(QJsonObject& mob, const QFileInfo& file, const QString key,
 }
 
 /// file - inout. mob file
-void CMob::serializeJson(QFileInfo& file)
+void CMob::serializeJson(const QFileInfo& file)
 {
     //ranges
     QJsonArray aRange;
@@ -506,12 +561,6 @@ void CMob::serializeJson(QFileInfo& file)
         node->serializeJson(unitObj);
         unitArr.append(unitObj);
     }
-    for (auto& node: m_aNodeSelected)
-    {
-        QJsonObject unitObj;
-        node->serializeJson(unitObj);
-        unitArr.append(unitObj);
-    }
 
     mob.insert("Objects", unitArr);
 
@@ -524,3 +573,241 @@ void CMob::serializeJson(QFileInfo& file)
     f.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
 }
 
+void CMob::serializeMob(QByteArray& data)
+{
+    ei::log(eLogInfo, "Start write mob");
+    uint writeByte(0);
+    util::CMobParser parser(data, true);
+    //header "OBJECT_DB_FILE"
+    writeByte += parser.startSection("OBJECT_DB_FILE");
+
+    switch (m_order) {
+    case eEMobOrderPrimary:
+        writeByte += parser.startSection("PR_OBJECT_DB_FILE");
+        break;
+    case eEMobOrderSeconddary:
+        writeByte += parser.startSection("SC_OBJECT_DB_FILE");
+        break;
+    }
+    parser.endSection(); //"PR/SC_OBJECT_DB_FILE"
+
+    if (!m_script.isEmpty())
+    {
+        writeByte += parser.startSection("SS_TEXT");
+        writeByte += parser.writeStringEncrypted(m_script, m_scriptKey);
+        parser.endSection(); //SS_TEXT
+    }
+
+
+    if (!m_textOld.isEmpty())
+    {
+        writeByte += parser.startSection("SS_TEXT_OLD");
+        writeByte += parser.writeString(m_textOld);
+        parser.endSection(); //SS_TEXT_OLD
+    }
+
+
+    if (!m_aMainRange.isEmpty())
+    {//main range
+        writeByte += parser.startSection("MAIN_RANGE");
+        for (const auto& elem: m_aMainRange)
+        {
+            writeByte += parser.startSection("RANGE");
+            {
+                writeByte += parser.startSection("MIN_ID");
+                writeByte += parser.writeDword(elem.minRange);
+                parser.endSection();
+
+                writeByte += parser.startSection("MAX_ID");
+                writeByte += parser.writeDword(elem.maxRange);
+                parser.endSection();
+            }
+            parser.endSection();
+        }
+        parser.endSection();
+    }
+
+    if (!m_aSecRange.isEmpty())
+    {
+        writeByte += parser.startSection("SEC_RANGE");
+        for (const auto& elem: m_aSecRange)
+        {
+            writeByte += parser.startSection("RANGE");
+            {
+                writeByte += parser.startSection("MIN_ID");
+                writeByte += parser.writeDword(elem.minRange);
+                parser.endSection();
+
+                writeByte += parser.startSection("MAX_ID");
+                writeByte += parser.writeDword(elem.maxRange);
+                parser.endSection();
+            }
+            parser.endSection(); // RANGE
+        }
+        parser.endSection();//sec range
+    }
+
+    if (!m_diplomacyFoF.empty() || !m_aDiplomacyFieldName.isEmpty())
+    {
+        writeByte += parser.startSection("DIPLOMATION");
+        //Diplomacy table
+        if (!m_diplomacyFoF.empty())
+        {
+            writeByte += parser.startSection("DIPLOMATION_FOF");
+            writeByte += parser.writeDiplomacy(m_diplomacyFoF);
+            parser.endSection();
+        }
+
+        //Diplomacy Names
+        if (!m_aDiplomacyFieldName.isEmpty())
+        {
+            writeByte += parser.startSection("DIPLOMATION_PL_NAMES");
+            writeByte += parser.writeStringArray(m_aDiplomacyFieldName, "DIPLOMATION_PL_NAMES");
+            parser.endSection();
+        }
+        parser.endSection();
+    }
+
+    if(m_worldSet.bInit)
+    {
+        writeByte += parser.startSection("WORLD_SET");
+        writeByte += parser.startSection("WS_WIND_DIR");
+        writeByte += parser.writePlot(m_worldSet.m_windDirection);
+        parser.endSection(); //"WS_WIND_DIR"
+
+        writeByte += parser.startSection("WS_WIND_STR");
+        writeByte += parser.writeFloat(m_worldSet.m_windStrength);
+        parser.endSection(); //"WS_WIND_STR"
+
+        writeByte += parser.startSection("WS_TIME");
+        writeByte += parser.writeFloat(m_worldSet.m_time);
+        parser.endSection(); //"WS_TIME"
+
+        writeByte += parser.startSection("WS_AMBIENT");
+        writeByte += parser.writeFloat(m_worldSet.m_ambient);
+        parser.endSection(); //"WS_AMBIENT"
+
+        writeByte += parser.startSection("WS_SUN_LIGHT");
+        writeByte += parser.writeFloat(m_worldSet.m_sunLight);
+        parser.endSection(); //Sun Light
+        parser.endSection();//"WORLD_SET"
+    }
+
+    //if (!m_vss_section.isEmpty())
+    {
+        writeByte += parser.startSection("VSS_SECTION");
+        writeByte += parser.writeByteArray(m_vss_section, uint(m_vss_section.size()));
+        parser.endSection(); //"VSS_SECTION"
+    }
+
+    if (!m_directory.isEmpty())
+    {
+        writeByte += parser.startSection("DIRICTORY");
+        writeByte += parser.writeByteArray(m_directory, uint(m_directory.size()));
+        parser.endSection();//"DIRICTORY"
+    }
+
+    if (!m_directoryElements.isEmpty())
+    {
+        writeByte += parser.startSection("DIRICTORY_ELEMENTS");
+        writeByte += parser.writeByteArray(m_directoryElements, uint(m_directoryElements.size()));
+        parser.endSection(); //"DIRICTORY_ELEMENTS"
+    }
+
+    if(!m_aNode.empty())
+    {
+        COptBool* pOpt = dynamic_cast<COptBool*>(m_view->settings()->opt("freeCamera"));
+        bool bSaveSelect = false;
+        if(pOpt)
+            bSaveSelect = pOpt->value();
+
+        writeByte += parser.startSection("OBJECT_SECTION");
+        for (const auto& node : m_aNode)
+        {
+
+            if (bSaveSelect && (node->nodeState() != ENodeState::eSelect)) //save selected objects only
+                continue;
+
+            writeByte += node->serialize(parser);
+        }
+        parser.endSection(); // OBJECT_SECTION
+    }
+    //selected nodes?
+
+    parser.endSection(); //OBJECT_DB_FILE
+
+    //graph
+    if (!m_aiGraph.isEmpty())
+    {
+        writeByte += parser.startSection("AI_GRAPH");
+        writeByte += parser.writeAiGraph(m_aiGraph, m_aiGraph.length());
+        parser.endSection();
+    }
+    ei::log(eLogInfo, "End write mob");
+    return;
+}
+
+void CMob::deleteNode(CNode *pNode)
+{
+    const int ind = m_aNode.indexOf(pNode);
+    if(ind >=0)
+    {
+        m_aDeletedNode.append(m_aNode.at(ind));
+        m_aNode.at(ind)->setState(ENodeState::eDraw);
+        m_aNode.removeAt(ind);
+        ei::log(eLogDebug, QString("delete node with %1").arg(pNode->innerId()));
+    }
+}
+
+void CMob::restoreNode(const uint innerId)
+{
+    int ind(-1);
+    for(auto& node: m_aDeletedNode)
+    {
+        if(node->innerId() == innerId)
+            ind = m_aDeletedNode.indexOf(node);
+    }
+    if(ind >=0)
+    {
+        m_aNode.append(m_aDeletedNode.at(ind));
+        m_aDeletedNode.removeAt(ind);
+    }
+    ei::log(eLogDebug, QString("node with %1 restored").arg(innerId));
+}
+
+void CMob::clearSelect()
+{
+    CNode* pNode;
+    foreach (pNode, m_aNode)
+        pNode->setState(ENodeState::eDraw);
+}
+
+void CMob::saveAs(const QFileInfo& path)
+{
+    QString filePath = path.filePath();
+    QFile file(filePath);
+    try
+    {
+        file.open(QIODevice::WriteOnly);
+        if (file.error() != QFile::NoError)
+        {
+            ei::log(eLogError, QString("Have no access to MOB file:%1").arg(file.fileName()));
+            return;
+        }
+        QByteArray data;
+        serializeMob(data);
+        file.write(data);
+        file.close();
+    }
+    catch (std::exception ex)
+    {
+        ei::log(eLogFatal, ex.what());
+        file.close();
+    }
+
+}
+
+void CMob::save()
+{
+    saveAs(m_filePath);
+}

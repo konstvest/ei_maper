@@ -5,6 +5,21 @@
 #include <QVector3D>
 #include "vectors.h"
 
+enum EOperationType
+{
+    EOperationTypeObjects = 1
+    ,EOperationTypeLogic
+    ,EOperationTypeLandscape
+};
+
+enum EButtonOp
+{
+    EButtonOpSelect = 1
+    ,EButtonOpMove
+    ,EButtonOpRotate
+    ,EButtonOpScale
+};
+
 enum EReadState
 {
     eNone = -1
@@ -13,6 +28,84 @@ enum EReadState
     ,eReadLandscape
     ,eReadMob
     ,eReadCount
+};
+
+enum EOperateAxis
+{
+    EOperateAxisX = 1
+    ,EOperateAxisY
+    ,EOperateAxisZ
+    ,EOperateAxisXY
+    ,EOperateAxisXZ
+    ,EOperateAxisYZ
+};
+
+enum EOperationAxisType
+{
+    eMove = 1
+    ,eRotate
+    ,eScale
+};
+
+enum EObjParam
+{
+    eObjParamUnknow = 0
+    ,eObjParam_BODYPARTS
+    ,eObjParam_PLAYER
+    ,eObjParam_NID
+    ,eObjParam_TYPE
+    ,eObjParam_NAME
+    ,eObjParam_TEMPLATE
+    ,eObjParam_PARENT_TEMPLATE
+    ,eObjParam_PRIM_TXTR
+    ,eObjParam_SEC_TXTR
+    ,eObjParam_COMMENTS
+    ,eObjParam_POSITION
+    ,eObjParam_ROTATION
+    ,eObjParam_USE_IN_SCRIPT
+    ,eObjParam_IS_SHADOW
+    ,eObjParam_PARENT_ID
+    ,eObjParam_QUEST_INFO
+    ,eObjParam_COMPLECTION
+    ,eObjParam_TORCH_PTLINK
+    ,eObjParam_TORCH_STRENGHT
+    ,eObjParam_TORCH_SOUND
+    ,eObjParam_RANGE
+    ,eObjParam_SOUND_RANGE
+    ,eObjParam_SOUND_MIN
+    ,eObjParam_SOUND_MAX
+    ,eObjParam_SOUND_RESNAME
+    ,eObjParam_SOUND_AMBIENT
+    ,eObjParam_SOUND_IS_MUSIC
+    ,eObjParam_LIGHT_SHADOW
+    ,eObjParam_LIGHT_COLOR
+    ,eObjParam_PARTICL_TYPE
+    ,eObjParam_PARTICL_SCALE
+    //,eObjParam_LEVER_SCIENCE_STATS_NEW
+    ,eObjParam_LEVER_SCIENCE_STATS_Type_Open
+    ,eObjParam_LEVER_SCIENCE_STATS_Key_ID
+    ,eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight
+    //
+    ,eObjParam_LEVER_CUR_STATE
+    ,eObjParam_LEVER_TOTAL_STATE
+    ,eObjParam_LEVER_IS_CYCLED
+    ,eObjParam_LEVER_IS_DOOR
+    ,eObjParam_LEVER_RECALC_GRAPH
+    ,eObjParam_TRAP_DIPLOMACY
+    ,eObjParam_TRAP_SPELL
+    ,eObjParam_TRAP_AREAS
+    ,eObjParam_TRAP_TARGETS
+    ,eObjParam_TRAP_CAST_INTERVAL
+    ,eObjParam_TRAP_CAST_ONCE
+    ,eObjParam_UNIT_NEED_IMPORT
+    ,eObjParam_UNIT_PROTOTYPE
+    ,eObjParam_UNIT_ARMORS
+    ,eObjParam_UNIT_WEAPONS
+    ,eObjParam_UNIT_SPELLS
+    ,eObjParam_UNIT_QUICK_ITEMS
+    ,eObjParam_UNIT_QUEST_ITEMS
+    ,eObjParam_UNIT_STATS
+
 };
 
 struct SVertexData
@@ -29,6 +122,19 @@ struct SVertexData
     QVector3D position;
     QVector3D normal;
     QVector2D texCoord;
+};
+
+template <class T> class TValue {
+public:
+    TValue(){m_bInit = false;}
+    TValue(T a){m_value = a; m_bInit = true;}
+    T& value() {Q_ASSERT(m_bInit); return m_value;}
+    bool isInit() {return m_bInit;}
+    void setValue(float val) {m_value = val, m_bInit = true;}
+
+private:
+    T m_value;
+    bool m_bInit;
 };
 
 struct SRange
@@ -124,5 +230,6 @@ typedef ei::vector4<short> S4;
 typedef ei::vector4<int> I4;
 typedef ei::vector4<float> F4;
 typedef ei::vector4<double> D4;
+typedef TValue<float> hasFloat;
 
 #endif // TYPES_H

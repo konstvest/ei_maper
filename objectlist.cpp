@@ -1,12 +1,24 @@
 #include <QDebug>
+#include <QMessageBox>
 #include "objectlist.h"
 #include "res_file.h"
 #include "utils.h"
 #include "view.h"
+#include "settings.h"
 
-CObjectList::CObjectList()
+CObjectList::CObjectList():
+    m_pSettings(nullptr)
 {
-    m_aFilePath.append(QFileInfo(":/auxObjects.res"));
+    auto auxFile = QFileInfo(":/auxObjects.res");
+
+    ResFile res(auxFile.filePath());
+    QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+
+    for(auto file : aFile.toStdMap())
+    {
+        if (file.first.toLower().endsWith(".mod"))
+            readAssembly(aFile, file.first);
+    }
 }
 
 CObjectList::~CObjectList()
@@ -15,24 +27,6 @@ CObjectList::~CObjectList()
         fig->~CFigure();
 }
 
-void CObjectList::addResourceFile(const QString& file)
-{
-    QFileInfo f(file);
-    addResourceFile(f);
-}
-
-void CObjectList::addResourceFile(QFileInfo &file)
-{
-    Q_ASSERT(file.exists());
-    if(!m_aFilePath.contains(file))
-        m_aFilePath.append(file);
-}
-
-void CObjectList::addResourceFile(QVector<QFileInfo>& aFile)
-{
-    for(auto& file: aFile)
-        addResourceFile(file);
-}
 
 void CObjectList::readFigure(const QByteArray& file, const QString& name)
 {
@@ -101,7 +95,23 @@ void CObjectList::readAssembly(const QMap<QString, QByteArray>& aFile, const QSt
 
 void CObjectList::loadFigures(QSet<QString>& aFigure)
 {
-    for(auto& file: m_aFilePath)
+    QVector<QFileInfo> fileInfo;
+    auto pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "figPath1"));
+    if (!pOpt || pOpt->value().isEmpty())
+    {
+        QMessageBox::warning(m_pSettings, "Warning","Choose path to figures.res");
+        m_pSettings->onShow(eOptSetResource);
+        //todo: wait until user choose resource file and continue
+        return;
+    }
+    else
+        fileInfo.append(pOpt->value());
+
+    pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "figPath2"));
+    if(pOpt && !pOpt->value().isEmpty())
+        fileInfo.append(pOpt->value());
+
+    for(auto& file: fileInfo)
     {
         ResFile res(file.filePath());
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
@@ -120,14 +130,21 @@ void CObjectList::loadFigures(QSet<QString>& aFigure)
     }
 }
 
-ei::CFigure* CObjectList::getFigure(QString& name)
+ei::CFigure* CObjectList::getFigure(const QString& name)
 {
-    if(!m_aFigure.contains(name))
+    QString figureName = name + ".mod";
+    if(!m_aFigure.contains(figureName))
     {
         QSet<QString> figure;
-        figure.insert(name);
+        figure.insert(figureName);
         loadFigures(figure);
     }
-    Q_ASSERT(m_aFigure.contains(name));
-    return m_aFigure[name];
+
+    return m_aFigure.contains(figureName) ? m_aFigure[figureName] : figureDefault();
+}
+
+ei::CFigure *CObjectList::figureDefault()
+{
+    Q_ASSERT(m_aFigure.contains("magicTrap.mod"));
+    return m_aFigure["magicTrap.mod"];
 }

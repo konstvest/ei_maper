@@ -25,7 +25,7 @@ CSettings::CSettings(QWidget *parent) :
 CSettings::~CSettings()
 {
     delete ui;
-    saveOptions();
+    saveOptions(); //todo:what reason for saving options here? last folder path?
 }
 
 COpt* CSettings::opt(QString name)
@@ -145,6 +145,12 @@ void CSettings::updateOptUi()
                 //todo
                 Q_UNUSED(pOpt);
             }
+            else if(COptInt* pOpt = dynamic_cast<COptInt*>(opt.get()))
+            {
+                QSlider* pSlider = ui->tabWidget->findChild<QSlider*>(pOpt->name());
+                if (pSlider)
+                    pSlider->setValue(pOpt->value());
+            }
         }
     }
 }
@@ -176,6 +182,12 @@ void CSettings::updateOptFromUi()
                 //todo
                 Q_UNUSED(pOpt);
             }
+            else if(COptInt* pOpt = dynamic_cast<COptInt*>(opt.get()))
+            {
+                QSlider* pSlider = ui->tabWidget->findChild<QSlider*>(pOpt->name());
+                if (pSlider)
+                    pOpt->setValue(pSlider->value());
+            }
         }
     }
 }
@@ -193,9 +205,16 @@ void CSettings::initOptions()
 
     //init default options for bools
     aOpt.append(QSharedPointer<COpt>(new COptBool("drawLogic", true)));
+    aOpt.append(QSharedPointer<COpt>(new COptBool("freeCamera", false)));
+    aOpt.append(QSharedPointer<COpt>(new COptBool("saveSelectedOnly", false)));
+    aOpt.append(QSharedPointer<COpt>(new COptBool("dipEditSymmetric", true)));
+    aOpt.append(QSharedPointer<COpt>(new COptBool("detailedLog", false)));
+
 
     //init default options for digits
     aOpt.append(QSharedPointer<COpt>(new COptDouble("version", 1.0)));
+    aOpt.append(QSharedPointer<COpt>(new COptInt("mouseSenseX", 25)));
+    aOpt.append(QSharedPointer<COpt>(new COptInt("mouseSenseY", 25)));
 
     //split options into different category
     QFile inputFile(":/optSet.txt");
@@ -291,7 +310,7 @@ void CSettings::readOptions()
             for(auto& opt : m_aOptCategory[optSet])
             {
                 QJsonValue jVal = obj.value(opt.get()->name()); // figPath1
-                if (jVal == QJsonValue::Null)
+                if (jVal == QJsonValue::Null || jVal.isUndefined())
                     continue;
 
                 if (COptString* pOpt = dynamic_cast<COptString*>(opt.get()))
@@ -305,6 +324,10 @@ void CSettings::readOptions()
                 else if(COptDouble* pOpt = dynamic_cast<COptDouble*>(opt.get()))
                 {
                     pOpt->setValue(jVal.toDouble());
+                }
+                else if(COptInt* pOpt = dynamic_cast<COptInt*>(opt.get()))
+                {
+                    pOpt->setValue(jVal.toInt());
                 }
             }
         }
@@ -339,6 +362,10 @@ void CSettings::saveOptions()
             {
                 tabObj.insert(opt.get()->name(), pOpt->value());
             }
+            else if(COptInt* pOpt = dynamic_cast<COptInt*>(opt.get()))
+            {
+                tabObj.insert(opt.get()->name(), pOpt->value());
+            }
         }
         aOpt.insert(tabName, tabObj);
     };
@@ -367,7 +394,7 @@ void CSettings::on_buttonApply_clicked()
 void CSettings::on_FigurePath_1_open_clicked()
 {
     COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
-    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Open mob", option->value(), tr("RES (*.res)"));
+    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to mod Figures", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
         ui->figPath1->setText(fileName.filePath());
@@ -378,7 +405,7 @@ void CSettings::on_FigurePath_1_open_clicked()
 void CSettings::on_FigurePath_2_open_clicked()
 {
     COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
-    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Open mob", option->value(), tr("RES (*.res)"));
+    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to original Figures", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
         ui->figPath2->setText(fileName.filePath());
@@ -389,7 +416,7 @@ void CSettings::on_FigurePath_2_open_clicked()
 void CSettings::on_TexturePath_1_open_clicked()
 {
     COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
-    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Open mob", option->value(), tr("RES (*.res)"));
+    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to mod Texture", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
         ui->texPath1->setText(fileName.filePath());
@@ -400,7 +427,7 @@ void CSettings::on_TexturePath_1_open_clicked()
 void CSettings::on_TexturePath_2_open_clicked()
 {
     COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
-    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Open mob", option->value(), tr("RES (*.res)"));
+    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to original Texture", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
         ui->texPath2->setText(fileName.filePath());

@@ -7,6 +7,8 @@
 
 // https://www.gipat.ru/forum/index.php?showtopic=3357 - format description
 
+class CSettings;
+
 enum ETextureFormat
 {
 //    DD = 0x00006666
@@ -64,20 +66,18 @@ public:
     CTextureList();
     ~CTextureList();
 
-    void addResourceFile(const QString& file);
-    void addResourceFile(QFileInfo& file);
-    void loadTexture(QList<QString> aName);
+    void loadTexture(QSet<QString>& aName);
     QOpenGLTexture* texture(QString& name);
     QOpenGLTexture* buildLandTex(QString& name, int& texCount);
     QOpenGLTexture* textureDefault();
+    void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
 
 private:
-    void read(QString& name);
     void parse(QByteArray& data, const QString& name);
 
 private:
     QMap<QString, QOpenGLTexture*> m_aTexture;
-    QVector<QFileInfo> m_aFilePath;
+    CSettings* m_pSettings;
 };
 
 #endif // TEXTURELIST_H

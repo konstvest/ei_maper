@@ -2,28 +2,37 @@
 #define COLOR_H
 
 #include <QDataStream>
+#include <QDebug>
 #include <QVector4D>
 
 struct SColor
 {
     SColor(){rgb[0]=0; rgb[1]=0; rgb[2]=0;}
-    SColor(uchar R, uchar G, uchar B) {rgb[0]=R; rgb[1]=G; rgb[2]=B; }
+    SColor(uchar R, uchar G, uchar B) {rgb[0]=R; rgb[1]=G; rgb[2]=B; rgb[3]=1;}
     SColor(uchar R, uchar G, uchar B, uchar A) { rgb[0]=R; rgb[1]=G; rgb[2]=B; rgb[3]=A; hasAlpha = true; }
 
     bool hasAlpha = false;
     uchar rgb[4];
 
-    uchar red() {return rgb[0];}
+    uchar red() const {return rgb[0];}
     uchar red(uchar val) {rgb[0] = val; return rgb[0];}
-    uchar green() {return rgb[1];}
+    uchar green() const  {return rgb[1];}
     uchar green(uchar val) {rgb[1] = val; return rgb[1];}
-    uchar blue() {return rgb[2];}
+    uchar blue() const  {return rgb[2];}
     uchar blue(uchar val) {rgb[2] = val; return rgb[2];}
-    uchar alpha() { return hasAlpha ? rgb[3] : 0;}
+    uchar alpha() const  { return hasAlpha ? rgb[3] : 0;}
     uchar alpha(uchar val){rgb[3] = val; return hasAlpha ? rgb[3] : 0;}
+
+    bool isBlack() const {return rgb[0]==0 && rgb[1]==0 && rgb[2]==0;}
 
     //todo: operator=
     bool operator==(SColor& color)
+    {
+        return hasAlpha ?
+                    (red() == color.red() && green() == color.green() && blue() == color.blue() && alpha() == color.alpha()) :
+                    (red() == color.red() && green() == color.green() && blue() == color.blue());
+    }
+    bool operator==(const SColor& color) const
     {
         return hasAlpha ?
                     (red() == color.red() && green() == color.green() && blue() == color.blue() && alpha() == color.alpha()) :

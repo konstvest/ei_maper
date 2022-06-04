@@ -2,15 +2,22 @@
 #define WORLDOBJ_H
 #include "objects\object_base.h"
 
+class CMob;
+
 class CWorldObj : public CObjectBase
 {
 public:
     CWorldObj();
     ENodeType nodeType() override {return ENodeType::eWorldObject; }
     uint deserialize(util::CMobParser& parser) override;
-    void updateVisibleParts() override;
     QString textureName() override {return m_primaryTexture.toLower();}
+    void loadTexture() override;
     void serializeJson(QJsonObject& obj) override;
+    uint serialize(util::CMobParser& parser) override;
+    void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
+    void applyParam(EObjParam param, const QString& value) override;
+    QString getParam(EObjParam param) override;
+    const char& dipGroup(){return m_player;}
 
 private:
     //void init();
@@ -25,7 +32,6 @@ protected:
     //QVector3D m_pos;
     //QVector4D m_rot;
     //QVector3D m_complection;  //move to object base
-    QVector<QString> m_bodyParts;
     QString m_parentTemplate;
     //QString m_comment;
     char m_player;
@@ -33,6 +39,7 @@ protected:
     bool m_bUseInScript;
     bool m_bShadow;
     QString m_questInfo;
+    //CMob* m_pMob;
 };
 
 #endif // WORLDOBJ_H

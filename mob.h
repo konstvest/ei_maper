@@ -20,23 +20,50 @@ struct SWorldSet
     float m_time;
     float m_ambient;
     float m_sunLight; //power of sunlight ?!
+    bool bInit;
 };
 
+enum EMobOrder
+{
+    eEMobOrderPrimary
+    ,eEMobOrderSeconddary
+};
+
+class CProgressView;
 class CMob
 {
 public:
     CMob();
     ~CMob();
-    void attachView(CView* view) {m_view = view;}
+    void attach(CView* view, CProgressView* pProgress);
     void readMob(QFileInfo& path);
-    void serializeJson(QFileInfo& file);
+    void checkUniqueId(QSet<uint>& aId);
+    void saveAs(const QFileInfo& path);
+    void save();
+    void serializeJson(const QFileInfo& file);
+    void serializeMob(QByteArray& data);
     void addNode(QList<CNode*>& aNode) {m_aNode.append(aNode); }
     void addNode(CNode* aNode) {m_aNode.append(aNode); }
     QList<CNode*>& nodes() {return m_aNode; }
-    QList<CNode*>& nodesSelected() {return m_aNodeSelected; }
+    void deleteNode(CNode* pNode);
+    void restoreNode(const uint innerId);
+    void clearSelect();
     void delNodes();
     CView* view() {Q_ASSERT(m_view); return m_view;}
-    void log(const char* msg);
+    QString mobName();
+    const QFileInfo& filePath() {return m_filePath;}
+    const SWorldSet& worldSet() {return m_worldSet;}
+    void setWorldSet(const SWorldSet& ws){m_worldSet = ws;}
+    const QVector<SRange>& mainRanges() {return m_aMainRange;}
+    void setMainRanges(const QVector<SRange>& range) {m_aMainRange = range;}
+    const QVector<SRange>& secRanges() {return m_aSecRange;}
+    void setSecRanges(const QVector<SRange>& range) {m_aSecRange = range;}
+    const QVector<QString>& diplomacyNames() {return m_aDiplomacyFieldName;}
+    QVector<QVector<uint>>& diplomacyField() {return m_diplomacyFoF;}
+    //void getDiplomacyField(QVector<QVector<uint>>& df) {df = m_diplomacyFoF;}
+    void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
+    const QString& script() {return m_script;}
+    void setScript(const QString& script) {m_script = script;}
 
 private:
     void init();
@@ -49,7 +76,9 @@ private:
 private:
     //todo: global text data, script
     CView* m_view;
-    QString m_filePath;
+    CProgressView* m_pProgress;
+    QFileInfo m_filePath;
+    uint m_scriptKey;
     QString m_script;
     QString m_textOld;
     QVector<SRange> m_aMainRange;
@@ -64,7 +93,8 @@ private:
 
     //todo: include ALL nodes into these lists, for node assemly use children\parents
     QList<CNode*> m_aNode;
-    QList<CNode*> m_aNodeSelected;
+    QList<CNode*> m_aDeletedNode;
+    EMobOrder m_order;
 };
 
 #endif // MOB_H

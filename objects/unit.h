@@ -5,66 +5,67 @@
 
 class CSettings;
 
-class CLookPoint
+class CLookPoint : public CObjectBase
 {
 public:
     CLookPoint();
     //CLookPoint(CNode* node);
     ~CLookPoint() {}
-    void draw(QOpenGLShaderProgram* program);
-    void drawSelect(QOpenGLShaderProgram* program = nullptr);
-    void setTexture(QOpenGLTexture* texture);
-    uint deserialize(util::CMobParser& parser);
-    void serializeJson(QJsonObject &obj);
-    //void attachMob(CMob* mob) {m_mob = mob;}
-    CObjectBase* model3d() {return m_model3D.get();};
+    ENodeType nodeType() override {return ENodeType::eLookPoint;}
+    uint deserialize(util::CMobParser& parser) override;
+    void serializeJson(QJsonObject &obj) override;
+    uint serialize(util::CMobParser& parser) override;
 
 private:
     //QVector3D m_lookPoint;//"ACTION_PT_LOOK_PT", ePlot}; //replaced by CNode pos
     uint m_wait;//"ACTION_PT_WAIT_SEG", eDword};
     uint m_turnSpeed;//"ACTION_PT_TURN_SPEED", eDword};
     char m_flag;//"ACTION_PT_FLAGS", eByte};
-    //CMob* m_mob;
-    QSharedPointer<CObjectBase> m_model3D;
-
 };
 
-class CPatrolPoint
+class CPatrolPoint : public CObjectBase
 {
 public:
     CPatrolPoint();
     ~CPatrolPoint();
-    void draw(QOpenGLShaderProgram* program);
-    void drawSelect(QOpenGLShaderProgram* program = nullptr);
-    void updateFigure(ei::CFigure* fig);
-    void setTexture(QOpenGLTexture* texture);
+    ENodeType nodeType() override {return ENodeType::ePatrolPoint;}
+    void draw(QOpenGLShaderProgram* program) override final;
+    void drawSelect(QOpenGLShaderProgram* program = nullptr) override final;
+    void updateFigure(ei::CFigure* fig) override final;
+    void setTexture(QOpenGLTexture* texture) override final;
     void update();
-    uint deserialize(util::CMobParser& parser);
-    void serializeJson(QJsonObject &obj);
-    void attachMob(CMob* mob) {m_mob = mob;}
-    CObjectBase* model3d() {return m_model3d.get();};
+    uint deserialize(util::CMobParser& parser) override final;
+    void serializeJson(QJsonObject &obj) override final;
+    uint serialize(util::CMobParser& parser) override final;
+    QVector<CLookPoint*>& lookPoint() {return m_aLookPt;}
 
 private:
-    QOpenGLBuffer m_vertexBuf;
+    QOpenGLBuffer m_vertexBuf; //vertex buffer for drawing links between look point and patrol point
     QOpenGLBuffer m_indexBuf;
 
     //QVector3D m_pos;//"GUARD_PT_POSITION", ePlot}; //replaced by CNode pos
     QVector<CLookPoint*> m_aLookPt;//"GUARD_PT_ACTION", eNull};
 
     QVector<QVector3D> m_aDrawingLine; // openGL drawing look direction
-    CMob* m_mob;
-    QSharedPointer<CObjectBase> m_model3d;
 };
 
 class CUnit;
 
-enum EBehaviourType
+enum EBehaviourType //todo: move to logic m_model
+//zone view has these parameters
+//idle -BZ
+//guard - radius
+//patrol - path
+//sentry - place
+//player - briffing
+//guard alarm
 {
     eBZ = 0 // ?!
     , eRadius
     , ePath
     , ePlace
     , eBriffing
+    , eGuardAlaram
 
 };
 
@@ -77,38 +78,33 @@ public:
     void drawSelect(QOpenGLShaderProgram* program = nullptr);
     uint deserialize(util::CMobParser& parser);
     void serializeJson(QJsonObject& obj);
+    uint serialize(util::CMobParser& parser);
     void updatePointFigure(ei::CFigure* fig);
     void setPointTexture(QOpenGLTexture* pTexture);
     bool isUse() {return m_use;}
     void update();
-    void attachMob(CMob* mob) {m_mob = mob;}
+    void updatePos(QVector3D& dir);
 
 private:
     QOpenGLBuffer m_vertexBuf;
     QOpenGLBuffer m_indexBuf;
-
-    //"UNIT_LOGIC", eRecord};
-    //"UNIT_LOGIC_AGRESSIV", eNull};
-    bool m_bCyclic;//"UNIT_LOGIC_CYCLIC", eByte};
-    uint m_model;//"UNIT_LOGIC_MODEL", eDword};
+    bool m_bCyclic; // true/false
+    uint m_model;//behaviour type (see enum EBehaviourType)
 
     //guard point + radius in case of "random" bahavior
-    float m_guardRadius;//"UNIT_LOGIC_GUARD_R", eFloat};
-    QVector3D m_guardPlacement;//"UNIT_LOGIC_GUARD_PT", ePlot};
+    float m_guardRadius; // guard radius
+    QVector3D m_guardPlacement; // center point of guarding
 
-    char m_numAlarm;//"UNIT_LOGIC_NALARM", eByte};
-    char m_use;//"UNIT_LOGIC_USE", eByte};
-    //"UNIT_LOGIC_REVENGE", eNull};
-    //"UNIT_LOGIC_FEAR", eNull};
-    float m_wait;//"UNIT_LOGIC_WAIT", eFloat};
-    char m_alarmCondition;//"UNIT_LOGIC_ALARM_CONDITION", eByte};
-    float m_help;//"UNIT_LOGIC_HELP", eFloat};
-    char m_alwaysActive;//"UNIT_LOGIC_ALWAYS_ACTIVE", eByte};
-    char m_agressionMode;//"UNIT_LOGIC_AGRESSION_MODE", eByte};
+    char m_numAlarm; //"UNIT_LOGIC_NALARM", eByte};
+    char m_use; // true/false
+    float m_wait; // idle time, 15 == 1second
+    char m_alarmCondition;//eByte
+    float m_help; //alarm radius for calling help
+    char m_alwaysActive; // true/false
+    char m_agressionMode; //agressive, revenge, fear, fear player
     QVector<CPatrolPoint*> m_aPatrolPt;
 
     QVector<QVector3D> m_aDrawPoint; //opengl path lines
-    CMob* m_mob;
     CUnit* m_parent;
 };
 
@@ -124,8 +120,14 @@ public:
     void updateFigure(ei::CFigure* fig) override;
     void setTexture(QOpenGLTexture* texture) override;
     void serializeJson(QJsonObject& obj) override;
-    void attachMob(CMob* mob) {m_mob = mob;}
+    uint serialize(util::CMobParser& parser) override;
     CSettings* settings();
+    void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
+    void applyParam(EObjParam param, const QString& value) override;
+    QString getParam(EObjParam param) override;
+    //bool updatePos(QVector3D& pos) override; //TODO
+    const QString& databaseName(){return m_prototypeName;}
+    bool updatePos(QVector3D& pos) override;
 
 private:
     //"UNIT_R", eNull};
@@ -140,8 +142,6 @@ private:
     bool m_bImport;//"UNIT_NEED_IMPORT", eByte};
     //
     QVector<CLogic*> m_aLogic;
-    CMob* m_mob;
-
 };
 
 #endif // UNIT_H

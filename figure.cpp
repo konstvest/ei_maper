@@ -277,15 +277,18 @@ void ei::CFigure::calculateConstitution(QVector<SVertexData>& aVrtData, QVector3
     generateTriangles(aVrtData, aMorphVertex);
 }
 
-void ei::CFigure::getVertexData(QVector<CPart*>& model, QVector3D& complection)
+void ei::CFigure::getVertexData(QVector<CPart*>& model, QVector3D& complection, QVector<QString>& aBodyParts)
 {
-    CPart* part = new CPart();
-    part->setName(m_name);
-    calculateConstitution(part->vertData(), complection);
-    part->update();
-    model.append(part);
+    if (aBodyParts.isEmpty() || aBodyParts.contains(m_name)) // calc only visible body parts
+    {
+        CPart* part = new CPart();
+        part->setName(m_name);
+        calculateConstitution(part->vertData(), complection);
+        part->update();
+        model.append(part);
+    }
     for(auto& child : m_aChild)
-        child->getVertexData(model, complection);
+        child->getVertexData(model, complection, aBodyParts);
 }
 
 void ei::CFigure::getMinimumBboxZ(float& value, QVector3D& complection)

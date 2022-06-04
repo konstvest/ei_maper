@@ -5,23 +5,24 @@
 #include <QFileInfo>
 #include "objects\object_base.h"
 
+class CSettings;
+
 class CObjectList
 {
 public:
     CObjectList();
     ~CObjectList();
-    //void attachView(CView* view);
-    void addResourceFile(const QString& file);
-    void addResourceFile(QFileInfo& file);
-    void addResourceFile(QVector<QFileInfo>& aFile);
     void loadFigures(QSet<QString>& aFigure);
     void readFigure(const QByteArray& file, const QString& name);
     void readAssembly(const QMap<QString, QByteArray>& aFile, const QString& assemblyRoot);
-    //void readFigures(QFileInfo& path);
-    ei::CFigure* getFigure(QString& name);
+    ei::CFigure* getFigure(const QString& name);
+    void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
 
 private:
-    QVector<QFileInfo> m_aFilePath;
+    ei::CFigure* figureDefault();
+
+private:
+    CSettings* m_pSettings;
     QMap<QString, ei::CFigure*> m_aFigure;
 };
 

@@ -1,11 +1,14 @@
 #include <QDebug>
+#include <QMessageBox>
 #include "texturelist.h"
 #include "res_file.h"
 #include "utils.h"
 #include "color.h"
+#include "settings.h"
 
 
-CTextureList::CTextureList()
+CTextureList::CTextureList():
+    m_pSettings(nullptr)
 {
     QImage img(":/default0.png", "PNG");
     QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
@@ -205,50 +208,38 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     m_aTexture.insert(name, texture);
 }
 
-void CTextureList::addResourceFile(const QString& file)
+void CTextureList::loadTexture(QSet<QString>& aName)
 {
-    QFileInfo f(file);
-    addResourceFile(f);
-}
-
-void CTextureList::addResourceFile(QFileInfo& file)
-{
-    if(file.path().isEmpty())
+    QVector<QFileInfo> fileInfo;
+    auto pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath1"));
+    if (!pOpt || pOpt->value().isEmpty())
+    {
+        QMessageBox::warning(m_pSettings, "Warning", "Choose path to textures.res");
+        m_pSettings->onShow(eOptSetResource);
+        //todo: wait until user choose resource file and continue
         return;
+    }
+    else
+        fileInfo.append(pOpt->value());
 
-    Q_ASSERT(file.exists());
-    if (!m_aFilePath.contains(file))
-        m_aFilePath.append(file);
-}
+    pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath2"));
+    if(pOpt && !pOpt->value().isEmpty())
+        fileInfo.append(pOpt->value());
 
-void CTextureList::loadTexture(QList<QString> aName)
-{
-    for(auto& file: m_aFilePath)
+    QString texName;
+
+    for(auto& file: fileInfo)
     {
         ResFile res(file.filePath());
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
 
         for(auto& name: aName)
         {
-            if(!name.contains(".mmp")) continue;
+            //if(!name.contains(".mmp")) continue;
             if(m_aTexture.contains(name)) continue;
-            if(!aFile.contains(name)) continue;
+            if(!aFile.contains(name + ".mmp")) continue;
 
-            parse(aFile[name], name);
-        }
-    }
-}
-
-void CTextureList::read(QString& name)
-{
-    for(auto& file: m_aFilePath)
-    {
-        ResFile res(file.filePath());
-        QMap<QString, QByteArray> aFile = res.bufferOfFiles();
-        if(aFile.contains(name))
-        {
-            parse(aFile[name], name);
-            break;
+            parse(aFile[name + ".mmp"], name);
         }
     }
 }
@@ -256,7 +247,11 @@ void CTextureList::read(QString& name)
 QOpenGLTexture* CTextureList::texture(QString& name)
 {
     if(!m_aTexture.contains(name))
-        read(name);
+    {
+        QSet<QString> texture;
+        texture.insert(name);
+        loadTexture(texture);
+    }
 
     return m_aTexture.contains(name) ? m_aTexture[name] : textureDefault();
 }
@@ -285,7 +280,26 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
 
     QString tex;
     QVector<STexSpecified> aPart;
-    for(auto& file: m_aFilePath)
+
+    //todo: remove code dublication. use the same way to load map texture and common texture {
+    QVector<QFileInfo> fileInfo;
+    auto pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath1"));
+    if (!pOpt || pOpt->value().isEmpty())
+    {
+        Q_ASSERT("ahtung. texture resource not found" && false);
+        QMessageBox::warning(m_pSettings, "Warning", "Choose path to textures.res");
+        m_pSettings->onShow(eOptSetResource);
+        //todo: wait until user choose resource file and continue
+    }
+    else
+        fileInfo.append(pOpt->value());
+
+    pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath2"));
+    if(pOpt && !pOpt->value().isEmpty())
+        fileInfo.append(pOpt->value());
+    //<- todo}
+
+    for(auto& file: fileInfo)
     {
         if(!aPart.isEmpty())
             break;
@@ -355,12 +369,12 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
     texture->setMinificationFilter(QOpenGLTexture::NearestMipMapNearest);
     texture->setMagnificationFilter(QOpenGLTexture::NearestMipMapNearest);
     texture->setWrapMode(QOpenGLTexture::Repeat);
-    texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT1);
+    texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT1); //todo: read texture format from file. EI can use both dxt3 and dxt1
     texture->setMipLevels(4);
     texture->setSize(minTexSize*texCount, minTexSize);
     texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
     const int size = minTexSize*minTexSize*texCount/2;
     texture->setCompressedData(0, 0, size, combineTextureData.data());
-    m_aTexture[name + ".mmp"] = texture;
+    m_aTexture[name] = texture;
     return texture;
 }

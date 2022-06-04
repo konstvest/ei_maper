@@ -51,7 +51,7 @@ uint CLight::deserialize(util::CMobParser& parser)
             break;
         }
     }
-    m_modelName = "light.mod";
+    m_modelName = "light";
     return readByte;
 }
 
@@ -65,4 +65,106 @@ void CLight::serializeJson(QJsonObject& obj)
     aColor.append(QJsonValue::fromVariant(m_color.y()));
     aColor.append(QJsonValue::fromVariant(m_color.z()));
     obj.insert("Color", aColor);
+}
+
+uint CLight::serialize(util::CMobParser &parser)
+{
+    uint writeByte(0);
+    writeByte += parser.startSection("LIGHT");
+
+    writeByte += parser.startSection("LIGHT_ID");
+    writeByte += parser.writeDword(m_mapID);
+    parser.endSection(); //LIGHT_ID
+
+    writeByte += parser.startSection("LIGHT_SHADOW");
+    writeByte += parser.writeBool(m_bShadow);
+    parser.endSection(); //LIGHT_SHADOW
+
+    writeByte += parser.startSection("LIGHT_POSITION");
+    writeByte += parser.writePlot(m_position);
+    parser.endSection(); //LIGHT_POSITION
+
+    writeByte += parser.startSection("LIGHT_COLOR");
+    writeByte += parser.writePlot(m_color);
+    parser.endSection(); //LIGHT_COLOR
+
+    writeByte += parser.startSection("LIGHT_RANGE");
+    writeByte += parser.writeFloat(m_range);
+    parser.endSection(); //LIGHT_RANGE
+
+    writeByte += parser.startSection("LIGHT_NAME");
+    writeByte +=  parser.writeString(m_name);
+    parser.endSection(); //LIGHT_NAME
+
+    writeByte += parser.startSection("LIGHT_COMMENTS");
+    writeByte += parser.writeString(m_comment);
+    parser.endSection(); //LIGHT_COMMENTS
+
+    parser.endSection(); //LIGHT
+    return writeByte;
+}
+
+void CLight::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    CObjectBase::collectParams(aParam, paramType);
+    auto comm = paramType & eLight;
+    if (comm != eLight)
+        return;
+
+    addParam(aParam, eObjParam_NID, QString::number(m_mapID));
+    addParam(aParam, eObjParam_LIGHT_SHADOW, util::makeString(m_bShadow));
+    addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+    addParam(aParam, eObjParam_LIGHT_COLOR, util::makeString(m_color));
+    addParam(aParam, eObjParam_RANGE, QString::number(m_range));
+    addParam(aParam, eObjParam_NAME, m_name);
+    addParam(aParam, eObjParam_COMMENTS, m_comment);
+}
+
+void CLight::applyParam(EObjParam param, const QString &value)
+{
+    switch (param){
+    case eObjParam_LIGHT_SHADOW:
+    {
+        m_bShadow = util::boolFromString(value);
+        break;
+    }
+    case eObjParam_LIGHT_COLOR:
+    {
+        m_color = util::vec3FromString(value);
+        break;
+    }
+    case eObjParam_RANGE:
+    {
+        m_range = value.toFloat();
+        break;
+    }
+    default:
+        CObjectBase::applyParam(param, value);
+    }
+}
+
+QString CLight::getParam(EObjParam param)
+{
+    QString value;
+    switch (param){
+
+    case eObjParam_LIGHT_SHADOW:
+    {
+        value = util::makeString(m_bShadow);
+        break;
+    }
+    case eObjParam_LIGHT_COLOR:
+    {
+        value = util::makeString(m_color);
+        break;
+    }
+    case eObjParam_RANGE:
+    {
+        value = QString::number(m_range);
+        break;
+    }
+    default:
+        value = CObjectBase::getParam(param);
+    }
+    return value;
 }

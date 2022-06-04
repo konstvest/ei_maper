@@ -26,6 +26,7 @@ CONFIG += c++11
 
 SOURCES += \
     key_manager.cpp \
+    mobparameters.cpp \
     objects/lever.cpp \
     objects/light.cpp \
     log.cpp \
@@ -35,15 +36,22 @@ SOURCES += \
     mainwindow.cpp \
     math_utils.cpp \
     objects/object_base.cpp \
+    operationmanager.cpp \
     options.cpp \
     part.cpp \
     objects/particle.cpp \
+    progressview.cpp \
     sector.cpp \
+    selector.cpp \
     settings.cpp \
     objects/sound.cpp \
+    table_item.cpp \
+    tablemanager.cpp \
     texturelist.cpp \
     objects/torch.cpp \
     objects/unit.cpp \
+    ui_connectors.cpp \
+    undo.cpp \
     view.cpp \
     figure.cpp \
     res_file.cpp \
@@ -53,13 +61,13 @@ SOURCES += \
     landscape.cpp \
     view_keybinding.cpp \
     camera.cpp \
-    view_mouse_action.cpp \
     mob.cpp \
     objects/worldobj.cpp
 
 HEADERS += \
     color.h \
     key_manager.h \
+    mobparameters.h \
     objects/lever.h \
     objects/light.h \
     log.h \
@@ -68,15 +76,22 @@ HEADERS += \
     mainwindow.h \
     math_utils.h \
     objects/object_base.h \
+    operationmanager.h \
     options.h \
     part.h \
     objects/particle.h \
+    progressview.h \
     sector.h \
+    selector.h \
     settings.h \
     objects/sound.h \
+    table_item.h \
+    tablemanager.h \
     texturelist.h \
     objects/torch.h \
     objects/unit.h \
+    ui_connectors.h \
+    undo.h \
     view.h \
     figure.h \
     types.h \
@@ -93,6 +108,8 @@ HEADERS += \
 
 FORMS += \
         mainwindow.ui \
+        mobParameters.ui \
+        selector.ui \
         settings.ui
 
 LIBS += -lglu32 -lopengl32
@@ -100,6 +117,8 @@ LIBS += -lglu32 -lopengl32
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RC_ICONS = icon.ico
 
 RESOURCES += \
     data.qrc \

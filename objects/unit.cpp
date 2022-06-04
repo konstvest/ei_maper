@@ -6,9 +6,9 @@
 #include "texturelist.h"
 #include "landscape.h"
 #include "settings.h"
+#include "log.h"
 
-CUnit::CUnit():
-    m_mob(nullptr)
+CUnit::CUnit()
 {
 }
 
@@ -21,8 +21,10 @@ CUnit::~CUnit()
 void CUnit::draw(QOpenGLShaderProgram* program)
 {
     CObjectBase::draw(program);
-    if (!m_aLogic.empty())
-        m_aLogic.front()->draw(program);
+    if (m_aLogic.empty())
+        return;
+
+    m_aLogic.front()->draw(program);
 }
 
 void CUnit::drawSelect(QOpenGLShaderProgram* program)
@@ -36,11 +38,11 @@ void CUnit::drawSelect(QOpenGLShaderProgram* program)
 
 void CUnit::updateFigure(ei::CFigure* fig)
 {
-    QString pointName("ppoint.mod");
+    QString pointName("ppoint");
     CObjectBase::updateFigure(fig);
     for(auto& logic: m_aLogic)
     {
-        logic->updatePointFigure(m_mob->view()->objList()->getFigure(pointName));
+        logic->updatePointFigure(m_pMob->view()->objList()->getFigure(pointName));
     }
 }
 
@@ -48,7 +50,7 @@ void CUnit::setTexture(QOpenGLTexture* texture)
 {
     CObjectBase::setTexture(texture);
     for(auto& logic: m_aLogic)
-        logic->setPointTexture(m_mob->view()->texList()->textureDefault());
+        logic->setPointTexture(m_pMob->view()->texList()->textureDefault()); //todo: set looking point and guard point meaningfull textures
 }
 
 uint CUnit::deserialize(util::CMobParser& parser)
@@ -110,7 +112,6 @@ uint CUnit::deserialize(util::CMobParser& parser)
         {
             readByte += parser.skipHeader();
             CLogic* logic = new CLogic(this);
-            logic->attachMob(m_mob);
             readByte += logic->deserialize(parser);
             m_aLogic.append(logic);
         }
@@ -163,15 +164,196 @@ void CUnit::serializeJson(QJsonObject& obj)
     obj.insert("Logics", logicArr);
 }
 
+uint CUnit::serialize(util::CMobParser &parser)
+{
+    uint writeByte(0);
+    writeByte += parser.startSection("UNIT");
+//    parser.startSection("UNIT_R");
+//    parser.writeDword(m_type);
+//    parser.endSection(); //"UNIT_R"
+
+    writeByte += parser.startSection("UNIT_NEED_IMPORT");
+    writeByte += parser.writeBool(m_bImport);
+    parser.endSection(); //"UNIT_NEED_IMPORT"
+
+    writeByte += parser.startSection("UNIT_PROTOTYPE");
+    writeByte += parser.writeString(m_prototypeName);
+    parser.endSection();// "UNIT_PROTOTYPE"
+
+    writeByte += parser.startSection("UNIT_ARMORS");
+    writeByte += parser.writeStringArray(m_aArmor, "UNIT_ARMORS");
+    parser.endSection(); //"UNIT_ARMORS"
+
+    writeByte += parser.startSection("UNIT_WEAPONS");
+    writeByte += parser.writeStringArray(m_aWeapon, "UNIT_WEAPONS");
+    parser.endSection(); //"UNIT_WEAPONS"
+
+    writeByte += parser.startSection("UNIT_SPELLS");
+    writeByte += parser.writeStringArray(m_aSpell, "UNIT_SPELLS");
+    parser.endSection(); //"UNIT_SPELLS"
+
+//что-то тут не то. мапед сохраняет чуточку по-другому, сам мапед на мой файл ругается на ошибку.
+    writeByte += parser.startSection("UNIT_QUICK_ITEMS");
+    writeByte += parser.writeStringArray(m_aQuickItem, "UNIT_QUICK_ITEMS");
+    parser.endSection(); //"UNIT_QUICK_ITEMS"
+
+    writeByte += parser.startSection("UNIT_QUEST_ITEMS");
+    writeByte += parser.writeStringArray(m_aQuestItem, "UNIT_QUEST_ITEMS");
+    parser.endSection(); //"UNIT_QUEST_ITEMS"
+
+
+    writeByte += parser.startSection("UNIT_STATS");
+    writeByte += parser.writeUnitStats(m_stat);
+    parser.endSection();// "UNIT_STATS"
+
+    writeByte += CWorldObj::serialize(parser);
+
+    for(const auto& logic : m_aLogic)
+    {
+        writeByte += logic->serialize(parser);
+    }
+
+    parser.endSection(); //UNIT
+    return writeByte;
+}
+
 CSettings* CUnit::settings()
 {
-    return m_mob->view()->settings();
+    return m_pMob->view()->settings();
+}
+
+void CUnit::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    CWorldObj::collectParams(aParam, paramType);
+
+    auto comm = paramType & eUnit;
+    if (comm != eUnit)
+        return;
+
+    addParam(aParam, eObjParam_UNIT_NEED_IMPORT, util::makeString(m_bImport));
+    addParam(aParam, eObjParam_UNIT_PROTOTYPE, m_prototypeName);
+    addParam(aParam, eObjParam_UNIT_ARMORS, util::makeString(m_aArmor));
+    addParam(aParam, eObjParam_UNIT_WEAPONS, util::makeString(m_aWeapon));
+    addParam(aParam, eObjParam_UNIT_SPELLS, util::makeString(m_aSpell));
+    addParam(aParam, eObjParam_UNIT_QUICK_ITEMS, util::makeString(m_aQuickItem));
+    addParam(aParam, eObjParam_UNIT_QUEST_ITEMS, util::makeString(m_aQuestItem));
+    addParam(aParam, eObjParam_UNIT_STATS, "TODO");
+}
+
+void CUnit::applyParam(EObjParam param, const QString &value)
+{
+    switch (param)
+    {
+    case eObjParam_UNIT_NEED_IMPORT:
+    {
+        m_bImport = util::boolFromString(value);
+        break;
+    }
+    case eObjParam_UNIT_PROTOTYPE:
+    {
+        m_prototypeName = value;
+        break;
+    }
+    case eObjParam_UNIT_ARMORS:
+    {
+        m_aArmor = util::strListFromString(value);
+        break;
+    }
+    case eObjParam_UNIT_WEAPONS:
+    {
+        m_aWeapon = util::strListFromString(value);
+        break;
+    }
+    case eObjParam_UNIT_SPELLS:
+    {
+        m_aSpell = util::strListFromString(value);
+        break;
+    }
+    case eObjParam_UNIT_QUICK_ITEMS:
+    {
+        m_aQuickItem = util::strListFromString(value);
+        break;
+    }
+    case eObjParam_UNIT_QUEST_ITEMS:
+    {
+        m_aQuestItem = util::strListFromString(value);
+        break;
+    }
+    case eObjParam_UNIT_STATS:
+    {
+        //TODO
+        break;
+    }
+    default:
+        CWorldObj::applyParam(param, value);
+    }
+}
+
+QString CUnit::getParam(EObjParam param)
+{
+    QString value;
+    switch (param)
+    {
+    case eObjParam_UNIT_NEED_IMPORT:
+    {
+        value = util::makeString(m_bImport);
+        break;
+    }
+    case eObjParam_UNIT_PROTOTYPE:
+    {
+        value = m_prototypeName;
+        break;
+    }
+    case eObjParam_UNIT_ARMORS:
+    {
+        value = util::makeString(m_aArmor);
+        break;
+    }
+    case eObjParam_UNIT_WEAPONS:
+    {
+        value = util::makeString(m_aWeapon);
+        break;
+    }
+    case eObjParam_UNIT_SPELLS:
+    {
+        value = util::makeString(m_aSpell);
+        break;
+    }
+    case eObjParam_UNIT_QUICK_ITEMS:
+    {
+        value = util::makeString(m_aQuickItem);
+        break;
+    }
+    case eObjParam_UNIT_QUEST_ITEMS:
+    {
+        value = util::makeString(m_aQuestItem);
+        break;
+    }
+    case eObjParam_UNIT_STATS:
+    {
+        value = "TODO";
+        break;
+    }
+    default:
+        value = CWorldObj::getParam(param);
+    }
+    return value;
+}
+
+bool CUnit::updatePos(QVector3D &pos)
+{
+    QVector3D dir = pos - m_position;
+    CObjectBase::updatePos(pos);
+    if(m_aLogic.isEmpty())
+        return true;
+
+    m_aLogic[0]->updatePos(dir);
+    return true;
 }
 
 CLogic::CLogic(CUnit* unit):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
     ,m_use(false)
-    ,m_mob(nullptr)
     ,m_parent(unit)
 {
 }
@@ -189,8 +371,12 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     if(!m_use || m_aDrawPoint.empty())
         return;
 
+    //todo: for selected objects ALWAYS draw logic
     COptBool* pOpt = dynamic_cast<COptBool*>(m_parent->settings()->opt("drawLogic"));
-    if (pOpt && !pOpt->value())
+    if (nullptr == pOpt)
+        return;
+
+    if (!pOpt->value() && m_parent->nodeState() != ENodeState::eSelect)
         return;
 
     glDisable(GL_DEPTH_TEST);
@@ -220,6 +406,7 @@ void CLogic::draw(QOpenGLShaderProgram* program)
 
     // Draw cube geometry using indices from VBO 1
     m_indexBuf.bind();
+    glLineWidth(2);
     glDrawElements(GL_LINE_STRIP, m_aDrawPoint.count(), GL_UNSIGNED_SHORT, nullptr);
     program->setUniformValue("u_bUseColor", false);
 
@@ -268,7 +455,7 @@ void CLogic::update()
         QVector3D centr(m_guardPlacement);
         centr.setZ(.0f);
         util::getCirclePoint(m_aDrawPoint, centr, double(m_guardRadius), 40);
-        m_mob->view()->land()->projectPt(m_aDrawPoint);
+        m_parent->mob()->view()->land()->projectPt(m_aDrawPoint);
         break;
     }
     case EBehaviourType::ePath:
@@ -276,16 +463,24 @@ void CLogic::update()
         Q_ASSERT(m_parent);
         QVector3D pos(m_parent->position());
         pos.setZ(0.0f);
-        m_mob->view()->land()->projectPt(pos);
+        m_parent->mob()->view()->land()->projectPt(pos);
         m_aDrawPoint.append(pos);
         for (auto& pt: m_aPatrolPt)
         {
-            CObjectBase* pObj = pt->model3d();
-            pos = pObj->position();
+            pos = pt->position();
             pos.setZ(0.0f);
-            m_mob->view()->land()->projectPt(pos);
-            pObj->setDrawPosition(pos);
+            m_parent->mob()->view()->land()->projectPt(pos);
+            pt->setPos(pos);
+            pt->setDrawPosition(pos);
             m_aDrawPoint.append(pos);
+            for (auto& look : pt->lookPoint())
+            {
+                pos = look->position();
+                pos.setZ(0.0f);
+                m_parent->mob()->view()->land()->projectPt(pos);
+                look->setPos(pos);
+                look->setDrawPosition(pos);
+            }
             pt->update();
         }
         util::splitByLen(m_aDrawPoint, 2.0f);
@@ -301,8 +496,14 @@ void CLogic::update()
         return;// todo
         //break;
     }
+    case EBehaviourType::eGuardAlaram:
+    {
+        //Q_ASSERT("We found it, master" && false);
+        ei::log(eLogDebug, "We found it, master");
+        return;
+    }
     default:
-        Q_ASSERT("unknown behaviour type" && false);
+        //Q_ASSERT("unknown behaviour type" && false);
         return; //break;
     }
     // todo: draw lines over the landscape
@@ -321,6 +522,24 @@ void CLogic::update()
     m_indexBuf.bind();
     m_indexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
     m_indexBuf.release();
+}
+
+void CLogic::updatePos(QVector3D &dir)
+{
+    m_guardPlacement+=dir;
+    m_parent->mob()->view()->land()->projectPt(m_guardPlacement);
+    //m_parent->mob()->view()->land()->projectPosition(this);
+    for(auto& patrol : m_aPatrolPt)
+    {
+        for(auto& look : patrol->lookPoint())
+        {
+            look->position() += dir;
+            //m_parent->mob()->view()->land()->projectPosition(look);
+        }
+        patrol->position() += dir;
+        //m_parent->mob()->view()->land()->projectPosition(patrol);
+    }
+    update();
 }
 
 uint CLogic::deserialize(util::CMobParser& parser)
@@ -387,7 +606,7 @@ uint CLogic::deserialize(util::CMobParser& parser)
         {
             readByte += parser.skipHeader();
             CPatrolPoint* place = new CPatrolPoint(); //need unit parent?
-            place->attachMob(m_mob);
+            place->attachMob(m_parent->mob());
             readByte += place->deserialize(parser);
             m_aPatrolPt.append(place);
         }
@@ -431,12 +650,67 @@ void CLogic::serializeJson(QJsonObject& obj)
     obj.insert("Patrol Points", ppArr);
 }
 
+uint CLogic::serialize(util::CMobParser& parser)
+{
+    uint writeByte(0);
+    writeByte += parser.startSection("UNIT_LOGIC");
+
+    writeByte += parser.startSection("UNIT_LOGIC_ALARM_CONDITION");
+    writeByte += parser.writeByte(m_alarmCondition);
+    parser.endSection(); //"UNIT_LOGIC_ALARM_CONDITION"
+
+    writeByte += parser.startSection("UNIT_LOGIC_HELP");
+    writeByte += parser.writeFloat(m_help);
+    parser.endSection(); //"UNIT_LOGIC_HELP"
+
+    writeByte += parser.startSection("UNIT_LOGIC_CYCLIC");
+    writeByte += parser.writeBool(m_bCyclic);
+    parser.endSection(); //"UNIT_LOGIC_CYCLIC"
+
+    writeByte += parser.startSection("UNIT_LOGIC_AGRESSION_MODE");
+    writeByte += parser.writeByte(m_agressionMode);
+    parser.endSection();
+
+    writeByte += parser.startSection("UNIT_LOGIC_ALWAYS_ACTIVE");
+    writeByte += parser.writeByte(m_alwaysActive);
+    parser.endSection(); //"UNIT_LOGIC_ALWAYS_ACTIVE"
+
+    writeByte += parser.startSection("UNIT_LOGIC_MODEL");
+    writeByte += parser.writeDword(m_model);
+    parser.endSection(); //parser.skipHeader();
+
+    writeByte += parser.startSection("UNIT_LOGIC_GUARD_R");
+    writeByte += parser.writeFloat(m_guardRadius);
+    parser.endSection(); //"UNIT_LOGIC_GUARD_R"
+
+    writeByte += parser.startSection("UNIT_LOGIC_WAIT");
+    writeByte += parser.writeFloat(m_wait);
+    parser.endSection(); //"UNIT_LOGIC_WAIT"
+
+    writeByte += parser.startSection("UNIT_LOGIC_GUARD_PT");
+    writeByte += parser.writePlot(m_guardPlacement);
+    parser.endSection(); //"UNIT_LOGIC_GUARD_PT"
+
+    writeByte += parser.startSection("UNIT_LOGIC_USE");
+    writeByte += parser.writeByte(m_use);
+    parser.endSection(); //"UNIT_LOGIC_USE"
+
+    writeByte += parser.startSection("UNIT_LOGIC_NALARM");
+    writeByte += parser.writeByte(m_numAlarm);
+    parser.endSection(); //"UNIT_LOGIC_NALARM"
+
+    for(const auto& pt : m_aPatrolPt)
+    {
+        writeByte += pt->serialize(parser);
+    }
+    parser.endSection(); //"UNIT_LOGIC"
+    return writeByte;
+}
+
 CPatrolPoint::CPatrolPoint():
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
-    ,m_mob(nullptr)
 {
-    m_model3d = QSharedPointer<CObjectBase>(new CObjectBase);
-    m_model3d->setModelName("ppoint.mod");
+    setModelName("ppoint");
 }
 
 
@@ -450,7 +724,7 @@ CPatrolPoint::~CPatrolPoint()
 
 void CPatrolPoint::draw(QOpenGLShaderProgram* program)
 {
-    m_model3d->draw(program);
+    CObjectBase::draw(program);
 
     if(m_aDrawingLine.size() == 0) // do not draw looking point if absent
         return;
@@ -483,34 +757,36 @@ void CPatrolPoint::draw(QOpenGLShaderProgram* program)
     m_indexBuf.bind();
     glDrawElements(GL_LINES, (m_aDrawingLine.count()-1)*2, GL_UNSIGNED_SHORT, nullptr);
     program->setUniformValue("u_bUseColor", false);
-
     for(auto& look: m_aLookPt)
     {
-        look->model3d()->draw(program);
+        look->draw(program);
     }
 }
 
 void CPatrolPoint::drawSelect(QOpenGLShaderProgram* program)
 {
-    m_model3d->drawSelect(program);
+    CObjectBase::drawSelect(program);
     for(auto& look: m_aLookPt)
     {
-        look->model3d()->drawSelect(program);
+        look->drawSelect(program);
     }
 }
 
 void CPatrolPoint::updateFigure(ei::CFigure* fig)
 {
-    m_model3d->updateFigure(fig);
+    CObjectBase::updateFigure(fig);
+    //get view model
+    QString model("viewPoint");
+    auto lookFig =  m_pMob->view()->objList()->getFigure(model);
     for(auto& lp : m_aLookPt)
     {
-        lp->model3d()->updateFigure(fig);
+        lp->updateFigure(lookFig);
     }
 }
 
 void CPatrolPoint::setTexture(QOpenGLTexture* texture)
 {
-    m_model3d->setTexture(texture);
+    CObjectBase::setTexture(texture);
     for(auto& lp : m_aLookPt)
         lp->setTexture(texture);
 }
@@ -521,16 +797,17 @@ void CPatrolPoint::update()
     if(m_aLookPt.empty())
         return;
 
-    QVector3D pos(m_model3d->position());
-    pos.setZ(0.0f);
-    m_aDrawingLine.append(pos); // self position
+//    QVector3D pos(position());
+//    pos.setZ(0.0f);
+    m_aDrawingLine.append(position()); // self position
     for(auto& lp: m_aLookPt)
     {
-        pos=lp->model3d()->position();
-        pos.setZ(0.0f);
-        m_aDrawingLine.append(pos);   //drawing position?!
+        m_aDrawingLine.append(lp->position());
+//        pos=lp->position();
+//        pos.setZ(0.0f);
+//        m_aDrawingLine.append(pos);   //drawing position?!
     }
-    m_mob->view()->land()->projectPt(m_aDrawingLine);
+//    m_pMob->view()->land()->projectPt(m_aDrawingLine);
 
     // Generate VBOs and transfer data
     m_vertexBuf.create();
@@ -561,8 +838,8 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
             QVector3D pos;
             readByte += parser.skipHeader();
             readByte += parser.readPlot(pos);
-            m_model3d->setPos(pos);
-            m_model3d->setDrawPosition(pos);
+            setPos(pos);
+            setDrawPosition(pos);
         }
         else if(parser.isNextTag("GUARD_PT_ACTION"))
         {
@@ -572,6 +849,7 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
         {
             readByte += parser.skipHeader();
             CLookPoint* act = new CLookPoint();
+            act->attachMob(m_pMob);
             readByte += act->deserialize(parser);
             m_aLookPt.append(act);
         }
@@ -594,32 +872,33 @@ void CPatrolPoint::serializeJson(QJsonObject &obj)
         lpArr.append(lpObj);
     }
     QJsonArray posArr;
-    posArr.append(QJsonValue::fromVariant(m_model3d->position().x()));
-    posArr.append(QJsonValue::fromVariant(m_model3d->position().y()));
-    posArr.append(QJsonValue::fromVariant(m_model3d->position().z()));
+    posArr.append(QJsonValue::fromVariant(position().x()));
+    posArr.append(QJsonValue::fromVariant(position().y()));
+    posArr.append(QJsonValue::fromVariant(position().z()));
     obj.insert("Position", posArr);
     obj.insert("Looking points", lpArr);
 }
 
+uint CPatrolPoint::serialize(util::CMobParser &parser)
+{
+    uint writeByte(0);
+    writeByte += parser.startSection("GUARD_PT");
+
+    writeByte += parser.startSection("GUARD_PT_POSITION");
+    writeByte += parser.writePlot(position());
+    parser.endSection(); //"GUARD_PT_POSITION
+    for(const auto& lookP : m_aLookPt)
+    {
+        writeByte += lookP->serialize(parser);
+    }
+
+    parser.endSection(); //"GUARD_PT"
+    return writeByte;
+}
+
 CLookPoint::CLookPoint()
 {
-    m_model3D = QSharedPointer<CObjectBase>(new CObjectBase);
-    m_model3D->setModelName("ppoint.mod");
-}
-
-void CLookPoint::setTexture(QOpenGLTexture* texture)
-{
-    m_model3D->setTexture(texture);
-}
-
-void CLookPoint::draw(QOpenGLShaderProgram* program)
-{
-    m_model3D->draw(program);
-}
-
-void CLookPoint::drawSelect(QOpenGLShaderProgram* program)
-{
-    m_model3D->drawSelect(program);
+    setModelName("viewPoint");
 }
 
 uint CLookPoint::deserialize(util::CMobParser& parser)
@@ -632,8 +911,8 @@ uint CLookPoint::deserialize(util::CMobParser& parser)
             QVector3D pos;
             readByte += parser.skipHeader();
             readByte += parser.readPlot(pos);
-            m_model3D->setPos(pos);
-            m_model3D->setDrawPosition(pos);
+            setPos(pos);
+            setDrawPosition(pos);
         }
         else if(parser.isNextTag("ACTION_PT_WAIT_SEG"))
         {
@@ -666,8 +945,32 @@ void CLookPoint::serializeJson(QJsonObject &obj)
     obj.insert("Turn speed", QJsonValue::fromVariant(m_turnSpeed));
     obj.insert("Point flag", m_flag);
     QJsonArray posArr;
-    posArr.append(QJsonValue::fromVariant(m_model3D->position().x()));
-    posArr.append(QJsonValue::fromVariant(m_model3D->position().y()));
-    posArr.append(QJsonValue::fromVariant(m_model3D->position().z()));
+    posArr.append(QJsonValue::fromVariant(position().x()));
+    posArr.append(QJsonValue::fromVariant(position().y()));
+    posArr.append(QJsonValue::fromVariant(position().z()));
     obj.insert("Position", posArr);
+}
+
+uint CLookPoint::serialize(util::CMobParser &parser)
+{
+    uint writeByte(0);
+    writeByte += parser.startSection("ACTION_PT");
+    writeByte += parser.startSection("ACTION_PT_LOOK_PT");
+    writeByte += parser.writePlot(position());
+    parser.endSection(); //"ACTION_PT_LOOK_PT"
+
+    writeByte += parser.startSection("ACTION_PT_WAIT_SEG");
+    writeByte += parser.writeDword(m_wait);
+    parser.endSection(); //"ACTION_PT_WAIT_SEG"
+
+    writeByte += parser.startSection("ACTION_PT_TURN_SPEED");
+    writeByte += parser.writeDword(m_turnSpeed);
+    parser.endSection(); //"ACTION_PT_TURN_SPEED"
+
+    writeByte += parser.startSection("ACTION_PT_FLAGS");
+    writeByte += parser.writeByte(m_flag);
+    parser.endSection(); //"ACTION_PT_FLAGS"
+
+    parser.endSection(); //"ACTION_PT"
+    return writeByte;
 }

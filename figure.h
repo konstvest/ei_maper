@@ -30,7 +30,7 @@ public:
     CFigure();
     ~CFigure();
     //void getVertexData(QVector<SVertexData>& aVrtData, QVector3D& complection);
-    void getVertexData(QVector<CPart*>& model, QVector3D& complection);
+    void getVertexData(QVector<CPart*>& model, QVector3D& complection, QVector<QString>& aBodyParts);
     void getMinimumBboxZ(float& value, QVector3D& complection);
     void uvCoords();
     void boundBox();

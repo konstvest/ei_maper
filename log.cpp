@@ -1,41 +1,97 @@
 #include "log.h"
 #include <QFile>
 #include <QTextStream>
+#include <QDateTime>
+#include <QCoreApplication>
+#include <QDebug>
+#include "settings.h"
 
-CLogger::CLogger(QTextEdit* pTextEdit):
-    m_pLog(pTextEdit)
-  ,m_fileName("~workflow.log")
+CLogger* CLogger::m_pLogger = nullptr;
+
+CLogger *CLogger::getInstance()
 {
-    if(QFile::exists(m_fileName))
-        QFile::remove(m_fileName);
+    if(nullptr == m_pLogger)
+        m_pLogger = new CLogger();
+    return m_pLogger;
+}
+
+void CLogger::log(ELogMessageType type, const char *msg)
+{
+    log(type, QString(msg));
+}
+
+void CLogger::log(ELogMessageType type, const QString msg)
+{
+    QString dt = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
+    QString txt = QString("[%1] ").arg(dt);
+
+
+    QTextStream textStream(&log_file);
+    switch (type)
+    {
+    case eLogInfo:
+        txt += QString("{INFO} \t %1").arg(msg); break;
+    case eLogDebug:
+    {
+        txt += QString("{DEBUG} \t %1").arg(msg);
+        qDebug() << txt;
+        if(nullptr == m_pSettings)
+            return;
+        COptBool* pOpt = dynamic_cast<COptBool*>(m_pSettings->opt("detailedLog"));
+        if(nullptr == pOpt || !pOpt->value())
+            return;
+        break;
+    }
+    case eLogWarning:
+        txt += QString("{WARNING} \t %1").arg(msg); break;
+    case eLogError:
+        txt += QString("{ERROR} \t %1").arg(msg); break;
+    case eLogFatal:
+        txt += QString("{FATAL} \t %1").arg(msg); break;
+    case eLogStart:
+        txt = QString("[   %1\t  %2  ] {%3} \t %4").arg("DATE", "TIME", "TYPE", "MESSAGE"); break;
+    }
+
+    log_file.open(QIODevice::WriteOnly | QIODevice::Append);
+    textStream << txt << endl;
+    log_file.close();
+
+//    if(type == eLogFatal)
+    //        QCoreApplication::exit(-1);
+}
+
+void CLogger::attachSettings(CSettings *pSet)
+{
+    m_pSettings = pSet;
+}
+
+CLogger::CLogger()
+    :log_file("workflow.log")
+    ,m_pSettings(nullptr)
+{
+    log(eLogStart, "Log started");
 }
 
 CLogger::~CLogger()
-{
-    logToFile();
+{//this method never used bcs singleton is a singleton!!!
+    if(nullptr != m_pLogger)
+    {
+        log(eLogInfo, "Log ended");
+        delete m_pLogger;
+    }
 }
 
-void CLogger::log(const char* msg)
+void ei::log(ELogMessageType type, const QString msg)
 {
-    QString message(msg);
-    message.append('\n');
-    m_pLog->setReadOnly(false);
-    m_pLog->insertPlainText(message);
-    m_pLog->setReadOnly(true);
-    //todo: update log window in realtime
-    //m_pLog->update();
+    CLogger::getInstance()->log(type, msg);
 }
 
-void CLogger::clear()
+void ei::log(ELogMessageType type, const char *msg)
 {
-    m_pLog->clear();
+    CLogger::getInstance()->log(type, msg);
 }
 
-void CLogger::logToFile()
+void ei::log(ELogMessageType type, const QString msg, QString func)
 {
-    QFile outfile;
-    outfile.setFileName(m_fileName);
-    outfile.open(QIODevice::Append | QIODevice::Text);
-    QTextStream out(&outfile);
-    out << m_pLog->toPlainText() << endl;
+    CLogger::getInstance()->log(type, msg +"\t|" + func);
 }

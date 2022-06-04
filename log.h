@@ -1,21 +1,48 @@
 #ifndef LOG_H
 #define LOG_H
-#include <QTextEdit> // log window
+
+#include <QString>
+#include <QFile>
+
+#define LOG_FATAL(msg) ei::log(eLogFatal, msg, Q_FUNC_INFO)
+
+enum ELogMessageType
+{
+    eLogInfo = 0
+    ,eLogWarning
+    ,eLogError
+    ,eLogFatal
+    ,eLogDebug
+    ,eLogStart
+};
+
+class CSettings;
 
 class CLogger
 {
 public:
-    CLogger() = delete;
-    CLogger(QTextEdit* pTextEdit);
-    ~CLogger();
+    static CLogger* getInstance();
+    void log(ELogMessageType type, const char* msg);
+    void log(ELogMessageType type, const QString msg);
+    void attachSettings(CSettings* pSet);
 
-    void log(const char* msg);
-    void clear();
-    void logToFile();
+    CLogger(CLogger const&) = delete;
+    void operator=(CLogger const&)  = delete;
 
 private:
-    QTextEdit* m_pLog;
-    QString m_fileName;
+    CLogger();
+    ~CLogger();
+
+private:
+    static CLogger* m_pLogger;
+    QFile log_file;
+    CSettings* m_pSettings;
 };
+
+namespace ei {
+void log(ELogMessageType type, const char* msg);
+void log(ELogMessageType type, const QString msg);
+void log(ELogMessageType type, const QString msg, QString func);
+}
 
 #endif // LOG_H

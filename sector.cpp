@@ -266,8 +266,17 @@ bool CSector::projectPt(QVector3D& point)
     float u,v,t;
     QVector3D origin(point.x()-m_index.x*32.0f, point.y()-m_index.y*32.0f, 0.0f);
     QVector3D dir(0.0f, 0.0f, 1.0f);
+    //find suitable vertex data cut for projection, don't need to process all vertices
+    float dif=0.0f;
     for(int i(0); i < m_aVertexData.size(); i+=4)
     {
+        dif = origin.x() - m_aVertexData[i].position.x();
+        if (dif < -1.0f || dif > 2.0f)
+            continue;
+        dif = origin.y() - m_aVertexData[i].position.y();
+        if (dif < -1.0f || dif > 2.0f)
+            continue;
+
         if (util::ptToTriangle(t, u, v, origin, dir, m_aVertexData[i].position, m_aVertexData[i+1].position, m_aVertexData[i+3].position)
                 || util::ptToTriangle(t, u, v, origin, dir, m_aVertexData[i+3].position, m_aVertexData[i+1].position, m_aVertexData[i+2].position))
         {

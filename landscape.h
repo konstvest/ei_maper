@@ -23,6 +23,7 @@ public:
     bool projectPt(QVector3D& point);
     bool projectPt(QVector<QVector3D>& aPoint);
     void projectPositions(QList<CNode*>& aNode);
+    void projectPosition(CNode* pNode);
 private:
     bool readHeader(QDataStream& stream);
 

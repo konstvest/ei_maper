@@ -135,10 +135,18 @@ bool CLandscape::projectPt(QVector3D& point)
 {
     int xIndex = int(point.x()/32.0f);
     int yIndex = int(point.y()/32.0f);
+    if(yIndex < 0 || yIndex > m_aSector.size()
+        || xIndex < 0 || xIndex > m_aSector.first().size())
+    {
+//        point.setX(0.0f);
+//        point.setY(0.0f);
+        point.setZ(0.0f);
+        return false;
+    }
     //Q_ASSERT(yIndex < m_aSector.size() && xIndex < m_aSector.first().size());
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
         m_aSector[yIndex][xIndex]->projectPt(point);
-    return false;
+    return true;
 }
 
 bool CLandscape::projectPt(QVector<QVector3D>& aPoint)
@@ -153,19 +161,24 @@ bool CLandscape::projectPt(QVector<QVector3D>& aPoint)
     return projectedPt == aPoint.size();
 }
 
+void CLandscape::projectPosition(CNode* pNode)
+{
+    if(pNode->nodeType() == eParticle || pNode->nodeType() == eLight || pNode->nodeType() == eSound || pNode->nodeType() == ePatrolPoint || pNode->nodeType() == eLookPoint)
+    {
+        pNode->setDrawPosition(pNode->position());
+        return;
+    }
+    QVector3D landPos(pNode->position());
+    if(pNode->nodeType() == eUnit)
+        landPos -= pNode->minPosition();
+    projectPt(landPos);
+    pNode->setDrawPosition(landPos);
+}
+
 void CLandscape::projectPositions(QList<CNode*>& aNode)
 {
     for(auto& node: aNode)
     {
-        if(node->nodeType() == eParticle || node->nodeType() == eLight || node->nodeType() == eSound)
-        {
-            node->setDrawPosition(node->position());
-            continue;
-        }
-        QVector3D landPos(node->position());
-        if(node->nodeType() == eUnit)
-            landPos -= node->minPosition();
-        projectPt(landPos);
-        node->setDrawPosition(landPos);
+        projectPosition(node);
     }
 }

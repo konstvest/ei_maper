@@ -4,12 +4,17 @@
 #include <QMainWindow>
 #include <QKeyEvent>
 #include <QSharedPointer>
+#include <QUndoStack>
+#include <QUndoView>
+#include <QPlainTextEdit>
 
 namespace Ui {
 class MainWindow;
 }
 
 class CSettings;
+class CSelector;
+class CMobParameters;
 
 class MainWindow : public QMainWindow
 {
@@ -19,43 +24,37 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
-protected:
-    void keyPressEvent(QKeyEvent* event);
+private:
+    void createUndoView();
+    void initShortcuts();
+    void connectUiButtons();
 
 private slots:
-//    void on_xRotSlider_valueChanged(int value);
-//    void on_yRotSlider_valueChanged(int value);
-//    void on_zRotSlider_valueChanged(int value);
-
-//    void on_pushButton_clicked();
-
-//    void on_xMoveSlider_valueChanged(int value);
-
-//    void on_yMoveSlider_valueChanged(int value);
-
-//    void on_zMoveSlider_valueChanged(int value);
-
-//    void on_pushButton_2_clicked();
-
-//    void on_pushButton_3_clicked();
-
-//    void on_pushButton_4_clicked();
-
-//    void on_pushButton_5_clicked();
-
     void on_actionExit_triggered();
-
     void on_actionOpen_triggered();
-
-    void on_pushButton_clicked();
-
     void on_actionSettings_triggered();
-
     void on_actionSave_as_triggered();
+    void on_actionSelect_All_triggered();
+    void on_actionSelect_by_triggered();
+    void on_actionShow_undo_redo_triggered();
+    void on_actionClose_all_triggered();
+    void on_actionSave_triggered();
+    void on_action_Mob_parameters_triggered();
+    void updateMobListInParam(bool bReset);
+    void on_actionUndo_triggered();
+    void on_toolButton_2_clicked();
+    void on_selectButton_clicked();
+
+    void on_moveButton_clicked();
 
 private:
     Ui::MainWindow* m_ui;
     QSharedPointer<CSettings> m_settings;
+    QSharedPointer<CSelector> m_selector;
+    QSharedPointer<CMobParameters> m_mobParams;
+    QUndoStack* m_undoStack;
+    QUndoView* m_undoView;
+
 };
 
 #endif // MAINWINDOW_H

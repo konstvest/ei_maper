@@ -1,8 +1,8 @@
-#include <QtMath>
+﻿#include <QtMath>
 #include <QMatrix3x3>
 #include "node.h"
 
-int CNode::s_freeId;
+uint CNode::s_freeId = 0;
 
 // generate color by node ID (for selecting)
 static SColor generateColor(int id)
@@ -26,6 +26,7 @@ CNode::CNode():
     m_position(0.0, 0.0, 0.0)
     //,m_rotation(0.0, 0.0, 0.0)
     ,m_parent(nullptr)
+    ,m_state(eDraw)
 {
     init();
 }
@@ -45,10 +46,23 @@ CNode::~CNode()
         delete child;
 }
 
-void CNode::setRot(QVector4D& quat)
+void CNode::setRot(const QQuaternion &quat)
 {
     m_rotateMatrix.setToIdentity();
-    m_rotateMatrix.rotate(QQuaternion(quat));
+    m_rotateMatrix.rotate(quat);
+}
+
+void CNode::setRot(const QVector4D& quat)
+{
+    setRot(QQuaternion(quat));
+}
+
+QVector3D CNode::getEulerRotation()
+{
+    QMatrix3x3 mtrx3 = m_rotateMatrix.normalMatrix();
+    QQuaternion quat;
+    quat = QQuaternion::fromRotationMatrix(mtrx3);
+    return quat.toEulerAngles();
 }
 
 void CNode::move(float x, float y, float z)

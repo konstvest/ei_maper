@@ -1,65 +1,59 @@
+#include <QApplication>
+#include <QMessageBox>
 #include <QKeyEvent>
+
 #include "view.h"
 #include "key_manager.h"
 #include "mob.h"
 #include "camera.h"
 #include "landscape.h"
+#include "operationmanager.h"
 
 void CView::keyPressEvent(QKeyEvent* event)
 {
-    switch (event->key()) {
-    case Qt::Key_Shift:
-    case Qt::Key_W:
-    case Qt::Key_Up:
-    case Qt::Key_S:
-    case Qt::Key_Down:
-    case Qt::Key_D:
-    case Qt::Key_Right:
-    case Qt::Key_A:
-    case Qt::Key_Left:
-    case Qt::Key_E:
-    case Qt::Key_Q:
-        m_keyManager->press(Qt::Key(event->key()));
-        break;
-    }
+    QApplication* application = static_cast<QApplication *>(QApplication::instance());
+    application->inputMethod()->reset();
+    QLocale a = application->inputMethod()->locale();
+    QString lang = a.languageToString(a.language());
+
+//    if (a.language() != QLocale::English)
+//        QMessageBox::warning(this, "Warning", "Please set locale to english");
 
     switch (event->key()) {
-    case Qt::Key_Delete:
-        delNodes();
-        break;
     case Qt::Key_M:
         unloadLand();
         break;
     case Qt::Key_U:
-        unloadMob();
+        unloadMob("");
         break;
-    case Qt::Key_C:
+    case Qt::Key_P:
+    {
+        CNode* pNode;
         for(auto& mob: m_aMob)
-            m_landscape->projectPositions(mob->nodesSelected());
+            foreach(pNode, mob->nodes())
+            {
+                if (pNode->nodeState() & ENodeState::eSelect)
+                    m_landscape->projectPosition(pNode);
+            }
         break;
-    case Qt::Key_R:
+    }
+    case Qt::Key_C:
         m_cam->reset();
         break;
-    default:
+    case Qt::Key_O:
+    {
+        viewParameters();
         break;
+    }
+    default:
+    {
+        m_pOp->keyPress(event);
+        break;
+    }
     }
 }
 
 void CView::keyReleaseEvent(QKeyEvent* event)
 {
-    switch (event->key()) {
-    case Qt::Key_Shift:
-    case Qt::Key_W:
-    case Qt::Key_Up:
-    case Qt::Key_S:
-    case Qt::Key_Down:
-    case Qt::Key_D:
-    case Qt::Key_Right:
-    case Qt::Key_A:
-    case Qt::Key_Left:
-    case Qt::Key_E:
-    case Qt::Key_Q:
-        m_keyManager->release(Qt::Key(event->key()));
-        break;
-    }
+    m_pOp->keyRelease(event);
 }

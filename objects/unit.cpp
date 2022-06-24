@@ -385,7 +385,7 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     matrix.setToIdentity();
     program->setUniformValue("u_modelMmatrix", matrix);
 
-    program->setUniformValue("u_bUseColor", true);
+    program->setUniformValue("customColor", QVector4D(1.0, 0.0, 0.0, 1.0));
     int offset(0);
     // Tell OpenGL which VBOs to use
     m_vertexBuf.bind();
@@ -408,7 +408,7 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     m_indexBuf.bind();
     glLineWidth(2);
     glDrawElements(GL_LINE_STRIP, m_aDrawPoint.count(), GL_UNSIGNED_SHORT, nullptr);
-    program->setUniformValue("u_bUseColor", false);
+    program->setUniformValue("customColor", QVector4D(0.0, 0.0, 0.0, 0.0));
 
     if (m_model == EBehaviourType::ePath)
         for(auto& pp : m_aPatrolPt)
@@ -733,7 +733,7 @@ void CPatrolPoint::draw(QOpenGLShaderProgram* program)
     matrix.setToIdentity();
     program->setUniformValue("u_modelMmatrix", matrix);
 
-    program->setUniformValue("u_bUseColor", true);
+    program->setUniformValue("customColor", QVector4D(1.0, 0.0, 0.0, 1.0));
     int offset(0);
     // Tell OpenGL which VBOs to use
 
@@ -756,7 +756,7 @@ void CPatrolPoint::draw(QOpenGLShaderProgram* program)
     // Draw cube geometry using indices from VBO 1
     m_indexBuf.bind();
     glDrawElements(GL_LINES, (m_aDrawingLine.count()-1)*2, GL_UNSIGNED_SHORT, nullptr);
-    program->setUniformValue("u_bUseColor", false);
+    program->setUniformValue("customColor", QVector4D(0.0, 0.0, 0.0, 0.0));
     for(auto& look: m_aLookPt)
     {
         look->draw(program);

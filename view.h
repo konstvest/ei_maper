@@ -30,6 +30,7 @@ class CProgressView;
 class CTableManager;
 class COperation;
 struct SColor;
+class CSelectFrame;
 
 class CView : public QGLWidget
 {
@@ -53,6 +54,7 @@ public:
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
     int select(const SSelect& selectParam, bool bAddToSelect = false);
     const QVector<CMob*> mobs() {return m_aMob;}
+    void drawSelectFrame(QRect& rect);
     void pickObject(QPoint mousePos, bool bAddToSelect);
     void pickObject(const QRect& rect, bool bAddToSelect);
     QVector3D getLandPos(const int cursorPosX, const int cursorPosY);
@@ -98,6 +100,7 @@ signals:
 
 private:
     int m_height; //for redraw window
+    int m_width;
     CLandscape* m_landscape;
     QSharedPointer<CCamera> m_cam;
     QOpenGLShaderProgram m_program;
@@ -116,6 +119,7 @@ private:
     QSharedPointer<COperation> m_pOp;
     QMap<CNode*, QVector3D> m_operationBackup;
     EOperationType m_operationType;
+    QSharedPointer<CSelectFrame> m_selectFrame;
 };
 
 #endif // MYGLWIDGET_H

@@ -181,9 +181,12 @@ void CSelect::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
     {
         //todo. QRubberBand
         QPoint leftTop (m_lastPos.x() < pEvent->pos().x() ? m_lastPos.x() : pEvent->pos().x(), m_lastPos.y() > pEvent->pos().y() ? m_lastPos.y() : pEvent->pos().y());
+        QPoint leftBottom(m_lastPos.x() < pEvent->pos().x() ? m_lastPos.x() : pEvent->pos().x(), m_lastPos.y() < pEvent->pos().y() ? m_lastPos.y() : pEvent->pos().y());
         QPoint rightButtom (m_lastPos.x() > pEvent->pos().x() ? m_lastPos.x() : pEvent->pos().x(), m_lastPos.y() < pEvent->pos().y() ? m_lastPos.y() : pEvent->pos().y());
-        QRect rect(leftTop, rightButtom);
-
+        QPoint rightTop(m_lastPos.x() > pEvent->pos().x() ? m_lastPos.x() : pEvent->pos().x(), m_lastPos.y() > pEvent->pos().y() ? m_lastPos.y() : pEvent->pos().y());
+        //QRect rect(leftTop, rightButtom);
+        QRect rect(leftBottom, rightTop);
+        m_pView->drawSelectFrame(rect);
 
     }
     QVector3D mouseCoord (m_pView->getLandPos(pEvent->x(), pEvent->y()));

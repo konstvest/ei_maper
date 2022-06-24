@@ -42,6 +42,7 @@ SOURCES += \
     objects/particle.cpp \
     progressview.cpp \
     sector.cpp \
+    selectframe.cpp \
     selector.cpp \
     settings.cpp \
     objects/sound.cpp \
@@ -82,6 +83,7 @@ HEADERS += \
     objects/particle.h \
     progressview.h \
     sector.h \
+    selectframe.h \
     selector.h \
     settings.h \
     objects/sound.h \

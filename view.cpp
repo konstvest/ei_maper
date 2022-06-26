@@ -24,6 +24,7 @@
 #include "progressview.h"
 #include "tablemanager.h"
 #include "operationmanager.h"
+#include "selectframe.h"
 
 class CLogic;
 
@@ -43,6 +44,7 @@ CView::CView(QWidget* parent):
     m_aReadState.resize(eReadCount);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(updateWindow()));
     m_operationBackup.clear();
+    m_selectFrame.reset(new CSelectFrame);
 }
 
 
@@ -112,6 +114,10 @@ void CView::initShaders()
     if (!m_program.link())
         close();
 
+    m_program.bind();
+    m_program.setUniformValue("customColor", QVector4D(0.0, 0.0, 0.0, 0.0));
+    //release shader program?
+
     // Compile land shader
     if (!m_landProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.vsh"))
         close();
@@ -125,6 +131,7 @@ void CView::initShaders()
     m_landProgram.setUniformValue("u_lightPower", 5.0f);
     m_landProgram.setUniformValue("u_lightColor", QVector4D(1.0, 1.0, 1.0, 1.0));
     m_landProgram.setUniformValue("u_highlight", false);
+
 
     // Compile select shader
     if (!m_selectProgram.addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vshader.vsh"))
@@ -141,7 +148,7 @@ void CView::initializeGL()
     qglClearColor(Qt::black);
     //glEnable(GL_EXT_texture_filter_anisotropic);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE); //draw only front faces (disable if need draw both sides)
+    //glEnable(GL_CULL_FACE); //draw only front faces (disable if need draw both sides)
 
     glEnable(GL_ALPHA_TEST);
     glEnable(GL_BLEND);
@@ -153,6 +160,7 @@ void CView::initializeGL()
 void CView::resizeGL(int width, int height)
 {
     m_height = height;
+    m_width = width;
     //const int side = qMin(width, height);
     //glViewport((width - side) / 2, (height - side) / 2, side, side);
     const float ratio = float(width)/height;
@@ -219,6 +227,11 @@ void CView::draw()
 //                m_program.setUniformValue("u_highlight", true);
 //                node->draw(&m_program);
 //            }
+    QMatrix4x4 mtrx;
+    mtrx.setToIdentity();
+    m_program.setUniformValue("u_projMmatrix", mtrx);
+    m_program.setUniformValue("u_viewMmatrix", mtrx);
+    m_selectFrame->draw(&m_program);
 }
 
 void CView::loadLandscape(QFileInfo& filePath)
@@ -435,6 +448,18 @@ void CView::getColorFromRect(const QRect& rect, QVector<SColor>& aColor)
     delete pixel;
 }
 
+void CView::drawSelectFrame(QRect &rect)
+{
+    //convert frame to [(-1, 1), (-1, 1)]
+    float leftX = rect.bottomLeft().x()/(float)m_width*2-1.0f;
+    float leftY = rect.bottomLeft().y()/(float)m_height*2-1.0f;
+    float rightX = rect.topRight().x()/(float)m_width*2-1.0f;
+    float rightY = rect.topRight().y()/(float)m_height*2-1.0f;
+    QPointF bottomLeft(leftX, -leftY);
+    QPointF topRight(rightX, -rightY);
+    m_selectFrame->updateFrame(bottomLeft, topRight);
+}
+
 void CView::pickObject(const QRect &rect, bool bAddToSelect)
 {
     //TODO: use different buffer => save picking in image
@@ -447,20 +472,21 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if(m_operationType == EOperationTypeObjects)
-        for(const auto& mob : m_aMob)
-            for (auto& node: mob->nodes())
+        //for(const auto& mob : m_aMob)
+        foreach(const auto& mob, m_aMob)
+            foreach (auto& node, mob->nodes())
                 node->drawSelect(&m_selectProgram);
 
     QVector<SColor> aColor;
     getColorFromRect(rect, aColor);
 
     if(m_operationType == EOperationTypeObjects)
-        for(const auto& mob : m_aMob)
+        foreach(const auto& mob, m_aMob)
         {
             if (!bAddToSelect) // clear selection buffer if we click out of objects in single selection mode
                 mob->clearSelect();
-            for (auto& node: mob->nodes())
-                for (const auto& color : aColor)
+            foreach (auto& node, mob->nodes())
+                foreach (const auto& color, aColor)
                 {
                     if (node->isColorSuitable(color))
                     {
@@ -486,6 +512,7 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
                     }
                 }
         }
+    m_selectFrame->reset();
 }
 
 void CView::loadMob(QFileInfo &filePath)

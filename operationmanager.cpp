@@ -15,7 +15,7 @@ void strToOperValue(QVector3D& vec, const EOperateAxis axis, const QString& valu
     vec = QVector3D(0.0f, 0.0f, 0.0f);
     if(value.isEmpty())
     {
-        ei::log(eLogDebug, "Operation has invalid valie");
+        ei::log(eLogDebug, "Operation has invalid value");
         return;
     }
     switch (axis)

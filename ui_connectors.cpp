@@ -1,13 +1,13 @@
 #include <QIcon>
 #include <QToolButton>
-#include "ui_connectors.h"
-#include "log.h"
-#include "view.h"
-
-
 #include <QFile>
 #include <QDebug>
 #include <QDir>
+
+#include "ui_connectors.h"
+#include "log.h"
+#include "view.h"
+#include "utils.h"
 
 CResourceManager* CResourceManager::m_resourceManager = nullptr;
 CStatusConnector* CStatusConnector::m_statusHelper = nullptr;
@@ -111,7 +111,7 @@ CResourceManager::~CResourceManager()
 
 void CResourceManager::init()
 {
-    QDir icoFolder("d:/EI/ei_maper/icons_fluent"); // todo: find ico in app folder and via options/configs
+    QDir icoFolder(util::appPath() + QDir::separator() + "icons_fluent"); // todo: find ico in app folder and via options/configs
     if(!icoFolder.exists())
     {
         ei::log(eLogWarning, "Icon folder not found");

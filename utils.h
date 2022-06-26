@@ -32,6 +32,7 @@ QVector4D vec4FromString(const QString& str);
 QVector<SArea> vecAreaFromString(const QString& str);
 QVector<QVector2D> vecTargetFromString(const QString& str);
 QString makeString(const QVector<uint>& vec);
+QString appPath();
 
 enum EType
 {

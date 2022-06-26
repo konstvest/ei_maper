@@ -5,6 +5,7 @@
 #include <QtMath>
 #include <QTextCodec>
 #include <QRegularExpression>
+#include <QCoreApplication>
 
 #include "utils.h"
 
@@ -963,4 +964,9 @@ QVector<uint> util::vec2FromString(const QString &str)
     vec[0] = list[0].toUInt();
     vec[1] = list[1].toUInt();
     return vec;
+}
+
+QString util::appPath()
+{
+    return QCoreApplication::applicationDirPath();
 }

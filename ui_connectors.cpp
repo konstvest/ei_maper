@@ -112,9 +112,13 @@ CResourceManager::~CResourceManager()
 void CResourceManager::init()
 {
     QDir icoFolder(util::appPath() + QDir::separator() + "icons_fluent"); // todo: find ico in app folder and via options/configs
-    if(!icoFolder.exists())
+
+    if(icoFolder.exists())
+        ei::log(eLogInfo, QString("%1:%2").arg("icon folder found:", icoFolder.path()) );
+    else
     {
-        ei::log(eLogWarning, "Icon folder not found");
+        ei::log(eLogWarning, QString("Icon folder not found: %1").arg(icoFolder.path()));
+        return;
     }
 
     QStringList icoFilter;

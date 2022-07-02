@@ -76,6 +76,7 @@ public:
     CSector(QDataStream& stream, float maxZ, int texCount);
     ~CSector();
     void draw(QOpenGLShaderProgram* program);
+    void drawWater(QOpenGLShaderProgram* program);
     void setIndex(UI2& index) {m_index = index; updatePosition(); }
     const UI2& index() {return m_index;}
     bool projectPt(QVector3D& point);
@@ -89,10 +90,14 @@ private:
     QVector<ushort> m_aWaterAllow;
     UI2 m_index;
     QVector<SVertexData> m_aVertexData;
-    QVector<SSpecificQuad> m_aQuad;
+    //QVector<SSpecificQuad> m_aQuad;
     QOpenGLBuffer m_vertexBuf;
     QOpenGLBuffer m_indexBuf;
     QMatrix4x4 m_modelMatrix;
+
+    QVector<SVertexData> m_aWaterData;
+    QOpenGLBuffer m_waterVertexBuf;
+    QOpenGLBuffer m_waterIndexBuf;
 };
 
 #endif // MAP_SEC_H

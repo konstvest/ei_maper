@@ -205,6 +205,7 @@ void CSettings::initOptions()
 
     //init default options for bools
     aOpt.append(QSharedPointer<COpt>(new COptBool("drawLogic", true)));
+    aOpt.append(QSharedPointer<COpt>(new COptBool("drawWater", true)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("freeCamera", false)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("saveSelectedOnly", false)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("dipEditSymmetric", true)));

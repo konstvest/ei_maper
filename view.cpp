@@ -198,7 +198,17 @@ void CView::draw()
 //    m_landProgram.setUniformValue("u_lightColor", QVector4D(1.0, 1.0, 1.0, 1.0));
 //    m_landProgram.setUniformValue("u_highlight", false);
     if (m_landscape)
+    {
         m_landscape->draw(&m_landProgram);
+
+        COptBool* pOpt = dynamic_cast<COptBool*>(settings()->opt("drawWater"));
+        if (pOpt and pOpt->value() == true)
+        {
+            m_landProgram.setUniformValue("transparency", 0.5f);
+            m_landscape->drawWater(&m_landProgram);
+            m_landProgram.setUniformValue("transparency", 0.0f);
+        }
+    }
 
     // Bind shader pipeline for use
     if (!m_program.bind())

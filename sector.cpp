@@ -344,7 +344,6 @@ void CSector::draw(QOpenGLShaderProgram* program)
     m_indexBuf.bind();
     glDrawElements(GL_QUADS, m_aVertexData.count(), GL_UNSIGNED_SHORT, nullptr);
 
-    drawWater(program);
 }
 
 void CSector::drawWater(QOpenGLShaderProgram *program)

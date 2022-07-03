@@ -131,11 +131,6 @@ void CSelect::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
 
 void CSelect::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
 {
-    if (m_bIgnoreReleaseMouseEvent)
-    {
-        m_bIgnoreReleaseMouseEvent = false;
-        return;
-    }
     switch (pEvent->button()) {
     case Qt::LeftButton:
     {
@@ -357,9 +352,7 @@ void CMoveAxis::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
     switch (pEvent->button()) {
     case Qt::LeftButton:
     {
-        m_pView->operationApply(EOperationAxisType::eMove);
-        pOp->setCurrent(new CSelect(m_pView, true));
-        delete this;
+        Q_UNUSED(pOp);
         break;
     }
     default:
@@ -373,8 +366,22 @@ void CMoveAxis::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
 
 void CMoveAxis::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
 {
-    Q_UNUSED(pOp);
-    Q_UNUSED(pEvent);
+    switch (pEvent->button()) {
+    case Qt::LeftButton:
+    {
+        m_pView->operationApply(EOperationAxisType::eMove);
+        pOp->setCurrent(new CSelect(m_pView));
+        delete this;
+        break;
+    }
+    default:
+    {
+        int d(777);
+        Q_UNUSED(d);
+        break;
+    }
+    }
+
 }
 
 void CMoveAxis::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
@@ -524,9 +531,7 @@ void CRotateAxis::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
     switch (pEvent->buttons()) {
     case Qt::LeftButton:
     {
-        m_pView->operationApply(EOperationAxisType::eRotate);
-        pOp->setCurrent(new CSelect(m_pView, true));
-        delete this;
+        Q_UNUSED(pOp);
         break;
     }
     default:
@@ -540,8 +545,21 @@ void CRotateAxis::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
 
 void CRotateAxis::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
 {
-    Q_UNUSED(pOp);
-    Q_UNUSED(pEvent);
+    switch (pEvent->button()) {
+    case Qt::LeftButton:
+    {
+        m_pView->operationApply(EOperationAxisType::eRotate);
+        pOp->setCurrent(new CSelect(m_pView));
+        delete this;
+        break;
+    }
+    default:
+    {
+        int d(777);
+        Q_UNUSED(d);
+        break;
+    }
+    }
 }
 
 void CRotateAxis::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
@@ -831,19 +849,28 @@ void CScaleAxis::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
     switch (pEvent->buttons()) {
     case Qt::LeftButton:
     {
-        m_pView->operationApply(EOperationAxisType::eScale);
-        pOp->setCurrent(new CSelect(m_pView, true));
-        delete this;
+        Q_UNUSED(pOp);
         break;
     }
+    default:
+        break;
     }
 
 }
 
 void CScaleAxis::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
 {
-    Q_UNUSED(pOp);
-    Q_UNUSED(pEvent);
+    switch (pEvent->button()) {
+    case Qt::LeftButton:
+    {
+        m_pView->operationApply(EOperationAxisType::eScale);
+        pOp->setCurrent(new CSelect(m_pView));
+        delete this;
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 void CScaleAxis::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
@@ -909,9 +936,8 @@ void COperation::updateMouseCoords(const QString& pos)
     m_pMouseCoord->setText(pos);
 }
 
-CSelect::CSelect(CView *pView, bool bIgnoreReleaseMouseEvent):
+CSelect::CSelect(CView *pView):
     CState(pView)
-  ,m_bIgnoreReleaseMouseEvent(bIgnoreReleaseMouseEvent)
 {
     qDebug()<< "CSelect init";
     CStatusConnector::getInstance()->updateStatus("select.ico", "LMB - Select object, Shift+LMB - Add to select, MMB - camera rotation, G - Move, T - Scale, R - Rotate");

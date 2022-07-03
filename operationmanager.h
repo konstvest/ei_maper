@@ -67,7 +67,7 @@ private:
 class CSelect: public CState
 {
 public:
-    CSelect(CView* pView, bool bIgnoreReleaseMouseEvent=false);
+    CSelect(CView* pView);
     ~CSelect() {}
     void keyPress(COperation* pOp, QKeyEvent* event) override;
     void keyRelease(COperation* pOp, QKeyEvent* event) override;
@@ -76,8 +76,7 @@ public:
     void mousePressEvent(COperation *pOp, QMouseEvent* event) override;
     void mouseReleaseEvent(COperation *pOp, QMouseEvent* pEvent) override;
     void mouseMoveEvent(COperation *pOp, QMouseEvent* event) override;
-private:
-    bool m_bIgnoreReleaseMouseEvent;
+
 };
 
 class CMoveAxis : public CState

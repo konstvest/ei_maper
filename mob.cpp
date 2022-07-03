@@ -32,7 +32,7 @@ CMob::CMob():
 {
     m_aNode.clear();
     m_worldSet.bInit = false;
-    m_order = eEMobOrderSeconddary;
+    m_order = eEMobOrderSecondary;
 }
 
 CMob::~CMob()
@@ -70,7 +70,7 @@ bool CMob::deserialize(QByteArray data)
     {
         readByte += parser.skipHeader();
         //readByte += parser.readHeader();
-        m_order = eEMobOrderSeconddary;
+        m_order = eEMobOrderSecondary;
     }
     else if (parser.isNextTag("PR_OBJECT_DB_FILE"))
     {
@@ -585,7 +585,7 @@ void CMob::serializeMob(QByteArray& data)
     case eEMobOrderPrimary:
         writeByte += parser.startSection("PR_OBJECT_DB_FILE");
         break;
-    case eEMobOrderSeconddary:
+    case eEMobOrderSecondary:
         writeByte += parser.startSection("SC_OBJECT_DB_FILE");
         break;
     }

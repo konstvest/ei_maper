@@ -26,7 +26,7 @@ struct SWorldSet
 enum EMobOrder
 {
     eEMobOrderPrimary
-    ,eEMobOrderSeconddary
+    ,eEMobOrderSecondary
 };
 
 class CProgressView;

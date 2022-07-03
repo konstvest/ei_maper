@@ -230,11 +230,14 @@ void CView::draw()
     if (!m_program.bind())
         close();
 
-    QMatrix4x4 mtrx;
-    mtrx.setToIdentity();
-    m_program.setUniformValue("u_projMmatrix", mtrx);
-    m_program.setUniformValue("u_viewMmatrix", mtrx);
-    m_selectFrame->draw(&m_program);
+    if (m_landscape)
+    {
+        QMatrix4x4 mtrx;
+        mtrx.setToIdentity();
+        m_program.setUniformValue("u_projMmatrix", mtrx);
+        m_program.setUniformValue("u_viewMmatrix", mtrx);
+        m_selectFrame->draw(&m_program);
+    }
 }
 
 void CView::loadLandscape(QFileInfo& filePath)

@@ -20,6 +20,7 @@ public:
     void setParentView(CView* view) {m_parentView = view;}
     void readMap(QFileInfo& path);
     void draw(QOpenGLShaderProgram* program);
+    void drawWater(QOpenGLShaderProgram* program);
     bool projectPt(QVector3D& point);
     bool projectPt(QVector<QVector3D>& aPoint);
     void projectPositions(QList<CNode*>& aNode);

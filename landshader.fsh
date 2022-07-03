@@ -6,6 +6,7 @@ uniform highp vec4 u_color;
 uniform highp vec3 u_watcherPos;
 uniform highp vec4 u_lightColor;
 uniform bool u_highlight;
+uniform float transparency;
 
 varying highp vec4 v_position;
 varying highp vec3 v_normal;
@@ -27,6 +28,7 @@ void main(void)
   vec4 texColor = texture2D(qt_Texture0, v_texture);
   vec4 resColor = vec4((ambient + diffuse), 1.0f) * texColor;
 
+  resColor.a -= transparency;
 
 
   gl_FragColor = resColor;

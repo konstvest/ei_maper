@@ -207,26 +207,29 @@ void CView::draw()
     m_program.setUniformValue("u_projMmatrix", m_projection);
     m_program.setUniformValue("u_viewMmatrix", camMatrix);
 
-    //todo: try to draw all nodes in 1 loop, switch u_highlight
-//    m_program.setUniformValue("u_highlight", false);
-//    for(auto& mob: m_aMob)
-//        for (auto node: mob->nodes())
-//            if (node->nodeState() & ENodeState::eDraw)
-//                node->draw(&m_program);
-
-    //m_program.setUniformValue("u_highlight", true);
     for(auto& mob: m_aMob)
         for (auto& node: mob->nodes())
             node->draw(&m_program);
-//            if (node->nodeState() & ENodeState::eDraw)
-//            {
-//                m_program.setUniformValue("u_highlight", false);
-//            }
-//            else if (node->nodeState() & ENodeState::eSelect)
-//            {
-//                m_program.setUniformValue("u_highlight", true);
-//                node->draw(&m_program);
-//            }
+
+    if (m_landscape)
+    {
+        COptBool* pOpt = dynamic_cast<COptBool*>(settings()->opt("drawWater"));
+        if (pOpt and pOpt->value() == true)
+        {
+            //turn to landshader again
+            if (!m_landProgram.bind())
+                close();
+
+            m_landProgram.setUniformValue("transparency", 0.3f);
+            m_landscape->drawWater(&m_landProgram);
+            m_landProgram.setUniformValue("transparency", 0.0f);
+        }
+    }
+
+    //draw selection frame using m_program shader
+    if (!m_program.bind())
+        close();
+
     QMatrix4x4 mtrx;
     mtrx.setToIdentity();
     m_program.setUniformValue("u_projMmatrix", mtrx);

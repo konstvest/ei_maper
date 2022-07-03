@@ -17,6 +17,7 @@ CSector::~CSector()
 
 CSector::CSector(QDataStream& stream, float maxZ, int texCount)
     :m_indexBuf(QOpenGLBuffer::IndexBuffer)
+    ,m_waterIndexBuf(QOpenGLBuffer::IndexBuffer)
 {
     SSecHeader header;
     stream >> header;
@@ -29,6 +30,8 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
     m_modelMatrix.setToIdentity();
     m_vertexBuf.create();
     m_indexBuf.create();
+    m_waterVertexBuf.create();
+    m_waterIndexBuf.create();
     SSecVertex sv;
     QVector<QVector<SSecVertex>> landVertex;
     QVector<SSecVertex> aLine;
@@ -124,7 +127,9 @@ void SSpecificQuad::rotate(int step)
     m_rotateState = step;
 }
 
-void CSector::makeVertexData(QVector<QVector<SSecVertex>>& aLandVertex, QVector<STile>& aLandTile, QVector<QVector<SSecVertex>>& aWaterVertex, QVector<STile>& aWaterTile, float maxZ, int texCount)
+void CSector::makeVertexData(QVector<QVector<SSecVertex>>& aLandVertex, QVector<STile>& aLandTile,
+                             QVector<QVector<SSecVertex>>& aWaterVertex, QVector<STile>& aWaterTile,
+                             float maxZ, int texCount)
 {
 /*
 ^|   6 _7 _8
@@ -144,8 +149,9 @@ TODO: use 9 vertex, make quad via index array
     Q_ASSERT(aLandTile.size() == 256);
     QVector<QVector2D> tCoord; // min + max
     tCoord.resize(2);
-    SVertexData vData;
+    //SVertexData vData;
     m_aVertexData.resize(aLandTile.size()*16);
+    m_aWaterData.resize(aWaterTile.size()*16);
     int idVert(0);
 
     auto calcTexCoordBox = [&tCoord, texCount](STile& tile)
@@ -165,21 +171,72 @@ TODO: use 9 vertex, make quad via index array
     auto calcTexCoord = [&vertIndexQuad, &tCoord](SVertexData& vrt)
     {
         QVector2D texC = QVector2D(tCoord[0].x(), tCoord[1].y());
-
-        if(vertIndexQuad == 1 || vertIndexQuad == 2 || vertIndexQuad == 9 || vertIndexQuad == 10
-            || vertIndexQuad == 4 || vertIndexQuad == 7 || vertIndexQuad == 12 || vertIndexQuad == 15)
+        switch(vertIndexQuad)
+        {
+        case 1:
+        case 2:
+        case 9:
+        case 10:
+        case 4:
+        case 7:
+        case 12:
+        case 15:
+        {
             texC.setX((tCoord[0].x() + tCoord[1].x())/2.0f);
-        else if(vertIndexQuad == 5 || vertIndexQuad == 6 || vertIndexQuad == 13 || vertIndexQuad == 14)
+            break;
+        }
+        case 5:
+        case 6:
+        case 13:
+        case 14:
+        {
             texC.setX(tCoord[1].x());
-        if(vertIndexQuad == 3 || vertIndexQuad == 2 || vertIndexQuad == 7 || vertIndexQuad == 6
-            || vertIndexQuad == 8 || vertIndexQuad == 9 || vertIndexQuad == 12 || vertIndexQuad == 13)
+            break;
+        }
+        default:
+            break;
+        }
+
+        switch (vertIndexQuad)
+        {
+        case 3:
+        case 2:
+        case 7:
+        case 6:
+        case 8:
+        case 9:
+        case 12:
+        case 13:
+        {
             texC.setY((tCoord[0].y() + tCoord[1].y())/2.0f);
-        else if(vertIndexQuad == 11 || vertIndexQuad == 10 || vertIndexQuad == 15 || vertIndexQuad == 14)
+            break;
+        }
+        case 11:
+        case 10:
+        case 15:
+        case 14:
+        {
             texC.setY(tCoord[0].y());
+            break;
+        }
+        }
+
+//        if(vertIndexQuad == 1 || vertIndexQuad == 2 || vertIndexQuad == 9 || vertIndexQuad == 10
+//            || vertIndexQuad == 4 || vertIndexQuad == 7 || vertIndexQuad == 12 || vertIndexQuad == 15)
+//            texC.setX((tCoord[0].x() + tCoord[1].x())/2.0f);
+//        else if(vertIndexQuad == 5 || vertIndexQuad == 6 || vertIndexQuad == 13 || vertIndexQuad == 14)
+//            texC.setX(tCoord[1].x());
+
+//        if(vertIndexQuad == 3 || vertIndexQuad == 2 || vertIndexQuad == 7 || vertIndexQuad == 6
+//            || vertIndexQuad == 8 || vertIndexQuad == 9 || vertIndexQuad == 12 || vertIndexQuad == 13)
+//            texC.setY((tCoord[0].y() + tCoord[1].y())/2.0f);
+//        else if(vertIndexQuad == 11 || vertIndexQuad == 10 || vertIndexQuad == 15 || vertIndexQuad == 14)
+//            texC.setY(tCoord[0].y());
+
         vrt.texCoord = texC;
     };
 
-    auto buildGeom = [&aLandVertex, maxZ, &vertIndexQuad, &calcTexCoord](SVertexData& vrt, int x, int y)
+    auto buildGeom = [maxZ, &vertIndexQuad, &calcTexCoord](QVector<QVector<SSecVertex>>& aVertex, SVertexData& vrt, int x, int y)
     {
         if(vertIndexQuad == 1 || vertIndexQuad == 2 || vertIndexQuad == 9 || vertIndexQuad == 10
             || vertIndexQuad == 4 || vertIndexQuad == 7 || vertIndexQuad == 12 || vertIndexQuad == 15)
@@ -191,10 +248,10 @@ TODO: use 9 vertex, make quad via index array
             y+=1;
         else if(vertIndexQuad == 11 || vertIndexQuad == 10 || vertIndexQuad == 15 || vertIndexQuad == 14)
             y+=2;
-        vrt.position.setX(x+aLandVertex[y][x].xOffset/254.0f);
-        vrt.position.setY(y+aLandVertex[y][x].yOffset/254.0f);
-        vrt.position.setZ(aLandVertex[y][x].z*maxZ/65535.0f);
-        vrt.normal = aLandVertex[y][x].normal;
+        vrt.position.setX(x+aVertex[y][x].xOffset/254.0f);
+        vrt.position.setY(y+aVertex[y][x].yOffset/254.0f);
+        vrt.position.setZ(aVertex[y][x].z*maxZ/65535.0f);
+        vrt.normal = aVertex[y][x].normal;
         calcTexCoord(vrt);
     };
 
@@ -206,11 +263,27 @@ TODO: use 9 vertex, make quad via index array
         int vrtY = int(i/16*2);
         for(vertIndexQuad = 0; vertIndexQuad < 16 ; ++vertIndexQuad)
         {
-            buildGeom(m_aVertexData[idVert], vrtX, vrtY);
+            buildGeom(aLandVertex, m_aVertexData[idVert], vrtX, vrtY);
             quad.addVertex(&m_aVertexData[idVert]);
             ++idVert;
         }
         quad.rotate(aLandTile[i].m_rotation);
+    }
+
+    idVert=0;
+    for(int i(0); i<aWaterTile.size(); ++i)
+    {
+        calcTexCoordBox(aWaterTile[i]);
+        SSpecificQuad quad;
+        int vrtX = i%16*2;
+        int vrtY = int(i/16*2);
+        for(vertIndexQuad = 0; vertIndexQuad < 16 ; ++vertIndexQuad)
+        {
+            buildGeom(aWaterVertex, m_aWaterData[idVert], vrtX, vrtY);
+            quad.addVertex(&m_aWaterData[idVert]);
+            ++idVert;
+        }
+        quad.rotate(aWaterTile[i].m_rotation);
     }
 }
 
@@ -229,8 +302,19 @@ void CSector::updatePosition()
     m_indexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
     m_indexBuf.release();
 
+    //water section
+    //m_modelMatrix.translate(QVector3D(m_index.x*32.0f, m_index.y*32.0f, .0f));
+    m_waterVertexBuf.bind();
+    m_waterVertexBuf.allocate(m_aWaterData.data(), m_aWaterData.count()*int(sizeof(SVertexData)));
+    m_waterVertexBuf.release();
 
+    aInd.clear();
+    for (ushort i(0); i<m_aWaterData.size(); ++i)
+        aInd.append(i);
 
+    m_waterIndexBuf.bind();
+    m_waterIndexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
+    m_waterIndexBuf.release();
 }
 
 void CSector::draw(QOpenGLShaderProgram* program)
@@ -259,6 +343,34 @@ void CSector::draw(QOpenGLShaderProgram* program)
 
     m_indexBuf.bind();
     glDrawElements(GL_QUADS, m_aVertexData.count(), GL_UNSIGNED_SHORT, nullptr);
+
+}
+
+void CSector::drawWater(QOpenGLShaderProgram *program)
+{
+    if (m_aWaterData.count() == 0)
+        return;
+
+    program->setUniformValue("u_modelMmatrix", m_modelMatrix);
+
+    int offset = 0;
+    m_waterVertexBuf.bind();
+    int vertLoc = program->attributeLocation("a_position");
+    program->enableAttributeArray(vertLoc);
+    program->setAttributeBuffer(vertLoc, GL_FLOAT, offset, 3, int(sizeof(SVertexData)));
+
+    offset += int(sizeof(QVector3D));
+    int normLoc = program->attributeLocation("a_normal");
+    program->enableAttributeArray(normLoc);
+    program->setAttributeBuffer(normLoc, GL_FLOAT, offset, 3, int(sizeof(SVertexData)));
+
+    offset+=int(sizeof(QVector3D)); // size of normal
+    int textureLocation = program->attributeLocation("a_texture");
+    program->enableAttributeArray(textureLocation);
+    program->setAttributeBuffer(textureLocation, GL_FLOAT, offset, 2, int(sizeof(SVertexData)));
+
+    m_waterIndexBuf.bind();
+    glDrawElements(GL_QUADS, m_aWaterData.count(), GL_UNSIGNED_SHORT, nullptr);
 }
 
 bool CSector::projectPt(QVector3D& point)

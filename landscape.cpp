@@ -131,6 +131,15 @@ void CLandscape::draw(QOpenGLShaderProgram* program)
             ySec->draw(program);
 }
 
+void CLandscape::drawWater(QOpenGLShaderProgram *program)
+{
+    m_texture->bind(0);
+    program->setUniformValue("qt_Texture0", 0);
+    for (auto& xSec: m_aSector)
+        for(auto& ySec: xSec)
+            ySec->drawWater(program);
+}
+
 bool CLandscape::projectPt(QVector3D& point)
 {
     int xIndex = int(point.x()/32.0f);

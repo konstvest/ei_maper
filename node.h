@@ -64,6 +64,7 @@ public:
     virtual void setRot(const QQuaternion& quat);
     virtual void setConstitution(QVector3D& vec) = 0;
     virtual const QVector3D& constitution() = 0;
+    virtual QJsonObject toJson() = 0;
 
     const uint& innerId() {return m_id; }
     const uint& mapId(){return m_mapID;}

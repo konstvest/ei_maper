@@ -51,6 +51,7 @@ SOURCES += \
     texturelist.cpp \
     objects/torch.cpp \
     objects/unit.cpp \
+    types.cpp \
     ui_connectors.cpp \
     undo.cpp \
     view.cpp \

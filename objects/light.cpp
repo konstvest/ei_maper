@@ -168,3 +168,18 @@ QString CLight::getParam(EObjParam param)
     }
     return value;
 }
+
+QJsonObject CLight::toJson()
+{
+    QJsonObject obj;
+    QJsonObject base_obj = CObjectBase::toJson();
+    obj.insert("Base object", base_obj);
+    obj.insert("Range", QJsonValue::fromVariant(m_range));
+    obj.insert("Is shadow?", m_bShadow);
+    QJsonArray aColor;
+    aColor.append(QJsonValue::fromVariant(m_color.x()));
+    aColor.append(QJsonValue::fromVariant(m_color.y()));
+    aColor.append(QJsonValue::fromVariant(m_color.z()));
+    obj.insert("Color", aColor);
+    return obj;
+}

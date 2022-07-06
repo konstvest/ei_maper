@@ -142,9 +142,7 @@ void CWorldObj::loadTexture()
         return;
     }
     QString texName(m_primaryTexture.toLower());
-    auto a = m_pMob->view()->texList()->texture(texName);
-    if(nullptr == a)
-        int d(777);
+    //auto a = m_pMob->view()->texList()->texture(texName);
     setTexture(m_pMob->view()->texList()->texture(texName));
     //todo: load texture for logic
 }
@@ -480,4 +478,32 @@ QString CWorldObj::getParam(EObjParam param)
     }
 
     return value;
+}
+
+QJsonObject CWorldObj::toJson()
+{
+    QJsonObject obj;
+    QJsonObject base_obj = CObjectBase::toJson();
+    obj.insert("Base object", base_obj);
+    obj.insert("Type", QJsonValue::fromVariant(m_type));
+    //m_mapID
+    //m_name
+    //m_modelName
+    obj.insert("Primary texture", m_primaryTexture);
+    obj.insert("Secondary texture", m_secondaryTexture);
+
+    //todo: use info in CObjectBase
+    QJsonArray aBodyParts;
+    for(auto& part : m_bodyParts)
+    {
+        aBodyParts.append(part);
+    }
+    obj.insert("Object parts", aBodyParts);
+    obj.insert("Object template", m_parentTemplate);
+    obj.insert("Player(dimpomacy group)", QJsonValue::fromVariant(int(m_player)));
+    obj.insert("Parent Id", QJsonValue::fromVariant(m_parentID));
+    obj.insert("Is used in script?", m_bUseInScript);
+    obj.insert("Is shadow?", m_bShadow);
+    obj.insert("Quest info", m_questInfo);
+    return obj;
 }

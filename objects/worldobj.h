@@ -18,6 +18,7 @@ public:
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
     const char& dipGroup(){return m_player;}
+    QJsonObject toJson() override;
 
 private:
     //void init();

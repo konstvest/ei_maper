@@ -237,3 +237,22 @@ QString CLever::getParam(EObjParam param)
     }
     return value;
 }
+
+QJsonObject CLever::toJson()
+{
+    QJsonObject obj;
+    QJsonObject world_obj = CWorldObj::toJson();
+    obj.insert("World object", world_obj);
+    obj.insert("State", QJsonValue::fromVariant(int(m_curState)));
+    obj.insert("State numbers", QJsonValue::fromVariant(int(m_totalState)));
+    obj.insert("Is cycled?", m_bCycled);
+    obj.insert("Is cast once?", m_bCastOnce);
+    QJsonArray aStat;
+    aStat.append(QJsonValue::fromVariant(m_typeOpen));
+    aStat.append(QJsonValue::fromVariant(m_keyID));
+    aStat.append(QJsonValue::fromVariant(m_handsSleight));
+    obj.insert("Science stats", aStat);
+    obj.insert("Is door?", m_bDoor);
+    obj.insert("Is recalculate graph?", m_bRecalcGraph);
+    return obj;
+}

@@ -138,3 +138,13 @@ QString CParticle::getParam(EObjParam param)
     }
     return value;
 }
+
+QJsonObject CParticle::toJson()
+{
+    QJsonObject obj;
+    QJsonObject base_obj = CObjectBase::toJson();
+    obj.insert("Base object", base_obj);
+    obj.insert("Type", QJsonValue::fromVariant(m_kind));
+    obj.insert("Scale", QJsonValue::fromVariant(m_scale));
+    return obj;
+}

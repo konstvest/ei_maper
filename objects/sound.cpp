@@ -255,3 +255,23 @@ QString CSound::getParam(EObjParam param)
     }
     return value;
 }
+
+QJsonObject CSound::toJson()
+{
+    QJsonObject obj;
+    QJsonObject base_obj = CObjectBase::toJson();
+    obj.insert("Base object", base_obj);
+    obj.insert("Range 1(?1)", QJsonValue::fromVariant(m_range));
+    obj.insert("Range 2(?!)", QJsonValue::fromVariant(m_range2));
+    obj.insert("Min distance", QJsonValue::fromVariant(m_min));
+    obj.insert("Max distance", QJsonValue::fromVariant(m_max));
+
+    QJsonArray aRes;
+    for(auto& res : m_aResName)
+        aRes.append(res);
+
+    obj.insert("Resources", aRes);
+    obj.insert("Is ambient?", m_bAmbient);
+    obj.insert("Is Music?", m_bMusic);
+    return obj;
+}

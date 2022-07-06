@@ -128,6 +128,7 @@ public:
     //bool updatePos(QVector3D& pos) override; //TODO
     const QString& databaseName(){return m_prototypeName;}
     bool updatePos(QVector3D& pos) override;
+    QJsonObject toJson() override;
 
 private:
     //"UNIT_R", eNull};

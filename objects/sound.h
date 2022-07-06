@@ -14,6 +14,7 @@ public:
     void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
+    QJsonObject toJson() override;
 
 private:
     uint m_range;

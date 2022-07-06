@@ -210,7 +210,8 @@ struct SUnitStat
    unsigned char MagicalSkill_3;// byte;
    unsigned char empty2;// byte;
    unsigned char empty3;// byte;
- };
+   QJsonObject toJson();
+};
 
 typedef ei::vector2<short> S2;
 typedef ei::vector2<int> I2;

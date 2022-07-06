@@ -193,33 +193,6 @@ void MainWindow::on_actionUndo_triggered()
 void MainWindow::on_toolButton_2_clicked()
 {
     ei::log(eLogDebug, "btn test start");
-    QFileInfo fi("d:\\Проклятые Земли (Дополнение)\\Mods\\Фернео\\Maps\\zone1g.mpr");
-    QUndoCommand* loadMpr = new COpenCommand(m_ui->myGLWidget, fi, this);
-    m_undoStack->push(loadMpr);
-
-    fi = QFileInfo("d:\\Проклятые Земли (Дополнение)\\Mods\\Фернео\\Maps\\zone1g-lmp.mob");
-    QUndoCommand* loadMob = new COpenCommand(m_ui->myGLWidget, fi, this);
-    m_undoStack->push(loadMob);
-
-//    QDir mobFolder("d:\\Проклятые Земли\\Maps"); // todo: find ico in app folder and via options/configs
-//    if(!mobFolder.exists())
-//    {
-//        ei::log(eLogWarning, "Mob folder not found");
-//    }
-
-//    QStringList icoFilter;
-//    icoFilter << "*.mob" << "*.MOB";
-//    QFileInfoList icoFiles = mobFolder.entryInfoList(icoFilter);
-//    int i(77);
-//    //foreach(QFileInfo filename, icoFiles)
-//    for(;i < icoFiles.size(); ++i)
-//    {
-//        ei::log(eLogDebug, QString("i: %2, %1 read").arg(icoFiles[i].fileName()).arg(i));
-//        m_ui->myGLWidget->loadMob(icoFiles[i]);
-//        m_ui->myGLWidget->unloadMob("");
-//    }
-
-
 
 
     ei::log(eLogDebug, "btn test end");

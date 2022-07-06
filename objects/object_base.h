@@ -42,6 +42,7 @@ public:
     const QVector3D& constitution() override final {return m_complection;}
     const QVector3D& complection() override {return m_complection;}
     void setConstitution(QVector3D& vec) override;
+    QJsonObject toJson() override;
 
 protected:
     void recalcFigure();

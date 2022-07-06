@@ -351,6 +351,39 @@ bool CUnit::updatePos(QVector3D &pos)
     return true;
 }
 
+QJsonObject CUnit::toJson()
+{
+    QJsonObject obj;
+    QJsonObject world_obj = CWorldObj::toJson();
+    obj.insert("World object", world_obj);
+    obj.insert("Prototype name", m_prototypeName);
+    obj.insert("Unit stats", m_stat->toJson());
+    const auto serializeStringList = [&obj](QVector<QString>& aList, QString name)
+    {
+        QJsonArray aitem;
+        for(auto& item : aList)
+            aitem.append(item);
+        obj.insert(name, aitem);
+    };
+
+    serializeStringList(m_aQuestItem, "Quest items");
+    serializeStringList(m_aQuickItem, "Quick items");
+    serializeStringList(m_aSpell, "Spells");
+    serializeStringList(m_aWeapon, "Weapons");
+    serializeStringList(m_aArmor, "Armors");
+    obj.insert("Is use mob stats?", m_bImport);
+    QJsonArray logicArr;
+    for(auto& logic: m_aLogic)
+    {
+        QJsonObject logicObj;
+        logic->serializeJson(logicObj);
+        logicArr.append(logicObj);
+    }
+
+    obj.insert("Logics", logicArr);
+    return obj;
+}
+
 CLogic::CLogic(CUnit* unit):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
     ,m_use(false)

@@ -239,3 +239,37 @@ QString CMagicTrap::getParam(EObjParam param)
     }
     return value;
 }
+
+QJsonObject CMagicTrap::toJson()
+{
+    QJsonObject obj;
+    QJsonObject world_obj = CWorldObj::toJson();
+    obj.insert("World object", world_obj);
+    obj.insert("Diplomacy group", QJsonValue::fromVariant(m_diplomacy));
+    obj.insert("Spell", m_spell);
+    QJsonArray aArea;
+    for(auto& area : m_aArea)
+    {
+        QJsonObject areaObj;
+        QJsonArray pos;
+        pos.append(QJsonValue::fromVariant(area.m_pointTo.y()));
+        pos.append(QJsonValue::fromVariant(area.m_pointTo.x()));
+        areaObj.insert("Point to", pos);
+        areaObj.insert("Radius", QJsonValue::fromVariant(area.m_radius));
+        aArea.append(areaObj);
+    }
+    obj.insert("Area", aArea);
+
+    QJsonArray aTarget;
+    for (auto& target: m_aTarget)
+    {
+        QJsonArray pos;
+        pos.append(QJsonValue::fromVariant(target.x()));
+        pos.append(QJsonValue::fromVariant(target.y()));
+        aTarget.append(pos);
+    }
+    obj.insert("Targets(Points?!)", aTarget);
+    obj.insert("Cast interval", QJsonValue::fromVariant(m_castInterval));
+    obj.insert("Is cast once?", m_bCastOnce);
+    return obj;
+}

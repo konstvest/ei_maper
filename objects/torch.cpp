@@ -132,3 +132,18 @@ QString CTorch::getParam(EObjParam param)
     }
     return value;
 }
+
+QJsonObject CTorch::toJson()
+{
+    QJsonObject obj;
+    QJsonObject world_obj = CWorldObj::toJson();
+    obj.insert("World object", world_obj);
+    obj.insert("Power", QJsonValue::fromVariant(m_power));
+    QJsonArray point;
+    point.append(QJsonValue::fromVariant(m_pointLink.x()));
+    point.append(QJsonValue::fromVariant(m_pointLink.y()));
+    point.append(QJsonValue::fromVariant(m_pointLink.z()));
+    obj.insert("Position", point);
+    obj.insert("Sound", m_sound);
+    return obj;
+}

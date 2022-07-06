@@ -182,6 +182,38 @@ void CObjectBase::setConstitution(QVector3D &vec)
     m_pMob->view()->land()->projectPosition(this);
 }
 
+QJsonObject CObjectBase::toJson()
+{
+    QJsonObject obj;
+    obj.insert("Model name", m_modelName);
+    obj.insert("Id", QJsonValue::fromVariant(m_mapID));
+    obj.insert("Node type", nodeType());
+    Q_ASSERT(m_pMob);
+    obj.insert("Parent mob", m_pMob->mobName() );
+    QJsonArray aComplection;
+    aComplection.append(QJsonValue::fromVariant(m_complection.x()));
+    aComplection.append(QJsonValue::fromVariant(m_complection.y()));
+    aComplection.append(QJsonValue::fromVariant(m_complection.z()));
+    obj.insert("Complection", aComplection);
+
+    QJsonArray pos;
+    pos.append(QJsonValue::fromVariant(m_position.x()));
+    pos.append(QJsonValue::fromVariant(m_position.y()));
+    pos.append(QJsonValue::fromVariant(m_position.z()));
+    obj.insert("Position", pos);
+
+    QJsonArray rot;
+    QMatrix3x3 mtrx3 = m_rotateMatrix.normalMatrix();
+    QQuaternion quat;
+    quat = QQuaternion::fromRotationMatrix(mtrx3);
+    rot.append(QJsonValue::fromVariant(quat.x()));
+    rot.append(QJsonValue::fromVariant(quat.y()));
+    rot.append(QJsonValue::fromVariant(quat.z()));
+    rot.append(QJsonValue::fromVariant(quat.scalar()));
+    obj.insert("Rotation", rot);
+    return obj;
+}
+
 void CObjectBase::setRot(const QQuaternion& quat)
 {
     CNode::setRot(quat);

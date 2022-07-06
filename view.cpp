@@ -36,6 +36,7 @@ CView::CView(QWidget* parent):
     , m_pSettings(nullptr)
     , m_pProgress(nullptr)
     , m_operationType(EOperationTypeObjects)
+    , m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -942,7 +943,8 @@ void CView::scaleTo(QVector3D &scale)
 void CView::deleteSelectedNodes()
 {
     QVector<CNode*> aNode;
-    for(const auto& mob : m_aMob)
+    CMob* mob = nullptr;
+    foreach(mob, m_aMob)
     {
         aNode.clear();
         for (auto& node : mob->nodes())
@@ -956,4 +958,27 @@ void CView::deleteSelectedNodes()
         }
     }
     viewParameters();
+}
+
+void CView::selectedObjectToClipboardBuffer()
+{
+    CNode* pNode;
+
+    QJsonArray arrObj;
+    for(auto& mob: m_aMob)
+        foreach(pNode, mob->nodes())
+            if (pNode->nodeState() & ENodeState::eSelect)
+                arrObj.append(pNode->toJson());
+
+    QJsonDocument doc(arrObj);
+
+    if (!m_clipboard_buffer_file.open(QIODevice::WriteOnly))
+    {
+        Q_ASSERT("Couldn't open option file." && false);
+    }
+    else
+    {
+        m_clipboard_buffer_file.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
+        m_clipboard_buffer_file.close();
+    }
 }

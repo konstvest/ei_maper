@@ -43,34 +43,12 @@ void CView::keyPressEvent(QKeyEvent* event)
             }
         break;
     }
-    case Qt::Key_C:
+    case Qt::Key_K:
         m_cam->reset();
         break;
     case Qt::Key_O:
     {
         viewParameters();
-        break;
-    }
-    case Qt::Key_I:
-    {
-        CNode* pNode;
-
-        QJsonArray arrObj;
-        for(auto& mob: m_aMob)
-            foreach(pNode, mob->nodes())
-                if (pNode->nodeState() & ENodeState::eSelect)
-                    arrObj.append(pNode->toJson());
-
-//                    QClipboard *clipboard = QGuiApplication::clipboard();
-//                    clipboard->setText(QString(doc.toJson(QJsonDocument::JsonFormat::Indented)));
-        QJsonDocument doc(arrObj);
-        QFile clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"));
-        if (!clipboard_buffer_file.open(QIODevice::WriteOnly))
-        {
-            Q_ASSERT("Couldn't open option file." && false);
-            break;
-        }
-        clipboard_buffer_file.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
         break;
     }
     default:

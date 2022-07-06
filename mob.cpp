@@ -571,6 +571,7 @@ void CMob::serializeJson(const QFileInfo& file)
         return;
     }
     f.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
+    f.close();
 }
 
 void CMob::serializeMob(QByteArray& data)

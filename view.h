@@ -66,6 +66,7 @@ public:
     void rotateTo(QVector3D& rot);
     void scaleTo(QVector3D& scale);
     void deleteSelectedNodes();
+    void selectedObjectToClipboardBuffer();
 
 protected:
     void initializeGL();
@@ -120,6 +121,7 @@ private:
     QMap<CNode*, QVector3D> m_operationBackup;
     EOperationType m_operationType;
     QSharedPointer<CSelectFrame> m_selectFrame;
+    QFile m_clipboard_buffer_file;
 };
 
 #endif // MYGLWIDGET_H

@@ -8,6 +8,7 @@ class CWorldObj : public CObjectBase
 {
 public:
     CWorldObj();
+    CWorldObj(QJsonObject data);
     ENodeType nodeType() override {return ENodeType::eWorldObject; }
     uint deserialize(util::CMobParser& parser) override;
     QString textureName() override {return m_primaryTexture.toLower();}

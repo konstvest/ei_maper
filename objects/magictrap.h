@@ -7,6 +7,7 @@ class CMagicTrap : public CWorldObj
 {
 public:
     CMagicTrap();
+    CMagicTrap(QJsonObject data);
     ENodeType nodeType() override {return ENodeType::eMagicTrap; }
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject& obj) override;

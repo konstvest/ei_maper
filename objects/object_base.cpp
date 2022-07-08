@@ -16,6 +16,36 @@ CObjectBase::CObjectBase():
     m_bodyParts.clear();
 }
 
+CObjectBase::CObjectBase(QJsonObject data):
+    m_pMob(nullptr)
+    ,m_texture(nullptr)
+    ,m_pFigure(nullptr)
+{
+    m_modelName = data["Model name"].toString();
+    //m_mapID = data["Id"].toVariant().toUInt(); //TODO: generate mapID
+    m_mapID = 333777;
+
+    m_name = data["Map name"].toString();
+    m_comment = data["Comments"].toString();
+
+    QJsonArray arrComplection = data["Complection"].toArray();
+    if (arrComplection.size() == 3)
+        m_complection = QVector3D(arrComplection[0].toVariant().toFloat(), arrComplection[1].toVariant().toFloat(), arrComplection[2].toVariant().toFloat());
+
+    //TODO: generate position (use mouse diff if object mmore than one
+    QJsonArray arrPos = data["Position"].toArray();
+    if (arrPos.size() == 3)
+        m_position = QVector3D(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat(), arrPos[2].toVariant().toFloat());
+
+    QJsonArray arrQuot = data["Rotation"].toArray();
+    if (arrQuot.size() == 4)
+    {
+        QVector4D rot(arrQuot[0].toVariant().toFloat(), arrQuot[1].toVariant().toFloat(), arrQuot[2].toVariant().toFloat(), arrQuot[3].toVariant().toFloat());
+        CNode::setRot(rot);
+    }
+
+}
+
 CObjectBase::CObjectBase(CNode* node):
     CNode(node)
     ,m_texture(nullptr)
@@ -43,21 +73,13 @@ void CObjectBase::loadFigure()
         ei::log(eLogError, "Updating figure failed, Mob file empty");
         return;
     }
-    updateFigure(m_pMob->view()->objList()->getFigure(m_modelName));
+    updateFigure(CObjectList::getInstance()->getFigure(m_modelName));
 }
 
 void CObjectBase::loadTexture()
 {
-    if(!m_pMob)
-    {
-        ei::log(eLogError, "Updating texture failed, Mob file empty");
-        return;
-    }
     QString texName("default0");
-    auto a = m_pMob->view()->texList()->texture(texName);
-    if(nullptr == a)
-        int d(777);
-    setTexture(m_pMob->view()->texList()->texture(texName));
+    setTexture(CTextureList::getInstance()->texture(texName));
 }
 
 void CObjectBase::setTexture(QOpenGLTexture* texture)
@@ -188,6 +210,10 @@ QJsonObject CObjectBase::toJson()
     obj.insert("Model name", m_modelName);
     obj.insert("Id", QJsonValue::fromVariant(m_mapID));
     obj.insert("Node type", nodeType());
+
+    obj.insert("Map name", m_name);
+    obj.insert("Comments", m_comment);
+
     Q_ASSERT(m_pMob);
     obj.insert("Parent mob", m_pMob->mobName() );
     QJsonArray aComplection;

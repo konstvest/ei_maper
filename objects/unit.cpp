@@ -12,6 +12,40 @@ CUnit::CUnit()
 {
 }
 
+CUnit::CUnit(QJsonObject data, CMob* pMob):
+    CWorldObj(data["World object"].toObject())
+{
+    m_pMob = pMob;
+    m_prototypeName = data["Prototype name"].toString();
+    m_stat.reset(new SUnitStat(data["Unit stats"].toObject()));
+    const auto deSerializeStringList = [&data](QVector<QString>& aList, QString name)
+    {
+        QJsonArray aItem = data[name].toArray();
+        for(auto it=aItem.begin(); it<aItem.end(); ++it)
+        {
+            aList.append(it->toString());
+        }
+    };
+
+    deSerializeStringList(m_aQuestItem, "Quest items");
+    deSerializeStringList(m_aQuickItem, "Quick items");
+    deSerializeStringList(m_aSpell, "Spells");
+    deSerializeStringList(m_aWeapon, "Weapons");
+    deSerializeStringList(m_aArmor, "Armors");
+    m_bImport = data["Is use mob stats?"].toBool();
+    QJsonArray arrLogic = data["Logics"].toArray();
+    if(arrLogic.size() == 5)
+    {
+        for(auto it=arrLogic.begin(); it<arrLogic.end(); ++it)
+        {
+            CLogic* pLogic = new CLogic(this);
+            pLogic->deSerializeJson(it->toObject());
+            m_aLogic.append(pLogic);
+        }
+    }
+
+}
+
 CUnit::~CUnit()
 {
     for(auto& logic: m_aLogic)
@@ -42,7 +76,7 @@ void CUnit::updateFigure(ei::CFigure* fig)
     CObjectBase::updateFigure(fig);
     for(auto& logic: m_aLogic)
     {
-        logic->updatePointFigure(m_pMob->view()->objList()->getFigure(pointName));
+        logic->updatePointFigure(CObjectList::getInstance()->getFigure(pointName));
     }
 }
 
@@ -50,7 +84,7 @@ void CUnit::setTexture(QOpenGLTexture* texture)
 {
     CObjectBase::setTexture(texture);
     for(auto& logic: m_aLogic)
-        logic->setPointTexture(m_pMob->view()->texList()->textureDefault()); //todo: set looking point and guard point meaningfull textures
+        logic->setPointTexture(CTextureList::getInstance()->textureDefault()); //todo: set looking point and guard point meaningfull textures
 }
 
 uint CUnit::deserialize(util::CMobParser& parser)
@@ -683,6 +717,34 @@ void CLogic::serializeJson(QJsonObject& obj)
     obj.insert("Patrol Points", ppArr);
 }
 
+void CLogic::deSerializeJson(QJsonObject data)
+{
+    m_bCyclic = data["Is cyclyc?"].toBool();
+    m_model = data["Model"].toVariant().toUInt();
+    m_guardRadius = data["Guard raidus"].toVariant().toFloat();
+
+    QJsonArray aPlacement = data["Guard placement"].toArray();
+    if(aPlacement.size()==3)
+    m_guardPlacement = QVector3D(aPlacement[0].toVariant().toFloat(), aPlacement[1].toVariant().toFloat(), aPlacement[2].toVariant().toFloat());
+
+    m_numAlarm = (char)data["Alarm number"].toInt();
+    m_use = (char)data["Is logic use?"].toInt();
+    m_wait = data["Wait"].toVariant().toFloat();
+    m_alarmCondition = (char)data["Alarm condition"].toInt();
+    m_help = data["Help radius"].toVariant().toFloat();
+    m_alwaysActive = (char)data["Always active"].toInt();
+    m_agressionMode = (char)data["Aggression mode"].toInt();
+
+    QJsonArray arrPP = data["Patrol Points"].toArray();
+    for(auto it=arrPP.begin(); it<arrPP.end(); ++it)
+    {
+        CPatrolPoint* place = new CPatrolPoint(); //need unit parent?
+        place->deSerializeJson(it->toObject());
+        m_aPatrolPt.append(place);
+    }
+    update();
+}
+
 uint CLogic::serialize(util::CMobParser& parser)
 {
     uint writeByte(0);
@@ -810,7 +872,7 @@ void CPatrolPoint::updateFigure(ei::CFigure* fig)
     CObjectBase::updateFigure(fig);
     //get view model
     QString model("viewPoint");
-    auto lookFig =  m_pMob->view()->objList()->getFigure(model);
+    auto lookFig = CObjectList::getInstance()->getFigure(model);
     for(auto& lp : m_aLookPt)
     {
         lp->updateFigure(lookFig);
@@ -912,6 +974,25 @@ void CPatrolPoint::serializeJson(QJsonObject &obj)
     obj.insert("Looking points", lpArr);
 }
 
+void CPatrolPoint::deSerializeJson(QJsonObject data)
+{
+    QJsonArray arrPos = data["Position"].toArray();
+    if(arrPos.size()==3)
+    {
+        QVector3D pos(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat(), arrPos[2].toVariant().toFloat());
+        setPos(pos);
+        setDrawPosition(pos);
+    }
+    QJsonArray arrLP = data["Looking points"].toArray();
+    for(auto it=arrLP.begin(); it<arrLP.end(); ++it)
+    {
+        CLookPoint* pLook = new CLookPoint();
+        pLook->attachMob(m_pMob);
+        pLook->deSerializeJson(it->toObject());
+        m_aLookPt.append(pLook);
+    }
+}
+
 uint CPatrolPoint::serialize(util::CMobParser &parser)
 {
     uint writeByte(0);
@@ -982,6 +1063,20 @@ void CLookPoint::serializeJson(QJsonObject &obj)
     posArr.append(QJsonValue::fromVariant(position().y()));
     posArr.append(QJsonValue::fromVariant(position().z()));
     obj.insert("Position", posArr);
+}
+
+void CLookPoint::deSerializeJson(QJsonObject data)
+{
+    m_wait = data["Wait"].toVariant().toUInt();
+    m_turnSpeed = data["Turn speed"].toVariant().toUInt();
+    m_flag = (char)data["Point flag"].toInt();
+    QJsonArray arrPos = data["Position"].toArray();
+    if(arrPos.size()==3)
+    {
+        QVector3D pos(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat(), arrPos[2].toVariant().toFloat());
+        setPos(pos);
+        setDrawPosition(pos);
+    }
 }
 
 uint CLookPoint::serialize(util::CMobParser &parser)

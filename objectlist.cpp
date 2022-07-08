@@ -6,6 +6,15 @@
 #include "view.h"
 #include "settings.h"
 
+CObjectList* CObjectList::m_pObjectContainer = nullptr;
+
+CObjectList *CObjectList::getInstance()
+{
+    if(nullptr == m_pObjectContainer)
+        m_pObjectContainer = new CObjectList();
+    return m_pObjectContainer;
+}
+
 CObjectList::CObjectList():
     m_pSettings(nullptr)
 {
@@ -23,8 +32,9 @@ CObjectList::CObjectList():
 
 CObjectList::~CObjectList()
 {
-    for (auto fig: m_aFigure)
-        fig->~CFigure();
+    ei::CFigure* pFig = nullptr;
+    foreach (pFig, m_aFigure)
+        pFig->~CFigure();
 }
 
 

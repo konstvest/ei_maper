@@ -6,6 +6,23 @@ CSound::CSound()
 
 }
 
+CSound::CSound(QJsonObject data):
+    CObjectBase(data["Base object"].toObject())
+{
+    m_range = data["Range 1(?1)"].toVariant().toUInt();
+    m_range2 = data["Range 2(?!)"].toVariant().toUInt();
+    m_min = data["Min distance"].toVariant().toUInt();
+    m_max = data["Max distance"].toVariant().toUInt();
+
+    QJsonArray aRes = data["Resources"].toArray();
+    for(auto it=aRes.begin(); it<aRes.end();++it)
+    {
+        m_aResName.append(it->toString());
+    }
+    m_bAmbient = data["Is ambient?"].toBool();
+    m_bMusic = data["Is Music?"].toBool();
+}
+
 uint CSound::deserialize(util::CMobParser &parser)
 {
     uint readByte(0);

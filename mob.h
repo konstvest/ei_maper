@@ -64,6 +64,7 @@ public:
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
+    CNode* createNode(ENodeType type, QJsonObject data);
 
 private:
     void init();

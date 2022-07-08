@@ -12,6 +12,26 @@ CWorldObj::CWorldObj()
 {
 }
 
+CWorldObj::CWorldObj(QJsonObject data):
+    CObjectBase(data["Base object"].toObject())
+{
+    m_type = (uint)data["Type"].toVariant().toUInt();
+    m_primaryTexture = data["Primary texture"].toString();
+    m_secondaryTexture = data["Secondary texture"].toString();
+
+    QJsonArray aBodyParts = data["Object parts"].toArray();
+    for(auto it = aBodyParts.begin(); it < aBodyParts.end(); ++it)
+    {
+        m_bodyParts.append(it->toString());
+    }
+    m_parentTemplate = data["Object template"].toString();
+    m_player = (char)data["Player(dimpomacy group)"].toInt();
+    m_parentID = data["Parent Id"].toVariant().toUInt();
+    m_bUseInScript = data["Is used in script?"].toBool();
+    m_bShadow = data["Is shadow?"].toBool();
+    m_questInfo = data["Quest info"].toString();
+}
+
 uint CWorldObj::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
@@ -136,14 +156,8 @@ uint CWorldObj::deserialize(util::CMobParser& parser)
 
 void CWorldObj::loadTexture()
 {
-    if(!m_pMob)
-    {
-        ei::log(eLogError, "Updating texture failed, Mob file empty");
-        return;
-    }
     QString texName(m_primaryTexture.toLower());
-    //auto a = m_pMob->view()->texList()->texture(texName);
-    setTexture(m_pMob->view()->texList()->texture(texName));
+    setTexture(CTextureList::getInstance()->texture(texName));
     //todo: load texture for logic
 }
 
@@ -313,7 +327,7 @@ void CWorldObj::applyParam(EObjParam param, const QString &value)
     {
         m_modelName = value;
         m_bodyParts.clear();
-        auto pFig = m_pMob->view()->objList()->getFigure(m_modelName);
+        auto pFig = CObjectList::getInstance()->getFigure(m_modelName);
         CObjectBase::updateFigure(pFig);
         break;
     }
@@ -326,7 +340,7 @@ void CWorldObj::applyParam(EObjParam param, const QString &value)
     case eObjParam_PRIM_TXTR:
     {
         m_primaryTexture = value;
-        setTexture(m_pMob->view()->texList()->texture(m_primaryTexture));
+        setTexture(CTextureList::getInstance()->texture(m_primaryTexture));
         break;
     }
     case eObjParam_SEC_TXTR:
@@ -486,9 +500,6 @@ QJsonObject CWorldObj::toJson()
     QJsonObject base_obj = CObjectBase::toJson();
     obj.insert("Base object", base_obj);
     obj.insert("Type", QJsonValue::fromVariant(m_type));
-    //m_mapID
-    //m_name
-    //m_modelName
     obj.insert("Primary texture", m_primaryTexture);
     obj.insert("Secondary texture", m_secondaryTexture);
 

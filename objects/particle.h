@@ -6,6 +6,7 @@ class CParticle : public CObjectBase
 {
 public:
     CParticle();
+    CParticle(QJsonObject data);
     ENodeType nodeType() override {return ENodeType::eParticle; }
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject& obj) override;

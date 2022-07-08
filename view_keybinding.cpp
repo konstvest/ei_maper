@@ -51,6 +51,12 @@ void CView::keyPressEvent(QKeyEvent* event)
         viewParameters();
         break;
     }
+    case Qt::Key_I:
+    {
+
+
+        break;
+    }
     default:
     {
         m_pOp->keyPress(event);

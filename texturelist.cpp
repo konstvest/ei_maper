@@ -6,6 +6,14 @@
 #include "color.h"
 #include "settings.h"
 
+CTextureList* CTextureList::m_pTextureContainer = nullptr;
+
+CTextureList *CTextureList::getInstance()
+{
+    if(nullptr == m_pTextureContainer)
+        m_pTextureContainer = new CTextureList();
+    return m_pTextureContainer;
+}
 
 CTextureList::CTextureList():
     m_pSettings(nullptr)

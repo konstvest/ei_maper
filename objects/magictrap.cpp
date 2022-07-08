@@ -7,6 +7,37 @@ CMagicTrap::CMagicTrap()
 
 }
 
+CMagicTrap::CMagicTrap(QJsonObject data):
+    CWorldObj(data["World object"].toObject())
+{
+    m_diplomacy = data["Diplomacy group"].toVariant().toUInt();
+    m_spell = data["Spell"].toString();
+    QJsonArray aArea = data["Area"].toArray();
+    for(auto it=aArea.begin(); it<aArea.end(); ++it)
+    {
+        QJsonObject obj = it->toObject();
+        SArea area;
+        area.m_radius = obj["Radius"].toVariant().toUInt();
+
+        QJsonArray arrPos = data["Point to"].toArray();
+        if (arrPos.size() == 2)
+            area.m_pointTo = QVector2D(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat());
+
+        m_aArea.append(area);
+    }
+
+
+    QJsonArray aTarget = data["Targets(Points?!)"].toArray();
+    for (auto it=aTarget.begin(); it<aTarget.end(); ++it)
+    {
+        QJsonArray aPos = it->toArray();
+        m_aTarget.append(QVector2D(aPos[0].toVariant().toFloat(), aPos[1].toVariant().toFloat()));
+    }
+
+    m_castInterval = data["Cast interval"].toVariant().toUInt();
+    m_bCastOnce = data["Is cast once?"].toBool();
+}
+
 uint CMagicTrap::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);

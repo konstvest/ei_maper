@@ -6,6 +6,17 @@ CTorch::CTorch()
 
 }
 
+CTorch::CTorch(QJsonObject data):
+    CWorldObj(data["World object"].toObject())
+{
+    m_power = data["Power"].toVariant().toFloat();
+    QJsonArray arrPoint = data["Position"].toArray();
+    if(arrPoint.size()==3)
+        m_pointLink = QVector3D(arrPoint[0].toVariant().toFloat(), arrPoint[1].toVariant().toFloat(), arrPoint[2].toVariant().toFloat());
+
+    m_sound = data["Sound"].toString();
+}
+
 uint CTorch::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);

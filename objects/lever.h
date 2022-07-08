@@ -6,6 +6,7 @@ class CLever : public CWorldObj
 {
 public:
     CLever();
+    CLever(QJsonObject data);
     ~CLever() override {}
     ENodeType nodeType() override {return ENodeType::eLever; }
     uint deserialize(util::CMobParser& parser) override;

@@ -332,9 +332,9 @@ void CMob::updateObjects()
         aTextureName.insert(node->textureName());
     }
     //preload figures
-    m_view->objList()->loadFigures(aModelName);
+    CObjectList::getInstance()->loadFigures(aModelName);
     m_pProgress->update(15);
-    m_view->texList()->loadTexture(aTextureName);
+    CTextureList::getInstance()->loadTexture(aTextureName);
     m_pProgress->update(15);
     QString texName;
     double step = 21/double(m_aNode.size());
@@ -366,6 +366,71 @@ void CMob::delNodes()
 QString CMob::mobName()
 {
     return m_filePath.fileName();
+}
+
+CNode* CMob::createNode(ENodeType type, QJsonObject data)
+{
+    CNode* pNode = nullptr;
+    switch (type)
+    {
+    case ENodeType::eUnit:
+    {
+        pNode = new CUnit(data, this);
+        break;
+    }
+    case ENodeType::eTorch:
+    {
+        pNode = new CTorch(data);
+        break;
+    }
+    case ENodeType::eMagicTrap:
+    {
+        pNode = new CMagicTrap(data);
+        break;
+    }
+    case ENodeType::eLever:
+    {
+        pNode = new CLever(data);
+        break;
+    }
+    case ENodeType::eLight:
+    {
+        pNode = new CLight(data);
+        break;
+    }
+    case ENodeType::eSound:
+    {
+        pNode = new CSound(data);
+        break;
+    }
+    case ENodeType::eParticle:
+    {
+        pNode = new CParticle(data);
+        break;
+    }
+    case ENodeType::eWorldObject:
+    {
+        pNode = new CWorldObj(data);
+        break;
+    }
+    default:
+    {
+        Q_ASSERT("unknown node type" && false);
+        break;
+    }
+    }
+
+    if(nullptr == pNode)
+    {
+        Q_ASSERT("Failed to create new node" && false);
+    }
+    pNode->attachMob(this);
+    //todo: create operation stack for this op
+    addNode(pNode);
+    pNode->loadFigure();
+    pNode->loadTexture();
+
+    return pNode;
 }
 
 void CMob::readMob(QFileInfo &path)

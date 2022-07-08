@@ -6,6 +6,26 @@ CLever::CLever()
 
 }
 
+CLever::CLever(QJsonObject data):
+    CWorldObj(data["World object"].toObject())
+{
+
+    m_curState = (char)data["State"].toInt();
+    m_totalState = (char)data["State numbers"].toInt();
+    m_bCycled = data["Is cycled?"].toBool();
+    m_bCastOnce = data["Is cast once?"].toBool();
+    QJsonArray aStat = data["Science stats"].toArray();
+    if (aStat.size() == 3)
+    {
+        m_typeOpen = aStat[0].toVariant().toUInt();
+        m_keyID = aStat[0].toVariant().toUInt();
+        m_handsSleight = aStat[0].toVariant().toUInt();
+    }
+
+    m_bDoor = data["Is door?"].toBool();
+    m_bRecalcGraph = data["Is recalculate graph?"].toBool();
+}
+
 uint CLever::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);

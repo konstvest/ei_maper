@@ -31,8 +31,6 @@ class CLogic;
 CView::CView(QWidget* parent):
     QGLWidget (parent)
     , m_landscape(nullptr)
-    , m_objList(nullptr)
-    , m_textureList(nullptr)
     , m_pSettings(nullptr)
     , m_pProgress(nullptr)
     , m_operationType(EOperationTypeObjects)
@@ -64,17 +62,6 @@ CView::~CView()
         delete mob;
 }
 
-CTextureList* CView::texList()
-{
-    Q_ASSERT(m_textureList); // for correctly update textures
-    return m_textureList.get();
-}
-CObjectList* CView::objList()
-{
-    Q_ASSERT(m_objList); // for correctly update figures
-    return m_objList.get();
-}
-
 
 void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord) //todo: use signal\slots
 {
@@ -86,8 +73,7 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     m_pUndoStack = pStack;
 
     //init object list
-    m_objList.reset(new CObjectList);
-    m_objList->attachSettings(m_pSettings);
+    CObjectList::getInstance()->attachSettings(m_pSettings);
     m_pProgress = pProgress;
     m_pOp.reset(new COperation(new CSelect(this)));
     m_pOp->attachCam(m_cam.get());
@@ -249,11 +235,7 @@ void CView::loadLandscape(QFileInfo& filePath)
         //LOG_FATAL("ahtung"); //test logging critial error
         return;
     }
-    if(m_textureList.isNull())
-    {
-        m_textureList.reset(new CTextureList);
-        m_textureList->attachSettings(m_pSettings);
-    }
+    CTextureList::getInstance()->attachSettings(m_pSettings);
 
     ei::log(eLogInfo, "Start read landscape");
     m_landscape = new CLandscape;
@@ -970,7 +952,10 @@ void CView::selectedObjectToClipboardBuffer()
             if (pNode->nodeState() & ENodeState::eSelect)
                 arrObj.append(pNode->toJson());
 
-    QJsonDocument doc(arrObj);
+    QJsonObject obj;
+    obj.insert("Data", arrObj);
+    obj.insert("Magic", 1);
+    QJsonDocument doc(obj);
 
     if (!m_clipboard_buffer_file.open(QIODevice::WriteOnly))
     {
@@ -980,5 +965,72 @@ void CView::selectedObjectToClipboardBuffer()
     {
         m_clipboard_buffer_file.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
         m_clipboard_buffer_file.close();
+    }
+}
+
+void CView::clipboradObjectsToScene()
+{
+    if (!m_clipboard_buffer_file.open(QIODevice::ReadOnly))
+    {
+        Q_ASSERT("Couldn't open option file." && false);
+        return;
+    }
+    if (m_clipboard_buffer_file.size() == 0)
+    {
+        qDebug() << "empty copypasteBuffer file";
+        return;
+    }
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(m_clipboard_buffer_file.readAll(), &parseError);
+    m_clipboard_buffer_file.close();
+    //todo: check if has no error
+    QJsonObject obj = doc.object();
+    if (obj["Magic"].toInt() != 1)
+        return;
+
+    auto array = obj["Data"].toArray();
+    for(auto it = array.begin(); it < array.end(); ++it)
+    {
+        auto obj = it->toObject();
+        if (obj.find("World object") != obj.end())
+        {
+            obj = obj["World object"].toObject();
+        }
+        auto base = obj["Base object"].toObject();
+        ENodeType type = (ENodeType)base["Node type"].toInt(0);
+        if (type == ENodeType::eUnknown)
+        {
+            qDebug() << "cant recognize type of obj";
+            continue;
+        }
+        uint freeId(1000);
+        auto parentName = base["Parent mob"].toString();
+        CMob* pMob = nullptr;
+        foreach(pMob, m_aMob)
+        {
+            if (pMob->mobName() == parentName)
+            {
+                auto createdNode = pMob->createNode(type, it->toObject());
+                if (nullptr == createdNode)
+                    continue;
+                QVector<uint> arrId;
+                auto& nodes = pMob->nodes();
+                arrId.resize(nodes.size());
+
+                for (int i(0); i<nodes.size(); ++i)
+                    arrId[i] = nodes[i]->mapId();
+
+                for (; freeId<100000; ++freeId)
+                {
+                    //TODO: find more suitable ID from mob ranges
+                    if(!arrId.contains(freeId))
+                    {
+                        createdNode->setMapId(freeId);
+                        break;
+                    }
+                }
+            }
+        }
+
     }
 }

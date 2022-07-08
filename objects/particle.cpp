@@ -5,6 +5,13 @@ CParticle::CParticle()
 
 }
 
+CParticle::CParticle(QJsonObject data):
+    CObjectBase(data["Base object"].toObject())
+{
+    m_kind = data["Type"].toVariant().toUInt();
+    m_scale = data["Scale"].toVariant().toFloat();
+}
+
 uint CParticle::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);

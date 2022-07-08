@@ -91,7 +91,7 @@ void CLandscape::readMap(QFileInfo& path)
     QString filePath = path.filePath();
     QString texname = path.baseName();
     int texCount;
-    m_texture = m_parentView->texList()->buildLandTex(texname, texCount);
+    m_texture = CTextureList::getInstance()->buildLandTex(texname, texCount);
 
     ResFile map(filePath);
     QMap<QString, QByteArray> aTmp =  map.bufferOfFiles();  // map contains DIfferentCaseName

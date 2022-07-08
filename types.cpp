@@ -4,10 +4,64 @@
 #include <QJsonArray>
 #include <QVariant>
 
+SUnitStat::SUnitStat(QJsonObject data)
+{
+    HP = data["HP"].toInt();
+    MaxHP = data["MaxHP"].toInt();
+    MP = data["MP"].toInt();
+    MaxMP = data["MaxMP"].toInt();
+    move = data["move"].toVariant().toFloat();
+    actions = data["actions"].toVariant().toFloat();
+    SpeedRun = data["SpeedRun"].toVariant().toFloat();
+    SpeedWalk = data["SpeedWalk"].toVariant().toFloat();
+    SpeedCrouch = data["SpeedCrouch"].toVariant().toFloat();
+    SpeedCrawl = data["SpeedCrawl"].toVariant().toFloat();
+    VisionArc = data["VisionArc"].toVariant().toFloat();
+    SkillsPeripherial = data["SkillsPeripherial"].toVariant().toFloat();
+    PeripherialArc = data["PeripherialArc"].toVariant().toFloat();
+    AttackDistance = data["AttackDistance"].toVariant().toFloat();
+    AIClassStay = (unsigned char)data["AI Class Stay"].toVariant().toInt();
+    AIClassLay = (unsigned char)data[" AIClassLay"].toVariant().toInt();
+    empty1 = (short)data["empty1"].toVariant().toInt();
+    range = data["range"].toVariant().toFloat();
+    attack = data["attack"].toVariant().toFloat();
+    defence = data["defence"].toVariant().toFloat();
+    weight= data["weight"].toVariant().toFloat();
+    damageMin = data["damageMin"].toVariant().toFloat();
+    damageRange = data["damageRange"].toVariant().toFloat();
+    aImpalling = data["aImpalling"].toVariant().toFloat();
+    aSlashing = data["aSlashing"].toVariant().toFloat();
+    aCrushing = data["aCrushing"].toVariant().toFloat();
+    aThermal = data["aThermal"].toVariant().toFloat();
+    aChemical= data["aChemical"].toVariant().toFloat();
+    aElectrical = data["aElectrical"].toVariant().toFloat();
+    aGeneral = data["aGeneral"].toVariant().toFloat();
+    absorption = data["absorption"].toInt();
+    Sight = data["Sight"].toVariant().toFloat();
+    NightSight = data["NightSight"].toVariant().toFloat();
+    SenseLife = data["SenseLife"].toVariant().toFloat();
+    SenseHear = data["SenseHear"].toVariant().toFloat();
+    SenseSmell = data["SenseSmell"].toVariant().toFloat();
+    SenseTracking = data["SenseTracking"].toVariant().toFloat();
+    pSight = data["pSight"].toVariant().toFloat();
+    pNightSight = data["pNightSight"].toVariant().toFloat();
+    pSenseLife = data["pSenseLife"].toVariant().toFloat();
+    pSenseHear = data["pSenseHear"].toVariant().toFloat();
+    pSenseSmell = data["pSenseSmell"].toVariant().toFloat();
+    pSenseTracking = data["pSenseTracking"].toVariant().toFloat();
+    ManualSkill_SCIENCE = (unsigned char)data["ManualSkill_SCIENCE"].toVariant().toInt();
+    ManualSkill_STEALING = (unsigned char)data["ManualSkill_STEALING"].toVariant().toInt();
+    ManualSkill_TAME = (unsigned char)data["ManualSkill_TAME"].toVariant().toInt();
+    MagicalSkill_1 = (unsigned char)data["MagicalSkill_1"].toVariant().toInt();
+    MagicalSkill_2 = (unsigned char)data["MagicalSkill_2"].toVariant().toInt();
+    MagicalSkill_3 = (unsigned char)data["MagicalSkill_3"].toVariant().toInt();
+    empty2 = (unsigned char)data["empty2"].toVariant().toInt();
+    empty3 = (unsigned char)data["empty3"].toVariant().toInt();
+}
+
 QJsonObject SUnitStat::toJson()
 {
     QJsonObject obj;
-
     obj.insert("HP", HP);
     obj.insert("MaxHP", MaxHP);
     obj.insert("MP", MP);

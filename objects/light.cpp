@@ -6,6 +6,16 @@ CLight::CLight()
 
 }
 
+CLight::CLight(QJsonObject data):
+    CObjectBase(data["Base object"].toObject())
+{
+    m_range = data["Range"].toVariant().toFloat();
+    m_bShadow = data["Is shadow?"].toBool();
+    QJsonArray aColor = data["Color"].toArray();
+    if (aColor.size()==3)
+        m_color = QVector3D(aColor[0].toVariant().toFloat(), aColor[1].toVariant().toFloat(), aColor[2].toVariant().toFloat());
+}
+
 uint CLight::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);

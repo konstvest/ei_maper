@@ -123,6 +123,27 @@ void CMobParameters::updateWindow()
     }
     ui->plainTextEdit->clear();
     ui->plainTextEdit->setPlainText(m_pCurMob->script());
+
+    //diplomacy
+    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    QVector<QVector<uint>> dipTable = m_pCurMob->diplomacyField();
+    if(!dipName.isEmpty() && !dipTable.isEmpty())
+    {
+        Q_ASSERT(dipName.size() == 32);
+        for (int i(0); i < dipTable.size(); ++i)
+        {
+            for (int j(0); j < dipTable[i].size(); ++j)
+            {
+                auto pCell = m_aCell[i*32 + j];
+                pCell->setText(QString::number(dipTable[i][j]));
+                pCell->setFlags(pCell->flags() & ~Qt::ItemIsEditable);
+            }
+        }
+    }
+
+
+
+
 }
 
 void CMobParameters::onChooseMob(const QString &name)
@@ -158,10 +179,6 @@ void CMobParameters::on_diplomacyButton_clicked()
         QMessageBox::information(nullptr, "Info", "This mob has no diplomacy table");
         return;
     }
-    //QTableWidget* pTable = new QTableWidget(32, 32);
-
-    //ONLY parent mob has dip group
-    Q_ASSERT(dipName.size() == 32);
 
     //setup view
 
@@ -171,19 +188,6 @@ void CMobParameters::on_diplomacyButton_clicked()
 
     m_pTable->setHorizontalHeader(headerView); //set our custom headerview
     m_pTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    for (int i(0); i < dipTable.size(); ++i)
-    {
-        for (int j(0); j < dipTable[i].size(); ++j)
-        {
-            //auto pCell = new QTableWidgetItem; //memory leaks here, again. and low performance
-            auto pCell = m_aCell[i*32 + j];
-            pCell->setText(QString::number(dipTable[i][j]));
-            pCell->setFlags(pCell->flags() & ~Qt::ItemIsEditable);
-            //m_pTable->setItem(i, j, pCell.get());
-            //create tablewidgets with click() action. action will change relation between players
-        }
-    }
-
     m_pTable->setVerticalHeaderLabels(dipName);
     m_pTable->setHorizontalHeaderLabels(dipName);
     m_pTable->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);

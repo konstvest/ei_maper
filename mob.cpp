@@ -461,6 +461,7 @@ CNode* CMob::createNode(QJsonObject data)
                 break;
             }
         }
+        pNode->setState(ENodeState::eSelect);
     }
 
     return pNode;
@@ -878,7 +879,10 @@ void CMob::clearSelect()
 {
     CNode* pNode;
     foreach (pNode, m_aNode)
-        pNode->setState(ENodeState::eDraw);
+    {
+        if(pNode->nodeState() == ENodeState::eSelect)
+            pNode->setState(ENodeState::eDraw);
+    }
 }
 
 void CMob::saveAs(const QFileInfo& path)

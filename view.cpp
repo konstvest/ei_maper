@@ -991,9 +991,16 @@ void CView::clipboradObjectsToScene()
         return;
 
     auto array = obj["Data"].toArray();
+    if(array.isEmpty())
+    {
+        ei::log(eLogInfo, "clipboard empty");
+        return;
+    }
+
+    CMob* pMob = m_aMob.front(); //TODO use 'active mob' instead first
+    pMob->clearSelect();
     for(auto it = array.begin(); it < array.end(); ++it)
     {
-        CMob* pMob = m_aMob.front(); //TODO use 'active mob' instead first
         CCreateNodeCommand* pUndo = new CCreateNodeCommand(pMob, it->toObject());
         m_pUndoStack->push(pUndo);
     }

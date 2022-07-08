@@ -1,6 +1,12 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QKeyEvent>
+#include <QDir>
+
+#include <QClipboard>
+#include <QGuiApplication>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 #include "view.h"
 #include "key_manager.h"
@@ -37,12 +43,18 @@ void CView::keyPressEvent(QKeyEvent* event)
             }
         break;
     }
-    case Qt::Key_C:
+    case Qt::Key_K:
         m_cam->reset();
         break;
     case Qt::Key_O:
     {
         viewParameters();
+        break;
+    }
+    case Qt::Key_I:
+    {
+
+
         break;
     }
     default:

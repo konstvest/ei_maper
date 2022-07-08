@@ -7,6 +7,37 @@ CMagicTrap::CMagicTrap()
 
 }
 
+CMagicTrap::CMagicTrap(QJsonObject data):
+    CWorldObj(data["World object"].toObject())
+{
+    m_diplomacy = data["Diplomacy group"].toVariant().toUInt();
+    m_spell = data["Spell"].toString();
+    QJsonArray aArea = data["Area"].toArray();
+    for(auto it=aArea.begin(); it<aArea.end(); ++it)
+    {
+        QJsonObject obj = it->toObject();
+        SArea area;
+        area.m_radius = obj["Radius"].toVariant().toUInt();
+
+        QJsonArray arrPos = data["Point to"].toArray();
+        if (arrPos.size() == 2)
+            area.m_pointTo = QVector2D(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat());
+
+        m_aArea.append(area);
+    }
+
+
+    QJsonArray aTarget = data["Targets(Points?!)"].toArray();
+    for (auto it=aTarget.begin(); it<aTarget.end(); ++it)
+    {
+        QJsonArray aPos = it->toArray();
+        m_aTarget.append(QVector2D(aPos[0].toVariant().toFloat(), aPos[1].toVariant().toFloat()));
+    }
+
+    m_castInterval = data["Cast interval"].toVariant().toUInt();
+    m_bCastOnce = data["Is cast once?"].toBool();
+}
+
 uint CMagicTrap::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
@@ -238,4 +269,38 @@ QString CMagicTrap::getParam(EObjParam param)
     }
     }
     return value;
+}
+
+QJsonObject CMagicTrap::toJson()
+{
+    QJsonObject obj;
+    QJsonObject world_obj = CWorldObj::toJson();
+    obj.insert("World object", world_obj);
+    obj.insert("Diplomacy group", QJsonValue::fromVariant(m_diplomacy));
+    obj.insert("Spell", m_spell);
+    QJsonArray aArea;
+    for(auto& area : m_aArea)
+    {
+        QJsonObject areaObj;
+        QJsonArray pos;
+        pos.append(QJsonValue::fromVariant(area.m_pointTo.y()));
+        pos.append(QJsonValue::fromVariant(area.m_pointTo.x()));
+        areaObj.insert("Point to", pos);
+        areaObj.insert("Radius", QJsonValue::fromVariant(area.m_radius));
+        aArea.append(areaObj);
+    }
+    obj.insert("Area", aArea);
+
+    QJsonArray aTarget;
+    for (auto& target: m_aTarget)
+    {
+        QJsonArray pos;
+        pos.append(QJsonValue::fromVariant(target.x()));
+        pos.append(QJsonValue::fromVariant(target.y()));
+        aTarget.append(pos);
+    }
+    obj.insert("Targets(Points?!)", aTarget);
+    obj.insert("Cast interval", QJsonValue::fromVariant(m_castInterval));
+    obj.insert("Is cast once?", m_bCastOnce);
+    return obj;
 }

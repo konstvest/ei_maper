@@ -6,6 +6,7 @@ class CTorch : public CWorldObj
 {
 public:
     CTorch();
+    CTorch(QJsonObject data);
     ENodeType nodeType() override {return ENodeType::eTorch; }
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject& obj) override;
@@ -13,6 +14,7 @@ public:
     void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
+    QJsonObject toJson() override;
 
 private:
     float m_power;

@@ -5,6 +5,13 @@ CParticle::CParticle()
 
 }
 
+CParticle::CParticle(QJsonObject data):
+    CObjectBase(data["Base object"].toObject())
+{
+    m_kind = data["Type"].toVariant().toUInt();
+    m_scale = data["Scale"].toVariant().toFloat();
+}
+
 uint CParticle::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
@@ -137,4 +144,14 @@ QString CParticle::getParam(EObjParam param)
         value = CObjectBase::getParam(param);
     }
     return value;
+}
+
+QJsonObject CParticle::toJson()
+{
+    QJsonObject obj;
+    QJsonObject base_obj = CObjectBase::toJson();
+    obj.insert("Base object", base_obj);
+    obj.insert("Type", QJsonValue::fromVariant(m_kind));
+    obj.insert("Scale", QJsonValue::fromVariant(m_scale));
+    return obj;
 }

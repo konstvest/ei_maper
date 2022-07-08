@@ -31,11 +31,10 @@ class CLogic;
 CView::CView(QWidget* parent):
     QGLWidget (parent)
     , m_landscape(nullptr)
-    , m_objList(nullptr)
-    , m_textureList(nullptr)
     , m_pSettings(nullptr)
     , m_pProgress(nullptr)
     , m_operationType(EOperationTypeObjects)
+    , m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -63,17 +62,6 @@ CView::~CView()
         delete mob;
 }
 
-CTextureList* CView::texList()
-{
-    Q_ASSERT(m_textureList); // for correctly update textures
-    return m_textureList.get();
-}
-CObjectList* CView::objList()
-{
-    Q_ASSERT(m_objList); // for correctly update figures
-    return m_objList.get();
-}
-
 
 void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord) //todo: use signal\slots
 {
@@ -85,8 +73,7 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     m_pUndoStack = pStack;
 
     //init object list
-    m_objList.reset(new CObjectList);
-    m_objList->attachSettings(m_pSettings);
+    CObjectList::getInstance()->attachSettings(m_pSettings);
     m_pProgress = pProgress;
     m_pOp.reset(new COperation(new CSelect(this)));
     m_pOp->attachCam(m_cam.get());
@@ -248,11 +235,7 @@ void CView::loadLandscape(QFileInfo& filePath)
         //LOG_FATAL("ahtung"); //test logging critial error
         return;
     }
-    if(m_textureList.isNull())
-    {
-        m_textureList.reset(new CTextureList);
-        m_textureList->attachSettings(m_pSettings);
-    }
+    CTextureList::getInstance()->attachSettings(m_pSettings);
 
     ei::log(eLogInfo, "Start read landscape");
     m_landscape = new CLandscape;
@@ -942,7 +925,8 @@ void CView::scaleTo(QVector3D &scale)
 void CView::deleteSelectedNodes()
 {
     QVector<CNode*> aNode;
-    for(const auto& mob : m_aMob)
+    CMob* mob = nullptr;
+    foreach(mob, m_aMob)
     {
         aNode.clear();
         for (auto& node : mob->nodes())
@@ -954,6 +938,71 @@ void CView::deleteSelectedNodes()
             CDeleteNodeCommand* pUndo = new CDeleteNodeCommand(mob, nd);
             m_pUndoStack->push(pUndo);
         }
+    }
+    viewParameters();
+}
+
+void CView::selectedObjectToClipboardBuffer()
+{
+    CNode* pNode;
+
+    QJsonArray arrObj;
+    for(auto& mob: m_aMob)
+        foreach(pNode, mob->nodes())
+            if (pNode->nodeState() & ENodeState::eSelect)
+                arrObj.append(pNode->toJson());
+
+    QJsonObject obj;
+    obj.insert("Data", arrObj);
+    obj.insert("Magic", 1);
+    QJsonDocument doc(obj);
+
+    if (!m_clipboard_buffer_file.open(QIODevice::WriteOnly))
+    {
+        Q_ASSERT("Couldn't open option file." && false);
+    }
+    else
+    {
+        m_clipboard_buffer_file.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
+        m_clipboard_buffer_file.close();
+    }
+}
+
+void CView::clipboradObjectsToScene()
+{
+    if (!m_clipboard_buffer_file.open(QIODevice::ReadOnly))
+    {
+        Q_ASSERT("Couldn't open option file." && false);
+        return;
+    }
+
+    if (m_clipboard_buffer_file.size() == 0)
+    {
+        qDebug() << "empty copypasteBuffer file";
+        return;
+    }
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(m_clipboard_buffer_file.readAll(), &parseError);
+    m_clipboard_buffer_file.close();
+    //todo: check if has no error
+    QJsonObject obj = doc.object();
+    if (obj["Magic"].toInt() != 1)
+        return;
+
+    auto array = obj["Data"].toArray();
+    if(array.isEmpty())
+    {
+        ei::log(eLogInfo, "clipboard empty");
+        return;
+    }
+
+    CMob* pMob = m_aMob.front(); //TODO use 'active mob' instead first
+    pMob->clearSelect();
+    for(auto it = array.begin(); it < array.end(); ++it)
+    {
+        CCreateNodeCommand* pUndo = new CCreateNodeCommand(pMob, it->toObject());
+        m_pUndoStack->push(pUndo);
     }
     viewParameters();
 }

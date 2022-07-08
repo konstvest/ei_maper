@@ -6,6 +6,16 @@ CLight::CLight()
 
 }
 
+CLight::CLight(QJsonObject data):
+    CObjectBase(data["Base object"].toObject())
+{
+    m_range = data["Range"].toVariant().toFloat();
+    m_bShadow = data["Is shadow?"].toBool();
+    QJsonArray aColor = data["Color"].toArray();
+    if (aColor.size()==3)
+        m_color = QVector3D(aColor[0].toVariant().toFloat(), aColor[1].toVariant().toFloat(), aColor[2].toVariant().toFloat());
+}
+
 uint CLight::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
@@ -167,4 +177,19 @@ QString CLight::getParam(EObjParam param)
         value = CObjectBase::getParam(param);
     }
     return value;
+}
+
+QJsonObject CLight::toJson()
+{
+    QJsonObject obj;
+    QJsonObject base_obj = CObjectBase::toJson();
+    obj.insert("Base object", base_obj);
+    obj.insert("Range", QJsonValue::fromVariant(m_range));
+    obj.insert("Is shadow?", m_bShadow);
+    QJsonArray aColor;
+    aColor.append(QJsonValue::fromVariant(m_color.x()));
+    aColor.append(QJsonValue::fromVariant(m_color.y()));
+    aColor.append(QJsonValue::fromVariant(m_color.z()));
+    obj.insert("Color", aColor);
+    return obj;
 }

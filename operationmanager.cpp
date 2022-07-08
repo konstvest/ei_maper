@@ -77,6 +77,18 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
         //pOp->setCurrent(new CScaleAxis(m_pView, EOperateAxisZ));
         break;
     }
+    case Qt::Key_C:
+    {
+        if (pOp->keyManager()->isPressed(Qt::Key_Control))
+            m_pView->selectedObjectToClipboardBuffer();
+        break;
+    }
+    case Qt::Key_V:
+    {
+        if (pOp->keyManager()->isPressed(Qt::Key_Control))
+            m_pView->clipboradObjectsToScene();
+        break;
+    }
 //    case Qt::Key_Shift:
 //    case Qt::Key_W:
 //    case Qt::Key_Up:

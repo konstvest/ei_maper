@@ -6,6 +6,7 @@ class CLever : public CWorldObj
 {
 public:
     CLever();
+    CLever(QJsonObject data);
     ~CLever() override {}
     ENodeType nodeType() override {return ENodeType::eLever; }
     uint deserialize(util::CMobParser& parser) override;
@@ -14,6 +15,7 @@ public:
     void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
+    QJsonObject toJson() override;
 
 private:
 // maped show these parameters

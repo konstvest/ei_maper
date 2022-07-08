@@ -49,7 +49,6 @@ public:
     CLandscape* land() {Q_ASSERT(m_landscape); return m_landscape;}
     bool isLandLoaded() {return nullptr != m_landscape;}
     CTextureList* texList();
-    CObjectList* objList();
     void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
     int select(const SSelect& selectParam, bool bAddToSelect = false);
@@ -66,6 +65,8 @@ public:
     void rotateTo(QVector3D& rot);
     void scaleTo(QVector3D& scale);
     void deleteSelectedNodes();
+    void selectedObjectToClipboardBuffer();
+    void clipboradObjectsToScene();
 
 protected:
     void initializeGL();
@@ -108,8 +109,6 @@ private:
     QOpenGLShaderProgram m_selectProgram;
     QMatrix4x4 m_projection;
     QVector<CMob*> m_aMob;
-    QSharedPointer<CObjectList> m_objList;
-    QSharedPointer<CTextureList> m_textureList;
     QTimer* m_timer;
     CSettings* m_pSettings;
     QVector<bool> m_aReadState;
@@ -120,6 +119,7 @@ private:
     QMap<CNode*, QVector3D> m_operationBackup;
     EOperationType m_operationType;
     QSharedPointer<CSelectFrame> m_selectFrame;
+    QFile m_clipboard_buffer_file;
 };
 
 #endif // MYGLWIDGET_H

@@ -14,6 +14,7 @@ public:
     ENodeType nodeType() override {return ENodeType::eLookPoint;}
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject &obj) override;
+    void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser) override;
 
 private:
@@ -36,6 +37,7 @@ public:
     void update();
     uint deserialize(util::CMobParser& parser) override final;
     void serializeJson(QJsonObject &obj) override final;
+    void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser) override final;
     QVector<CLookPoint*>& lookPoint() {return m_aLookPt;}
 
@@ -78,6 +80,7 @@ public:
     void drawSelect(QOpenGLShaderProgram* program = nullptr);
     uint deserialize(util::CMobParser& parser);
     void serializeJson(QJsonObject& obj);
+    void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser);
     void updatePointFigure(ei::CFigure* fig);
     void setPointTexture(QOpenGLTexture* pTexture);
@@ -112,6 +115,7 @@ class CUnit: public CWorldObj
 {
 public:
     CUnit();
+    CUnit(QJsonObject data, CMob* pMob);
     ~CUnit() override;
     ENodeType nodeType() override {return ENodeType::eUnit; }
     uint deserialize(util::CMobParser& parser) override;
@@ -128,6 +132,7 @@ public:
     //bool updatePos(QVector3D& pos) override; //TODO
     const QString& databaseName(){return m_prototypeName;}
     bool updatePos(QVector3D& pos) override;
+    QJsonObject toJson() override;
 
 private:
     //"UNIT_R", eNull};

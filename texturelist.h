@@ -63,8 +63,9 @@ struct SMmpHeader
 class CTextureList
 {
 public:
-    CTextureList();
-    ~CTextureList();
+    static CTextureList* getInstance();
+    CTextureList(CTextureList const&) = delete;
+    void operator=(CTextureList const&)  = delete;
 
     void loadTexture(QSet<QString>& aName);
     QOpenGLTexture* texture(QString& name);
@@ -73,9 +74,12 @@ public:
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
 
 private:
+    CTextureList();
+    ~CTextureList();
     void parse(QByteArray& data, const QString& name);
 
 private:
+    static CTextureList* m_pTextureContainer;
     QMap<QString, QOpenGLTexture*> m_aTexture;
     CSettings* m_pSettings;
 };

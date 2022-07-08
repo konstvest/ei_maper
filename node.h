@@ -15,7 +15,8 @@
 
 enum ENodeType
 {
-    eBaseType        =0x1    //0000 0001
+    eUnknown = 0x0
+    ,eBaseType        =0x1    //0000 0001
     ,eWorldObject   =0x3    //0000 0011
     ,eUnit          =0x7    //0000 0111
     ,eTorch         =0xB    //0000 1011
@@ -35,6 +36,8 @@ enum ENodeState
     ,eSelect
     ,eHidden
 };
+
+class CMob;
 
 class CNode
 {
@@ -64,9 +67,12 @@ public:
     virtual void setRot(const QQuaternion& quat);
     virtual void setConstitution(QVector3D& vec) = 0;
     virtual const QVector3D& constitution() = 0;
+    virtual QJsonObject toJson() = 0;
+    virtual void attachMob(CMob* mob) = 0;
 
     const uint& innerId() {return m_id; }
     const uint& mapId(){return m_mapID;}
+    void setMapId(uint id) {m_mapID = id;}
     const QString& prototypeName(){return m_name;}
     void addChild(CNode* child) {m_aChild.append(child); child->setParent(this); }
     void setParent(CNode* parent) {m_parent = parent;}

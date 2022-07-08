@@ -332,9 +332,9 @@ void CMob::updateObjects()
         aTextureName.insert(node->textureName());
     }
     //preload figures
-    m_view->objList()->loadFigures(aModelName);
+    CObjectList::getInstance()->loadFigures(aModelName);
     m_pProgress->update(15);
-    m_view->texList()->loadTexture(aTextureName);
+    CTextureList::getInstance()->loadTexture(aTextureName);
     m_pProgress->update(15);
     QString texName;
     double step = 21/double(m_aNode.size());
@@ -366,6 +366,105 @@ void CMob::delNodes()
 QString CMob::mobName()
 {
     return m_filePath.fileName();
+}
+
+CNode* CMob::createNode(QJsonObject data)
+{
+    auto wo = data;
+    if (data.find("World object") != data.end())
+        wo = wo["World object"].toObject();
+
+    auto base = wo["Base object"].toObject();
+
+    CNode* pNode = nullptr;
+    ENodeType type = (ENodeType)base["Node type"].toInt(0);
+    if (type == ENodeType::eUnknown)
+    {
+        qDebug() << "cant recognize type of obj";
+        return pNode;
+    }
+
+    switch (type)
+    {
+    case ENodeType::eUnit:
+    {
+        pNode = new CUnit(data, this);
+        break;
+    }
+    case ENodeType::eTorch:
+    {
+        pNode = new CTorch(data);
+        break;
+    }
+    case ENodeType::eMagicTrap:
+    {
+        pNode = new CMagicTrap(data);
+        break;
+    }
+    case ENodeType::eLever:
+    {
+        pNode = new CLever(data);
+        break;
+    }
+    case ENodeType::eLight:
+    {
+        pNode = new CLight(data);
+        break;
+    }
+    case ENodeType::eSound:
+    {
+        pNode = new CSound(data);
+        break;
+    }
+    case ENodeType::eParticle:
+    {
+        pNode = new CParticle(data);
+        break;
+    }
+    case ENodeType::eWorldObject:
+    {
+        pNode = new CWorldObj(data);
+        break;
+    }
+    default:
+    {
+        Q_ASSERT("unknown node type" && false);
+        break;
+    }
+    }
+
+    if(nullptr == pNode)
+    {
+        Q_ASSERT("Failed to create new node" && false);
+    }
+    pNode->attachMob(this);
+    //todo: create operation stack for this op
+    addNode(pNode);
+    pNode->loadFigure();
+    pNode->loadTexture();
+
+    if(pNode)
+    {
+        uint freeId(1000);
+        QVector<uint> arrId;
+        arrId.resize(m_aNode.size());
+
+        for (int i(0); i<m_aNode.size(); ++i)
+            arrId[i] = m_aNode[i]->mapId();
+
+        for (; freeId<100000; ++freeId)
+        {
+            //TODO: find more suitable ID from mob ranges
+            if(!arrId.contains(freeId))
+            {
+                pNode->setMapId(freeId);
+                break;
+            }
+        }
+        pNode->setState(ENodeState::eSelect);
+    }
+
+    return pNode;
 }
 
 void CMob::readMob(QFileInfo &path)
@@ -571,6 +670,7 @@ void CMob::serializeJson(const QFileInfo& file)
         return;
     }
     f.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
+    f.close();
 }
 
 void CMob::serializeMob(QByteArray& data)
@@ -779,7 +879,10 @@ void CMob::clearSelect()
 {
     CNode* pNode;
     foreach (pNode, m_aNode)
-        pNode->setState(ENodeState::eDraw);
+    {
+        if(pNode->nodeState() == ENodeState::eSelect)
+            pNode->setState(ENodeState::eDraw);
+    }
 }
 
 void CMob::saveAs(const QFileInfo& path)

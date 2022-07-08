@@ -6,6 +6,26 @@ CLever::CLever()
 
 }
 
+CLever::CLever(QJsonObject data):
+    CWorldObj(data["World object"].toObject())
+{
+
+    m_curState = (char)data["State"].toInt();
+    m_totalState = (char)data["State numbers"].toInt();
+    m_bCycled = data["Is cycled?"].toBool();
+    m_bCastOnce = data["Is cast once?"].toBool();
+    QJsonArray aStat = data["Science stats"].toArray();
+    if (aStat.size() == 3)
+    {
+        m_typeOpen = aStat[0].toVariant().toUInt();
+        m_keyID = aStat[0].toVariant().toUInt();
+        m_handsSleight = aStat[0].toVariant().toUInt();
+    }
+
+    m_bDoor = data["Is door?"].toBool();
+    m_bRecalcGraph = data["Is recalculate graph?"].toBool();
+}
+
 uint CLever::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
@@ -236,4 +256,23 @@ QString CLever::getParam(EObjParam param)
         break;
     }
     return value;
+}
+
+QJsonObject CLever::toJson()
+{
+    QJsonObject obj;
+    QJsonObject world_obj = CWorldObj::toJson();
+    obj.insert("World object", world_obj);
+    obj.insert("State", QJsonValue::fromVariant(int(m_curState)));
+    obj.insert("State numbers", QJsonValue::fromVariant(int(m_totalState)));
+    obj.insert("Is cycled?", m_bCycled);
+    obj.insert("Is cast once?", m_bCastOnce);
+    QJsonArray aStat;
+    aStat.append(QJsonValue::fromVariant(m_typeOpen));
+    aStat.append(QJsonValue::fromVariant(m_keyID));
+    aStat.append(QJsonValue::fromVariant(m_handsSleight));
+    obj.insert("Science stats", aStat);
+    obj.insert("Is door?", m_bDoor);
+    obj.insert("Is recalculate graph?", m_bRecalcGraph);
+    return obj;
 }

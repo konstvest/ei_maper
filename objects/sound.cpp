@@ -6,6 +6,23 @@ CSound::CSound()
 
 }
 
+CSound::CSound(QJsonObject data):
+    CObjectBase(data["Base object"].toObject())
+{
+    m_range = data["Range 1(?1)"].toVariant().toUInt();
+    m_range2 = data["Range 2(?!)"].toVariant().toUInt();
+    m_min = data["Min distance"].toVariant().toUInt();
+    m_max = data["Max distance"].toVariant().toUInt();
+
+    QJsonArray aRes = data["Resources"].toArray();
+    for(auto it=aRes.begin(); it<aRes.end();++it)
+    {
+        m_aResName.append(it->toString());
+    }
+    m_bAmbient = data["Is ambient?"].toBool();
+    m_bMusic = data["Is Music?"].toBool();
+}
+
 uint CSound::deserialize(util::CMobParser &parser)
 {
     uint readByte(0);
@@ -254,4 +271,24 @@ QString CSound::getParam(EObjParam param)
         value = CObjectBase::getParam(param);
     }
     return value;
+}
+
+QJsonObject CSound::toJson()
+{
+    QJsonObject obj;
+    QJsonObject base_obj = CObjectBase::toJson();
+    obj.insert("Base object", base_obj);
+    obj.insert("Range 1(?1)", QJsonValue::fromVariant(m_range));
+    obj.insert("Range 2(?!)", QJsonValue::fromVariant(m_range2));
+    obj.insert("Min distance", QJsonValue::fromVariant(m_min));
+    obj.insert("Max distance", QJsonValue::fromVariant(m_max));
+
+    QJsonArray aRes;
+    for(auto& res : m_aResName)
+        aRes.append(res);
+
+    obj.insert("Resources", aRes);
+    obj.insert("Is ambient?", m_bAmbient);
+    obj.insert("Is Music?", m_bMusic);
+    return obj;
 }

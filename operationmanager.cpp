@@ -89,6 +89,15 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
             m_pView->clipboradObjectsToScene();
         break;
     }
+    case Qt::Key_H:
+    {
+        if (pOp->keyManager()->isPressed(Qt::Key_Alt))
+            m_pView->unHideAll();
+        else
+            m_pView->hideSelectedNodes();
+
+        break;
+    }
 //    case Qt::Key_Shift:
 //    case Qt::Key_W:
 //    case Qt::Key_Up:

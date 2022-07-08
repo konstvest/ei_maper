@@ -67,6 +67,8 @@ public:
     void deleteSelectedNodes();
     void selectedObjectToClipboardBuffer();
     void clipboradObjectsToScene();
+    void hideSelectedNodes();
+    void unHideAll();
 
 protected:
     void initializeGL();

@@ -1006,3 +1006,29 @@ void CView::clipboradObjectsToScene()
     }
     viewParameters();
 }
+
+void CView::hideSelectedNodes()
+{
+    CMob* pMob = nullptr;
+    CNode* pNode = nullptr;
+    foreach (pMob, m_aMob)
+    {
+        foreach(pNode, pMob->nodes())
+            if(pNode->nodeState() == ENodeState::eSelect)
+                pNode->setState(ENodeState::eHidden);
+    }
+    viewParameters();
+}
+
+void CView::unHideAll()
+{
+    CMob* pMob = nullptr;
+    CNode* pNode = nullptr;
+    foreach (pMob, m_aMob)
+    {
+        foreach(pNode, pMob->nodes())
+        if(pNode->nodeState() == ENodeState::eHidden)
+            pNode->setState(ENodeState::eDraw);
+    }
+
+}

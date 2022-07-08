@@ -975,11 +975,13 @@ void CView::clipboradObjectsToScene()
         Q_ASSERT("Couldn't open option file." && false);
         return;
     }
+
     if (m_clipboard_buffer_file.size() == 0)
     {
         qDebug() << "empty copypasteBuffer file";
         return;
     }
+
     QJsonParseError parseError;
     QJsonDocument doc = QJsonDocument::fromJson(m_clipboard_buffer_file.readAll(), &parseError);
     m_clipboard_buffer_file.close();
@@ -991,46 +993,9 @@ void CView::clipboradObjectsToScene()
     auto array = obj["Data"].toArray();
     for(auto it = array.begin(); it < array.end(); ++it)
     {
-        auto obj = it->toObject();
-        if (obj.find("World object") != obj.end())
-        {
-            obj = obj["World object"].toObject();
-        }
-        auto base = obj["Base object"].toObject();
-        ENodeType type = (ENodeType)base["Node type"].toInt(0);
-        if (type == ENodeType::eUnknown)
-        {
-            qDebug() << "cant recognize type of obj";
-            continue;
-        }
-        uint freeId(1000);
-        auto parentName = base["Parent mob"].toString();
-        CMob* pMob = nullptr;
-        foreach(pMob, m_aMob)
-        {
-            if (pMob->mobName() == parentName)
-            {
-                auto createdNode = pMob->createNode(type, it->toObject());
-                if (nullptr == createdNode)
-                    continue;
-                QVector<uint> arrId;
-                auto& nodes = pMob->nodes();
-                arrId.resize(nodes.size());
-
-                for (int i(0); i<nodes.size(); ++i)
-                    arrId[i] = nodes[i]->mapId();
-
-                for (; freeId<100000; ++freeId)
-                {
-                    //TODO: find more suitable ID from mob ranges
-                    if(!arrId.contains(freeId))
-                    {
-                        createdNode->setMapId(freeId);
-                        break;
-                    }
-                }
-            }
-        }
-
+        CMob* pMob = m_aMob.front(); //TODO use 'active mob' instead first
+        CCreateNodeCommand* pUndo = new CCreateNodeCommand(pMob, it->toObject());
+        m_pUndoStack->push(pUndo);
     }
+    viewParameters();
 }

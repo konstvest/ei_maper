@@ -368,9 +368,22 @@ QString CMob::mobName()
     return m_filePath.fileName();
 }
 
-CNode* CMob::createNode(ENodeType type, QJsonObject data)
+CNode* CMob::createNode(QJsonObject data)
 {
+    auto wo = data;
+    if (data.find("World object") != data.end())
+        wo = wo["World object"].toObject();
+
+    auto base = wo["Base object"].toObject();
+
     CNode* pNode = nullptr;
+    ENodeType type = (ENodeType)base["Node type"].toInt(0);
+    if (type == ENodeType::eUnknown)
+    {
+        qDebug() << "cant recognize type of obj";
+        return pNode;
+    }
+
     switch (type)
     {
     case ENodeType::eUnit:
@@ -429,6 +442,26 @@ CNode* CMob::createNode(ENodeType type, QJsonObject data)
     addNode(pNode);
     pNode->loadFigure();
     pNode->loadTexture();
+
+    if(pNode)
+    {
+        uint freeId(1000);
+        QVector<uint> arrId;
+        arrId.resize(m_aNode.size());
+
+        for (int i(0); i<m_aNode.size(); ++i)
+            arrId[i] = m_aNode[i]->mapId();
+
+        for (; freeId<100000; ++freeId)
+        {
+            //TODO: find more suitable ID from mob ranges
+            if(!arrId.contains(freeId))
+            {
+                pNode->setMapId(freeId);
+                break;
+            }
+        }
+    }
 
     return pNode;
 }

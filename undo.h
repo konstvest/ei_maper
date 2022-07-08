@@ -1,6 +1,7 @@
 #ifndef UNDO_H
 #define UNDO_H
 #include <QUndoCommand>
+#include <QJsonObject>
 #include "view.h"
 
 class MainWindow;
@@ -8,7 +9,7 @@ class MainWindow;
 class COpenCommand: public QUndoCommand
 {
 public:
-    enum { Id = 101 };
+    enum { Id = 100 };
 
     COpenCommand(CView* pView, QFileInfo& path, MainWindow* pMain, QUndoCommand *parent = nullptr);
 
@@ -86,6 +87,25 @@ public:
 
 private:
     QVector<QString> m_oldBodyparts;
+};
+
+class CCreateNodeCommand: public QUndoCommand
+{
+public:
+    enum { Id = 104 };
+    CCreateNodeCommand() = delete;
+    CCreateNodeCommand(CMob* pMob, QJsonObject nodeData, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CMob* m_pMob;
+    QJsonObject m_nodeData;
+
+    CNode* m_pNode;
 };
 
 #endif // UNDO_H

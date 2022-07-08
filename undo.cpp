@@ -104,7 +104,7 @@ CDeleteNodeCommand::CDeleteNodeCommand(CMob *pMob, CNode *pNode, QUndoCommand *p
     ,m_pMob(pMob)
     ,m_pNode(pNode)
 {
-
+    setText("Node deleted ID: " + QString::number(m_pNode->mapId()));
 }
 
 void CDeleteNodeCommand::undo()
@@ -115,5 +115,25 @@ void CDeleteNodeCommand::undo()
 void CDeleteNodeCommand::redo()
 {
     m_pMob->deleteNode(m_pNode);
-    setText("Node deleted ID: " + QString::number(m_pNode->mapId()));
+}
+
+CCreateNodeCommand::CCreateNodeCommand(CMob* pMob, QJsonObject nodeData, QUndoCommand *parent):
+    QUndoCommand(parent)
+    ,m_pMob(pMob)
+    ,m_nodeData(nodeData)
+    ,m_pNode(nullptr)
+{
+    setText("Node created");
+}
+
+void CCreateNodeCommand::undo()
+{
+    m_pMob->deleteNode(m_pNode);
+
+}
+
+void CCreateNodeCommand::redo()
+{
+    m_pNode = m_pMob->createNode(m_nodeData);
+    setText("Node created ID: " + QString::number(m_pNode->mapId()));
 }

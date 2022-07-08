@@ -151,9 +151,13 @@ void CMobParameters::onChooseMob(const QString &name)
     if(name.isEmpty())
         return;
 
-    for(const auto& mob : m_aMob)
-        if (mob->mobName().contains(name))
-            m_pCurMob = mob;
+    CMob* pMob = nullptr;
+    foreach(pMob, m_aMob)
+        if (pMob->mobName().contains(name))
+        {
+            m_pCurMob = pMob;
+            break;
+        }
 
     if (!m_pCurMob)
     {

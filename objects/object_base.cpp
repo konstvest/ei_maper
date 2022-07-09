@@ -8,10 +8,13 @@
 #include "objectlist.h"
 #include "texturelist.h"
 
-CObjectBase::CObjectBase():
-    m_pMob(nullptr)
-    ,m_texture(nullptr)
-    ,m_pFigure(nullptr)
+CObjectBase::CObjectBase(): 
+  m_modelName("")
+  ,m_complection(1.0f, 1.0f, 1.0f)
+  ,m_pMob(nullptr)
+  ,m_minPoint(0.0f, 0.0f, 0.0f)
+  ,m_texture(nullptr)
+  ,m_pFigure(nullptr)
 {
     m_bodyParts.clear();
 }

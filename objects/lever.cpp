@@ -1,7 +1,16 @@
 #include <QJsonArray>
 #include "lever.h"
 
-CLever::CLever()
+CLever::CLever():
+    m_curState(0)
+    ,m_totalState(0)
+    ,m_bCycled(false)
+    ,m_bCastOnce(false)
+    ,m_typeOpen(0)
+    ,m_keyID(0)
+    ,m_handsSleight(0)
+    ,m_bDoor(false)
+    ,m_bRecalcGraph(false)
 {
 
 }

@@ -8,7 +8,9 @@
 #include "settings.h"
 #include "log.h"
 
-CUnit::CUnit()
+CUnit::CUnit():
+    m_prototypeName("")
+    ,m_bImport(false)
 {
 }
 

@@ -25,6 +25,9 @@ void CNode::init()
 CNode::CNode():
     m_position(0.0, 0.0, 0.0)
     //,m_rotation(0.0, 0.0, 0.0)
+    ,m_mapID(0)
+    ,m_name("")
+    ,m_comment("")
     ,m_parent(nullptr)
     ,m_state(eDraw)
 {

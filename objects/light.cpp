@@ -1,7 +1,10 @@
 #include <QJsonArray>
 #include "light.h"
 
-CLight::CLight()
+CLight::CLight():
+    m_range(0.0f)
+    ,m_bShadow(false)
+    ,m_color(0.0f, 0.0f, 0.0f)
 {
 
 }

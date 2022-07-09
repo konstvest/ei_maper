@@ -115,6 +115,9 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
             case eObjParam_LEVER_IS_DOOR:
             case eObjParam_USE_IN_SCRIPT:
             case eObjParam_LEVER_RECALC_GRAPH:
+            case eObjParam_UNIT_NEED_IMPORT:
+            case eObjParam_SOUND_AMBIENT:
+            case eObjParam_SOUND_IS_MUSIC:
             {
                 m_pTable->insertRow(i);
                 //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem

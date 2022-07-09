@@ -15,6 +15,7 @@ class MainWindow;
 class CSettings;
 class CSelector;
 class CMobParameters;
+class CCreateObjectForm;
 
 class MainWindow : public QMainWindow
 {
@@ -52,6 +53,7 @@ private:
     QSharedPointer<CSettings> m_settings;
     QSharedPointer<CSelector> m_selector;
     QSharedPointer<CMobParameters> m_mobParams;
+    QSharedPointer<CCreateObjectForm> m_createDialog;
     QUndoStack* m_undoStack;
     QUndoView* m_undoView;
 

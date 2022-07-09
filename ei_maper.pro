@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    createobjectform.cpp \
     key_manager.cpp \
     mobparameters.cpp \
     objects/lever.cpp \
@@ -68,6 +69,7 @@ SOURCES += \
 
 HEADERS += \
     color.h \
+    createobjectform.h \
     key_manager.h \
     mobparameters.h \
     objects/lever.h \
@@ -110,6 +112,7 @@ HEADERS += \
     objects/worldobj.h
 
 FORMS += \
+        createobjectform.ui \
         mainwindow.ui \
         mobParameters.ui \
         selector.ui \

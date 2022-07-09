@@ -1,6 +1,8 @@
 #include "particle.h"
 
-CParticle::CParticle()
+CParticle::CParticle():
+    m_kind(0)
+    ,m_scale(0.0f)
 {
 
 }

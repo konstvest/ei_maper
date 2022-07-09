@@ -32,6 +32,9 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
     case eObjParam_LEVER_IS_DOOR:
     case eObjParam_USE_IN_SCRIPT:
     case eObjParam_LEVER_RECALC_GRAPH:
+    case eObjParam_UNIT_NEED_IMPORT:
+    case eObjParam_SOUND_AMBIENT:
+    case eObjParam_SOUND_IS_MUSIC:
     {
         aStr[0] = "false";
         aStr[1] = "true";

@@ -14,6 +14,7 @@
 #include "node.h"
 #include "settings.h"
 #include "selector.h"
+#include "createobjectform.h"
 #include "mob.h"
 #include "undo.h"
 #include "mobparameters.h"
@@ -32,6 +33,7 @@ MainWindow::MainWindow(QWidget* parent) :
     m_settings.reset(new CSettings());
     m_selector.reset(new CSelector());
     m_mobParams.reset(new CMobParameters());
+    m_createDialog.reset(new CCreateObjectForm());
     m_settings->attachMainWindow(this);
     m_ui->setupUi(this); //init CView core also
 
@@ -193,7 +195,8 @@ void MainWindow::on_actionUndo_triggered()
 void MainWindow::on_toolButton_2_clicked()
 {
     ei::log(eLogDebug, "btn test start");
-
+    m_createDialog->show();
+    //m_createDialog->updateTable();
 
     ei::log(eLogDebug, "btn test end");
 }

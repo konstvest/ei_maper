@@ -1,8 +1,10 @@
 #include <QJsonArray>
 #include "magictrap.h"
 
-CMagicTrap::CMagicTrap()
-//TODO: set default value
+CMagicTrap::CMagicTrap():
+    m_diplomacy(0)
+    ,m_castInterval(0)
+    ,m_bCastOnce(false)
 {
 
 }

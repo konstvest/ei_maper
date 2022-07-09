@@ -8,7 +8,16 @@
 #include "landscape.h"
 #include "log.h"
 
-CWorldObj::CWorldObj()
+CWorldObj::CWorldObj():
+    m_type(0)
+    ,m_primaryTexture("")
+    ,m_secondaryTexture("")
+    ,m_parentTemplate("")
+    ,m_player(0)
+    ,m_parentID(0)
+    ,m_bUseInScript(false)
+    ,m_bShadow(true)
+    ,m_questInfo()
 {
 }
 

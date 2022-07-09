@@ -1,7 +1,8 @@
 #include <QJsonArray>
 #include "torch.h"
 
-CTorch::CTorch()
+CTorch::CTorch():
+    m_power(0.0f)
 {
 
 }

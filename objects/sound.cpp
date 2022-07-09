@@ -1,7 +1,13 @@
 #include <QJsonArray>
 #include "sound.h"
 
-CSound::CSound()
+CSound::CSound():
+    m_range(0)
+    ,m_range2(0)
+    ,m_min(0)
+    ,m_max(0)
+    ,m_bAmbient(false)
+    ,m_bMusic(false)
 {
 
 }

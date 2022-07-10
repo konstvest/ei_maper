@@ -1,5 +1,4 @@
-//#include <QGLWidget>    //for opengl function
-#include "map_mp.h"
+#include "landscape.h"
 #include "sector.h"
 #include "math_utils.h"
 

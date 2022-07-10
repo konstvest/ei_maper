@@ -11,7 +11,6 @@
 #include "types.h"
 #include "utils.h"
 #include "figure.h"
-#include "color.h"
 
 enum ENodeType
 {

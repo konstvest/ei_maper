@@ -2,8 +2,7 @@
 #include <QJsonArray>
 #include "unit.h"
 #include "view.h"
-#include "objectlist.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 #include "landscape.h"
 #include "settings.h"
 #include "log.h"

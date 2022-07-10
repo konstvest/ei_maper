@@ -8,8 +8,7 @@
 #include "objects\torch.h"
 #include "objects\worldobj.h"
 #include "objects\unit.h"
-#include "objectlist.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 
 CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     QDialog(parent),

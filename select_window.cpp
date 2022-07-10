@@ -3,7 +3,7 @@
 #include <QStringList>
 #include <QKeyEvent>
 
-#include "selector.h"
+#include "select_window.h"
 #include "ui_selector.h"
 #include "view.h"
 

@@ -1,13 +1,51 @@
-#ifndef TEXTURELIST_H
-#define TEXTURELIST_H
+#ifndef CRESOURCEMANAGER_H
+#define CRESOURCEMANAGER_H
+
+#include <QListWidget>
+#include <QFileInfo>
 #include <QMap>
 #include <QImage>
-#include <QFileInfo>
 #include <QOpenGLTexture>
+#include "figure.h"
+
+class CResourceManager
+{
+public:
+    CResourceManager();
+};
+
+
+
+//forward declarations
+class CSettings;
+
+class CObjectList
+{
+public:
+    static CObjectList* getInstance();
+    CObjectList(CObjectList const&) = delete;
+    void operator=(CObjectList const&)  = delete;
+
+    void loadFigures(QSet<QString>& aFigure);
+    void readFigure(const QByteArray& file, const QString& name);
+    void readAssembly(const QMap<QString, QByteArray>& aFile, const QString& assemblyRoot);
+    ei::CFigure* getFigure(const QString& name);
+    void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
+
+private:
+    CObjectList();
+    ~CObjectList();
+    ei::CFigure* figureDefault();
+
+private:
+    static CObjectList* m_pObjectContainer;
+    CSettings* m_pSettings;
+    QMap<QString, ei::CFigure*> m_aFigure;
+};
+
+
 
 // https://www.gipat.ru/forum/index.php?showtopic=3357 - format description
-
-class CSettings;
 
 enum ETextureFormat
 {
@@ -30,8 +68,6 @@ enum ETextureFormat
     ,eMMP_PAINT32 = 0x32544E50
     ,eMMP_PNT3    = 0x33544E50
 };
-
-
 
 struct SMmpHeader
 {
@@ -84,4 +120,4 @@ private:
     CSettings* m_pSettings;
 };
 
-#endif // TEXTURELIST_H
+#endif // CRESOURCEMANAGER_H

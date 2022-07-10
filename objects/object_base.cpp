@@ -5,8 +5,7 @@
 #include "landscape.h"
 #include "view.h"
 #include "log.h"
-#include "objectlist.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 
 CObjectBase::CObjectBase(): 
   m_modelName("")

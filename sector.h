@@ -9,7 +9,7 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include "types.h"
-#include "map_mp.h"
+//#include "landscape.h"
 //#include "primitives.h"
 
 struct SSecHeader

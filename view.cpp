@@ -8,14 +8,12 @@
 #include "view.h"
 #include "camera.h"
 #include "mob.h"
-#include "texturelist.h"
-#include "objectlist.h"
+#include "resourcemanager.h"
 #include "node.h"
 #include "landscape.h"
 #include "key_manager.h"
 #include "log.h"
 #include "settings.h"
-#include "table_item.h"
 #include "undo.h"
 #include "objects/object_base.h"
 #include "objects/worldobj.h"
@@ -24,7 +22,7 @@
 #include "progressview.h"
 #include "tablemanager.h"
 #include "operationmanager.h"
-#include "selectframe.h"
+#include "ogl_utils.h"
 
 class CLogic;
 

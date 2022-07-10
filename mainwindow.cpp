@@ -9,11 +9,10 @@
 #include <QMessageBox>
 #include <QUndoView>
 
-#include "objectlist.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 #include "node.h"
 #include "settings.h"
-#include "selector.h"
+#include "select_window.h"
 #include "createobjectform.h"
 #include "mob.h"
 #include "undo.h"

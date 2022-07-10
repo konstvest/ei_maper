@@ -3,8 +3,7 @@
 #include "objects\worldobj.h"
 #include "mob.h"
 #include "view.h"
-#include "objectlist.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 #include "landscape.h"
 #include "log.h"
 

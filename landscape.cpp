@@ -4,7 +4,7 @@
 #include "res_file.h"
 #include "utils.h"
 #include "view.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 #include "node.h"
 
 CLandscape::CLandscape()

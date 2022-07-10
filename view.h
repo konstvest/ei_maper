@@ -9,7 +9,7 @@
 #include <QTableWidget>
 
 #include "types.h"
-#include "selector.h"
+#include "select_window.h"
 
 class QLineEdit;
 class CObjectList;

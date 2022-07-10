@@ -1,6 +1,6 @@
 #include "undo.h"
 #include "node.h"
-#include "mainwindow.h"
+#include "main_window.h"
 #include "mob.h"
 
 COpenCommand::COpenCommand(CView* pView, QFileInfo& path, MainWindow* pMain, QUndoCommand *parent):

@@ -8,14 +8,6 @@
 #include <QOpenGLTexture>
 #include "figure.h"
 
-class CResourceManager
-{
-public:
-    CResourceManager();
-};
-
-
-
 //forward declarations
 class CSettings;
 
@@ -108,6 +100,7 @@ public:
     QOpenGLTexture* buildLandTex(QString& name, int& texCount);
     QOpenGLTexture* textureDefault();
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
+    void initResource();
 
 private:
     CTextureList();
@@ -118,6 +111,13 @@ private:
     static CTextureList* m_pTextureContainer;
     QMap<QString, QOpenGLTexture*> m_aTexture;
     CSettings* m_pSettings;
+};
+
+class CResourceManager
+{
+public:
+    CResourceManager();
+    void loadResources();
 };
 
 #endif // CRESOURCEMANAGER_H

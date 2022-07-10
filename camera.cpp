@@ -32,7 +32,7 @@ void CCamera::reset()
         m_pivot = QVector3D(0.0, 0.0, 20.0);
         m_xRot = -70.0f;
         m_zRot = 45.0f;
-        m_step = 0.5f;
+        m_step = 1.0f;
     }
 }
 

@@ -27,13 +27,13 @@ CONFIG += c++11
 SOURCES += \
     createobjectform.cpp \
     key_manager.cpp \
+    main_window.cpp \
     mobparameters.cpp \
     objects/lever.cpp \
     objects/light.cpp \
     log.cpp \
     objects/magictrap.cpp \
     main.cpp \
-    mainwindow.cpp \
     math_utils.cpp \
     objects/object_base.cpp \
     ogl_utils.cpp \
@@ -67,12 +67,12 @@ SOURCES += \
 HEADERS += \
     createobjectform.h \
     key_manager.h \
+    main_window.h \
     mobparameters.h \
     objects/lever.h \
     objects/light.h \
     log.h \
     objects/magictrap.h \
-    mainwindow.h \
     math_utils.h \
     objects/object_base.h \
     ogl_utils.h \
@@ -105,7 +105,7 @@ HEADERS += \
 
 FORMS += \
         createobjectform.ui \
-        mainwindow.ui \
+        main_window.ui \
         mobParameters.ui \
         select_window.ui \
         settings.ui

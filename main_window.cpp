@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "main_window.h"
 #include "ui_mainwindow.h"
 
 #include <QWidget>
@@ -53,6 +53,8 @@ MainWindow::MainWindow(QWidget* parent) :
 //    m_ui->progressBar->setVisible(false);
 
     m_ui->mousePosText->setStyleSheet("* { background-color: rgba(0, 0, 0, 0); }");
+    CTextureList::getInstance()->attachSettings(m_settings.get());
+    CObjectList::getInstance()->attachSettings(m_settings.get());
 }
 
 MainWindow::~MainWindow()
@@ -194,8 +196,10 @@ void MainWindow::on_actionUndo_triggered()
 void MainWindow::on_toolButton_2_clicked()
 {
     ei::log(eLogDebug, "btn test start");
-    m_createDialog->show();
+    //m_createDialog->show();
     //m_createDialog->updateTable();
+    CResourceManager mngr;
+    mngr.loadResources();
 
     ei::log(eLogDebug, "btn test end");
 }

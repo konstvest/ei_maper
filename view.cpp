@@ -71,7 +71,7 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     m_pUndoStack = pStack;
 
     //init object list
-    CObjectList::getInstance()->attachSettings(m_pSettings);
+    //CObjectList::getInstance()->attachSettings(m_pSettings);
     m_pProgress = pProgress;
     m_pOp.reset(new COperation(new CSelect(this)));
     m_pOp->attachCam(m_cam.get());
@@ -139,6 +139,7 @@ void CView::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     initShaders();
+    CTextureList::getInstance()->initResource();
     //loadResource();
 }
 
@@ -233,7 +234,7 @@ void CView::loadLandscape(QFileInfo& filePath)
         //LOG_FATAL("ahtung"); //test logging critial error
         return;
     }
-    CTextureList::getInstance()->attachSettings(m_pSettings);
+    //CTextureList::getInstance()->attachSettings(m_pSettings);
 
     ei::log(eLogInfo, "Start read landscape");
     m_landscape = new CLandscape;

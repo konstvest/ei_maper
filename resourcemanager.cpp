@@ -7,11 +7,6 @@
 #include "types.h"
 #include "settings.h"
 
-CResourceManager::CResourceManager()
-{
-
-}
-
 CObjectList* CObjectList::m_pObjectContainer = nullptr;
 
 CObjectList *CObjectList::getInstance()
@@ -179,15 +174,6 @@ CTextureList *CTextureList::getInstance()
 CTextureList::CTextureList():
     m_pSettings(nullptr)
 {
-    QImage img(":/default0.png", "PNG");
-    QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
-    texture->setMinificationFilter(QOpenGLTexture::Nearest);
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    texture->setWrapMode(QOpenGLTexture::Repeat);
-    texture->setSize(img.width(), img.height());
-    texture->setFormat(QOpenGLTexture::TextureFormat::RGBA8_UNorm);
-    texture->setData(img.mirrored());
-    m_aTexture.insert(QString("default"), texture);
 }
 
 CTextureList::~CTextureList()
@@ -320,12 +306,18 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
     texture->setMinificationFilter(QOpenGLTexture::NearestMipMapNearest);
     texture->setMagnificationFilter(QOpenGLTexture::NearestMipMapNearest);
-    texture->setMipLevels(4);
+    //texture->setMipLevels(4); //this code will generate mipmaps for textures
+    //TODO: read mipmaps
+//    for (int i(0); i<mipMapsCount; ++i)
+//    {
+//        texture->setCompressedData(i, 0, size, data.data() + header.size());
+//    }
     texture->setWrapMode(QOpenGLTexture::Repeat);
     switch (header.m_format)
     {
     case ETextureFormat::eMMP_DXT1:
     {
+        //TODO: read mipmaps
         texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT1);
         texture->setSize(int(header.m_width), int(header.m_height));
         texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
@@ -335,12 +327,12 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     }
     case ETextureFormat::eMMP_DXT3:
     {
+        //TODO: read mipmaps
         texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT3);
         texture->setSize(int(header.m_width), int(header.m_height));
         texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
         const int size = int(header.m_width * header.m_height);
         texture->setCompressedData(0, 0, size, data.data() + header.size());
-
         break;
     }
     case ETextureFormat::eMMP_5650    : // use the same direct draw reading algorithm
@@ -395,21 +387,33 @@ void CTextureList::loadTexture(QSet<QString>& aName)
     if(pOpt && !pOpt->value().isEmpty())
         fileInfo.append(pOpt->value());
 
-    QString texName;
+    //QString texName;
 
     for(auto& file: fileInfo)
     {
         ResFile res(file.filePath());
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
-
-        for(auto& name: aName)
+        if (aName.isEmpty())
         {
-            //if(!name.contains(".mmp")) continue;
-            if(m_aTexture.contains(name)) continue;
-            if(!aFile.contains(name + ".mmp")) continue;
+            //load all *zone* textures
+            for (auto& packedTex : aFile.toStdMap())
+            {
+                if(m_aTexture.contains(packedTex.first)) continue;
+                //if(packedTex.first.toLower().contains("zone")) continue;
+                parse(packedTex.second, packedTex.first.split(".")[0]);
 
-            parse(aFile[name + ".mmp"], name);
+            }
+
         }
+        else
+            for(auto& name: aName)
+            {
+                //if(!name.contains(".mmp")) continue;
+                if(m_aTexture.contains(name)) continue;
+                if(!aFile.contains(name + ".mmp")) continue;
+
+                parse(aFile[name + ".mmp"], name);
+            }
     }
 }
 
@@ -429,6 +433,22 @@ QOpenGLTexture* CTextureList::textureDefault()
 {
     Q_ASSERT(m_aTexture.contains("default"));
     return m_aTexture[QString("default")];
+}
+
+void CTextureList::initResource()
+{
+    QImage img(":/default0.png", "PNG");
+    QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+    texture->setMinificationFilter(QOpenGLTexture::Nearest);
+    texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    texture->setWrapMode(QOpenGLTexture::Repeat);
+    texture->setSize(img.width(), img.height());
+    texture->setFormat(QOpenGLTexture::TextureFormat::RGBA8_UNorm);
+    texture->setData(img.mirrored());
+    m_aTexture.insert(QString("default"), texture);
+
+//    QSet<QString> aEmpty;
+//    loadTexture(aEmpty);
 }
 
 struct STexSpecified
@@ -539,11 +559,22 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
     texture->setMagnificationFilter(QOpenGLTexture::NearestMipMapNearest);
     texture->setWrapMode(QOpenGLTexture::Repeat);
     texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT1); //todo: read texture format from file. EI can use both dxt3 and dxt1
-    texture->setMipLevels(4);
+    //texture->setMipLevels(4);
     texture->setSize(minTexSize*texCount, minTexSize);
     texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
     const int size = minTexSize*minTexSize*texCount/2;
     texture->setCompressedData(0, 0, size, combineTextureData.data());
     m_aTexture[name] = texture;
     return texture;
+}
+
+CResourceManager::CResourceManager()
+{
+
+}
+
+void CResourceManager::loadResources()
+{
+    QSet<QString> aEmpty;
+    CTextureList::getInstance()->loadTexture(aEmpty);
 }

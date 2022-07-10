@@ -9,7 +9,7 @@
 #include "view.h"
 #include "utils.h"
 
-CResourceManager* CResourceManager::m_resourceManager = nullptr;
+CIconManager* CIconManager::m_resourceManager = nullptr;
 CStatusConnector* CStatusConnector::m_statusHelper = nullptr;
 CButtonConnector* CButtonConnector::m_buttonHelper = nullptr;
 
@@ -97,19 +97,19 @@ CButtonConnector::CButtonConnector()
 
 }
 
-CResourceManager *CResourceManager::getInstance()
+CIconManager *CIconManager::getInstance()
 {
     if(nullptr == m_resourceManager)
-        m_resourceManager = new CResourceManager();
+        m_resourceManager = new CIconManager();
     return m_resourceManager;
 }
 
-CResourceManager::~CResourceManager()
+CIconManager::~CIconManager()
 {
 
 }
 
-void CResourceManager::init()
+void CIconManager::init()
 {
     QDir icoFolder(util::appPath() + QDir::separator() + "icons_fluent"); // todo: find ico in app folder and via options/configs
 
@@ -129,7 +129,7 @@ void CResourceManager::init()
     }
 }
 
-QIcon *CResourceManager::icon(QString name)
+QIcon *CIconManager::icon(QString name)
 {
     if(m_aIcon.contains(name))
         return m_aIcon[name];
@@ -137,12 +137,12 @@ QIcon *CResourceManager::icon(QString name)
     return m_aIcon[QString("_emptyIco")];
 }
 
-CResourceManager::CResourceManager()
+CIconManager::CIconManager()
 {
     m_aIcon[QString("_emptyIco")] = new QIcon(":/_emptyIco.ico");
 }
 
 QIcon *ei::icon(QString name)
 {
-    return CResourceManager::getInstance()->icon(name);
+    return CIconManager::getInstance()->icon(name);
 }

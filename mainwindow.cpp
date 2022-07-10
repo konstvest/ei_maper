@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent),
     m_ui(new Ui::MainWindow)
 {
-    CResourceManager::getInstance()->init();
+    CIconManager::getInstance()->init();
 
     m_settings.reset(new CSettings());
     m_selector.reset(new CSelector());
@@ -59,7 +59,7 @@ MainWindow::MainWindow(QWidget* parent) :
 MainWindow::~MainWindow()
 {
     delete m_ui;
-    CResourceManager::getInstance()->~CResourceManager();
+    CIconManager::getInstance()->~CIconManager();
 }
 
 void MainWindow::createUndoView()

@@ -140,7 +140,7 @@ QString CTorch::getParam(EObjParam param)
         break;
     }
     default:
-        CWorldObj::applyParam(param, value);
+        CWorldObj::getParam(param);
     }
     return value;
 }

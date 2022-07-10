@@ -747,6 +747,7 @@ uint util::CMobParser::writeStringEncrypted(const QString &data, uint key)
 
 uint util::CMobParser::readUnitStats(QSharedPointer<SUnitStat>& data, uint len)
 {
+    Q_UNUSED(len);
     data = QSharedPointer<SUnitStat>(new SUnitStat());
     m_stream.readRawData(reinterpret_cast<char*>(data.get()), sizeof(SUnitStat));
     return sizeof(SUnitStat);

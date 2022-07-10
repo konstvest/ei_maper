@@ -907,9 +907,10 @@ void CView::rotateTo(QVector3D &rot)
 void CView::scaleTo(QVector3D &scale)
 {
     QVector3D constitution;
-    for(const auto& mob : m_aMob)
+    CMob* pMob = nullptr;
+    foreach(pMob, m_aMob)
     {
-        for (auto& node : mob->nodes())
+        for (auto& node : pMob->nodes())
         {
             if (node->nodeState() == ENodeState::eSelect)
             {

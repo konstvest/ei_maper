@@ -122,10 +122,32 @@ void CObjectList::loadFigures(QSet<QString>& aFigure)
     if(pOpt && !pOpt->value().isEmpty())
         fileInfo.append(pOpt->value());
 
+    uint n(0);
+    QString figName;
     for(auto& file: fileInfo)
     {
         ResFile res(file.filePath());
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+        if(aFigure.isEmpty())
+        {
+            QRegExp rx("(infa\\S+face)|(init(ar|we|li|qi|qu)\\S*\\d+(armor|weapon|item))"); //TODO: remove this if figure will load faster
+            for (auto& fig : aFile.toStdMap())
+            {
+                figName = fig.first.split(".")[0];
+                if(rx.exactMatch(figName)) continue;
+
+                if(m_aFigure.contains(fig.first)) continue;
+                if(fig.first.contains(".mod"))
+                    readAssembly(aFile, fig.first);
+                else if(fig.first.contains(".fig"))
+                    readFigure(aFile[fig.second], fig.first);
+                else //bon, lnk files
+                    continue;
+
+                m_arrCellComboBox[n] = figName;
+                ++n;
+            }
+        }
 
         for (auto& fig: aFigure)
         {
@@ -152,6 +174,12 @@ ei::CFigure* CObjectList::getFigure(const QString& name)
     }
 
     return m_aFigure.contains(figureName) ? m_aFigure[figureName] : figureDefault();
+}
+
+void CObjectList::initResource()
+{
+    QSet<QString> empty;
+    loadFigures(empty);
 }
 
 ei::CFigure *CObjectList::figureDefault()

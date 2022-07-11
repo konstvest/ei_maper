@@ -46,6 +46,11 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
         aStr = CTextureList::getInstance()->textureList();
         break;
     }
+    case eObjParam_TEMPLATE:
+    {
+        aStr = CObjectList::getInstance()->figureList();
+        break;
+    }
     default:
         break;
     }
@@ -82,6 +87,7 @@ CComboBoxItem::CComboBoxItem(const QString& currentValue, EObjParam param)
         switch(param)
         {
         case eObjParam_PRIM_TXTR:
+        case eObjParam_TEMPLATE:
         {
             setCurrentText(currentValue);
             break;
@@ -202,6 +208,7 @@ void CTableManager::onParamChange(CComboBoxItem *pItem)
     switch(currParam)
     {
     case eObjParam_PRIM_TXTR:
+    case eObjParam_TEMPLATE:
     {
         pItem->getValue(val);
         break;
@@ -241,6 +248,7 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         case eObjParam_SOUND_AMBIENT:
         case eObjParam_SOUND_IS_MUSIC:
         case eObjParam_PRIM_TXTR:
+        case eObjParam_TEMPLATE:
         {
             m_pTable->insertRow(i);
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem

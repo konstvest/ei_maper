@@ -140,6 +140,7 @@ void CView::initializeGL()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     initShaders();
     CTextureList::getInstance()->initResource();
+    CObjectList::getInstance()->initResource();
     //loadResource();
 }
 

@@ -23,6 +23,8 @@ public:
     void readAssembly(const QMap<QString, QByteArray>& aFile, const QString& assemblyRoot);
     ei::CFigure* getFigure(const QString& name);
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
+    QMap<uint, QString>& figureList() {return m_arrCellComboBox;}
+    void initResource();
 
 private:
     CObjectList();
@@ -33,6 +35,7 @@ private:
     static CObjectList* m_pObjectContainer;
     CSettings* m_pSettings;
     QMap<QString, ei::CFigure*> m_aFigure;
+    QMap<uint, QString> m_arrCellComboBox; //optimization for cell widget
 };
 
 

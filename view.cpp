@@ -826,7 +826,7 @@ void CView::operationRevert(EOperationAxisType operationType)
         case EOperationAxisType::eScale:
             pair.first->setConstitution(pair.second); break;
         }
-    viewParameters();
+
 }
 
 void CView::operationApply(EOperationAxisType operationType)
@@ -840,7 +840,7 @@ void CView::operationApply(EOperationAxisType operationType)
         case EOperationAxisType::eMove:
         {
             CChangeStringParam* pOp = new CChangeStringParam(pair.first, EObjParam::eObjParam_POSITION, util::makeString(pair.first->position()));
-            //QObject::connect(pOp, SIGNAL(updateParam(EObjParam)), this, SLOT(updateParameter(EObjParam)));
+            QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             //pair.first->setPos(m_operationBackup[pair.first]);
             pair.first->updatePos(m_operationBackup[pair.first]);
             m_pUndoStack->push(pOp);
@@ -849,22 +849,26 @@ void CView::operationApply(EOperationAxisType operationType)
         case EOperationAxisType::eRotate:
         {
             rot = pair.first->getEulerRotation();
-            CChangeStringParam* op = new CChangeStringParam(pair.first, EObjParam::eObjParam_ROTATION, util::makeString(rot));
+            CChangeStringParam* pOp = new CChangeStringParam(pair.first, EObjParam::eObjParam_ROTATION, util::makeString(rot));
+            QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             quat = QQuaternion::fromEulerAngles(m_operationBackup[pair.first]);
             pair.first->setRot(quat);
-            m_pUndoStack->push(op);
+            m_pUndoStack->push(pOp);
             break;
         }
         case EOperationAxisType::eScale:
-            CChangeStringParam* op = new CChangeStringParam(pair.first, EObjParam::eObjParam_COMPLECTION, util::makeString(pair.first->constitution()));
+        {
+            CChangeStringParam* pOp = new CChangeStringParam(pair.first, EObjParam::eObjParam_COMPLECTION, util::makeString(pair.first->constitution()));
+            QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             pair.first->setConstitution(m_operationBackup[pair.first]);
-            m_pUndoStack->push(op);
+            m_pUndoStack->push(pOp);
             break;
+        }
         }
 
     }
     m_operationBackup.clear();
-    viewParameters();
+    //viewParameters();
 }
 
 void CView::moveTo(QVector3D &dir)

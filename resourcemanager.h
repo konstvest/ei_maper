@@ -23,7 +23,8 @@ public:
     void readAssembly(const QMap<QString, QByteArray>& aFile, const QString& assemblyRoot);
     ei::CFigure* getFigure(const QString& name);
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
-    QMap<uint, QString>& figureList() {return m_arrCellComboBox;}
+    QList<QString>& figureList() {return m_arrFigureForComboBox;}
+
     void initResource();
 
 private:
@@ -35,7 +36,7 @@ private:
     static CObjectList* m_pObjectContainer;
     CSettings* m_pSettings;
     QMap<QString, ei::CFigure*> m_aFigure;
-    QMap<uint, QString> m_arrCellComboBox; //optimization for cell widget
+    QList<QString> m_arrFigureForComboBox; //optimization for cell widget
 };
 
 
@@ -104,7 +105,7 @@ public:
     QOpenGLTexture* textureDefault();
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
     void initResource();
-    QMap<uint, QString>& textureList() {return m_arrCellComboBox;}
+    QList<QString>& textureList() {return m_arrCellComboBox;}
 
 private:
     CTextureList();
@@ -115,7 +116,7 @@ private:
     static CTextureList* m_pTextureContainer;
     QMap<QString, QOpenGLTexture*> m_aTexture;
     CSettings* m_pSettings;
-    QMap<uint, QString> m_arrCellComboBox; //optimization for cell widget
+    QList<QString> m_arrCellComboBox; //optimization for cell widget
 };
 
 class CResourceManager

@@ -144,7 +144,7 @@ void CObjectList::loadFigures(QSet<QString>& aFigure)
                 else //bon, lnk files
                     continue;
 
-                m_arrCellComboBox[n] = figName;
+                m_arrFigureForComboBox.append(figName);
                 ++n;
             }
         }
@@ -161,6 +161,7 @@ void CObjectList::loadFigures(QSet<QString>& aFigure)
                 readFigure(aFile[fig], fig);
         }
     }
+    std::sort(m_arrFigureForComboBox.begin(), m_arrFigureForComboBox.end());
 }
 
 ei::CFigure* CObjectList::getFigure(const QString& name)
@@ -425,16 +426,17 @@ void CTextureList::loadTexture(QSet<QString>& aName)
         if (aName.isEmpty())
         {
 
-            //load all *zone* textures
-            QRegExp rx("((material|spell|modifier|prototype|qitem|quitem|litem|skill)\\d{2,4})|(^\\S+\\d{3})|(_\\d{2}\\.\\d)|(face\\S*\\d+)"); //TODO: delete this when loading textures will be faster...
+            //load all textures exclude "special"
+            QRegExp rx("((material|spell|modifier|prototype|qitem|quitem|litem|skill)\\d{2,4})|(^\\S+\\d{3})|(_\\d{2}\\.\\d)|(face\\S*\\d+\\S*)|((sm_)?cursor_\\S+)|(zone\\S+(questm?|map))|(un(mo|un)\\S+w[1-3])"); //TODO: delete this when loading textures will be faster...
+            rx.setCaseSensitivity(Qt::CaseInsensitive);
             for (auto& packedTex : aFile.toStdMap())
             {
                 texName = packedTex.first.split(".")[0];
                 if(rx.exactMatch(texName)) continue;
-                if(m_aTexture.contains(packedTex.first)) continue;
+                if(m_aTexture.contains(texName)) continue;
                 //if(packedTex.first.toLower().contains("zone")) continue;
                 parse(packedTex.second, texName);
-                m_arrCellComboBox[n] = texName;
+                m_arrCellComboBox.append(texName);
                 ++n;
             }
 
@@ -449,6 +451,7 @@ void CTextureList::loadTexture(QSet<QString>& aName)
                 parse(aFile[name + ".mmp"], name);
             }
     }
+    std::sort(m_arrCellComboBox.begin(), m_arrCellComboBox.end());
 }
 
 QOpenGLTexture* CTextureList::texture(QString& name)

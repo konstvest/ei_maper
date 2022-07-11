@@ -37,6 +37,7 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
     case eObjParam_UNIT_NEED_IMPORT:
     case eObjParam_SOUND_AMBIENT:
     case eObjParam_SOUND_IS_MUSIC:
+    case eObjParam_LIGHT_SHADOW:
     {
         aStr[0] = "false";
         aStr[1] = "true";
@@ -44,13 +45,11 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
     }
     case eObjParam_PRIM_TXTR:
     {
-        //aStr = CTextureList::getInstance()->textureList();
         aStr.clear();
         break;
     }
     case eObjParam_TEMPLATE:
     {
-        //aStr = CObjectList::getInstance()->figureList();
         aStr.clear();
         break;
     }
@@ -136,7 +135,7 @@ void CComboBoxItem::showPopup()
         blockSignals(true);
         clear();
         auto curText = currentText();
-        insertItems(0, CTextureList::getInstance()->textureList().values());
+        insertItems(0, CTextureList::getInstance()->textureList());
         setCurrentText(curText);
         blockSignals(false);
         break;
@@ -146,7 +145,7 @@ void CComboBoxItem::showPopup()
         blockSignals(true);
         clear();
         auto curText = currentText();
-        insertItems(0, CObjectList::getInstance()->figureList().values());
+        insertItems(0, CObjectList::getInstance()->figureList());
         setCurrentText(curText);
         blockSignals(false);
         break;
@@ -312,6 +311,7 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         case eObjParam_SOUND_IS_MUSIC:
         case eObjParam_PRIM_TXTR:
         case eObjParam_TEMPLATE:
+        case eObjParam_LIGHT_SHADOW:
         {
             m_pTable->insertRow(i);
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem

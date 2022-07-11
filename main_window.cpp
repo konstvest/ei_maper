@@ -196,11 +196,7 @@ void MainWindow::on_actionUndo_triggered()
 void MainWindow::on_toolButton_2_clicked()
 {
     ei::log(eLogDebug, "btn test start");
-    //m_createDialog->show();
-    //m_createDialog->updateTable();
-    CResourceManager mngr;
-    mngr.loadResources();
-
+    m_createDialog->show();
     ei::log(eLogDebug, "btn test end");
 }
 

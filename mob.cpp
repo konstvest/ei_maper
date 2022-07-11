@@ -323,26 +323,12 @@ bool CMob::deserialize(QByteArray data)
 void CMob::updateObjects()
 {
     ei::log(eLogInfo, "Start update objects");
-    QSet<QString> aModelName;
-    QSet<QString> aTextureName;
-    for(auto& node: m_aNode)
-    {
-        aModelName.insert(node->modelName() + ".mod");
-        aTextureName.insert(node->textureName());
-    }
-    //preload figures
-    CObjectList::getInstance()->loadFigures(aModelName);
-    m_pProgress->update(15);
-    CTextureList::getInstance()->loadTexture(aTextureName);
-    m_pProgress->update(15);
-    QString texName;
-    double step = 21/double(m_aNode.size());
     for(auto& node: m_aNode)
     {
         node->loadFigure();
         node->loadTexture();
-        m_pProgress->update(step);
     }
+    m_pProgress->update(50);
     ei::log(eLogInfo, "End update objects");
 }
 

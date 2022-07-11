@@ -131,7 +131,7 @@ QString CTorch::getParam(EObjParam param)
     }
     case eObjParam_TORCH_STRENGHT:
     {
-        value = util::makeString(m_power);
+        value = QString::number(m_power);
         break;
     }
     case eObjParam_TORCH_SOUND:

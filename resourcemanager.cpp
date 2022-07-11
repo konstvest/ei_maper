@@ -387,21 +387,27 @@ void CTextureList::loadTexture(QSet<QString>& aName)
     if(pOpt && !pOpt->value().isEmpty())
         fileInfo.append(pOpt->value());
 
-    //QString texName;
+    QString texName;
 
+    uint n(0);
     for(auto& file: fileInfo)
     {
         ResFile res(file.filePath());
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
         if (aName.isEmpty())
         {
+
             //load all *zone* textures
+            QRegExp rx("((material|spell|modifier|prototype|qitem|quitem|litem|skill)\\d{2,4})|(^\\S+\\d{3})|(_\\d{2}\\.\\d)|(face\\S*\\d+)"); //TODO: delete this when loading textures will be faster...
             for (auto& packedTex : aFile.toStdMap())
             {
+                texName = packedTex.first.split(".")[0];
+                if(rx.exactMatch(texName)) continue;
                 if(m_aTexture.contains(packedTex.first)) continue;
                 //if(packedTex.first.toLower().contains("zone")) continue;
-                parse(packedTex.second, packedTex.first.split(".")[0]);
-
+                parse(packedTex.second, texName);
+                m_arrCellComboBox[n] = texName;
+                ++n;
             }
 
         }
@@ -447,8 +453,11 @@ void CTextureList::initResource()
     texture->setData(img.mirrored());
     m_aTexture.insert(QString("default"), texture);
 
-//    QSet<QString> aEmpty;
-//    loadTexture(aEmpty);
+    if(true)
+    {
+        QSet<QString> aEmpty;
+        loadTexture(aEmpty);
+    }
 }
 
 struct STexSpecified

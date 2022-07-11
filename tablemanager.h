@@ -24,6 +24,7 @@ class CComboBoxItem : public QComboBox
 Q_OBJECT
 public:
     CComboBoxItem(const QString& currentValue, EObjParam param);
+    void getKey(QString& val);
     void getValue(QString& val);
     EObjParam& param(){return m_parameter;}
     void subscribe(QTableWidget* pTable);

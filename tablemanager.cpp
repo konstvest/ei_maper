@@ -1,5 +1,6 @@
 #include <QHeaderView>
 #include "tablemanager.h"
+#include "resourcemanager.h"
 
 CStringItem::CStringItem(QString value, EObjParam param):
     QTableWidgetItem(value)
@@ -40,6 +41,11 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
         aStr[1] = "true";
         break;
     }
+    case eObjParam_PRIM_TXTR:
+    {
+        aStr = CTextureList::getInstance()->textureList();
+        break;
+    }
     default:
         break;
     }
@@ -72,13 +78,31 @@ CComboBoxItem::CComboBoxItem(const QString& currentValue, EObjParam param)
         setCurrentText(valueDifferent());
     }
     else
-        setCurrentText(m_aComboString[currentValue.toUInt()]);
+    {
+        switch(param)
+        {
+        case eObjParam_PRIM_TXTR:
+        {
+            setCurrentText(currentValue);
+            break;
+        }
+        default:
+            setCurrentText(m_aComboString[currentValue.toUInt()]);
+            break;
+        }
+
+    }
     QObject::connect(this, SIGNAL(currentIndexChanged(QString)), this, SLOT(currentIndexChangedOver(QString))); //reconnect default currentIndexChanged to override
+}
+
+void CComboBoxItem::getKey(QString &val)
+{
+    val = QString::number(m_aComboString.key(currentText()));
 }
 
 void CComboBoxItem::getValue(QString &val)
 {
-    val = QString::number(m_aComboString.key(currentText()));
+    val = currentText();
 }
 
 void CComboBoxItem::currentIndexChangedOver(QString str)
@@ -174,8 +198,20 @@ void CTableManager::onParamChange(CComboBoxItem *pItem)
 {
     Q_ASSERT(pItem);
     QString val;
-    pItem->getValue(val);
-    SParam param{pItem->param(), val};
+    EObjParam currParam = pItem->param();
+    switch(currParam)
+    {
+    case eObjParam_PRIM_TXTR:
+    {
+        pItem->getValue(val);
+        break;
+    }
+    default:
+        pItem->getKey(val);
+        break;
+    }
+
+    SParam param{currParam, val};
     emit changeParamSignal(param);
 }
 
@@ -195,87 +231,88 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
     for (const auto& item : aParam.toStdMap())
     {
         switch (item.first) {
-            case eObjParam_PLAYER:
-            case eObjParam_IS_SHADOW:
-            case eObjParam_LEVER_IS_CYCLED:
-            case eObjParam_LEVER_IS_DOOR:
-            case eObjParam_USE_IN_SCRIPT:
-            case eObjParam_LEVER_RECALC_GRAPH:
-            case eObjParam_UNIT_NEED_IMPORT:
-            case eObjParam_SOUND_AMBIENT:
-            case eObjParam_SOUND_IS_MUSIC:
+        case eObjParam_PLAYER:
+        case eObjParam_IS_SHADOW:
+        case eObjParam_LEVER_IS_CYCLED:
+        case eObjParam_LEVER_IS_DOOR:
+        case eObjParam_USE_IN_SCRIPT:
+        case eObjParam_LEVER_RECALC_GRAPH:
+        case eObjParam_UNIT_NEED_IMPORT:
+        case eObjParam_SOUND_AMBIENT:
+        case eObjParam_SOUND_IS_MUSIC:
+        case eObjParam_PRIM_TXTR:
+        {
+            m_pTable->insertRow(i);
+            //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem
+            //The table takes ownership of the item.
+            // => table widget take care about memory
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
+            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+            //todo: collect all created items and delete them before create new (or update). reduce memory leaks
+            CComboBoxItem* pCombo = new CComboBoxItem(item.second, item.first);
+            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            m_pTable->setCellWidget(i, 1, pCombo);
+            ++i;
+            break;
+        }
+        case eObjParam_LEVER_SCIENCE_STATS_Key_ID:
+        case eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight:
+        {// this cases processed below
+            break;
+        }
+        case eObjParam_LEVER_SCIENCE_STATS_Type_Open:
+        {
+            m_pTable->insertRow(i);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
+            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+            CComboBoxItem* pCombo = new CComboBoxItem(item.second, eObjParam_LEVER_SCIENCE_STATS_Type_Open);
+            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            m_pTable->setCellWidget(i, 1, pCombo);
+            ++i;
+            if (!item.second.isEmpty())
             {
-                m_pTable->insertRow(i);
-                //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem
-                //The table takes ownership of the item.
-                // => table widget take care about memory
-                m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-                m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-                //todo: collect all created items and delete them before create new (or update). reduce memory leaks
-                CComboBoxItem* pCombo = new CComboBoxItem(item.second, item.first);
-                QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
-                m_pTable->setCellWidget(i, 1, pCombo);
-                ++i;
-                break;
-            }
-            case eObjParam_LEVER_SCIENCE_STATS_Key_ID:
-            case eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight:
-            {// this cases processed below
-                break;
-            }
-            case eObjParam_LEVER_SCIENCE_STATS_Type_Open:
-            {
-                m_pTable->insertRow(i);
-                m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-                m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-                CComboBoxItem* pCombo = new CComboBoxItem(item.second, eObjParam_LEVER_SCIENCE_STATS_Type_Open);
-                QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
-                m_pTable->setCellWidget(i, 1, pCombo);
-                ++i;
-                if (!item.second.isEmpty())
+                uint type = item.second.toUInt();
+                switch (type) {
+                case 0:
+                case 1:
                 {
-                    uint type = item.second.toUInt();
-                    switch (type) {
-                    case 0:
-                    case 1:
-                    {
-                        break;
-                    }
-                    case 5:
-                    {
-                        m_pTable->insertRow(i);
-                        m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight]));
-                        m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-                        m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight], eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight));
-                        m_pTable->resizeColumnToContents(0);
-                        ++i;
-                        break;
-                    }
-                    case 8:
-                    {
-                        m_pTable->insertRow(i);
-                        m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Key_ID]));
-                        m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_LEVER_SCIENCE_STATS_Key_ID], eObjParam_LEVER_SCIENCE_STATS_Key_ID));
-                        m_pTable->resizeColumnToContents(0);
-                        ++i;
-                        break;
-                    }
-                    default:
-                        Q_ASSERT("go away" && false);
-                    }
+                    break;
                 }
-                break; //eObjParam_LEVER_SCIENCE_STATS_Type_Open
+                case 5:
+                {
+                    m_pTable->insertRow(i);
+                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight]));
+                    m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+                    m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight], eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight));
+                    m_pTable->resizeColumnToContents(0);
+                    ++i;
+                    break;
+                }
+                case 8:
+                {
+                    m_pTable->insertRow(i);
+                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Key_ID]));
+                    m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_LEVER_SCIENCE_STATS_Key_ID], eObjParam_LEVER_SCIENCE_STATS_Key_ID));
+                    m_pTable->resizeColumnToContents(0);
+                    ++i;
+                    break;
+                }
+                default:
+                    Q_ASSERT("go away" && false);
+                }
             }
-            default:
-            {
-                m_pTable->insertRow(i);
-                m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-                m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-                m_pTable->setItem(i, 1, new CStringItem(item.second, item.first));
-                m_pTable->resizeColumnToContents(0);
-                ++i;
-                break;
-            }
+            break; //eObjParam_LEVER_SCIENCE_STATS_Type_Open
+        }
+        default:
+        {
+            m_pTable->insertRow(i);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
+            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+            m_pTable->setItem(i, 1, new CStringItem(item.second, item.first));
+            m_pTable->resizeColumnToContents(0);
+            ++i;
+            break;
+        }
         } //switch
     }
     m_pTable->blockSignals(false);

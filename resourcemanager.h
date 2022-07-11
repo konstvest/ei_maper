@@ -101,6 +101,7 @@ public:
     QOpenGLTexture* textureDefault();
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
     void initResource();
+    QMap<uint, QString>& textureList() {return m_arrCellComboBox;}
 
 private:
     CTextureList();
@@ -111,6 +112,7 @@ private:
     static CTextureList* m_pTextureContainer;
     QMap<QString, QOpenGLTexture*> m_aTexture;
     CSettings* m_pSettings;
+    QMap<uint, QString> m_arrCellComboBox; //optimization for cell widget
 };
 
 class CResourceManager

@@ -28,6 +28,7 @@ public:
     void getValue(QString& val);
     EObjParam& param(){return m_parameter;}
     void subscribe(QTableWidget* pTable);
+    void showPopup() override;
 
 public slots:
     void currentIndexChangedOver(QString);

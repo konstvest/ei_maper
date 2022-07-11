@@ -4,8 +4,9 @@
 
 CStringItem::CStringItem(QString value, EObjParam param):
     QTableWidgetItem(value)
+    ,m_parameter(param)
 {
-    m_parameter = param;
+
 }
 
 void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
@@ -43,12 +44,14 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
     }
     case eObjParam_PRIM_TXTR:
     {
-        aStr = CTextureList::getInstance()->textureList();
+        //aStr = CTextureList::getInstance()->textureList();
+        aStr.clear();
         break;
     }
     case eObjParam_TEMPLATE:
     {
-        aStr = CObjectList::getInstance()->figureList();
+        //aStr = CObjectList::getInstance()->figureList();
+        aStr.clear();
         break;
     }
     default:
@@ -67,8 +70,21 @@ QString valueDifferent()
 }
 
 CComboBoxItem::CComboBoxItem(const QString& currentValue, EObjParam param)
+    :m_parameter(param)
 {
-    m_parameter = param;
+    setMaxVisibleItems(20);
+    switch(m_parameter)
+    {
+    case eObjParam_PRIM_TXTR:
+    case eObjParam_TEMPLATE:
+    {
+        //QObject::connect(this, SIGNAL(activated(int)), this, SLOT(loadComboItems(int)));
+        break;
+    }
+    default:
+        break;
+    }
+
     initComboStr(m_aComboString, param);
     int i = 0;
     for (const auto& item : m_aComboString.toStdMap())
@@ -89,7 +105,7 @@ CComboBoxItem::CComboBoxItem(const QString& currentValue, EObjParam param)
         case eObjParam_PRIM_TXTR:
         case eObjParam_TEMPLATE:
         {
-            setCurrentText(currentValue);
+            insertItem(0, currentValue);
             break;
         }
         default:
@@ -109,6 +125,37 @@ void CComboBoxItem::getKey(QString &val)
 void CComboBoxItem::getValue(QString &val)
 {
     val = currentText();
+}
+
+void CComboBoxItem::showPopup()
+{
+    switch(m_parameter)
+    {
+    case eObjParam_PRIM_TXTR:
+    {
+        blockSignals(true);
+        clear();
+        auto curText = currentText();
+        insertItems(0, CTextureList::getInstance()->textureList().values());
+        setCurrentText(curText);
+        blockSignals(false);
+        break;
+    }
+    case eObjParam_TEMPLATE:
+    {
+        blockSignals(true);
+        clear();
+        auto curText = currentText();
+        insertItems(0, CObjectList::getInstance()->figureList().values());
+        setCurrentText(curText);
+        blockSignals(false);
+        break;
+    }
+    default:
+        break;
+    }
+
+    QComboBox::showPopup();
 }
 
 void CComboBoxItem::currentIndexChangedOver(QString str)

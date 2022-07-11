@@ -92,6 +92,7 @@ private:
 
 public slots:
     void updateWindow();
+    void updateParameter(EObjParam param);
     void viewParameters();
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(SParam& sParam);

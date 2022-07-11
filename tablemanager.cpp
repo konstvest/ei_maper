@@ -141,6 +141,22 @@ void CTableManager::reset()
     //m_pTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents); //adjust whole table. now both columns fill qtablewidget but it occurs blink and offset for main window
 }
 
+void CTableManager::updateParam(EObjParam param, QString newValue)
+{
+    m_pTable->blockSignals(true); //block sending signals
+    for(int i(0); i<m_pTable->rowCount(); ++i)
+    {
+        auto tableItem = m_pTable->item(i, 1);
+        auto it = dynamic_cast<CStringItem*>(tableItem);
+        if (nullptr != it)
+            if(it->param() == param)
+            {
+                it->setText(newValue);
+            }
+    }
+    m_pTable->blockSignals(false); //unblock sending signals
+}
+
 void CTableManager::initRowName()
 {
     m_aRowName[eObjParam_BODYPARTS] = "Model parts";

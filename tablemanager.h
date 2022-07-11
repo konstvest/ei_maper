@@ -48,6 +48,7 @@ public:
     CTableManager(QTableWidget* pTable);
 
     void reset();
+    void updateParam(EObjParam param, QString newValue);
     void setNewData(QMap<EObjParam, QString>& aParam);
 
 private:

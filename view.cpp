@@ -583,6 +583,28 @@ int CView::cauntSelectedNodes()
     return n;
 }
 
+void CView::updateParameter(EObjParam param)
+{
+    QString valueToUpdate("");
+    QString value;
+    for (const auto& mob : m_aMob)
+        for (const auto& node : mob->nodes())
+        {
+            if (node->nodeState() != ENodeState::eSelect)
+                continue;
+
+            value = node->getParam(param);
+            if(!valueToUpdate.isEmpty() && valueToUpdate != value)
+            {
+                valueToUpdate = "";
+                break;
+            }
+            valueToUpdate = value; //same values will be copied every time
+        }
+
+    m_tableManager->updateParam(param, valueToUpdate);
+}
+
 void CView::viewParameters()
 {
     QSet<ENodeType> aType;
@@ -804,6 +826,7 @@ void CView::operationRevert(EOperationAxisType operationType)
         case EOperationAxisType::eScale:
             pair.first->setConstitution(pair.second); break;
         }
+    viewParameters();
 }
 
 void CView::operationApply(EOperationAxisType operationType)
@@ -816,10 +839,11 @@ void CView::operationApply(EOperationAxisType operationType)
         {
         case EOperationAxisType::eMove:
         {
-            CChangeStringParam* op = new CChangeStringParam(pair.first, EObjParam::eObjParam_POSITION, util::makeString(pair.first->position()));
+            CChangeStringParam* pOp = new CChangeStringParam(pair.first, EObjParam::eObjParam_POSITION, util::makeString(pair.first->position()));
+            //QObject::connect(pOp, SIGNAL(updateParam(EObjParam)), this, SLOT(updateParameter(EObjParam)));
             //pair.first->setPos(m_operationBackup[pair.first]);
             pair.first->updatePos(m_operationBackup[pair.first]);
-            m_pUndoStack->push(op);
+            m_pUndoStack->push(pOp);
             break;
         }
         case EOperationAxisType::eRotate:
@@ -857,7 +881,7 @@ void CView::moveTo(QVector3D &dir)
             }
         }
     }
-    viewParameters();
+    updateParameter(EObjParam::eObjParam_POSITION);
 }
 
 void CView::rotateTo(QVector3D &rot)
@@ -902,7 +926,7 @@ void CView::rotateTo(QVector3D &rot)
             }
         }
     }
-    viewParameters();
+    updateParameter(EObjParam::eObjParam_ROTATION);
 }
 
 void CView::scaleTo(QVector3D &scale)
@@ -920,7 +944,7 @@ void CView::scaleTo(QVector3D &scale)
             }
         }
     }
-    viewParameters();
+    updateParameter(EObjParam::eObjParam_COMPLECTION);
 }
 
 void CView::deleteSelectedNodes()

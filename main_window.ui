@@ -329,6 +329,7 @@
     <addaction name="menuSelect"/>
     <addaction name="actionCreate_new_object_TODO"/>
     <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -408,6 +409,11 @@
   <action name="actionUndo">
    <property name="text">
     <string>Un&amp;do</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="text">
+    <string>Redo</string>
    </property>
   </action>
  </widget>

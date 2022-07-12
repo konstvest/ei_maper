@@ -1,5 +1,5 @@
 #include "main_window.h"
-#include "ui_mainwindow.h"
+#include "ui_main_window.h"
 
 #include <QWidget>
 #include <QFileInfo>
@@ -79,6 +79,7 @@ void MainWindow::initShortcuts()
     m_ui->actionClose_all->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     m_ui->actionSave->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
     m_ui->actionUndo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
+    m_ui->actionRedo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
 
 }
 
@@ -211,3 +212,9 @@ void MainWindow::on_moveButton_clicked()
     qDebug() << "TODO: insert gizmo to Move";
     CButtonConnector::getInstance()->clickButton(EButtonOpMove);
 }
+
+void MainWindow::on_actionRedo_triggered()
+{
+    m_undoStack->redo();
+}
+

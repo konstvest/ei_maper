@@ -45,8 +45,8 @@ private slots:
     void on_actionUndo_triggered();
     void on_toolButton_2_clicked();
     void on_selectButton_clicked();
-
     void on_moveButton_clicked();
+    void on_actionRedo_triggered();
 
 private:
     Ui::MainWindow* m_ui;

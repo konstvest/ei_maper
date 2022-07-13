@@ -4,7 +4,15 @@
 CTorch::CTorch():
     m_power(0.0f)
 {
+    m_type = 58;
+}
 
+CTorch::CTorch(const CTorch &torch):
+    CWorldObj(torch)
+{
+    m_power = torch.m_power;
+    m_pointLink = torch.m_pointLink;
+    m_sound = torch.m_sound;
 }
 
 CTorch::CTorch(QJsonObject data):
@@ -47,6 +55,7 @@ uint CTorch::deserialize(util::CMobParser& parser)
                 break;
         }
     }
+    Q_ASSERT(m_type==58);
     return readByte;
 }
 

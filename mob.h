@@ -44,6 +44,8 @@ public:
     void serializeMob(QByteArray& data);
     void addNode(QList<CNode*>& aNode) {m_aNode.append(aNode); }
     void addNode(CNode* aNode) {m_aNode.append(aNode); }
+    void createNode(CNode* pNode);
+    CNode* createNode(QJsonObject data);
     QList<CNode*>& nodes() {return m_aNode; }
     void deleteNode(CNode* pNode);
     void restoreNode(const uint innerId);
@@ -64,7 +66,7 @@ public:
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
-    CNode* createNode(QJsonObject data);
+
 
 private:
     void init();

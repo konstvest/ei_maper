@@ -6,7 +6,18 @@ CMagicTrap::CMagicTrap():
     ,m_castInterval(0)
     ,m_bCastOnce(false)
 {
+    m_type = 59;
+}
 
+CMagicTrap::CMagicTrap(const CMagicTrap &trap):
+    CWorldObj(trap)
+{
+    m_diplomacy = trap.m_diplomacy;
+    m_spell = trap.m_spell;
+    m_aArea = trap.m_aArea;
+    m_aTarget = trap.m_aTarget;
+    m_castInterval = trap.m_castInterval;
+    m_bCastOnce = trap.m_bCastOnce;
 }
 
 CMagicTrap::CMagicTrap(QJsonObject data):
@@ -103,6 +114,7 @@ uint CMagicTrap::deserialize(util::CMobParser& parser)
                 break;
         }
     }
+    Q_ASSERT(m_type==59);
     return readByte;
 }
 

@@ -12,6 +12,18 @@ CSound::CSound():
 
 }
 
+CSound::CSound(const CSound &sound):
+    CObjectBase(sound)
+{
+    m_range = sound.m_range;
+    m_range2 = sound.m_range2;
+    m_min = sound.m_min;
+    m_max = sound.m_max;
+    m_aResName = sound.m_aResName;
+    m_bAmbient = sound.m_bAmbient;
+    m_bMusic = sound.m_bMusic;
+}
+
 CSound::CSound(QJsonObject data):
     CObjectBase(data["Base object"].toObject())
 {

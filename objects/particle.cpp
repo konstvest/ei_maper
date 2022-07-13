@@ -7,6 +7,13 @@ CParticle::CParticle():
 
 }
 
+CParticle::CParticle(const CParticle &particle):
+    CObjectBase(particle)
+{
+    m_kind = particle.m_kind;
+    m_scale = particle.m_scale;
+}
+
 CParticle::CParticle(QJsonObject data):
     CObjectBase(data["Base object"].toObject())
 {

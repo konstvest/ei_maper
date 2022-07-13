@@ -43,6 +43,19 @@ CNode::CNode(CNode* parent):
     init();
 }
 
+CNode::CNode(const CNode &node):
+    m_position(0.0, 0.0, 0.0)
+    //,m_rotation(0.0, 0.0, 0.0)
+    ,m_mapID(0)
+    ,m_parent(nullptr)
+    ,m_state(eDraw)
+{
+    init();
+    m_name = node.m_name;
+    m_comment = node.m_comment;
+    //children?
+}
+
 CNode::~CNode()
 {
     for(auto& child : m_aChild)

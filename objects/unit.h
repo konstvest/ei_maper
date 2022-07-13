@@ -74,7 +74,7 @@ enum EBehaviourType //todo: move to logic m_model
 class CLogic
 {
 public:
-    CLogic(CUnit* unit);
+    CLogic(CUnit* unit, bool bUse=false);
     ~CLogic();
     void draw(QOpenGLShaderProgram* program);
     void drawSelect(QOpenGLShaderProgram* program = nullptr);
@@ -115,6 +115,7 @@ class CUnit: public CWorldObj
 {
 public:
     CUnit();
+    CUnit(const CUnit& unit);
     CUnit(QJsonObject data, CMob* pMob);
     ~CUnit() override;
     ENodeType nodeType() override {return ENodeType::eUnit; }

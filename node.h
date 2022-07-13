@@ -43,6 +43,7 @@ class CNode
 public:
     CNode();
     CNode(CNode* parent);
+    CNode(const CNode& node);
     static uint s_freeId;
     virtual ~CNode();
     virtual void draw(QOpenGLShaderProgram* program = nullptr) = 0;

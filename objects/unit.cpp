@@ -11,6 +11,21 @@ CUnit::CUnit():
     m_prototypeName("")
     ,m_bImport(false)
 {
+    m_type = 50; //Human by default
+}
+
+CUnit::CUnit(const CUnit &unit):
+    CWorldObj(unit)
+{
+    m_prototypeName = unit.m_prototypeName;
+    m_stat.reset(new SUnitStat(*unit.m_stat.get()));
+    m_aQuestItem = unit.m_aQuestItem;
+    m_aQuickItem = unit.m_aQuickItem;
+    m_aSpell = unit.m_aSpell;
+    m_aWeapon = unit.m_aWeapon;
+    m_aArmor = unit.m_aArmor;
+    m_bImport = unit.m_bImport;
+    m_aLogic.clear(); //TODO: generate 5 ones
 }
 
 CUnit::CUnit(QJsonObject data, CMob* pMob):
@@ -165,7 +180,7 @@ uint CUnit::deserialize(util::CMobParser& parser)
         //"UNIT_ITEMS", eNull};
     }
     Q_ASSERT(m_aLogic.size() == 5);
-
+    Q_ASSERT((m_type==50)||(m_type==51)||(m_type==52));
     return readByte;
 }
 
@@ -273,6 +288,7 @@ void CUnit::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
     addParam(aParam, eObjParam_UNIT_QUICK_ITEMS, util::makeString(m_aQuickItem));
     addParam(aParam, eObjParam_UNIT_QUEST_ITEMS, util::makeString(m_aQuestItem));
     addParam(aParam, eObjParam_UNIT_STATS, "TODO");
+    addParam(aParam, eObjParam_TYPE, QString::number(m_type));
 }
 
 void CUnit::applyParam(EObjParam param, const QString &value)
@@ -419,9 +435,9 @@ QJsonObject CUnit::toJson()
     return obj;
 }
 
-CLogic::CLogic(CUnit* unit):
+CLogic::CLogic(CUnit* unit, bool bUse):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
-    ,m_use(false)
+    ,m_use(bUse)
     ,m_parent(unit)
 {
 }

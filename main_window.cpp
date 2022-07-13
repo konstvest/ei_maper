@@ -48,6 +48,8 @@ MainWindow::MainWindow(QWidget* parent) :
     m_ui->myGLWidget->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText);
     initShortcuts();
     QObject::connect(m_ui->myGLWidget, SIGNAL(mobLoad(bool)), this, SLOT(updateMobListInParam(bool)));
+    QObject::connect(m_ui->myGLWidget, SIGNAL(updateMainWindowTitle(eTitleTypeData, QString)), this, SLOT(updateWindowTitle(eTitleTypeData, QString)));
+
 //    m_ui->progressBar->setValue(0);
     m_ui->progressBar->reset();
 //    m_ui->progressBar->setVisible(false);
@@ -55,6 +57,7 @@ MainWindow::MainWindow(QWidget* parent) :
     m_ui->mousePosText->setStyleSheet("* { background-color: rgba(0, 0, 0, 0); }");
     CTextureList::getInstance()->attachSettings(m_settings.get());
     CObjectList::getInstance()->attachSettings(m_settings.get());
+    m_createDialog.get()->attachView(m_ui->myGLWidget);
 }
 
 MainWindow::~MainWindow()
@@ -216,5 +219,38 @@ void MainWindow::on_moveButton_clicked()
 void MainWindow::on_actionRedo_triggered()
 {
     m_undoStack->redo();
+}
+
+
+void MainWindow::on_actionCreate_new_object_triggered()
+{
+    m_createDialog->show();
+}
+
+void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
+{
+    switch (type) {
+        case eTitleTypeData::eTitleTypeDataActiveMob:
+    {
+        m_sWindowTitle.activeMob = data;
+        break;
+    }
+    case eTitleTypeData::eTitleTypeDataMpr:
+    {
+        m_sWindowTitle.mpr = data;
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+        break;
+    }
+    QString title = "ei_maper";
+    if(!m_sWindowTitle.mpr.isEmpty())
+        title += QString(" MPR: (%1)").arg(m_sWindowTitle.mpr);
+
+    if(!m_sWindowTitle.activeMob.isEmpty())
+        title += QString(" MOB: (%1)").arg(m_sWindowTitle.activeMob);
+
+    setWindowTitle(title);
 }
 

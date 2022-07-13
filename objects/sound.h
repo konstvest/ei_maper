@@ -7,6 +7,7 @@ class CSound : public CObjectBase
 {
 public:
     CSound();
+    CSound(const CSound& sound);
     CSound(QJsonObject data);
     ENodeType nodeType() override {return ENodeType::eSound; }
     uint deserialize(util::CMobParser& parser) override;

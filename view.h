@@ -69,6 +69,7 @@ public:
     void clipboradObjectsToScene();
     void hideSelectedNodes();
     void unHideAll();
+    CMob* currentMob() {return m_activeMob;}
 
 protected:
     void initializeGL();
@@ -89,6 +90,7 @@ private:
     int cauntSelectedNodes();
     void applyParam(SParam& param);
     void getColorFromRect(const QRect& rect, QVector<SColor>& aColor);
+    void changeCurrentMob(CMob* pMob);
 
 public slots:
     void updateWindow();
@@ -101,6 +103,7 @@ public slots:
 signals:
     void updateMsg(QString msg);
     void mobLoad(bool bReset);
+    void updateMainWindowTitle(eTitleTypeData, QString);
 
 private:
     int m_height; //for redraw window
@@ -123,6 +126,7 @@ private:
     EOperationType m_operationType;
     QSharedPointer<CSelectFrame> m_selectFrame;
     QFile m_clipboard_buffer_file;
+    CMob* m_activeMob;
 };
 
 #endif // MYGLWIDGET_H

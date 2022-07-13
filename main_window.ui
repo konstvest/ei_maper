@@ -199,7 +199,7 @@
            <number>2</number>
           </property>
           <attribute name="horizontalHeaderVisible">
-           <bool>true</bool>
+           <bool>false</bool>
           </attribute>
           <column/>
           <column/>
@@ -310,6 +310,8 @@
     </property>
     <addaction name="actionSettings"/>
     <addaction name="actionShow_undo_redo"/>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="enabled">
@@ -327,9 +329,7 @@
     </widget>
     <addaction name="action_Mob_parameters"/>
     <addaction name="menuSelect"/>
-    <addaction name="actionCreate_new_object_TODO"/>
-    <addaction name="actionUndo"/>
-    <addaction name="actionRedo"/>
+    <addaction name="actionCreate_new_object"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -391,9 +391,12 @@
     <string>Select by...</string>
    </property>
   </action>
-  <action name="actionCreate_new_object_TODO">
+  <action name="actionCreate_new_object">
    <property name="text">
-    <string>Create &amp;new object (TODO)</string>
+    <string>Create &amp;new object</string>
+   </property>
+   <property name="toolTip">
+    <string>Create new object</string>
    </property>
   </action>
   <action name="actionShow_undo_redo">

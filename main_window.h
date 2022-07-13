@@ -7,6 +7,7 @@
 #include <QUndoStack>
 #include <QUndoView>
 #include <QPlainTextEdit>
+#include "types.h"
 
 namespace Ui {
 class MainWindow;
@@ -16,6 +17,12 @@ class CSettings;
 class CSelector;
 class CMobParameters;
 class CCreateObjectForm;
+
+struct SWindowTitle
+{
+    QString mpr;
+    QString activeMob;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -47,6 +54,9 @@ private slots:
     void on_selectButton_clicked();
     void on_moveButton_clicked();
     void on_actionRedo_triggered();
+    void on_actionCreate_new_object_triggered();
+
+    void updateWindowTitle(eTitleTypeData type, QString data);
 
 private:
     Ui::MainWindow* m_ui;
@@ -57,6 +67,7 @@ private:
     QUndoStack* m_undoStack;
     QUndoView* m_undoView;
 
+    SWindowTitle m_sWindowTitle;
 };
 
 #endif // MAIN_WINDOW_H

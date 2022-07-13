@@ -6,6 +6,7 @@ class CLight : public CObjectBase
 {
 public:
     CLight();
+    CLight(const CLight& light);
     CLight(QJsonObject data);
     ENodeType nodeType() override {return ENodeType::eLight; }
     uint deserialize(util::CMobParser& parser) override;

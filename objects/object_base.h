@@ -16,6 +16,7 @@ class CObjectBase : public CNode
 {
 public:
     CObjectBase();
+    CObjectBase(const CObjectBase& base);
     CObjectBase(QJsonObject data);
     CObjectBase(CNode* node);
     ~CObjectBase() override;

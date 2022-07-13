@@ -832,6 +832,99 @@ void CMob::serializeMob(QByteArray& data)
     return;
 }
 
+void CMob::createNode(CNode *pNode)
+{
+    CNode* pNewNode = nullptr;
+    ENodeType type = pNode->nodeType();
+    if (type == ENodeType::eUnknown)
+    {
+        qDebug() << "cant recognize type of obj";
+        return;
+    }
+
+    switch (type)
+    {
+    case ENodeType::eUnit:
+    {
+        pNewNode = new CUnit(*dynamic_cast<CUnit*>(pNode));
+        break;
+    }
+    case ENodeType::eTorch:
+    {
+        pNewNode = new CTorch(*dynamic_cast<CTorch*>(pNode));
+        break;
+    }
+    case ENodeType::eMagicTrap:
+    {
+        pNewNode = new CMagicTrap(*dynamic_cast<CMagicTrap*>(pNode));
+        break;
+    }
+    case ENodeType::eLever:
+    {
+        pNewNode = new CLever(*dynamic_cast<CLever*>(pNode));
+        break;
+    }
+    case ENodeType::eLight:
+    {
+        pNewNode = new CLight(*dynamic_cast<CLight*>(pNode));
+        break;
+    }
+    case ENodeType::eSound:
+    {
+        pNewNode = new CSound(*dynamic_cast<CSound*>(pNode));
+        break;
+    }
+    case ENodeType::eParticle:
+    {
+        pNewNode = new CParticle(*dynamic_cast<CParticle*>(pNode));
+        break;
+    }
+    case ENodeType::eWorldObject:
+    {
+        pNewNode = new CWorldObj(*dynamic_cast<CWorldObj*>(pNode));
+        break;
+    }
+    default:
+    {
+        Q_ASSERT("unknown node type" && false);
+        break;
+    }
+    }
+
+    if(nullptr == pNode)
+    {
+        Q_ASSERT("Failed to create new node" && false);
+    }
+    pNewNode->attachMob(this);
+    //todo: create operation stack for this op
+    addNode(pNewNode);
+//    pNode->loadFigure();
+//    pNode->loadTexture();
+
+    if(pNewNode)
+    {
+        uint freeId(1000);
+        QVector<uint> arrId;
+        arrId.resize(m_aNode.size());
+
+        for (int i(0); i<m_aNode.size(); ++i)
+            arrId[i] = m_aNode[i]->mapId();
+
+        for (; freeId<100000; ++freeId)
+        {
+            //TODO: find more suitable ID from mob ranges
+            if(!arrId.contains(freeId))
+            {
+                pNewNode->setMapId(freeId);
+                break;
+            }
+        }
+        pNewNode->setState(ENodeState::eSelect);
+    }
+
+    return;
+}
+
 void CMob::deleteNode(CNode *pNode)
 {
     const int ind = m_aNode.indexOf(pNode);

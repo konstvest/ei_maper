@@ -6,6 +6,7 @@ class CLever : public CWorldObj
 {
 public:
     CLever();
+    CLever(const CLever& lever);
     CLever(QJsonObject data);
     ~CLever() override {}
     ENodeType nodeType() override {return ENodeType::eLever; }
@@ -18,12 +19,6 @@ public:
     QJsonObject toJson() override;
 
 private:
-// maped show these parameters
-//    0200 - cur State
-//    0300 - total state
-//    0400 - cycled
-//    0700 - door
-//    0800 - recalc graph
     char m_curState;
     char m_totalState;
     bool m_bCycled;

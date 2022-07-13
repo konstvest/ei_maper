@@ -8,7 +8,7 @@
 #include "log.h"
 
 CWorldObj::CWorldObj():
-    m_type(0)
+    m_type(54)
     ,m_primaryTexture("")
     ,m_secondaryTexture("")
     ,m_parentTemplate("")
@@ -18,6 +18,20 @@ CWorldObj::CWorldObj():
     ,m_bShadow(true)
     ,m_questInfo()
 {
+}
+
+CWorldObj::CWorldObj(const CWorldObj &wo):
+    CObjectBase(wo)
+{
+    m_type = wo.m_type;
+    m_primaryTexture = wo.m_primaryTexture;
+    m_secondaryTexture = wo.m_secondaryTexture;
+    m_parentTemplate = wo.m_parentTemplate;
+    m_player = wo.m_player;
+    m_parentID = wo.m_parentID;
+    m_bUseInScript = wo.m_bUseInScript;
+    m_bShadow = wo.m_bShadow;
+    m_questInfo = wo.m_questInfo;
 }
 
 CWorldObj::CWorldObj(QJsonObject data):
@@ -213,6 +227,7 @@ uint CWorldObj::serialize(util::CMobParser &parser)
     writeByte += parser.writeDword(m_mapID);
     parser.endSection(); //"NID"
 
+    Q_ASSERT(m_type);
     writeByte += parser.startSection("OBJ_TYPE");
     writeByte += parser.writeDword(m_type);
     parser.endSection(); //"OBJ_TYPE"
@@ -439,11 +454,11 @@ QString CWorldObj::getParam(EObjParam param)
         value = QString::number(m_player);
         break;
     }
-    case eObjParam_TYPE:
-    {
-        value = QString::number(m_type);
-        break;
-    }
+//    case eObjParam_TYPE:
+//    {
+//        value = QString::number(m_type);
+//        break;
+//    }
     case eObjParam_TEMPLATE:
     {
         value = m_modelName;

@@ -9,6 +9,7 @@ class CPart
 {
 public:
     CPart();
+    CPart(const CPart& part);
     ~CPart();
     QVector<SVertexData>& vertData() {return m_aVertData; }
     QString& name() {return m_name; }

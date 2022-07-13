@@ -4,6 +4,61 @@
 #include <QJsonArray>
 #include <QVariant>
 
+SUnitStat::SUnitStat(const SUnitStat &stat)
+{
+    HP = stat.HP;
+    MaxHP = stat.MaxHP;
+    MP = stat.MP;
+    MaxMP = stat.MaxMP;
+    move = stat.move;
+    actions = stat.actions;
+    SpeedRun = stat.SpeedRun;
+    SpeedWalk = stat.SpeedWalk;
+    SpeedCrouch = stat.SpeedCrouch;
+    SpeedCrawl = stat.SpeedCrawl;
+    VisionArc = stat.VisionArc;
+    SkillsPeripherial = stat.SkillsPeripherial;
+    PeripherialArc = stat.PeripherialArc;
+    AttackDistance = stat.AttackDistance;
+    AIClassStay = stat.AIClassStay;
+    AIClassLay = stat.AIClassLay;
+    empty1 = stat.empty1;
+    range = stat.range;
+    attack = stat.attack;
+    defence = stat.defence;
+    weight = stat.weight;
+    damageMin = stat.damageMin;
+    damageRange = stat.damageRange;
+    aImpalling = stat.aImpalling;
+    aSlashing = stat.aSlashing;
+    aCrushing = stat.aCrushing;
+    aThermal = stat.aThermal;
+    aChemical = stat.aChemical;
+    aElectrical = stat.aElectrical;
+    aGeneral = stat.aGeneral;
+    absorption = stat.absorption;
+    Sight = stat.Sight;
+    NightSight = stat.NightSight;
+    SenseLife = stat.SenseLife;
+    SenseHear = stat.SenseHear;
+    SenseSmell = stat.SenseSmell;
+    SenseTracking = stat.SenseTracking;
+    pSight = stat.pSight;
+    pNightSight = stat.pNightSight;
+    pSenseLife = stat.pSenseLife;
+    pSenseHear = stat.pSenseHear;
+    pSenseSmell = stat.pSenseSmell;
+    pSenseTracking = stat.pSenseTracking;
+    ManualSkill_SCIENCE = stat.ManualSkill_SCIENCE;
+    ManualSkill_STEALING = stat.ManualSkill_STEALING;
+    ManualSkill_TAME = stat.ManualSkill_TAME;
+    MagicalSkill_1 = stat.MagicalSkill_1;
+    MagicalSkill_2 = stat.MagicalSkill_2;
+    MagicalSkill_3 = stat.MagicalSkill_3;
+    empty2 = stat.empty2;
+    empty3 = stat.empty3;
+}
+
 SUnitStat::SUnitStat(QJsonObject data)
 {
     HP = data["HP"].toInt();
@@ -116,4 +171,3 @@ QJsonObject SUnitStat::toJson()
 
     return obj;
 }
-

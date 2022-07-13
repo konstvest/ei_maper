@@ -18,6 +18,24 @@ CObjectBase::CObjectBase():
     m_bodyParts.clear();
 }
 
+CObjectBase::CObjectBase(const CObjectBase &base):
+    CNode(base)
+    ,m_pMob(nullptr)
+{
+    m_modelName = base.m_modelName;
+    m_complection = base.m_complection;
+    m_texture = base.m_texture;
+    m_pFigure = base.m_pFigure;
+    m_minPoint = base.m_minPoint;
+    m_bodyParts = base.m_bodyParts;
+
+    m_aPart.clear();
+    for(auto& part:base.m_aPart)
+    {
+        m_aPart.append(new CPart(*part));
+    }
+}
+
 CObjectBase::CObjectBase(QJsonObject data):
     m_pMob(nullptr)
     ,m_texture(nullptr)

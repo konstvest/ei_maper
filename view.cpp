@@ -33,6 +33,7 @@ CView::CView(QWidget* parent):
     , m_pProgress(nullptr)
     , m_operationType(EOperationTypeObjects)
     , m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
+    , m_activeMob(nullptr)
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -241,6 +242,7 @@ void CView::loadLandscape(QFileInfo& filePath)
     m_landscape = new CLandscape;
     m_landscape->setParentView(this);
     m_landscape->readMap(filePath);
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, filePath.baseName());
     ei::log(eLogInfo, "End read landscape");
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
@@ -252,6 +254,7 @@ void CView::unloadLand()
         delete m_landscape;
 
     m_landscape = nullptr;
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, "");
     ei::log(eLogInfo, "Landscape unloaded");
 }
 
@@ -437,6 +440,13 @@ void CView::getColorFromRect(const QRect& rect, QVector<SColor>& aColor)
     delete pixel;
 }
 
+void CView::changeCurrentMob(CMob *pMob)
+{
+    m_activeMob = pMob;
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
+
+}
+
 void CView::drawSelectFrame(QRect &rect)
 {
     //convert frame to [(-1, 1), (-1, 1)]
@@ -507,15 +517,16 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
 void CView::loadMob(QFileInfo &filePath)
 {
     m_pProgress->reset();
-    CMob* mob = new CMob;
-    mob->attach(this, m_pProgress);
-    mob->readMob(filePath);
-    m_aMob.append(mob);
+    CMob* pMob = new CMob;
+    pMob->attach(this, m_pProgress);
+    pMob->readMob(filePath);
+    m_aMob.append(pMob);
 
     // update position on the map for each node
     Q_ASSERT(m_landscape);
-    m_landscape->projectPositions(mob->nodes());
+    m_landscape->projectPositions(pMob->nodes());
     emit mobLoad(false);
+    changeCurrentMob(pMob);
 }
 
 void CView::saveMobAs()
@@ -549,26 +560,33 @@ void CView::saveAllMob()
 
 void CView::unloadMob(QString mobName)
 {
+    ei::log(eLogInfo, "unloading mob " + mobName);
+    CMob* pMob = nullptr;
     if(mobName.isEmpty())
     {
-        for(auto mob: m_aMob)
-            delete mob;
+        foreach(pMob, m_aMob)
+            delete pMob;
         m_aMob.clear();
     }
     else
     {
-        for(auto mob: m_aMob)
+        foreach(pMob, m_aMob)
         {
-            if (mob->mobName().toLower() == mobName.toLower())
+            if (pMob->mobName().toLower() == mobName.toLower())
             {
-                delete mob;
-                m_aMob.removeOne(mob);
+                delete pMob;
+                m_aMob.removeOne(pMob);
                 break;
             }
         }
     }
     emit mobLoad(true);
-    ei::log(eLogInfo, "Mob(s) unloaded " + mobName);
+    if(!m_aMob.isEmpty())
+        changeCurrentMob(m_aMob.back());
+    else
+        changeCurrentMob(nullptr);
+
+    ei::log(eLogInfo, "Mob unloaded");
 }
 
 int CView::cauntSelectedNodes()

@@ -114,6 +114,11 @@ enum EObjParam
 struct SVertexData
 {
     SVertexData() {}
+    SVertexData(const SVertexData& vertData):
+        position(vertData.position)
+        ,normal(vertData.normal)
+        ,texCoord(vertData.texCoord)
+    {}
     SVertexData(QVector3D& pos, QVector3D& nrml, QVector2D& tCoord):
         position(pos)
         ,normal(nrml)
@@ -163,6 +168,7 @@ struct SRectangle
 struct SUnitStat
 {
     SUnitStat(){}
+    SUnitStat(const SUnitStat& stat);
     SUnitStat(QJsonObject data);
     QJsonObject toJson();
     int HP;
@@ -288,6 +294,14 @@ struct SMmpColor
     {
         return data >> col.alpha >> col.red >> col.green >> col.blue;
     }
+};
+
+enum eTitleTypeData
+{
+    eTitleTypeDataUnknown = 0
+    ,eTitleTypeDataMpr
+    ,eTitleTypeDataActiveMob
+    ,eTitleTypeDataCount
 };
 
 typedef ei::vector2<short> S2;

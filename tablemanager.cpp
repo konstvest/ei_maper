@@ -53,6 +53,13 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
         aStr.clear();
         break;
     }
+    case eObjParam_TYPE:
+    {
+        aStr[50] = "Human";
+        aStr[51] = "Animal";
+        aStr[52] = "Monstr";
+        break;
+    }
     default:
         break;
     }
@@ -208,7 +215,7 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_BODYPARTS] = "Model parts";
     m_aRowName[eObjParam_PLAYER] = "Player(group)";
     m_aRowName[eObjParam_NID] = "Map ID";
-    m_aRowName[eObjParam_TYPE] = "Type";
+    m_aRowName[eObjParam_TYPE] = "Unit subtype";
     m_aRowName[eObjParam_NAME] = "Map name";
     m_aRowName[eObjParam_TEMPLATE] = "Model name";
     m_aRowName[eObjParam_PARENT_TEMPLATE] = "Template";
@@ -312,6 +319,7 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         case eObjParam_PRIM_TXTR:
         case eObjParam_TEMPLATE:
         case eObjParam_LIGHT_SHADOW:
+        case eObjParam_TYPE:
         {
             m_pTable->insertRow(i);
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem

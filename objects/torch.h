@@ -6,6 +6,7 @@ class CTorch : public CWorldObj
 {
 public:
     CTorch();
+    CTorch(const CTorch& torch);
     CTorch(QJsonObject data);
     ENodeType nodeType() override {return ENodeType::eTorch; }
     uint deserialize(util::CMobParser& parser) override;

@@ -9,6 +9,14 @@ CLight::CLight():
 
 }
 
+CLight::CLight(const CLight &light):
+    CObjectBase(light)
+{
+    m_range = light.m_range;
+    m_bShadow = light.m_bShadow;
+    m_color = light.m_color;
+}
+
 CLight::CLight(QJsonObject data):
     CObjectBase(data["Base object"].toObject())
 {

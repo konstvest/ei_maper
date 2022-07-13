@@ -14,6 +14,7 @@ CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CCreateObjectForm)
   ,m_pNode(nullptr)
+  ,m_pView(nullptr)
 {
     ui->setupUi(this);
     m_tableManager.reset(new CTableManager(ui->tableParameters));
@@ -130,3 +131,17 @@ void CCreateObjectForm::onParamChange(SParam& param)
     m_pNode->applyParam(param.param, param.value);
     updateTable();
 }
+
+void CCreateObjectForm::on_buttonCancel_clicked()
+{
+    close();
+}
+
+
+void CCreateObjectForm::on_buttonCreate_clicked()
+{
+    Q_ASSERT(m_pView);
+    auto pMob = m_pView->currentMob();
+    pMob->createNode(m_pNode);
+}
+

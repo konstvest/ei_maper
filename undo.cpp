@@ -27,14 +27,10 @@ void COpenCommand::undo()
 void COpenCommand::redo()
 {
     if(m_filePath.fileName().toLower().endsWith(".mpr"))
-    {
         m_pView->loadLandscape(m_filePath);
-        m_pMain->setWindowTitle("ei_maper (" + m_filePath.baseName() + ")");
-    }
     else
-    {
         m_pView->loadMob(m_filePath);
-    }
+
 }
 
 //bool COpenCommand::mergeWith(const QUndoCommand* command)

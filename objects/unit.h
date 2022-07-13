@@ -9,6 +9,7 @@ class CLookPoint : public CObjectBase
 {
 public:
     CLookPoint();
+    CLookPoint(const CLookPoint& look);
     //CLookPoint(CNode* node);
     ~CLookPoint() {}
     ENodeType nodeType() override {return ENodeType::eLookPoint;}
@@ -28,6 +29,7 @@ class CPatrolPoint : public CObjectBase
 {
 public:
     CPatrolPoint();
+    CPatrolPoint(const CPatrolPoint& patrol);
     ~CPatrolPoint();
     ENodeType nodeType() override {return ENodeType::ePatrolPoint;}
     void draw(QOpenGLShaderProgram* program) override final;
@@ -74,7 +76,9 @@ enum EBehaviourType //todo: move to logic m_model
 class CLogic
 {
 public:
+    CLogic() = delete;
     CLogic(CUnit* unit, bool bUse=false);
+    CLogic(const CLogic& logic);
     ~CLogic();
     void draw(QOpenGLShaderProgram* program);
     void drawSelect(QOpenGLShaderProgram* program = nullptr);

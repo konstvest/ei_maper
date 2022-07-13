@@ -9,6 +9,7 @@
 #include "objects\worldobj.h"
 #include "objects\unit.h"
 #include "resourcemanager.h"
+#include "landscape.h"
 
 CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     QDialog(parent),
@@ -142,6 +143,31 @@ void CCreateObjectForm::on_buttonCreate_clicked()
 {
     Q_ASSERT(m_pView);
     auto pMob = m_pView->currentMob();
+    pMob->clearSelect();
+    auto pos = QWidget::mapFromGlobal(QCursor::pos());
+    auto posOnLand = m_pView->getLandPos(pos.x(), pos.y());
+    ENodeType type = m_pNode->nodeType();
+    switch (type)
+    {
+    case eBaseType:
+    case eWorldObject:
+    case eUnit:
+    case eTorch:
+    case eMagicTrap:
+    case eLever:
+    {
+        posOnLand.setZ(0.0f);
+        break;
+    }
+
+    default:
+        break;
+    }
+
+    m_pNode->setPos(posOnLand);
+    m_pView->land()->projectPosition(m_pNode);
     pMob->createNode(m_pNode);
+    m_pView->changeOperation(EButtonOpMove);
+    close();
 }
 

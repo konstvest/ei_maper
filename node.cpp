@@ -44,13 +44,15 @@ CNode::CNode(CNode* parent):
 }
 
 CNode::CNode(const CNode &node):
-    m_position(0.0, 0.0, 0.0)
+    //m_position(0.0, 0.0, 0.0)
     //,m_rotation(0.0, 0.0, 0.0)
-    ,m_mapID(0)
+    m_mapID(0)
     ,m_parent(nullptr)
     ,m_state(eDraw)
 {
     init();
+    m_position = node.m_position;
+    m_drawPosition = node.m_drawPosition;
     m_name = node.m_name;
     m_comment = node.m_comment;
     //children?

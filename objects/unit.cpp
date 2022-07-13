@@ -12,6 +12,11 @@ CUnit::CUnit():
     ,m_bImport(false)
 {
     m_type = 50; //Human by default
+    m_aLogic.clear();
+    for(int i(0); i<5; ++i)
+    {
+        m_aLogic.append(new CLogic(this, i==0));
+    }
 }
 
 CUnit::CUnit(const CUnit &unit):
@@ -25,7 +30,9 @@ CUnit::CUnit(const CUnit &unit):
     m_aWeapon = unit.m_aWeapon;
     m_aArmor = unit.m_aArmor;
     m_bImport = unit.m_bImport;
-    m_aLogic.clear(); //TODO: generate 5 ones
+    m_aLogic.clear();
+    for(auto& pLogic : unit.m_aLogic)
+        m_aLogic.append(new CLogic(*pLogic));
 }
 
 CUnit::CUnit(QJsonObject data, CMob* pMob):
@@ -106,6 +113,7 @@ void CUnit::setTexture(QOpenGLTexture* texture)
 uint CUnit::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
+    int logicNum(0);
     while(true)
     {
         if(parser.isNextTag("UNIT_R"))
@@ -161,9 +169,9 @@ uint CUnit::deserialize(util::CMobParser& parser)
         else if(parser.isNextTag("UNIT_LOGIC"))
         {
             readByte += parser.skipHeader();
-            CLogic* logic = new CLogic(this);
-            readByte += logic->deserialize(parser);
-            m_aLogic.append(logic);
+            CLogic* pLogic = m_aLogic[logicNum];
+            readByte += pLogic->deserialize(parser);
+            ++logicNum;
         }
         else
         {
@@ -171,15 +179,16 @@ uint CUnit::deserialize(util::CMobParser& parser)
             if(baseByte > 0)
                 readByte += baseByte;
             else
-            {
-                auto a = parser.nextTag();
+            { //debugging branch :)
+                auto tag = parser.nextTag();
+                Q_UNUSED(tag);
                 break;
             }
         }
         //"UNIT_R", eNull};
         //"UNIT_ITEMS", eNull};
     }
-    Q_ASSERT(m_aLogic.size() == 5);
+    Q_ASSERT(logicNum == 5);
     Q_ASSERT((m_type==50)||(m_type==51)||(m_type==52));
     return readByte;
 }
@@ -437,9 +446,36 @@ QJsonObject CUnit::toJson()
 
 CLogic::CLogic(CUnit* unit, bool bUse):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
+    ,m_bCyclic(false)
+    ,m_model(eRadius)
+    ,m_guardRadius(10.0f)
     ,m_use(bUse)
+    ,m_wait(0.0f)
+    ,m_help(10.0f)
     ,m_parent(unit)
 {
+}
+
+CLogic::CLogic(const CLogic &logic)
+{
+    m_vertexBuf = logic.m_vertexBuf;
+    m_indexBuf = logic.m_indexBuf;
+    m_bCyclic = logic.m_bCyclic;
+    m_model = logic.m_model;
+    m_guardRadius = logic.m_guardRadius;
+    m_guardPlacement = logic.m_guardPlacement;
+    m_numAlarm = logic.m_numAlarm;
+    m_use = logic.m_use;
+    m_wait = logic.m_wait;
+    m_alarmCondition = logic.m_alarmCondition;
+    m_help = logic.m_help;
+    m_alwaysActive = logic.m_alwaysActive;
+    m_agressionMode = logic.m_agressionMode;
+    for(auto pP: logic.m_aPatrolPt)
+        m_aPatrolPt.append(new CPatrolPoint(*pP));
+
+    m_aDrawPoint = logic.m_aDrawPoint;
+    Q_ASSERT(m_parent);
 }
 
 CLogic::~CLogic()
@@ -811,9 +847,10 @@ uint CLogic::serialize(util::CMobParser& parser)
     writeByte += parser.writeByte(m_numAlarm);
     parser.endSection(); //"UNIT_LOGIC_NALARM"
 
-    for(const auto& pt : m_aPatrolPt)
+    CPatrolPoint* pPoint = nullptr;
+    foreach(pPoint, m_aPatrolPt)
     {
-        writeByte += pt->serialize(parser);
+        writeByte += pPoint->serialize(parser);
     }
     parser.endSection(); //"UNIT_LOGIC"
     return writeByte;
@@ -823,6 +860,19 @@ CPatrolPoint::CPatrolPoint():
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
 {
     setModelName("ppoint");
+}
+
+CPatrolPoint::CPatrolPoint(const CPatrolPoint &patrol):
+    CObjectBase(patrol)
+    ,m_indexBuf(QOpenGLBuffer::IndexBuffer)
+{
+    m_vertexBuf = patrol.m_vertexBuf;
+    m_indexBuf = patrol.m_indexBuf;
+    CLookPoint* pPoint = nullptr;
+    foreach(pPoint, patrol.m_aLookPt)
+        m_aLookPt.append(new CLookPoint(*pPoint));
+
+    m_aDrawingLine = patrol.m_aDrawingLine;
 }
 
 
@@ -1030,6 +1080,14 @@ uint CPatrolPoint::serialize(util::CMobParser &parser)
 CLookPoint::CLookPoint()
 {
     setModelName("viewPoint");
+}
+
+CLookPoint::CLookPoint(const CLookPoint &look):
+    CObjectBase(look)
+{
+    m_wait = look.m_wait;
+    m_turnSpeed = look.m_turnSpeed;
+    m_flag = look.m_flag;
 }
 
 uint CLookPoint::deserialize(util::CMobParser& parser)

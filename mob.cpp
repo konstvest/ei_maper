@@ -898,8 +898,6 @@ void CMob::createNode(CNode *pNode)
     pNewNode->attachMob(this);
     //todo: create operation stack for this op
     addNode(pNewNode);
-//    pNode->loadFigure();
-//    pNode->loadTexture();
 
     if(pNewNode)
     {

@@ -618,3 +618,15 @@ void CResourceManager::loadResources()
     QSet<QString> aEmpty;
     CTextureList::getInstance()->loadTexture(aEmpty);
 }
+
+bool isDIfferent(const QString &value)
+{
+    {
+        return value == "<different>";
+    }
+}
+
+QString valueDifferent()
+{
+    return "<different>";
+}

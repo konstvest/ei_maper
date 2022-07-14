@@ -6,7 +6,9 @@ CLight::CLight():
     ,m_bShadow(false)
     ,m_color(0.0f, 0.0f, 0.0f)
 {
-
+    m_modelName = "light";
+    loadFigure();
+    loadTexture();
 }
 
 CLight::CLight(const CLight &light):

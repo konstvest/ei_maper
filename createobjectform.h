@@ -24,7 +24,7 @@ public:
     void updateTable();
 
 private slots:
-    void onObjectChoose(const QString& object);
+    void onObjectChoose(QString& object);
     void onParamChange(SParam& param);
 
     void on_buttonCancel_clicked();

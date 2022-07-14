@@ -113,15 +113,15 @@ struct SAnimTile
     }
 };
 
-class CView;
+
 class CNode;
 
 class CLandscape
 {
 public:
-    CLandscape();
-    ~CLandscape();
-    void setParentView(CView* view) {m_parentView = view;}
+    static CLandscape* getInstance();
+    bool isMprLoad() {return !m_aSector.isEmpty();}
+    void unloadMpr();
     void readMap(QFileInfo& path);
     void draw(QOpenGLShaderProgram* program);
     void drawWater(QOpenGLShaderProgram* program);
@@ -129,17 +129,20 @@ public:
     bool projectPt(QVector<QVector3D>& aPoint);
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
+
 private:
+    CLandscape();
+    ~CLandscape();
     bool readHeader(QDataStream& stream);
 
 private:
+    static CLandscape* m_pLand;
     SMapHeader m_header;
     QVector<SMaterial> m_aMaterial; //use pointers instead refs?
     QVector<int> m_aTileTypes; //array using tyle type on current map
     QVector<SAnimTile> m_aAnimTile;
     QVector<QVector<CSector*>> m_aSector;
     QOpenGLTexture* m_texture;
-    CView* m_parentView;
 };
 
 #endif // LANDSCAPE_H

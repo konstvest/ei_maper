@@ -10,7 +10,6 @@
 CObjectBase::CObjectBase(): 
   m_modelName("")
   ,m_complection(1.0f, 1.0f, 1.0f)
-  ,m_pMob(nullptr)
   ,m_minPoint(0.0f, 0.0f, 0.0f)
   ,m_texture(nullptr)
   ,m_pFigure(nullptr)
@@ -20,7 +19,6 @@ CObjectBase::CObjectBase():
 
 CObjectBase::CObjectBase(const CObjectBase &base):
     CNode(base)
-    ,m_pMob(nullptr)
 {
     m_modelName = base.m_modelName;
     m_complection = base.m_complection;
@@ -37,8 +35,7 @@ CObjectBase::CObjectBase(const CObjectBase &base):
 }
 
 CObjectBase::CObjectBase(QJsonObject data):
-    m_pMob(nullptr)
-    ,m_texture(nullptr)
+    m_texture(nullptr)
     ,m_pFigure(nullptr)
 {
     m_modelName = data["Model name"].toString();
@@ -88,11 +85,6 @@ void CObjectBase::updateFigure(ei::CFigure* fig)
 
 void CObjectBase::loadFigure()
 {
-    if(!m_pMob)
-    {
-        ei::log(eLogError, "Updating figure failed, Mob file empty");
-        return;
-    }
     updateFigure(CObjectList::getInstance()->getFigure(m_modelName));
 }
 
@@ -139,6 +131,9 @@ void CObjectBase::draw(QOpenGLShaderProgram* program)
 
 void CObjectBase::drawSelect(QOpenGLShaderProgram* program)
 {
+    if (m_state == ENodeState::eHidden) //skip hidden object for select
+        return;
+
     Q_ASSERT(m_texture);
     m_texture->bind(0);
     if(m_texture == nullptr)
@@ -199,7 +194,7 @@ void CObjectBase::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QS
     if (aParam.contains(param))
     {
         if (aParam[param] != str)
-            aParam.insert(param, "");
+            aParam.insert(param, valueDifferent());
     }
     else
         aParam.insert(param, str);
@@ -208,20 +203,15 @@ void CObjectBase::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QS
 bool CObjectBase::updatePos(QVector3D& pos)
 {
     m_position = pos;
-    m_pMob->view()->land()->projectPosition(this);
+    CLandscape::getInstance()->projectPosition(this);
     return true;
-}
-
-void CObjectBase::attachMob(CMob *mob)
-{
-    m_pMob = mob;
 }
 
 void CObjectBase::setConstitution(QVector3D &vec)
 {
     m_complection = vec;
     recalcFigure();
-    m_pMob->view()->land()->projectPosition(this);
+    CLandscape::getInstance()->projectPosition(this);
 }
 
 QJsonObject CObjectBase::toJson()
@@ -234,8 +224,6 @@ QJsonObject CObjectBase::toJson()
     obj.insert("Map name", m_name);
     obj.insert("Comments", m_comment);
 
-    Q_ASSERT(m_pMob);
-    obj.insert("Parent mob", m_pMob->mobName() );
     QJsonArray aComplection;
     aComplection.append(QJsonValue::fromVariant(m_complection.x()));
     aComplection.append(QJsonValue::fromVariant(m_complection.y()));
@@ -281,7 +269,7 @@ void CObjectBase::applyParam(EObjParam param, const QString &value)
     switch (param){
     case eObjParam_NID:
     {
-        m_mapID = value.toInt();
+        m_mapID = value.toUInt();
         break;
     }
     case eObjParam_NAME:
@@ -358,8 +346,7 @@ void CObjectBase::recalcMinPos()
         }
 
     m_minPoint = QVector3D(0.0f, 0.0f, min);
-    if(m_pMob)
-        m_pMob->view()->land()->projectPosition(this);
+    CLandscape::getInstance()->projectPosition(this);
 }
 
 

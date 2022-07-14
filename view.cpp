@@ -28,7 +28,6 @@ class CLogic;
 
 CView::CView(QWidget* parent):
     QGLWidget (parent)
-    , m_landscape(nullptr)
     , m_pSettings(nullptr)
     , m_pProgress(nullptr)
     , m_operationType(EOperationTypeObjects)
@@ -54,9 +53,6 @@ void CView::updateReadState(EReadState state)
 
 CView::~CView()
 {
-    if (m_landscape)
-        m_landscape->~CLandscape();
-
     for(auto& mob: m_aMob)
         delete mob;
 }
@@ -71,8 +67,6 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     QObject::connect(m_tableManager.get(), SIGNAL(changeParamSignal(SParam&)), this, SLOT(onParamChange(SParam&)));
     m_pUndoStack = pStack;
 
-    //init object list
-    //CObjectList::getInstance()->attachSettings(m_pSettings);
     m_pProgress = pProgress;
     m_pOp.reset(new COperation(new CSelect(this)));
     m_pOp->attachCam(m_cam.get());
@@ -185,8 +179,9 @@ void CView::draw()
 //    m_landProgram.setUniformValue("u_lightPower", 5.0f);
 //    m_landProgram.setUniformValue("u_lightColor", QVector4D(1.0, 1.0, 1.0, 1.0));
 //    m_landProgram.setUniformValue("u_highlight", false);
-    if (m_landscape)
-        m_landscape->draw(&m_landProgram);
+    auto pLand = CLandscape::getInstance();
+    if (pLand && pLand->isMprLoad())
+        pLand->draw(&m_landProgram);
 
     // Bind shader pipeline for use
     if (!m_program.bind())
@@ -199,7 +194,7 @@ void CView::draw()
         for (auto& node: mob->nodes())
             node->draw(&m_program);
 
-    if (m_landscape)
+    if (pLand && pLand->isMprLoad())
     {
         COptBool* pOpt = dynamic_cast<COptBool*>(settings()->opt("drawWater"));
         if (pOpt and pOpt->value() == true)
@@ -209,7 +204,7 @@ void CView::draw()
                 close();
 
             m_landProgram.setUniformValue("transparency", 0.3f);
-            m_landscape->drawWater(&m_landProgram);
+            pLand->drawWater(&m_landProgram);
             m_landProgram.setUniformValue("transparency", 0.0f);
         }
     }
@@ -218,7 +213,7 @@ void CView::draw()
     if (!m_program.bind())
         close();
 
-    if (m_landscape)
+    if (pLand && pLand->isMprLoad())
     {
         QMatrix4x4 mtrx;
         mtrx.setToIdentity();
@@ -230,7 +225,7 @@ void CView::draw()
 
 void CView::loadLandscape(QFileInfo& filePath)
 {
-    if(m_landscape)
+    if(CLandscape::getInstance()->isMprLoad())
     {
         QMessageBox::warning(this, "Warning","Landscape already loaded. Please close before opening new zone (*mpr)");
         //LOG_FATAL("ahtung"); //test logging critial error
@@ -239,9 +234,7 @@ void CView::loadLandscape(QFileInfo& filePath)
     //CTextureList::getInstance()->attachSettings(m_pSettings);
 
     ei::log(eLogInfo, "Start read landscape");
-    m_landscape = new CLandscape;
-    m_landscape->setParentView(this);
-    m_landscape->readMap(filePath);
+    CLandscape::getInstance()->readMap(filePath);
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, filePath.baseName());
     ei::log(eLogInfo, "End read landscape");
     m_timer->setInterval(15); //"fps" for drawing
@@ -250,10 +243,7 @@ void CView::loadLandscape(QFileInfo& filePath)
 
 void CView::unloadLand()
 {
-    if(m_landscape)
-        delete m_landscape;
-
-    m_landscape = nullptr;
+    CLandscape::getInstance()->unloadMpr();
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, "");
     ei::log(eLogInfo, "Landscape unloaded");
 }
@@ -521,12 +511,8 @@ void CView::loadMob(QFileInfo &filePath)
     pMob->attach(this, m_pProgress);
     pMob->readMob(filePath);
     m_aMob.append(pMob);
-
-    // update position on the map for each node
-    Q_ASSERT(m_landscape);
-    m_landscape->projectPositions(pMob->nodes());
-    emit mobLoad(false);
     changeCurrentMob(pMob);
+    emit mobLoad(false);
 }
 
 void CView::saveMobAs()
@@ -702,11 +688,6 @@ void CView::onParamChange(SParam &param)
     }
 }
 
-void CView::landPositionUpdate(CNode *pNode)
-{
-    m_landscape->projectPosition(pNode);
-}
-
 void CView::mousePressEvent(QMouseEvent* event)
 {
     m_pOp->mousePressEvent(event);
@@ -771,8 +752,9 @@ QVector3D CView::getLandPos(const int cursorPosX, const int cursorPosY)
     m_landProgram.setUniformValue("u_projMmatrix", m_projection);
     m_landProgram.setUniformValue("u_viewMmatrix", camMatrix);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (m_landscape)
-        m_landscape->draw(&m_landProgram);
+    auto pLand = CLandscape::getInstance();
+    if (pLand && pLand->isMprLoad())
+        pLand->draw(&m_landProgram);
 
     const int posY (height() - cursorPosY);
     float z;

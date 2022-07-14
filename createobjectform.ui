@@ -50,7 +50,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboObjectType">
+        <widget class="CDynamicComboBox" name="comboObjectType">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -139,6 +139,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CDynamicComboBox</class>
+   <extends>QComboBox</extends>
+   <header>dynamiccombobox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

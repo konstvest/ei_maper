@@ -9,7 +9,9 @@ CSound::CSound():
     ,m_bAmbient(false)
     ,m_bMusic(false)
 {
-
+    m_modelName = "sound";
+    loadFigure();
+    loadTexture();
 }
 
 CSound::CSound(const CSound &sound):

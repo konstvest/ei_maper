@@ -10,6 +10,7 @@
 #include <QUndoView>
 
 #include "resourcemanager.h"
+#include "landscape.h"
 #include "node.h"
 #include "settings.h"
 #include "select_window.h"
@@ -48,7 +49,7 @@ MainWindow::MainWindow(QWidget* parent) :
     m_ui->myGLWidget->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText);
     initShortcuts();
     QObject::connect(m_ui->myGLWidget, SIGNAL(mobLoad(bool)), this, SLOT(updateMobListInParam(bool)));
-    QObject::connect(m_ui->myGLWidget, SIGNAL(updateMainWindowTitle(eTitleTypeData, QString)), this, SLOT(updateWindowTitle(eTitleTypeData, QString)));
+    QObject::connect(m_ui->myGLWidget, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
 
 //    m_ui->progressBar->setValue(0);
     m_ui->progressBar->reset();
@@ -83,6 +84,7 @@ void MainWindow::initShortcuts()
     m_ui->actionSave->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
     m_ui->actionUndo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
     m_ui->actionRedo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
+    m_ui->actionCreate_new_object->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
 
 }
 
@@ -112,11 +114,11 @@ void MainWindow::on_actionOpen_triggered()
     Q_ASSERT(opt);
 
     QFileInfo fileName;
-    if(m_ui->myGLWidget->isLandLoaded())
-        fileName = QFileDialog::getOpenFileName(this, "Open mob", opt->value(), tr("MOB (*.mob)"));
+    if(CLandscape::getInstance()->isMprLoad())
+        fileName = QFileDialog::getOpenFileName(this, "Open MOB", opt->value(), tr("MOB (*.mob)"));
     else
     {
-        fileName = QFileDialog::getOpenFileName(this, "Open mpr", opt->value(), tr("MPR (*.mpr)"));
+        fileName = QFileDialog::getOpenFileName(this, "Open MPR", opt->value(), tr("MPR (*.mpr)"));
     }
 
     if(!fileName.path().isEmpty())
@@ -130,9 +132,9 @@ void MainWindow::on_actionOpen_triggered()
     }
     else if(fileName.fileName().toLower().endsWith(".mob"))
     {
-        if(!m_ui->myGLWidget->isLandLoaded())
+        if(!CLandscape::getInstance()->isMprLoad())
         {
-            QMessageBox::warning(this, "Warning","Landscape must be loaded (*.mpr)");
+            QMessageBox::warning(this, "Warning","Landscape must be loaded first (*.mpr)");
             return;
         }
 

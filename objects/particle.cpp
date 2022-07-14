@@ -4,7 +4,9 @@ CParticle::CParticle():
     m_kind(0)
     ,m_scale(0.0f)
 {
-
+    m_modelName = "particle";
+    loadFigure();
+    loadTexture();
 }
 
 CParticle::CParticle(const CParticle &particle):
@@ -142,6 +144,7 @@ QString CParticle::getParam(EObjParam param)
     {
     case eObjParam_PARTICL_TYPE:
     {
+        value = QString::number(m_kind);
         break;
     }
     case eObjParam_PARTICL_SCALE:

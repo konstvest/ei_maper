@@ -154,7 +154,7 @@ struct SRange
 struct SArea
 {
     QVector2D m_pointTo;
-    uint m_radius;
+    float m_radius;
 };
 
 struct SRectangle
@@ -167,7 +167,7 @@ struct SRectangle
 
 struct SUnitStat
 {
-    SUnitStat(){}
+    SUnitStat();
     SUnitStat(const SUnitStat& stat);
     SUnitStat(QJsonObject data);
     QJsonObject toJson();

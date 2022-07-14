@@ -12,13 +12,10 @@
 #include "select_window.h"
 
 class QLineEdit;
-class CObjectList;
-class CTextureList;
 class CKeyManager;
 class CMob;
 class CCamera;
 class CNode;
-class CLandscape;
 class CKeyManager;
 class CSettings;
 class CStringItem;
@@ -46,9 +43,6 @@ public:
     void saveMobAs();
     void saveAllMob();
     void unloadMob(QString mobName);
-    CLandscape* land() {Q_ASSERT(m_landscape); return m_landscape;}
-    bool isLandLoaded() {return nullptr != m_landscape;}
-    CTextureList* texList();
     void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
     int select(const SSelect& selectParam, bool bAddToSelect = false);
@@ -98,7 +92,6 @@ public slots:
     void viewParameters();
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(SParam& sParam);
-    void landPositionUpdate(CNode* pNode);
 
 signals:
     void updateMsg(QString msg);
@@ -108,7 +101,6 @@ signals:
 private:
     int m_height; //for redraw window
     int m_width;
-    CLandscape* m_landscape;
     QSharedPointer<CCamera> m_cam;
     QOpenGLShaderProgram m_program;
     QOpenGLShaderProgram m_landProgram;

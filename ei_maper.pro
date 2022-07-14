@@ -26,6 +26,7 @@ CONFIG += c++11
 
 SOURCES += \
     createobjectform.cpp \
+    dynamiccombobox.cpp \
     key_manager.cpp \
     main_window.cpp \
     mobparameters.cpp \
@@ -66,6 +67,7 @@ SOURCES += \
 
 HEADERS += \
     createobjectform.h \
+    dynamiccombobox.h \
     key_manager.h \
     main_window.h \
     mobparameters.h \

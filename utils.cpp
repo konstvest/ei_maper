@@ -6,6 +6,9 @@
 #include <QTextCodec>
 #include <QRegularExpression>
 #include <QCoreApplication>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
 
 #include "utils.h"
 
@@ -559,16 +562,15 @@ uint util::CMobParser::readAreaArray(QVector<SArea>& data)
     m_stream >> size;
     Q_ASSERT(size <=1);
     QVector2D pointTo;
-    uint radius;
     float val;
     for(uint i(0); i<size; ++i)
     {
-        m_stream >> val;
+        m_stream >> val; // x
         pointTo.setX(val);
-        m_stream >> val;
+        m_stream >> val; // y
         pointTo.setY(val);
-        m_stream >> radius;
-        SArea area{pointTo, radius}; //memory leaks? crash? variable delete after functio ends
+        m_stream >> val; // radius
+        SArea area{pointTo, val}; //memory leaks? crash? variable delete after functio ends
         data.append(area);
     }
     return 4+12*size;
@@ -804,45 +806,40 @@ QString util::makeString(bool value)
 
 QString util::makeString(const QVector<SArea> &aArea)
 {
-    QString str("");
-    if (!aArea.isEmpty())
-        str.append("(");
-    int i = 0;
-    for (const auto& ar : aArea)
+    QJsonObject obj;
+    QJsonArray arrArea;
+    for(auto& area : aArea)
     {
-        if (i != 0)
-            str.append(";");
-        str.append(QString::number(ar.m_pointTo.x()));
-        str.append(",");
-        str.append(QString::number(ar.m_pointTo.y()));
-        str.append(",");
-        str.append(QString::number(ar.m_radius));
-        str.append(";");
-        ++i;
+        QJsonObject areaObj;
+        QJsonArray pos;
+        pos.append(QJsonValue::fromVariant(area.m_pointTo.y()));
+        pos.append(QJsonValue::fromVariant(area.m_pointTo.x()));
+        areaObj.insert("Point to", pos);
+        areaObj.insert("Radius", QJsonValue::fromVariant(area.m_radius));
+        arrArea.append(areaObj);
     }
-    if (!aArea.isEmpty())
-        str.append(")");
+    obj.insert("Area", arrArea);
+    QJsonDocument doc(obj);
+    QString str(doc.toJson(QJsonDocument::Compact));
+
     return str;
 }
 
 QString util::makeString(const QVector<QVector2D> &aPoint)
 {
-    QString str("");
-    if (!aPoint.isEmpty())
-        str.append("(");
-    int i = 0;
-    for (const auto& ar : aPoint)
+    QJsonObject obj;
+    QJsonArray aTarget;
+    for (auto& target: aPoint)
     {
-        if (i != 0)
-            str.append(";");
-        str.append(QString::number(ar.x()));
-        str.append(",");
-        str.append(QString::number(ar.y()));
-        str.append(";");
-        ++i;
+        QJsonArray pos;
+        pos.append(QJsonValue::fromVariant(target.x()));
+        pos.append(QJsonValue::fromVariant(target.y()));
+        aTarget.append(pos);
     }
-    if (!aPoint.isEmpty())
-        str.append(")");
+    obj.insert("Targets(Points?!)", aTarget);
+    QJsonDocument doc(obj);
+    QString str(doc.toJson(QJsonDocument::Compact));
+
     return str;
 }
 
@@ -918,16 +915,39 @@ QVector4D util::vec4FromString(const QString &str)
 
 QVector<SArea> util::vecAreaFromString(const QString &str)
 {
-    //TODO
-    QVector<SArea> a;
-    return a;
+    QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
+    QJsonObject area = doc.object();
+    QJsonArray arrArea = area["Area"].toArray();
+    QVector<SArea> vec;
+    for(auto it=arrArea.begin(); it<arrArea.end(); ++it)
+    {
+        QJsonObject obj = it->toObject();
+        SArea area;
+        area.m_radius = obj["Radius"].toVariant().toUInt();
+
+        QJsonArray arrPos = obj["Point to"].toArray();
+        if (arrPos.size() == 2)
+            area.m_pointTo = QVector2D(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat());
+
+        vec.append(area);
+    }
+
+
+    return vec;
 }
 
 QVector<QVector2D> util::vecTargetFromString(const QString &str)
 {
-    //TODO
-    QVector<QVector2D> a;
-    return a;
+    QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
+    QJsonObject obj = doc.object();
+    QJsonArray arrPoint = obj["Targets(Points?!)"].toArray();
+    QVector<QVector2D> vec;
+    for (auto it=arrPoint.begin(); it<arrPoint.end(); ++it)
+    {
+        QJsonArray aPos = it->toArray();
+        vec.append(QVector2D(aPos[0].toVariant().toFloat(), aPos[1].toVariant().toFloat()));
+    }
+    return vec;
 }
 
 QString util::makeString(const QVector<uint> &vec)

@@ -38,8 +38,6 @@ public:
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
     bool updatePos(QVector3D& pos) override;
-    void attachMob(CMob* mob) override final;
-    CMob* mob() {return m_pMob;}
     void setRot(const QQuaternion& quat) override;
     const QVector3D& constitution() override final {return m_complection;}
     const QVector3D& complection() override {return m_complection;}
@@ -56,7 +54,6 @@ protected:
     QString m_modelName;
     QVector3D m_complection;    //x-grace, y-strength, z-tall
     QVector<QString> m_bodyParts; // for preparing vertex data
-    CMob* m_pMob;
 
 private:
     QVector<CPart*> m_aPart;

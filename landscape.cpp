@@ -3,9 +3,27 @@
 #include "landscape.h"
 #include "res_file.h"
 #include "utils.h"
-#include "view.h"
 #include "resourcemanager.h"
 #include "node.h"
+
+CLandscape* CLandscape::m_pLand = nullptr;
+
+CLandscape* CLandscape::getInstance()
+{
+    if(nullptr == m_pLand)
+        m_pLand = new CLandscape();
+    return m_pLand;
+}
+
+void CLandscape::unloadMpr()
+{
+    for (auto& xSec: m_aSector)
+    {
+        for(auto& ySec: xSec)
+            delete ySec;
+    }
+    m_aSector.clear();
+}
 
 CLandscape::CLandscape()
 {
@@ -17,12 +35,7 @@ CLandscape::CLandscape()
 
 CLandscape::~CLandscape()
 {
-    for (auto& xSec: m_aSector)
-    {
-        for(auto& ySec: xSec)
-            delete ySec;
-    }
-    m_aSector.clear();
+    unloadMpr();
 }
 
 bool CLandscape::readHeader(QDataStream& stream)

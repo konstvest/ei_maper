@@ -60,31 +60,109 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
         aStr[52] = "Monstr";
         break;
     }
+    case eObjParam_PARTICL_TYPE:
+    {
+      aStr[8192] = "FIREBALL";
+      aStr[8193] = "CAMPFIRE";
+      aStr[8194] = "FIREBLAST";
+      aStr[8195] = "FIRE";
+      aStr[8196] = "SMOKE";
+      aStr[8197] = "VULCANSMOKE";
+      aStr[8198] = "HEALING";
+      aStr[8199] = "POISONFOG";
+      aStr[8200] = "AGGRESSIONFOG";
+      aStr[8201] = "GEYSER";
+      aStr[8202] = "TORNADO";
+      aStr[8203] = "CASTING";
+      aStr[8204] = "NUKE";
+      aStr[8205] = "BANSHEECASTING";
+      aStr[8206] = "MUSHROOM";
+      aStr[8207] = "BLOOD1";
+      aStr[8208] = "FIREWALL";
+      aStr[8209] = "FIREARROW";
+      aStr[8210] = "ACIDRAY";
+      aStr[8211] = "BLUEGAS";
+      aStr[8212] = "LINK";
+      aStr[8213] = "SPHEREACID";
+      aStr[8214] = "SPHEREELECTRICITY";
+      aStr[8215] = "SPHEREFIRE";
+      aStr[8216] = "CLAYRING";
+      aStr[8217] = "TELEPORT";
+      aStr[8218] = "ANTIMAGIC";
+      aStr[8219] = "MODIFIER1";
+      aStr[8220] = "MODIFIER2";
+      aStr[8221] = "MODIFIER3";
+      aStr[8222] = "MODIFIER4";
+      aStr[8223] = "MODIFIER5";
+      aStr[8224] = "MODIFIER6";
+      aStr[8225] = "MODIFIER7";
+      aStr[8226] = "MODIFIER8";
+      aStr[8227] = "MODIFIER9";
+      aStr[8228] = "MODIFIER10";
+      aStr[8229] = "MODIFIER11";
+      aStr[8230] = "MODIFIER12";
+      aStr[8231] = "CASTINGFIRE";
+      aStr[8232] = "CASTINGELECTRICITY";
+      aStr[8233] = "CASTINGACID";
+      aStr[8234] = "CASTINGDIVINATION";
+      aStr[8235] = "CASTINGILLUSION";
+      aStr[8236] = "CASTINGDOMINATION";
+      aStr[8237] = "CASTINGENCHANTMENT";
+      aStr[8238] = "CASTINGHEALING";
+      aStr[8239] = "CASTINGFAILED";
+      aStr[8240] = "LIGHTNINGBLAST";
+      aStr[8241] = "BLOOD2";
+      aStr[8242] = "BLOOD3";
+      aStr[8243] = "BLOOD4";
+      aStr[8244] = "A4BLOODRED";
+      aStr[8245] = "A4BLOODGREEN";
+      aStr[8246] = "A4BLOODBLUE";
+      aStr[8247] = "A4BLOODBLACK";
+      aStr[8248] = "ZONEEXIT";
+      aStr[8249] = "PATH";
+      aStr[8250] = "PATHDESTINATION";
+      aStr[8251] = "PATHFAILED";
+      aStr[8252] = "MOSHKA";
+      aStr[8253] = "PORTALSTAR";
+      aStr[8254] = "PORTAL";
+      aStr[8255] = "CYLINDER1";
+      aStr[8256] = "CYLINDER2";
+      aStr[8257] = "FIRESTAR";
+      aStr[8258] = "ACIDSTAR";
+      aStr[8259] = "SPARKS";
+      aStr[8260] = "VISIONSTAR1";
+      aStr[8261] = "VISIONSTAR2";
+      aStr[8262] = "VISIONSTAR3";
+      aStr[8263] = "REGENERATION";
+      aStr[8264] = "SILENCE";
+      aStr[8265] = "FEEBLEMIND";
+      aStr[8266] = "FEETCLOUD1";
+      aStr[8267] = "FEETCLOUD2";
+      aStr[8268] = "VISIONSTAR4";
+      aStr[8269] = "BALLOFSTARS";
+      aStr[8270] = "RICKARROW";
+      aStr[8271] = "CURSESTARS";
+      aStr[8272] = "CURSEHOLDER";
+      aStr[8273] = "STARTTRANS";
+      aStr[8274] = "TRANSFORM";
+        break;
+    }
     default:
         break;
     }
 }
 
-bool isDIfferent(QString& value)
-{
-    return value == "<different>";
-}
 
-QString valueDifferent()
-{
-    return "<different>";
-}
 
 CComboBoxItem::CComboBoxItem(const QString& currentValue, EObjParam param)
     :m_parameter(param)
 {
-    setMaxVisibleItems(20);
+
     switch(m_parameter)
     {
     case eObjParam_PRIM_TXTR:
     case eObjParam_TEMPLATE:
     {
-        //QObject::connect(this, SIGNAL(activated(int)), this, SLOT(loadComboItems(int)));
         break;
     }
     default:
@@ -99,10 +177,15 @@ CComboBoxItem::CComboBoxItem(const QString& currentValue, EObjParam param)
         ++i;
     }
 
-    if(currentValue.isEmpty())
+    if(isDIfferent(currentValue))
     {
         insertItem(i, valueDifferent());
         setCurrentText(valueDifferent());
+    }
+    else if(currentValue.isEmpty())
+    {
+        insertItem(0, "<choose>");
+        setCurrentIndex(0);
     }
     else
     {
@@ -120,6 +203,7 @@ CComboBoxItem::CComboBoxItem(const QString& currentValue, EObjParam param)
         }
 
     }
+    setMaxVisibleItems(20);
     QObject::connect(this, SIGNAL(currentIndexChanged(QString)), this, SLOT(currentIndexChangedOver(QString))); //reconnect default currentIndexChanged to override
 }
 
@@ -140,20 +224,32 @@ void CComboBoxItem::showPopup()
     case eObjParam_PRIM_TXTR:
     {
         blockSignals(true);
-        clear();
         auto curText = currentText();
+        clear();
         insertItems(0, CTextureList::getInstance()->textureList());
-        setCurrentText(curText);
+        if(curText != "<choose>")
+            setCurrentText(curText);
+        else
+        {
+            insertItem(0, "<choose>");
+            setCurrentIndex(0);
+        }
         blockSignals(false);
         break;
     }
     case eObjParam_TEMPLATE:
     {
         blockSignals(true);
-        clear();
         auto curText = currentText();
+        clear();
         insertItems(0, CObjectList::getInstance()->figureList());
-        setCurrentText(curText);
+        if(curText != "<choose>")
+            setCurrentText(curText);
+        else
+        {
+            insertItem(0, "<choose>");
+            setCurrentIndex(0);
+        }
         blockSignals(false);
         break;
     }
@@ -320,6 +416,7 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         case eObjParam_TEMPLATE:
         case eObjParam_LIGHT_SHADOW:
         case eObjParam_TYPE:
+        case eObjParam_PARTICL_TYPE:
         {
             m_pTable->insertRow(i);
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem

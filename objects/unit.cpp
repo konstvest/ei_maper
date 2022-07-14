@@ -17,6 +17,7 @@ CUnit::CUnit():
     {
         m_aLogic.append(new CLogic(this, i==0));
     }
+    m_stat.reset(new SUnitStat());
 }
 
 CUnit::CUnit(const CUnit &unit):
@@ -32,13 +33,13 @@ CUnit::CUnit(const CUnit &unit):
     m_bImport = unit.m_bImport;
     m_aLogic.clear();
     for(auto& pLogic : unit.m_aLogic)
-        m_aLogic.append(new CLogic(*pLogic));
+        m_aLogic.append(new CLogic(this, *pLogic));
 }
 
-CUnit::CUnit(QJsonObject data, CMob* pMob):
+CUnit::CUnit(QJsonObject data):
     CWorldObj(data["World object"].toObject())
 {
-    m_pMob = pMob;
+    //m_pMob = pMob;
     m_prototypeName = data["Prototype name"].toString();
     m_stat.reset(new SUnitStat(data["Unit stats"].toObject()));
     const auto deSerializeStringList = [&data](QVector<QString>& aList, QString name)
@@ -276,10 +277,10 @@ uint CUnit::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-CSettings* CUnit::settings()
-{
-    return m_pMob->view()->settings();
-}
+//CSettings* CUnit::settings()
+//{
+//    return m_pMob->view()->settings();
+//}
 
 void CUnit::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
 {
@@ -456,10 +457,9 @@ CLogic::CLogic(CUnit* unit, bool bUse):
 {
 }
 
-CLogic::CLogic(const CLogic &logic)
+CLogic::CLogic(CUnit* unit, const CLogic &logic):
+    m_parent(unit)
 {
-    m_vertexBuf = logic.m_vertexBuf;
-    m_indexBuf = logic.m_indexBuf;
     m_bCyclic = logic.m_bCyclic;
     m_model = logic.m_model;
     m_guardRadius = logic.m_guardRadius;
@@ -475,6 +475,7 @@ CLogic::CLogic(const CLogic &logic)
         m_aPatrolPt.append(new CPatrolPoint(*pP));
 
     m_aDrawPoint = logic.m_aDrawPoint;
+    update();
     Q_ASSERT(m_parent);
 }
 
@@ -492,7 +493,7 @@ void CLogic::draw(QOpenGLShaderProgram* program)
         return;
 
     //todo: for selected objects ALWAYS draw logic
-    COptBool* pOpt = dynamic_cast<COptBool*>(m_parent->settings()->opt("drawLogic"));
+    COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawLogic"));
     if (nullptr == pOpt)
         return;
 
@@ -542,7 +543,7 @@ void CLogic::drawSelect(QOpenGLShaderProgram* program)
     if(!m_use)
         return;
 
-    COptBool* pOpt = dynamic_cast<COptBool*>(m_parent->settings()->opt("drawLogic"));
+    COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawLogic"));
     if (pOpt && !pOpt->value())
         return;
 
@@ -575,7 +576,7 @@ void CLogic::update()
         QVector3D centr(m_guardPlacement);
         centr.setZ(.0f);
         util::getCirclePoint(m_aDrawPoint, centr, double(m_guardRadius), 40);
-        m_parent->mob()->view()->land()->projectPt(m_aDrawPoint);
+        CLandscape::getInstance()->projectPt(m_aDrawPoint);
         break;
     }
     case EBehaviourType::ePath:
@@ -583,13 +584,13 @@ void CLogic::update()
         Q_ASSERT(m_parent);
         QVector3D pos(m_parent->position());
         pos.setZ(0.0f);
-        m_parent->mob()->view()->land()->projectPt(pos);
+        CLandscape::getInstance()->projectPt(pos);
         m_aDrawPoint.append(pos);
         for (auto& pt: m_aPatrolPt)
         {
             pos = pt->position();
             pos.setZ(0.0f);
-            m_parent->mob()->view()->land()->projectPt(pos);
+            CLandscape::getInstance()->projectPt(pos);
             pt->setPos(pos);
             pt->setDrawPosition(pos);
             m_aDrawPoint.append(pos);
@@ -597,7 +598,7 @@ void CLogic::update()
             {
                 pos = look->position();
                 pos.setZ(0.0f);
-                m_parent->mob()->view()->land()->projectPt(pos);
+                CLandscape::getInstance()->projectPt(pos);
                 look->setPos(pos);
                 look->setDrawPosition(pos);
             }
@@ -647,7 +648,7 @@ void CLogic::update()
 void CLogic::updatePos(QVector3D &dir)
 {
     m_guardPlacement+=dir;
-    m_parent->mob()->view()->land()->projectPt(m_guardPlacement);
+    CLandscape::getInstance()->projectPt(m_guardPlacement);
     //m_parent->mob()->view()->land()->projectPosition(this);
     for(auto& patrol : m_aPatrolPt)
     {
@@ -726,7 +727,7 @@ uint CLogic::deserialize(util::CMobParser& parser)
         {
             readByte += parser.skipHeader();
             CPatrolPoint* place = new CPatrolPoint(); //need unit parent?
-            place->attachMob(m_parent->mob());
+            //place->attachMob(m_parent->mob());
             readByte += place->deserialize(parser);
             m_aPatrolPt.append(place);
         }
@@ -866,13 +867,14 @@ CPatrolPoint::CPatrolPoint(const CPatrolPoint &patrol):
     CObjectBase(patrol)
     ,m_indexBuf(QOpenGLBuffer::IndexBuffer)
 {
-    m_vertexBuf = patrol.m_vertexBuf;
-    m_indexBuf = patrol.m_indexBuf;
+    //m_vertexBuf = patrol.m_vertexBuf;
+    //m_indexBuf = patrol.m_indexBuf;
     CLookPoint* pPoint = nullptr;
     foreach(pPoint, patrol.m_aLookPt)
         m_aLookPt.append(new CLookPoint(*pPoint));
 
     m_aDrawingLine = patrol.m_aDrawingLine;
+    update();
 }
 
 
@@ -1011,7 +1013,6 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
         {
             readByte += parser.skipHeader();
             CLookPoint* act = new CLookPoint();
-            act->attachMob(m_pMob);
             readByte += act->deserialize(parser);
             m_aLookPt.append(act);
         }
@@ -1054,7 +1055,6 @@ void CPatrolPoint::deSerializeJson(QJsonObject data)
     for(auto it=arrLP.begin(); it<arrLP.end(); ++it)
     {
         CLookPoint* pLook = new CLookPoint();
-        pLook->attachMob(m_pMob);
         pLook->deSerializeJson(it->toObject());
         m_aLookPt.append(pLook);
     }

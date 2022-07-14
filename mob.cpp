@@ -219,7 +219,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CWorldObj* obj = new CWorldObj();
                     readSecByte += parser.skipHeader(); // "OBJECT";
-                    obj->attachMob(this);
                     readSecByte += obj->deserialize(parser);
                     addNode(obj);
                 }
@@ -227,7 +226,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CLever* lever = new CLever();
                     readSecByte += parser.skipHeader(); // "LEVER";
-                    lever->attachMob(this);
                     readSecByte += lever->deserialize(parser);
                     addNode(lever);
                 }
@@ -235,7 +233,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CUnit* unit = new CUnit();
                     readSecByte += parser.skipHeader(); // "UNIT";
-                    unit->attachMob(this);
                     readSecByte += unit->deserialize(parser);
                     addNode(unit);
                 }
@@ -243,7 +240,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CTorch* torch = new CTorch();
                     readSecByte += parser.skipHeader(); // "TORCH";
-                    torch->attachMob(this);
                     readSecByte += torch->deserialize(parser);
                     addNode(torch);
                 }
@@ -251,7 +247,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CMagicTrap* trap = new CMagicTrap();
                     readSecByte += parser.skipHeader();  // "MAGIC_TRAP";
-                    trap->attachMob(this);
                     readSecByte += trap->deserialize(parser);
                     addNode(trap);
                 }
@@ -259,7 +254,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CLight* light = new CLight();
                     readByte += parser.skipHeader(); // "LIGHT";
-                    light->attachMob(this);
                     readByte += light->deserialize(parser);
                     addNode(light);
                 }
@@ -267,7 +261,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CSound* sound = new CSound();
                     readByte += parser.skipHeader(); // "SOUND";
-                    sound->attachMob(this);
                     readByte += sound->deserialize(parser);
                     addNode(sound);
                 }
@@ -275,7 +268,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CParticle* particle = new CParticle();
                     readByte += parser.skipHeader(); // "PARTICL";
-                    particle->attachMob(this);
                     readByte += particle->deserialize(parser);
                     addNode(particle);
                 }
@@ -328,6 +320,7 @@ void CMob::updateObjects()
         node->loadFigure();
         node->loadTexture();
     }
+    CLandscape::getInstance()->projectPositions(m_aNode);
     m_pProgress->update(50);
     ei::log(eLogInfo, "End update objects");
 }
@@ -373,7 +366,7 @@ CNode* CMob::createNode(QJsonObject data)
     {
     case ENodeType::eUnit:
     {
-        pNode = new CUnit(data, this);
+        pNode = new CUnit(data);
         break;
     }
     case ENodeType::eTorch:
@@ -422,7 +415,6 @@ CNode* CMob::createNode(QJsonObject data)
     {
         Q_ASSERT("Failed to create new node" && false);
     }
-    pNode->attachMob(this);
     //todo: create operation stack for this op
     addNode(pNode);
     pNode->loadFigure();
@@ -895,8 +887,6 @@ void CMob::createNode(CNode *pNode)
     {
         Q_ASSERT("Failed to create new node" && false);
     }
-    pNewNode->attachMob(this);
-    //todo: create operation stack for this op
     addNode(pNewNode);
 
     if(pNewNode)

@@ -39,7 +39,7 @@ void CView::keyPressEvent(QKeyEvent* event)
             foreach(pNode, mob->nodes())
             {
                 if (pNode->nodeState() & ENodeState::eSelect)
-                    m_landscape->projectPosition(pNode);
+                    CLandscape::getInstance()->projectPosition(pNode);
             }
         break;
     }

@@ -7,6 +7,9 @@ CMagicTrap::CMagicTrap():
     ,m_bCastOnce(false)
 {
     m_type = 59;
+    m_modelName = "magicTrap";
+    loadFigure();
+    loadTexture();
 }
 
 CMagicTrap::CMagicTrap(const CMagicTrap &trap):
@@ -32,7 +35,7 @@ CMagicTrap::CMagicTrap(QJsonObject data):
         SArea area;
         area.m_radius = obj["Radius"].toVariant().toUInt();
 
-        QJsonArray arrPos = data["Point to"].toArray();
+        QJsonArray arrPos = obj["Point to"].toArray();
         if (arrPos.size() == 2)
             area.m_pointTo = QVector2D(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat());
 

@@ -343,7 +343,7 @@ void CWorldObj::applyParam(EObjParam param, const QString &value)
 
     case eObjParam_TYPE:
     {
-        Q_ASSERT(false);
+        m_type = value.toUInt();
         break;
     }
     case eObjParam_TEMPLATE:

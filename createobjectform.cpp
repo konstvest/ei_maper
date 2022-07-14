@@ -10,6 +10,7 @@
 #include "objects\unit.h"
 #include "resourcemanager.h"
 #include "landscape.h"
+#include "log.h"
 
 CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     QDialog(parent),
@@ -25,6 +26,18 @@ CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
 
     //setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
 
+//    QStringList arrValue;
+//    arrValue.append("World object");
+//    arrValue.append("Unit");
+//    arrValue.append("Torch");
+//    arrValue.append("Magic trap");
+//    arrValue.append("Lever");
+//    arrValue.append("Light source");
+//    arrValue.append("Sound source");
+//    arrValue.append("Particle source");
+//    ui->comboObjectType->initComboItem("<choose object type>", arrValue);
+
+
     m_objType[eWorldObject] = "World object";
     m_objType[eUnit] = "Unit";
     m_objType[eTorch] = "Torch";
@@ -33,16 +46,9 @@ CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     m_objType[eLight] = "Light source";
     m_objType[eSound] = "Sound source";
     m_objType[eParticle] = "Particle source";
+    ui->comboObjectType->initComboItem("<choose object type>", m_objType.values());
 
-
-    for (const auto& pair : m_objType.toStdMap())
-        ui->comboObjectType->addItem(pair.second);
-        //ui->comboObjectType->insertItem(ui->comboObjectType->count(), pair.second);
-    //onObjectChoose(m_objType.first());
-
-    QObject::connect(ui->comboObjectType, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(onObjectChoose(const QString&)));
-    onObjectChoose(ui->comboObjectType->currentText());
-
+    QObject::connect(ui->comboObjectType, SIGNAL(currentIndexChangedOut(QString&)), this, SLOT(onObjectChoose(QString&)));
 }
 
 CCreateObjectForm::~CCreateObjectForm()
@@ -55,11 +61,48 @@ void CCreateObjectForm::updateTable()
     m_tableManager->reset();
     QMap<EObjParam, QString> aParam;
     m_pNode->collectParams(aParam, m_pNode->nodeType());
+    //filter parameters
+    aParam.remove(eObjParam_NID);
+    aParam.remove(eObjParam_POSITION);
+    aParam.remove(eObjParam_ROTATION);
+
+    auto type = m_pNode->nodeType();
+    switch (type)
+    {
+    case ENodeType::eTorch:
+    {
+        aParam.remove(eObjParam_PLAYER);
+        break;
+    }
+    case ENodeType::eLight:
+    case ENodeType::eSound:
+    case ENodeType::eParticle:
+    {
+        aParam.remove(eObjParam_TEMPLATE);
+        aParam.remove(eObjParam_PRIM_TXTR);
+        //aParam.remove(eObjParam_PLAYER);
+        break;
+    }
+    case ENodeType::eMagicTrap:
+    {
+        aParam.remove(eObjParam_TEMPLATE);
+        aParam.remove(eObjParam_PRIM_TXTR);
+        break;
+    }
+    default:
+        break;
+    }
+
     m_tableManager->setNewData(aParam);
 }
 
-void CCreateObjectForm::onObjectChoose(const QString& object)
+void CCreateObjectForm::onObjectChoose(QString& object)
 {
+    if (nullptr == m_pView->currentMob())
+    {
+        ei::log(eLogWarning, "cant create pre-defined object without active mob file");
+        return;
+    }
     ENodeType objType = m_objType.key(object);
 
     if (m_pNode)
@@ -119,16 +162,11 @@ void CCreateObjectForm::onObjectChoose(const QString& object)
         Q_ASSERT("Failed to create new node" && false);
     }
     updateTable();
-//    pNode->attachMob(this);
-//    addNode(pNode);
-//    pNode->loadFigure();
-//    pNode->loadTexture();
 
 }
 
 void CCreateObjectForm::onParamChange(SParam& param)
 {
-    //TODO special case for changing model, texture
     m_pNode->applyParam(param.param, param.value);
     updateTable();
 }
@@ -164,8 +202,9 @@ void CCreateObjectForm::on_buttonCreate_clicked()
         break;
     }
 
-    m_pNode->setPos(posOnLand);
-    m_pView->land()->projectPosition(m_pNode);
+    //m_pNode->setPos(posOnLand);
+    m_pNode->updatePos(posOnLand);
+    CLandscape::getInstance()->projectPosition(m_pNode);
     pMob->createNode(m_pNode);
     m_pView->changeOperation(EButtonOpMove);
     close();

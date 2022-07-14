@@ -22,6 +22,7 @@ public:
     void readFigure(const QByteArray& file, const QString& name);
     void readAssembly(const QMap<QString, QByteArray>& aFile, const QString& assemblyRoot);
     ei::CFigure* getFigure(const QString& name);
+    CSettings* settings(){Q_ASSERT(m_pSettings); return m_pSettings;}
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
     QList<QString>& figureList() {return m_arrFigureForComboBox;}
 
@@ -125,5 +126,9 @@ public:
     CResourceManager();
     void loadResources();
 };
+
+bool isDIfferent(const QString& value);
+QString valueDifferent();
+
 
 #endif // CRESOURCEMANAGER_H

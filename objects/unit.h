@@ -77,8 +77,9 @@ class CLogic
 {
 public:
     CLogic() = delete;
+    CLogic(const CLogic& logic) = delete;
     CLogic(CUnit* unit, bool bUse=false);
-    CLogic(const CLogic& logic);
+    CLogic(CUnit* unit, const CLogic& logic);
     ~CLogic();
     void draw(QOpenGLShaderProgram* program);
     void drawSelect(QOpenGLShaderProgram* program = nullptr);
@@ -120,7 +121,7 @@ class CUnit: public CWorldObj
 public:
     CUnit();
     CUnit(const CUnit& unit);
-    CUnit(QJsonObject data, CMob* pMob);
+    CUnit(QJsonObject data);
     ~CUnit() override;
     ENodeType nodeType() override {return ENodeType::eUnit; }
     uint deserialize(util::CMobParser& parser) override;
@@ -130,11 +131,9 @@ public:
     void setTexture(QOpenGLTexture* texture) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
-    CSettings* settings();
     void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
-    //bool updatePos(QVector3D& pos) override; //TODO
     const QString& databaseName(){return m_prototypeName;}
     bool updatePos(QVector3D& pos) override;
     QJsonObject toJson() override;

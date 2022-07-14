@@ -10,11 +10,10 @@ CPart::CPart():
 CPart::CPart(const CPart &part):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
 {
-    m_vertexBuf = part.m_vertexBuf;
-    m_indexBuf = part.m_indexBuf;
     m_name = part.m_name;
     m_bShow = part.m_bShow;
     m_aVertData = part.m_aVertData;
+    update(); //create new index and vertex buffers
 }
 
 CPart::~CPart()

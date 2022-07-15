@@ -10,7 +10,7 @@
 CWorldObj::CWorldObj():
     m_type(54)
     ,m_primaryTexture("")
-    ,m_secondaryTexture("")
+    ,m_secondaryTexture("default0")
     ,m_parentTemplate("")
     ,m_player(0)
     ,m_parentID(0)

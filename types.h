@@ -111,6 +111,22 @@ enum EObjParam
 
 };
 
+class CBox
+{
+public:
+    CBox() = delete;
+    ~CBox(){}
+    CBox(const CBox& box);
+    CBox(QVector3D minPos, QVector3D maxPos);
+    QVector3D center();
+    float radius();
+
+private:
+    QVector3D m_minPos;
+    QVector3D m_maxPos;
+    QVector3D m_center;
+};
+
 struct SVertexData
 {
     SVertexData() {}

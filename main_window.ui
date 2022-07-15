@@ -146,25 +146,6 @@
         <property name="bottomMargin">
          <number>0</number>
         </property>
-        <item>
-         <widget class="CView" name="myGLWidget">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>200</width>
-            <height>200</height>
-           </size>
-          </property>
-          <property name="mouseTracking">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
       <item>
@@ -422,16 +403,6 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>CView</class>
-   <extends>QOpenGLWidget</extends>
-   <header>view.h</header>
-   <slots>
-    <slot>setXRot(int)</slot>
-    <slot>setYRot(int)</slot>
-    <slot>setZRot(int)</slot>
-   </slots>
-  </customwidget>
   <customwidget>
    <class>CProgressView</class>
    <extends>QProgressBar</extends>

@@ -26,8 +26,8 @@
 
 class CLogic;
 
-CView::CView(QWidget* parent):
-    QGLWidget (parent)
+CView::CView(QWidget *parent, const QGLWidget *pShareWidget):
+    QGLWidget(parent, pShareWidget)
     , m_pSettings(nullptr)
     , m_pProgress(nullptr)
     , m_operationType(EOperationTypeObjects)
@@ -42,7 +42,10 @@ CView::CView(QWidget* parent):
     connect(m_timer, SIGNAL(timeout()), this, SLOT(updateWindow()));
     m_operationBackup.clear();
     m_selectFrame.reset(new CSelectFrame);
+    //qDebug() << format();
+    //qDebug() << isSharing();
 }
+
 
 
 void CView::updateReadState(EReadState state)
@@ -125,6 +128,7 @@ void CView::initShaders()
 
 void CView::initializeGL()
 {
+    makeCurrent();
     qglClearColor(Qt::black);
     //glEnable(GL_EXT_texture_filter_anisotropic);
     glEnable(GL_DEPTH_TEST);
@@ -137,10 +141,12 @@ void CView::initializeGL()
     CTextureList::getInstance()->initResource();
     CObjectList::getInstance()->initResource();
     //loadResource();
+    //doneCurrent();
 }
 
 void CView::resizeGL(int width, int height)
 {
+    makeCurrent();
     m_height = height;
     m_width = width;
     //const int side = qMin(width, height);
@@ -152,12 +158,15 @@ void CView::resizeGL(int width, int height)
     m_projection.perspective(45, ratio, 1, 1000);
     //glOrtho(-2, +2, -2, +2, -2.0, 2.0);   // draw objects in orthogaphic view
     //glFrustum (-2.0, 2.0, -2.0, 2.0, 1.5, 20.0); //convert project matrix to perpective view
+    //doneCurrent();
 }
 
 void CView::paintGL()
 {
+    makeCurrent();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     draw();
+    //doneCurrent();
 }
 
 void CView::draw()
@@ -231,7 +240,6 @@ void CView::loadLandscape(QFileInfo& filePath)
         //LOG_FATAL("ahtung"); //test logging critial error
         return;
     }
-    //CTextureList::getInstance()->attachSettings(m_pSettings);
 
     ei::log(eLogInfo, "Start read landscape");
     CLandscape::getInstance()->readMap(filePath);
@@ -536,11 +544,12 @@ void CView::saveMobAs()
 
 void CView::saveAllMob()
 {
+    CMob* pMob = nullptr;
     QSet<uint> aId;
-    for(const auto& mob: m_aMob)
+    foreach(pMob, m_aMob)
     {
-        mob->checkUniqueId(aId);
-        mob->save();
+        pMob->checkUniqueId(aId);
+        pMob->save();
     }
 }
 
@@ -577,7 +586,7 @@ void CView::unloadMob(QString mobName)
 
 int CView::cauntSelectedNodes()
 {
-   int n = 0;
+    int n = 0;
     for(const auto& mob: m_aMob)
     {
         for(const auto& node: mob->nodes())
@@ -613,8 +622,9 @@ void CView::viewParameters()
 {
     QSet<ENodeType> aType;
     //find unique selected node types
-    for (const auto& mob : m_aMob)
-        for (const auto& node : mob->nodes())
+    CMob* pMob = nullptr;
+    foreach(pMob, m_aMob)
+        for (const auto& node : pMob->nodes())
         {
             if (node->nodeState() != ENodeState::eSelect)
                 continue;
@@ -664,7 +674,6 @@ void CView::onParamChange(SParam &param)
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                 QObject::connect(pChanger, SIGNAL(updatePosOnLand(CNode*)), this, SLOT(landPositionUpdate(CNode*)));
                 m_pUndoStack->push(pChanger);
-                //m_landscape->projectPosition(node);
                 break;
             }
             case eObjParam_TEMPLATE:
@@ -673,7 +682,6 @@ void CView::onParamChange(SParam &param)
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                 QObject::connect(pChanger, SIGNAL(updatePosOnLand(CNode*)), this, SLOT(landPositionUpdate(CNode*)));
                 m_pUndoStack->push(pChanger);
-                //m_landscape->projectPosition(node);
                 break;
             }
             default:
@@ -868,7 +876,6 @@ void CView::operationApply(EOperationAxisType operationType)
 
     }
     m_operationBackup.clear();
-    //viewParameters();
 }
 
 void CView::moveTo(QVector3D &dir)
@@ -1026,11 +1033,10 @@ void CView::clipboradObjectsToScene()
         return;
     }
 
-    CMob* pMob = m_aMob.front(); //TODO use 'active mob' instead first
-    pMob->clearSelect();
+    m_activeMob->clearSelect();
     for(auto it = array.begin(); it < array.end(); ++it)
     {
-        CCreateNodeCommand* pUndo = new CCreateNodeCommand(pMob, it->toObject());
+        CCreateNodeCommand* pUndo = new CCreateNodeCommand(m_activeMob, it->toObject());
         m_pUndoStack->push(pUndo);
     }
     viewParameters();

@@ -11,31 +11,23 @@
 #include "resourcemanager.h"
 #include "landscape.h"
 #include "log.h"
+#include "preview.h"
 
 CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::CCreateObjectForm)
   ,m_pNode(nullptr)
   ,m_pView(nullptr)
+  ,m_pPreview(nullptr)
 {
     ui->setupUi(this);
+    initViewWidget();
+    QObject::connect(this, SIGNAL(sendNewBbbox(CBox)), m_pPreview, SLOT(refreshCam(CBox)));
     m_tableManager.reset(new CTableManager(ui->tableParameters));
     QObject::connect(m_tableManager.get(), SIGNAL(changeParamSignal(SParam&)), this, SLOT(onParamChange(SParam&)));
 
     setWindowTitle("Creating object dialog");
-
-    //setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
-
-//    QStringList arrValue;
-//    arrValue.append("World object");
-//    arrValue.append("Unit");
-//    arrValue.append("Torch");
-//    arrValue.append("Magic trap");
-//    arrValue.append("Lever");
-//    arrValue.append("Light source");
-//    arrValue.append("Sound source");
-//    arrValue.append("Particle source");
-//    ui->comboObjectType->initComboItem("<choose object type>", arrValue);
+    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 
 
     m_objType[eWorldObject] = "World object";
@@ -53,7 +45,16 @@ CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
 
 CCreateObjectForm::~CCreateObjectForm()
 {
+    //delete m_pPreview; // it will remove as children of Form (inherited behaviour from parent widget)
     delete ui;
+}
+
+void CCreateObjectForm::initViewWidget()
+{
+    m_pPreview = new CPreview(this);
+    m_pPreview->setObjectName(QString::fromUtf8("openGLWidget"));
+
+    ui->horizontalLayout_4->addWidget(m_pPreview);
 }
 
 void CCreateObjectForm::updateTable()
@@ -94,15 +95,23 @@ void CCreateObjectForm::updateTable()
     }
 
     m_tableManager->setNewData(aParam);
+    m_pPreview->updateGL();
+}
+
+CPreview *CCreateObjectForm::viewWidget()
+{
+    return m_pPreview;
+}
+
+void CCreateObjectForm::closeEvent(QCloseEvent *event)
+{ //ignore close event bcs id does something wrong and closing app has assert when CPreview destroying
+    event->ignore();
+    hide();
 }
 
 void CCreateObjectForm::onObjectChoose(QString& object)
 {
-    if (nullptr == m_pView->currentMob())
-    {
-        ei::log(eLogWarning, "cant create pre-defined object without active mob file");
-        return;
-    }
+
     ENodeType objType = m_objType.key(object);
 
     if (m_pNode)
@@ -161,25 +170,36 @@ void CCreateObjectForm::onObjectChoose(QString& object)
     {
         Q_ASSERT("Failed to create new node" && false);
     }
+    m_pPreview->attachNode(m_pNode);
     updateTable();
-
+    //ui->openGLWidget->updateGL();
 }
 
 void CCreateObjectForm::onParamChange(SParam& param)
 {
     m_pNode->applyParam(param.param, param.value);
+    if(param.param == eObjParam_TEMPLATE)
+    {
+        emit sendNewBbbox(m_pNode->getBBox());
+    }
     updateTable();
 }
 
 void CCreateObjectForm::on_buttonCancel_clicked()
 {
-    close();
+    //close();
+    hide();
 }
 
 
 void CCreateObjectForm::on_buttonCreate_clicked()
 {
     Q_ASSERT(m_pView);
+    if (nullptr == m_pView->currentMob())
+    {
+        ei::log(eLogWarning, "cant create pre-defined object without active mob file");
+        return;
+    }
     auto pMob = m_pView->currentMob();
     pMob->clearSelect();
     auto pos = QWidget::mapFromGlobal(QCursor::pos());

@@ -17,6 +17,7 @@ class CSettings;
 class CSelector;
 class CMobParameters;
 class CCreateObjectForm;
+class CView;
 
 struct SWindowTitle
 {
@@ -66,7 +67,7 @@ private:
     QSharedPointer<CCreateObjectForm> m_createDialog;
     QUndoStack* m_undoStack;
     QUndoView* m_undoView;
-
+    CView* m_pView;
     SWindowTitle m_sWindowTitle;
 };
 

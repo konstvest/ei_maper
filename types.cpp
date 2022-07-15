@@ -227,3 +227,29 @@ QJsonObject SUnitStat::toJson()
 
     return obj;
 }
+
+CBox::CBox(const CBox &box):
+    m_minPos(box.m_minPos)
+  ,m_maxPos(box.m_maxPos)
+  ,m_center(box.m_center)
+{
+
+}
+
+CBox::CBox(QVector3D minPos, QVector3D maxPos):
+    m_minPos(minPos)
+  ,m_maxPos(maxPos)
+{
+
+}
+
+QVector3D CBox::center()
+{
+    return QVector3D ((m_minPos + m_maxPos)/2);
+}
+
+float CBox::radius()
+{
+    return (m_maxPos-m_minPos).length();
+}
+

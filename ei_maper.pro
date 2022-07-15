@@ -42,6 +42,7 @@ SOURCES += \
     options.cpp \
     part.cpp \
     objects/particle.cpp \
+    preview.cpp \
     progressview.cpp \
     resourcemanager.cpp \
     sector.cpp \
@@ -82,6 +83,7 @@ HEADERS += \
     options.h \
     part.h \
     objects/particle.h \
+    preview.h \
     progressview.h \
     resourcemanager.h \
     sector.h \

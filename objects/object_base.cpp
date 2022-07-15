@@ -105,9 +105,12 @@ void CObjectBase::draw(QOpenGLShaderProgram* program)
     if (m_state == ENodeState::eHidden) //dont draw hidden objects
         return;
 
-    Q_ASSERT(m_texture);
+    //Q_ASSERT(m_texture);
     if(m_texture == nullptr)
+    {
+        ei::log(eLogWarning, "empty texture, skip drawing");
         return;
+    }
 
     m_texture->bind(0);
     if (!m_parent)
@@ -246,6 +249,53 @@ QJsonObject CObjectBase::toJson()
     rot.append(QJsonValue::fromVariant(quat.scalar()));
     obj.insert("Rotation", rot);
     return obj;
+}
+
+CBox CObjectBase::getBBox()
+{
+    QVector3D min;
+    QVector3D max;
+    bool bInit = false;
+    const auto fillPoint = [&min, &max](QVector3D& vec)
+    {
+        //x
+        if(vec.x() < min.x())
+            min.setX(vec.x());
+        else if(vec.x() > max.x())
+            max.setX(vec.x());
+        //y
+        if(vec.y() < min.y())
+            min.setY(vec.y());
+        else if(vec.y() > max.y())
+            max.setY(vec.y());
+        //z
+        if(vec.z() < min.z())
+            min.setZ(vec.z());
+        else if(vec.z() > max.z())
+            max.setZ(vec.z());
+    };
+
+    QVector3D rotatedPos;
+    for(auto& part: m_aPart)
+    {
+        auto& arrVert = part->vertData();
+        for(int i(0); i < arrVert.size(); ++i)
+        {
+            if(!bInit)
+            {
+                min = arrVert[i].position;
+                max = arrVert[i].position;
+                bInit = true;
+                continue;
+            }
+
+            rotatedPos = m_rotateMatrix*arrVert[i].position; //get vector, rotated with matrix
+            fillPoint(rotatedPos);
+        }
+    }
+
+   CBox bbox(min, max);
+   return bbox;
 }
 
 void CObjectBase::setRot(const QQuaternion& quat)

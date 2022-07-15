@@ -19,6 +19,7 @@
 #include "undo.h"
 #include "mobparameters.h"
 #include "ui_connectors.h"
+#include "preview.h"
 #include "log.h"
 
 
@@ -28,6 +29,8 @@ MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent),
     m_ui(new Ui::MainWindow)
 {
+
+
     CIconManager::getInstance()->init();
 
     m_settings.reset(new CSettings());
@@ -37,19 +40,33 @@ MainWindow::MainWindow(QWidget* parent) :
     m_settings->attachMainWindow(this);
     m_ui->setupUi(this); //init CView core also
 
+    m_pView = new CView(m_ui->centralWidget, m_createDialog.get()->viewWidget());
+    m_createDialog->viewWidget()->attachView(m_pView);
+    m_createDialog->viewWidget()->attachSettings(m_settings.get());
+
+    m_pView->setObjectName(QString::fromUtf8("myGLWidget"));
+    QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    sizePolicy.setHorizontalStretch(0);
+    sizePolicy.setVerticalStretch(0);
+    sizePolicy.setHeightForWidth(m_pView->sizePolicy().hasHeightForWidth());
+    m_pView->setSizePolicy(sizePolicy);
+    m_pView->setMinimumSize(QSize(200, 200));
+    m_pView->setMouseTracking(true);
+    m_ui->workSpaceLayout->addWidget(m_pView);
+
 #ifndef QT_DEBUG
   m_ui->toolButton_2->hide();
 #endif
 
-    m_selector->attachParents(this, m_ui->myGLWidget);
+    m_selector->attachParents(this, m_pView);
     m_undoStack = new QUndoStack(this);
     createUndoView();
     CStatusConnector::getInstance()->attach(m_ui->statusIco, m_ui->statusBar);
     connectUiButtons();
-    m_ui->myGLWidget->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText);
+    m_pView->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText);
     initShortcuts();
-    QObject::connect(m_ui->myGLWidget, SIGNAL(mobLoad(bool)), this, SLOT(updateMobListInParam(bool)));
-    QObject::connect(m_ui->myGLWidget, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
+    QObject::connect(m_pView, SIGNAL(mobLoad(bool)), this, SLOT(updateMobListInParam(bool)));
+    QObject::connect(m_pView, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
 
 //    m_ui->progressBar->setValue(0);
     m_ui->progressBar->reset();
@@ -58,11 +75,12 @@ MainWindow::MainWindow(QWidget* parent) :
     m_ui->mousePosText->setStyleSheet("* { background-color: rgba(0, 0, 0, 0); }");
     CTextureList::getInstance()->attachSettings(m_settings.get());
     CObjectList::getInstance()->attachSettings(m_settings.get());
-    m_createDialog.get()->attachView(m_ui->myGLWidget);
+    m_createDialog.get()->attachView(m_pView);
 }
 
 MainWindow::~MainWindow()
 {
+    delete m_pView;
     delete m_ui;
     CIconManager::getInstance()->~CIconManager();
 }
@@ -90,7 +108,7 @@ void MainWindow::initShortcuts()
 
 void MainWindow::connectUiButtons()
 {
-    CButtonConnector::getInstance()->attach(m_ui->myGLWidget);
+    CButtonConnector::getInstance()->attach(m_pView);
     CButtonConnector::getInstance()->addButton(EButtonOpSelect, m_ui->selectButton);
     m_ui->selectButton->setEnabled(false);
     CButtonConnector::getInstance()->addButton(EButtonOpMove, m_ui->moveButton);
@@ -126,8 +144,7 @@ void MainWindow::on_actionOpen_triggered()
 
     if(fileName.fileName().toLower().endsWith(".mpr"))
     {
-        //m_ui->myGLWidget->loadLandscape(fileName);
-        QUndoCommand* loadMpr = new COpenCommand(m_ui->myGLWidget, fileName, this);
+        QUndoCommand* loadMpr = new COpenCommand(m_pView, fileName, this);
         m_undoStack->push(loadMpr);
     }
     else if(fileName.fileName().toLower().endsWith(".mob"))
@@ -138,7 +155,7 @@ void MainWindow::on_actionOpen_triggered()
             return;
         }
 
-        QUndoCommand* loadMob = new COpenCommand(m_ui->myGLWidget, fileName, this);
+        QUndoCommand* loadMob = new COpenCommand(m_pView, fileName, this);
         m_undoStack->push(loadMob);
     }
 }
@@ -151,7 +168,7 @@ void MainWindow::on_actionSettings_triggered()
 
 void MainWindow::on_actionSave_as_triggered()
 {
-    m_ui->myGLWidget->saveMobAs();
+    m_pView->saveMobAs();
 }
 
 
@@ -172,13 +189,13 @@ void MainWindow::on_actionShow_undo_redo_triggered()
 
 void MainWindow::on_actionClose_all_triggered()
 {
-    m_ui->myGLWidget->unloadMob("");
-    m_ui->myGLWidget->unloadLand();
+    m_pView->unloadMob("");
+    m_pView->unloadLand();
 }
 
 void MainWindow::on_actionSave_triggered()
 {
-    m_ui->myGLWidget->saveAllMob();
+    m_pView->saveAllMob();
 }
 
 void MainWindow::on_action_Mob_parameters_triggered()
@@ -191,7 +208,7 @@ void MainWindow::updateMobListInParam(bool bReset)
 {
     if(bReset)
         m_mobParams->reset();
-    m_mobParams->initMobList(m_ui->myGLWidget->mobs());
+    m_mobParams->initMobList(m_pView->mobs());
 }
 
 void MainWindow::on_actionUndo_triggered()

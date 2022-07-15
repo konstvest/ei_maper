@@ -12,6 +12,7 @@ class CCreateObjectForm;
 }
 
 class CView;
+class CPreview;
 
 class CCreateObjectForm : public QDialog
 {
@@ -21,15 +22,23 @@ public:
     explicit CCreateObjectForm(QWidget *parent = nullptr);
     ~CCreateObjectForm();
     void attachView(CView* pView) {m_pView = pView;}
-    void updateTable();
+    CPreview* viewWidget();
+
+    void closeEvent(QCloseEvent *event) override;
+
+signals:
+    void sendNewBbbox(CBox);
 
 private slots:
     void onObjectChoose(QString& object);
     void onParamChange(SParam& param);
 
     void on_buttonCancel_clicked();
-
     void on_buttonCreate_clicked();
+
+private:
+    void initViewWidget();
+    void updateTable();
 
 private:
     Ui::CCreateObjectForm *ui;
@@ -37,6 +46,7 @@ private:
     CNode* m_pNode;
     QSharedPointer<CTableManager> m_tableManager;
     CView* m_pView;
+    CPreview * m_pPreview;
 };
 
 #endif // CREATEOBJECTFORM_H

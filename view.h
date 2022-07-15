@@ -34,7 +34,8 @@ class CView : public QGLWidget
     Q_OBJECT
 
 public:
-    explicit CView(QWidget* parent=nullptr);
+    explicit CView(QWidget* parent=nullptr) = delete;
+    explicit CView(QWidget* parent=nullptr, const QGLWidget* pShareWidget=nullptr);
     ~CView();
 
     void loadLandscape(QFileInfo& filePath);
@@ -64,20 +65,21 @@ public:
     void hideSelectedNodes();
     void unHideAll();
     CMob* currentMob() {return m_activeMob;}
+    QOpenGLShaderProgram& shaderObject() {return m_program;}
 
 protected:
-    void initializeGL();
-    void initShaders();
-    void paintGL();
-    void resizeGL(int width, int height);
-    void keyPressEvent(QKeyEvent* event);
-    void keyReleaseEvent(QKeyEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
-    void wheelEvent(QWheelEvent* event);
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int width, int height) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
 
 private:
+    void initShaders();
     void draw();
     CNode* pickObject(QList<CNode*>& aNode, int x, int y);
 

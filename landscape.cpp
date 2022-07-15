@@ -185,6 +185,9 @@ bool CLandscape::projectPt(QVector<QVector3D>& aPoint)
 
 void CLandscape::projectPosition(CNode* pNode)
 {
+    if(!isMprLoad())
+        return;
+
     if(pNode->nodeType() == eParticle || pNode->nodeType() == eLight || pNode->nodeType() == eSound || pNode->nodeType() == ePatrolPoint || pNode->nodeType() == eLookPoint)
     {
         pNode->setDrawPosition(pNode->position());

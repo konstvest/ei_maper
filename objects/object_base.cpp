@@ -108,7 +108,8 @@ void CObjectBase::draw(QOpenGLShaderProgram* program)
     //Q_ASSERT(m_texture);
     if(m_texture == nullptr)
     {
-        ei::log(eLogWarning, "empty texture, skip drawing");
+        loadTexture();
+        ei::log(eLogWarning, "empty texture, set default");
         return;
     }
 

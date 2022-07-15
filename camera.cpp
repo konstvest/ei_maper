@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "key_manager.h"
 #include "settings.h"
+#include "log.h"
 
 CCamera::CCamera()
     :m_keyManager(nullptr)
@@ -239,6 +240,11 @@ void CCamera::moveTo(QVector3D posTarget)
 //move camera away on 'distance' point from pivot
 void CCamera::moveAwayOn(float distance)
 {
+    if(distance==0)
+    {
+        ei::log(eLogWarning, "show distance is null. object empty");
+        return;
+    }
     QVector3D dir(m_pos-m_pivot);
     dir.normalize();
     m_pos = m_pivot + dir*distance;

@@ -14,6 +14,8 @@ CParticle::CParticle(const CParticle &particle):
 {
     m_kind = particle.m_kind;
     m_scale = particle.m_scale;
+    updateFigure(CObjectList::getInstance()->getFigure("particle"));
+    setTexture(CTextureList::getInstance()->texture("particle"));
 }
 
 CParticle::CParticle(QJsonObject data):
@@ -21,6 +23,8 @@ CParticle::CParticle(QJsonObject data):
 {
     m_kind = data["Type"].toVariant().toUInt();
     m_scale = data["Scale"].toVariant().toFloat();
+    updateFigure(CObjectList::getInstance()->getFigure("particle"));
+    setTexture(CTextureList::getInstance()->texture("particle"));
 }
 
 uint CParticle::deserialize(util::CMobParser& parser)

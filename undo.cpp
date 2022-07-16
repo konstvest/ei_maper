@@ -39,26 +39,30 @@ void COpenCommand::redo()
 //    return true;
 //}
 
-CChangeStringParam::CChangeStringParam(CNode *pNode, EObjParam objParam, QString value, QUndoCommand *parent):
+CChangeStringParam::CChangeStringParam(CView* pView, uint nodeId, EObjParam objParam, QString value, QUndoCommand *parent):
     QUndoCommand(parent)
-  ,m_pNode(pNode)
+  ,m_pView(pView)
+  ,m_nodeId(nodeId)
   ,m_objParam(objParam)
   ,m_newValue(value)
 {
-    setText("Change value to:" + value);
+    //setText("Change value to:" + value);
 }
 
 void CChangeStringParam::undo()
 {
-    m_pNode->applyParam(m_objParam, m_oldValue);
+    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
+    pNode->applyParam(m_objParam, m_oldValue);
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
 }
 
 void CChangeStringParam::redo()
 {
-    m_oldValue = m_pNode->getParam(m_objParam);
-    m_pNode->applyParam(m_objParam, m_newValue);
+    setText("Change value to " + m_newValue);
+    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
+    m_oldValue = pNode->getParam(m_objParam);
+    pNode->applyParam(m_objParam, m_newValue);
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
 }
@@ -69,67 +73,72 @@ void CChangeStringParam::redo()
 //    return true;
 //}
 
-CChangeModelParam::CChangeModelParam(CNode *pNode, EObjParam &objParam, QString value, QUndoCommand *parent):
-    CChangeStringParam(pNode, objParam, value, parent)
+CChangeModelParam::CChangeModelParam(CView* pView, uint nodeId, EObjParam &objParam, QString value, QUndoCommand *parent):
+    CChangeStringParam(pView, nodeId, objParam, value, parent)
 {
-    setText("Change model to " + value);
+    //setText("Change model to " + value);
 }
 
 void CChangeModelParam::undo()
 {
-    m_pNode->applyParam(m_objParam, m_oldValue);
-    m_pNode->applyParam(eObjParam_BODYPARTS, util::makeString(m_oldBodyparts));
-    emit updatePosOnLand(m_pNode);
+    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
+    pNode->applyParam(m_objParam, m_oldValue);
+    pNode->applyParam(eObjParam_BODYPARTS, util::makeString(m_oldBodyparts));
+    emit updatePosOnLand(pNode);
     emit updateParam();
 }
 
 void CChangeModelParam::redo()
 {
-    m_oldValue = m_pNode->getParam(m_objParam);
-    QString partsList = m_pNode->getParam(eObjParam_BODYPARTS);
+    setText("Change model to " + m_newValue);
+    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
+    m_oldValue = pNode->getParam(m_objParam);
+    QString partsList = pNode->getParam(eObjParam_BODYPARTS);
     m_oldBodyparts = util::strListFromString(partsList);
-    m_pNode->applyParam(m_objParam, m_newValue);
+    pNode->applyParam(m_objParam, m_newValue);
     QString empty("");
-    m_pNode->applyParam(eObjParam_BODYPARTS, empty);
-    emit updatePosOnLand(m_pNode);
+    pNode->applyParam(eObjParam_BODYPARTS, empty);
+    emit updatePosOnLand(pNode);
     emit updateParam();
 }
 
-CDeleteNodeCommand::CDeleteNodeCommand(CMob *pMob, CNode *pNode, QUndoCommand *parent)
+CDeleteNodeCommand::CDeleteNodeCommand(CView* pView, uint nodeId, QUndoCommand *parent)
     :QUndoCommand(parent)
-    ,m_pMob(pMob)
-    ,m_pNode(pNode)
+    ,m_pView(pView)
+    ,m_nodeId(nodeId)
 {
-    setText("Node deleted ID: " + QString::number(m_pNode->mapId()));
+
 }
 
 void CDeleteNodeCommand::undo()
 {
-    m_pMob->restoreNode(m_pNode->innerId());
+    m_pView->currentMob()->undo_deleteNode(m_nodeId);
 }
 
 void CDeleteNodeCommand::redo()
 {
-    m_pMob->deleteNode(m_pNode);
+    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
+    setText(QString("Delete node ID: %1").arg(pNode->mapId()));
+    m_pView->currentMob()->deleteNode(m_nodeId);
 }
 
-CCreateNodeCommand::CCreateNodeCommand(CMob* pMob, QJsonObject nodeData, QUndoCommand *parent):
+CCreateNodeCommand::CCreateNodeCommand(CView* pView, QJsonObject nodeData, QUndoCommand *parent):
     QUndoCommand(parent)
-    ,m_pMob(pMob)
+    ,m_pView(pView)
     ,m_nodeData(nodeData)
-    ,m_pNode(nullptr)
+    ,m_createdNodeId(0)
 {
-    setText("Node created");
+    //setText("Node created");
 }
 
 void CCreateNodeCommand::undo()
 {
-    m_pMob->deleteNode(m_pNode);
-
+    m_pView->currentMob()->undo_createNode(m_createdNodeId);
 }
 
 void CCreateNodeCommand::redo()
 {
-    m_pNode = m_pMob->createNode(m_nodeData);
-    setText("Node created ID: " + QString::number(m_pNode->mapId()));
+    auto pNode = m_pView->currentMob()->createNode(m_nodeData);
+    m_createdNodeId = pNode->mapId();
+    setText("Node created ID: " + QString::number(pNode->mapId()));
 }

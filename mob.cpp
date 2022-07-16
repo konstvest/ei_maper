@@ -341,6 +341,17 @@ void CMob::delNodes()
     }
 }
 
+CNode *CMob::nodeByMapId(uint id)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(pNode->mapId()==id)
+            break;
+    }
+    return pNode;
+}
+
 QString CMob::mobName()
 {
     return m_filePath.fileName();
@@ -367,11 +378,15 @@ CNode* CMob::createNode(QJsonObject data)
     case ENodeType::eUnit:
     {
         pNode = new CUnit(data);
+        pNode->loadFigure();
+        pNode->loadTexture();
         break;
     }
     case ENodeType::eTorch:
     {
         pNode = new CTorch(data);
+        pNode->loadFigure();
+        pNode->loadTexture();
         break;
     }
     case ENodeType::eMagicTrap:
@@ -382,6 +397,8 @@ CNode* CMob::createNode(QJsonObject data)
     case ENodeType::eLever:
     {
         pNode = new CLever(data);
+        pNode->loadFigure();
+        pNode->loadTexture();
         break;
     }
     case ENodeType::eLight:
@@ -402,6 +419,8 @@ CNode* CMob::createNode(QJsonObject data)
     case ENodeType::eWorldObject:
     {
         pNode = new CWorldObj(data);
+        pNode->loadFigure();
+        pNode->loadTexture();
         break;
     }
     default:
@@ -415,10 +434,9 @@ CNode* CMob::createNode(QJsonObject data)
     {
         Q_ASSERT("Failed to create new node" && false);
     }
-    //todo: create operation stack for this op
+
     addNode(pNode);
-    pNode->loadFigure();
-    pNode->loadTexture();
+
 
     if(pNode)
     {
@@ -442,6 +460,51 @@ CNode* CMob::createNode(QJsonObject data)
     }
 
     return pNode;
+}
+
+void CMob::undo_createNode(uint mapId)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(pNode->mapId() == mapId)
+        {
+            //m_aDeletedNode.append(pNode);
+            m_aNode.removeAt(m_aNode.indexOf(pNode));
+            ei::log(eLogDebug, QString("undo create node with %1 map ID").arg(pNode->mapId()));
+            return;
+        }
+    }
+}
+
+void CMob::deleteNode(uint mapId)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(pNode->mapId() == mapId)
+        {
+            pNode->setState(ENodeState::eDraw); // for restoring draw state
+            m_aDeletedNode.append(pNode);
+            m_aNode.removeOne(pNode);
+            ei::log(eLogDebug, QString("delete node with %1").arg(pNode->mapId()));
+        }
+    }
+}
+
+void CMob::undo_deleteNode(uint mapId)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aDeletedNode)
+    {
+        if(pNode->mapId() == mapId)
+        {
+            m_aNode.append(pNode);
+            m_aDeletedNode.removeOne(pNode);
+            ei::log(eLogDebug, QString("node with %1 restored").arg(pNode->mapId()));
+            break;
+        }
+    }
 }
 
 void CMob::readMob(QFileInfo &path)
@@ -919,26 +982,10 @@ void CMob::deleteNode(CNode *pNode)
     if(ind >=0)
     {
         m_aDeletedNode.append(m_aNode.at(ind));
-        m_aNode.at(ind)->setState(ENodeState::eDraw);
+        //m_aNode.at(ind)->setState(ENodeState::eDraw);
         m_aNode.removeAt(ind);
-        ei::log(eLogDebug, QString("delete node with %1").arg(pNode->innerId()));
+        ei::log(eLogDebug, QString("delete node with %1").arg(pNode->mapId()));
     }
-}
-
-void CMob::restoreNode(const uint innerId)
-{
-    int ind(-1);
-    for(auto& node: m_aDeletedNode)
-    {
-        if(node->innerId() == innerId)
-            ind = m_aDeletedNode.indexOf(node);
-    }
-    if(ind >=0)
-    {
-        m_aNode.append(m_aDeletedNode.at(ind));
-        m_aDeletedNode.removeAt(ind);
-    }
-    ei::log(eLogDebug, QString("node with %1 restored").arg(innerId));
 }
 
 void CMob::clearSelect()

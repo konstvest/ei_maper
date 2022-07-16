@@ -75,7 +75,7 @@ MainWindow::MainWindow(QWidget* parent) :
     m_ui->mousePosText->setStyleSheet("* { background-color: rgba(0, 0, 0, 0); }");
     CTextureList::getInstance()->attachSettings(m_settings.get());
     CObjectList::getInstance()->attachSettings(m_settings.get());
-    m_createDialog.get()->attachView(m_pView);
+    m_createDialog.get()->attach(m_pView, m_undoStack);
 }
 
 MainWindow::~MainWindow()

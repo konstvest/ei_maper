@@ -47,6 +47,7 @@ public:
     void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
     int select(const SSelect& selectParam, bool bAddToSelect = false);
+    CMob* mob(QString mobName);
     const QVector<CMob*> mobs() {return m_aMob;}
     void drawSelectFrame(QRect& rect);
     void pickObject(QPoint mousePos, bool bAddToSelect);

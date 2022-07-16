@@ -21,6 +21,8 @@ CMagicTrap::CMagicTrap(const CMagicTrap &trap):
     m_aTarget = trap.m_aTarget;
     m_castInterval = trap.m_castInterval;
     m_bCastOnce = trap.m_bCastOnce;
+    updateFigure(CObjectList::getInstance()->getFigure("trap"));
+    setTexture(CTextureList::getInstance()->texture("trap"));
 }
 
 CMagicTrap::CMagicTrap(QJsonObject data):
@@ -52,6 +54,8 @@ CMagicTrap::CMagicTrap(QJsonObject data):
 
     m_castInterval = data["Cast interval"].toVariant().toUInt();
     m_bCastOnce = data["Is cast once?"].toBool();
+    updateFigure(CObjectList::getInstance()->getFigure("trap"));
+    setTexture(CTextureList::getInstance()->texture("trap"));
 }
 
 uint CMagicTrap::deserialize(util::CMobParser& parser)

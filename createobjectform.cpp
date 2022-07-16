@@ -12,6 +12,7 @@
 #include "landscape.h"
 #include "log.h"
 #include "preview.h"
+#include "undo.h"
 
 CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     QDialog(parent),
@@ -19,6 +20,7 @@ CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
   ,m_pNode(nullptr)
   ,m_pView(nullptr)
   ,m_pPreview(nullptr)
+  ,m_pUndoStack(nullptr)
 {
     ui->setupUi(this);
     initViewWidget();
@@ -47,6 +49,12 @@ CCreateObjectForm::~CCreateObjectForm()
 {
     //delete m_pPreview; // it will remove as children of Form (inherited behaviour from parent widget)
     delete ui;
+}
+
+void CCreateObjectForm::attach(CView *pView, QUndoStack *pStack)
+{
+     m_pView = pView;
+     m_pUndoStack = pStack;
 }
 
 void CCreateObjectForm::initViewWidget()
@@ -222,7 +230,10 @@ void CCreateObjectForm::on_buttonCreate_clicked()
     //m_pNode->setPos(posOnLand);
     m_pNode->updatePos(posOnLand);
     CLandscape::getInstance()->projectPosition(m_pNode);
-    pMob->createNode(m_pNode);
+    CCreateNodeCommand* pUndo = new CCreateNodeCommand(m_pView, m_pNode->toJson());
+    m_pUndoStack->push(pUndo);
+
+    //pMob->createNode(m_pNode);
     m_pView->changeOperation(EButtonOpMove);
     close();
 }

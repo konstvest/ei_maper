@@ -46,11 +46,14 @@ public:
     void addNode(CNode* aNode) {m_aNode.append(aNode); }
     void createNode(CNode* pNode);
     CNode* createNode(QJsonObject data);
+    void undo_createNode(uint mapId);
     QList<CNode*>& nodes() {return m_aNode; }
+    void deleteNode(uint mapId);
+    void undo_deleteNode(uint mapId);
     void deleteNode(CNode* pNode);
-    void restoreNode(const uint innerId);
     void clearSelect();
     void delNodes();
+    CNode* nodeByMapId(uint id);
     CView* view() {Q_ASSERT(m_view); return m_view;}
     QString mobName();
     const QFileInfo& filePath() {return m_filePath;}

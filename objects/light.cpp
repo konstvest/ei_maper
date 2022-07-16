@@ -17,6 +17,8 @@ CLight::CLight(const CLight &light):
     m_range = light.m_range;
     m_bShadow = light.m_bShadow;
     m_color = light.m_color;
+    updateFigure(CObjectList::getInstance()->getFigure("light"));
+    setTexture(CTextureList::getInstance()->texture("light"));
 }
 
 CLight::CLight(QJsonObject data):
@@ -27,6 +29,8 @@ CLight::CLight(QJsonObject data):
     QJsonArray aColor = data["Color"].toArray();
     if (aColor.size()==3)
         m_color = QVector3D(aColor[0].toVariant().toFloat(), aColor[1].toVariant().toFloat(), aColor[2].toVariant().toFloat());
+    updateFigure(CObjectList::getInstance()->getFigure("light"));
+    setTexture(CTextureList::getInstance()->texture("light"));
 }
 
 uint CLight::deserialize(util::CMobParser& parser)

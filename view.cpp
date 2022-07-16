@@ -396,6 +396,16 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
     return cauntSelectedNodes();
 }
 
+CMob *CView::mob(QString mobName)
+{
+    CMob* pMob = nullptr;
+    foreach(pMob, m_aMob)
+        if (pMob->mobName().toLower() == mobName.toLower())
+            break;
+
+    return pMob;
+}
+
 void CView::pickObject(QPoint mousePos, bool bAddToSelect)
 {
     QRect rect(mousePos, mousePos);
@@ -470,8 +480,8 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
 
     if(m_operationType == EOperationTypeObjects)
         //for(const auto& mob : m_aMob)
-        foreach(const auto& mob, m_aMob)
-            foreach (auto& node, mob->nodes())
+        //foreach(const auto& mob, m_aMob)
+            foreach (auto& node, m_activeMob->nodes())
                 node->drawSelect(&m_selectProgram);
 
     QVector<SColor> aColor;
@@ -671,7 +681,7 @@ void CView::onParamChange(SParam &param)
             case eObjParam_ROTATION: //todo: need recalc landscape position for objects?
             case eObjParam_COMPLECTION:
             {
-                CChangeStringParam* pChanger = new CChangeStringParam(node, param.param, param.value);
+                CChangeStringParam* pChanger = new CChangeStringParam(this, node->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                 QObject::connect(pChanger, SIGNAL(updatePosOnLand(CNode*)), this, SLOT(landPositionUpdate(CNode*)));
                 m_pUndoStack->push(pChanger);
@@ -679,7 +689,7 @@ void CView::onParamChange(SParam &param)
             }
             case eObjParam_TEMPLATE:
             {
-                CChangeModelParam* pChanger = new CChangeModelParam(node, param.param, param.value);
+                CChangeModelParam* pChanger = new CChangeModelParam(this, node->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                 QObject::connect(pChanger, SIGNAL(updatePosOnLand(CNode*)), this, SLOT(landPositionUpdate(CNode*)));
                 m_pUndoStack->push(pChanger);
@@ -687,7 +697,7 @@ void CView::onParamChange(SParam &param)
             }
             default:
             {
-                CChangeStringParam* pChanger = new CChangeStringParam(node, param.param, param.value);
+                CChangeStringParam* pChanger = new CChangeStringParam(this, node->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                 m_pUndoStack->push(pChanger);
                 break;
@@ -848,7 +858,7 @@ void CView::operationApply(EOperationAxisType operationType)
         {
         case EOperationAxisType::eMove:
         {
-            CChangeStringParam* pOp = new CChangeStringParam(pair.first, EObjParam::eObjParam_POSITION, util::makeString(pair.first->position()));
+            CChangeStringParam* pOp = new CChangeStringParam(this, pair.first->mapId(), EObjParam::eObjParam_POSITION, util::makeString(pair.first->position()));
             QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             //pair.first->setPos(m_operationBackup[pair.first]);
             pair.first->updatePos(m_operationBackup[pair.first]);
@@ -858,7 +868,7 @@ void CView::operationApply(EOperationAxisType operationType)
         case EOperationAxisType::eRotate:
         {
             rot = pair.first->getEulerRotation();
-            CChangeStringParam* pOp = new CChangeStringParam(pair.first, EObjParam::eObjParam_ROTATION, util::makeString(rot));
+            CChangeStringParam* pOp = new CChangeStringParam(this, pair.first->mapId(), EObjParam::eObjParam_ROTATION, util::makeString(rot));
             QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             quat = QQuaternion::fromEulerAngles(m_operationBackup[pair.first]);
             pair.first->setRot(quat);
@@ -867,7 +877,7 @@ void CView::operationApply(EOperationAxisType operationType)
         }
         case EOperationAxisType::eScale:
         {
-            CChangeStringParam* pOp = new CChangeStringParam(pair.first, EObjParam::eObjParam_COMPLECTION, util::makeString(pair.first->constitution()));
+            CChangeStringParam* pOp = new CChangeStringParam(this, pair.first->mapId(), EObjParam::eObjParam_COMPLECTION, util::makeString(pair.first->constitution()));
             QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             pair.first->setConstitution(m_operationBackup[pair.first]);
             m_pUndoStack->push(pOp);
@@ -961,20 +971,15 @@ void CView::scaleTo(QVector3D &scale)
 
 void CView::deleteSelectedNodes()
 {
-    QVector<CNode*> aNode;
-    CMob* mob = nullptr;
-    foreach(mob, m_aMob)
-    {
-        aNode.clear();
-        for (auto& node : mob->nodes())
-            if (node->nodeState() == ENodeState::eSelect)
-                aNode.append(node);
+    QVector<uint> arrMapId;
+    for (auto& node : m_activeMob->nodes())
+        if (node->nodeState() == ENodeState::eSelect)
+            arrMapId.append(node->mapId());
 
-        for(auto& nd : aNode)
-        {
-            CDeleteNodeCommand* pUndo = new CDeleteNodeCommand(mob, nd);
-            m_pUndoStack->push(pUndo);
-        }
+    for(auto& id : arrMapId)
+    {
+        CDeleteNodeCommand* pUndo = new CDeleteNodeCommand(this, id);
+        m_pUndoStack->push(pUndo);
     }
     viewParameters();
 }
@@ -984,10 +989,10 @@ void CView::selectedObjectToClipboardBuffer()
     CNode* pNode;
 
     QJsonArray arrObj;
-    for(auto& mob: m_aMob)
-        foreach(pNode, mob->nodes())
-            if (pNode->nodeState() & ENodeState::eSelect)
-                arrObj.append(pNode->toJson());
+    //for(auto& mob: m_aMob)
+    foreach(pNode, m_activeMob->nodes())
+        if (pNode->nodeState() & ENodeState::eSelect)
+            arrObj.append(pNode->toJson());
 
     QJsonObject obj;
     obj.insert("Data", arrObj);
@@ -1037,7 +1042,7 @@ void CView::clipboradObjectsToScene()
     m_activeMob->clearSelect();
     for(auto it = array.begin(); it < array.end(); ++it)
     {
-        CCreateNodeCommand* pUndo = new CCreateNodeCommand(m_activeMob, it->toObject());
+        CCreateNodeCommand* pUndo = new CCreateNodeCommand(this, it->toObject());
         m_pUndoStack->push(pUndo);
     }
     viewParameters();

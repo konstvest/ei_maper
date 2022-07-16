@@ -20,7 +20,6 @@ CObjectBase::CObjectBase():
 CObjectBase::CObjectBase(const CObjectBase &base):
     CNode(base)
 {
-    m_modelName = base.m_modelName;
     m_complection = base.m_complection;
     m_texture = base.m_texture;
     m_pFigure = base.m_pFigure;
@@ -38,7 +37,7 @@ CObjectBase::CObjectBase(QJsonObject data):
     m_texture(nullptr)
     ,m_pFigure(nullptr)
 {
-    m_modelName = data["Model name"].toString();
+
     //m_mapID = data["Id"].toVariant().toUInt(); //TODO: generate mapID
     m_mapID = 333777;
 
@@ -221,7 +220,6 @@ void CObjectBase::setConstitution(QVector3D &vec)
 QJsonObject CObjectBase::toJson()
 {
     QJsonObject obj;
-    obj.insert("Model name", m_modelName);
     obj.insert("Id", QJsonValue::fromVariant(m_mapID));
     obj.insert("Node type", nodeType());
 

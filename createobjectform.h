@@ -21,7 +21,7 @@ class CCreateObjectForm : public QDialog
 public:
     explicit CCreateObjectForm(QWidget *parent = nullptr);
     ~CCreateObjectForm();
-    void attachView(CView* pView) {m_pView = pView;}
+    void attach(CView* pView, QUndoStack* pStack);
     CPreview* viewWidget();
 
     void closeEvent(QCloseEvent *event) override;
@@ -47,6 +47,7 @@ private:
     QSharedPointer<CTableManager> m_tableManager;
     CView* m_pView;
     CPreview * m_pPreview;
+    QUndoStack* m_pUndoStack;
 };
 
 #endif // CREATEOBJECTFORM_H

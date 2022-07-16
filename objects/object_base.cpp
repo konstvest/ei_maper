@@ -309,7 +309,7 @@ void CObjectBase::collectParams(QMap<EObjParam, QString> &aParam, ENodeType para
 {
     Q_UNUSED(paramType);
     addParam(aParam, eObjParam_NID, QString::number(m_mapID));
-    addParam(aParam, eObjParam_TEMPLATE, m_modelName);
+
     addParam(aParam, eObjParam_COMMENTS, m_comment);
     addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
 }

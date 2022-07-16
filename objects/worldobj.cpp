@@ -307,7 +307,7 @@ void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
 
     //addParam(aParam, eObjParam_TYPE, QString::number(m_type));
     addParam(aParam, eObjParam_NAME, m_name);
-    //addParam(aParam, eObjParam_TEMPLATE, m_modelName);
+    addParam(aParam, eObjParam_TEMPLATE, m_modelName);
     addParam(aParam, eObjParam_PARENT_TEMPLATE, m_parentTemplate);
     addParam(aParam, eObjParam_PRIM_TXTR, m_primaryTexture);
     //addParam(aParam, eObjParam_SEC_TXTR, m_secondaryTexture);

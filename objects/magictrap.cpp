@@ -202,6 +202,10 @@ void CMagicTrap::collectParams(QMap<EObjParam, QString> &aParam, ENodeType param
     addParam(aParam, eObjParam_TRAP_TARGETS, util::makeString(m_aTarget));
     addParam(aParam, eObjParam_TRAP_CAST_INTERVAL, QString::number(m_castInterval));
     addParam(aParam, eObjParam_TRAP_CAST_ONCE, util::makeString(m_bCastOnce));
+
+    aParam.remove(eObjParam_TEMPLATE); //dont allow change
+    aParam.remove(eObjParam_PRIM_TXTR); //dont allow change
+
 }
 
 void CMagicTrap::applyParam(EObjParam param, const QString &value)

@@ -79,14 +79,11 @@ void CCreateObjectForm::updateTable()
     case ENodeType::eSound:
     case ENodeType::eParticle:
     {
-        aParam.remove(eObjParam_TEMPLATE);
         aParam.remove(eObjParam_PRIM_TXTR);
-        //aParam.remove(eObjParam_PLAYER);
         break;
     }
     case ENodeType::eMagicTrap:
     {
-        aParam.remove(eObjParam_TEMPLATE);
         aParam.remove(eObjParam_PRIM_TXTR);
         break;
     }

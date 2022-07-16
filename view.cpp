@@ -582,6 +582,7 @@ void CView::unloadMob(QString mobName)
         changeCurrentMob(nullptr);
 
     ei::log(eLogInfo, "Mob unloaded");
+    viewParameters();
 }
 
 int CView::cauntSelectedNodes()

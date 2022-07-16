@@ -1,12 +1,12 @@
 #include "particle.h"
+#include "resourcemanager.h"
 
 CParticle::CParticle():
     m_kind(0)
     ,m_scale(0.0f)
 {
-    m_modelName = "particle";
-    loadFigure();
-    loadTexture();
+    updateFigure(CObjectList::getInstance()->getFigure("particle"));
+    setTexture(CTextureList::getInstance()->texture("particle"));
 }
 
 CParticle::CParticle(const CParticle &particle):
@@ -61,7 +61,7 @@ uint CParticle::deserialize(util::CMobParser& parser)
         else
             break;
     }
-    m_modelName = "particle";
+
     return readByte;
 }
 

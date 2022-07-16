@@ -1,5 +1,6 @@
 #include <QJsonArray>
 #include "sound.h"
+#include "resourcemanager.h"
 
 CSound::CSound():
     m_range(0)
@@ -9,9 +10,8 @@ CSound::CSound():
     ,m_bAmbient(false)
     ,m_bMusic(false)
 {
-    m_modelName = "sound";
-    loadFigure();
-    loadTexture();
+    updateFigure(CObjectList::getInstance()->getFigure("sound"));
+    setTexture(CTextureList::getInstance()->texture("sound"));
 }
 
 CSound::CSound(const CSound &sound):
@@ -114,7 +114,6 @@ uint CSound::deserialize(util::CMobParser &parser)
             break;
         }
     }
-    m_modelName = "sound";
     return readByte;
 }
 

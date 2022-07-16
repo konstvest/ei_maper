@@ -15,6 +15,7 @@ CPreview::CPreview(QWidget *parent):
 void CPreview::attachNode(CNode *pNode)
 {
     m_pNode = pNode;
+    refreshCam(m_pNode->getBBox());
 }
 
 void CPreview::attachSettings(CSettings *pSet)

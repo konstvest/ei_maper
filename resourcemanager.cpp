@@ -6,6 +6,7 @@
 #include "view.h"
 #include "types.h"
 #include "settings.h"
+#include "log.h"
 
 CObjectList* CObjectList::m_pObjectContainer = nullptr;
 
@@ -19,7 +20,9 @@ CObjectList *CObjectList::getInstance()
 CObjectList::CObjectList():
     m_pSettings(nullptr)
 {
-    auto auxFile = QFileInfo(":/auxObjects.res");
+    //read figures for aux objects.
+    //TODO: can be conflict with user model name. load aux figures in separate map
+    auto auxFile = QFileInfo(":/aux.res");
 
     ResFile res(auxFile.filePath());
     QMap<QString, QByteArray> aFile = res.bufferOfFiles();
@@ -29,6 +32,7 @@ CObjectList::CObjectList():
         if (file.first.toLower().endsWith(".mod"))
             readAssembly(aFile, file.first);
     }
+    ei::log(eLogInfo, "aux objects loaded");
 }
 
 CObjectList::~CObjectList()
@@ -185,8 +189,8 @@ void CObjectList::initResource()
 
 ei::CFigure *CObjectList::figureDefault()
 {
-    Q_ASSERT(m_aFigure.contains("magicTrap.mod"));
-    return m_aFigure["magicTrap.mod"];
+    Q_ASSERT(m_aFigure.contains("cannotDisplay.mod"));
+    return m_aFigure["cannotDisplay.mod"];
 }
 
 
@@ -398,6 +402,26 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     m_aTexture.insert(name, texture);
 }
 
+void CTextureList::initAuxTexture()
+{
+    //read textures for aux objects.
+    //TODO: can be conflict with user tex name. load aux textures in separate map
+    auto auxFile = QFileInfo(":/aux.res");
+
+    ResFile res(auxFile.filePath());
+    QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+
+    QString texName;
+    for (auto& packedTex : aFile.toStdMap())
+    {
+        if(!packedTex.first.toLower().endsWith(".mmp")) continue;
+        texName = packedTex.first.split(".")[0];
+        if(m_aTexture.contains(texName)) continue;
+        parse(packedTex.second, texName);
+    }
+    ei::log(eLogInfo, "aux texture loaded");
+}
+
 void CTextureList::loadTexture(QSet<QString>& aName)
 {
     QVector<QFileInfo> fileInfo;
@@ -454,7 +478,7 @@ void CTextureList::loadTexture(QSet<QString>& aName)
     std::sort(m_arrCellComboBox.begin(), m_arrCellComboBox.end());
 }
 
-QOpenGLTexture* CTextureList::texture(QString& name)
+QOpenGLTexture* CTextureList::texture(const QString& name)
 {
     if(!m_aTexture.contains(name))
     {
@@ -474,6 +498,7 @@ QOpenGLTexture* CTextureList::textureDefault()
 
 void CTextureList::initResource()
 {
+
     QImage img(":/default0.png", "PNG");
     QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
     texture->setMinificationFilter(QOpenGLTexture::Nearest);
@@ -483,6 +508,8 @@ void CTextureList::initResource()
     texture->setFormat(QOpenGLTexture::TextureFormat::RGBA8_UNorm);
     texture->setData(img.mirrored());
     m_aTexture.insert(QString("default"), texture);
+
+    initAuxTexture();
 
     if(true)
     {

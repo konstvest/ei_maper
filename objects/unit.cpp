@@ -94,23 +94,6 @@ void CUnit::drawSelect(QOpenGLShaderProgram* program)
     }
 }
 
-void CUnit::updateFigure(ei::CFigure* fig)
-{
-    QString pointName("ppoint");
-    CObjectBase::updateFigure(fig);
-    for(auto& logic: m_aLogic)
-    {
-        logic->updatePointFigure(CObjectList::getInstance()->getFigure(pointName));
-    }
-}
-
-void CUnit::setTexture(QOpenGLTexture* texture)
-{
-    CObjectBase::setTexture(texture);
-    for(auto& logic: m_aLogic)
-        logic->setPointTexture(CTextureList::getInstance()->textureDefault()); //todo: set looking point and guard point meaningfull textures
-}
-
 uint CUnit::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
@@ -297,7 +280,7 @@ void CUnit::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
     addParam(aParam, eObjParam_UNIT_SPELLS, util::makeString(m_aSpell));
     addParam(aParam, eObjParam_UNIT_QUICK_ITEMS, util::makeString(m_aQuickItem));
     addParam(aParam, eObjParam_UNIT_QUEST_ITEMS, util::makeString(m_aQuestItem));
-    addParam(aParam, eObjParam_UNIT_STATS, "TODO");
+    addParam(aParam, eObjParam_UNIT_STATS, util::makeString(*m_stat.get()));
     addParam(aParam, eObjParam_TYPE, QString::number(m_type));
 }
 
@@ -342,7 +325,7 @@ void CUnit::applyParam(EObjParam param, const QString &value)
     }
     case eObjParam_UNIT_STATS:
     {
-        //TODO
+        m_stat.reset(new SUnitStat(util::unitStatFromString(value)));
         break;
     }
     default:
@@ -553,18 +536,6 @@ void CLogic::drawSelect(QOpenGLShaderProgram* program)
         pp->drawSelect(program);
 
     glEnable(GL_DEPTH_TEST);
-}
-
-void CLogic::updatePointFigure(ei::CFigure* fig)
-{
-    for(auto& pp: m_aPatrolPt)
-        pp->updateFigure(fig);
-}
-
-void CLogic::setPointTexture(QOpenGLTexture* pTexture)
-{
-    for(auto& pp: m_aPatrolPt)
-        pp->setTexture(pTexture);
 }
 
 void CLogic::update()
@@ -860,7 +831,8 @@ uint CLogic::serialize(util::CMobParser& parser)
 CPatrolPoint::CPatrolPoint():
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
 {
-    setModelName("ppoint");
+    CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("point"));
+    CObjectBase::setTexture(CTextureList::getInstance()->texture("point"));
 }
 
 CPatrolPoint::CPatrolPoint(const CPatrolPoint &patrol):
@@ -936,24 +908,6 @@ void CPatrolPoint::drawSelect(QOpenGLShaderProgram* program)
     }
 }
 
-void CPatrolPoint::updateFigure(ei::CFigure* fig)
-{
-    CObjectBase::updateFigure(fig);
-    //get view model
-    QString model("viewPoint");
-    auto lookFig = CObjectList::getInstance()->getFigure(model);
-    for(auto& lp : m_aLookPt)
-    {
-        lp->updateFigure(lookFig);
-    }
-}
-
-void CPatrolPoint::setTexture(QOpenGLTexture* texture)
-{
-    CObjectBase::setTexture(texture);
-    for(auto& lp : m_aLookPt)
-        lp->setTexture(texture);
-}
 
 void CPatrolPoint::update()
 {
@@ -1079,7 +1033,8 @@ uint CPatrolPoint::serialize(util::CMobParser &parser)
 
 CLookPoint::CLookPoint()
 {
-    setModelName("viewPoint");
+    CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("view"));
+    CObjectBase::setTexture(CTextureList::getInstance()->texture("view"));
 }
 
 CLookPoint::CLookPoint(const CLookPoint &look):

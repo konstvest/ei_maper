@@ -1,5 +1,6 @@
 #include <QJsonArray>
 #include "magictrap.h"
+#include "resourcemanager.h"
 
 CMagicTrap::CMagicTrap():
     m_diplomacy(0)
@@ -7,9 +8,8 @@ CMagicTrap::CMagicTrap():
     ,m_bCastOnce(false)
 {
     m_type = 59;
-    m_modelName = "magicTrap";
-    loadFigure();
-    loadTexture();
+    updateFigure(CObjectList::getInstance()->getFigure("trap"));
+    setTexture(CTextureList::getInstance()->texture("trap"));
 }
 
 CMagicTrap::CMagicTrap(const CMagicTrap &trap):

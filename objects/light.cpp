@@ -1,14 +1,14 @@
 #include <QJsonArray>
 #include "light.h"
+#include "resourcemanager.h"
 
 CLight::CLight():
     m_range(0.0f)
     ,m_bShadow(false)
     ,m_color(0.0f, 0.0f, 0.0f)
 {
-    m_modelName = "light";
-    loadFigure();
-    loadTexture();
+    updateFigure(CObjectList::getInstance()->getFigure("light"));
+    setTexture(CTextureList::getInstance()->texture("light"));
 }
 
 CLight::CLight(const CLight &light):
@@ -74,7 +74,6 @@ uint CLight::deserialize(util::CMobParser& parser)
             break;
         }
     }
-    m_modelName = "light";
     return readByte;
 }
 

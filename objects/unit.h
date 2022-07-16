@@ -34,8 +34,6 @@ public:
     ENodeType nodeType() override {return ENodeType::ePatrolPoint;}
     void draw(QOpenGLShaderProgram* program) override final;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override final;
-    void updateFigure(ei::CFigure* fig) override final;
-    void setTexture(QOpenGLTexture* texture) override final;
     void update();
     uint deserialize(util::CMobParser& parser) override final;
     void serializeJson(QJsonObject &obj) override final;
@@ -87,8 +85,6 @@ public:
     void serializeJson(QJsonObject& obj);
     void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser);
-    void updatePointFigure(ei::CFigure* fig);
-    void setPointTexture(QOpenGLTexture* pTexture);
     bool isUse() {return m_use;}
     void update();
     void updatePos(QVector3D& dir);
@@ -127,8 +123,6 @@ public:
     uint deserialize(util::CMobParser& parser) override;
     void draw(QOpenGLShaderProgram* program) override;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override;
-    void updateFigure(ei::CFigure* fig) override;
-    void setTexture(QOpenGLTexture* texture) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
     void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;

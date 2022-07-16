@@ -991,3 +991,18 @@ QString util::appPath()
 {
     return QCoreApplication::applicationDirPath();
 }
+
+QString util::makeString(const SUnitStat& stat)
+{
+    QJsonObject obj = stat.toJson();
+    QJsonDocument doc(obj);
+    QString str(doc.toJson(QJsonDocument::Compact));
+    return str;
+}
+
+SUnitStat util::unitStatFromString(const QString &str)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
+    SUnitStat stat(doc.object());
+    return stat;
+}

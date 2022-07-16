@@ -9,15 +9,16 @@
 
 CWorldObj::CWorldObj():
     m_type(54)
-    ,m_primaryTexture("")
     ,m_secondaryTexture("default0")
     ,m_parentTemplate("")
     ,m_player(0)
-    ,m_parentID(0)
+    ,m_parentID(-1)
     ,m_bUseInScript(false)
     ,m_bShadow(true)
     ,m_questInfo()
 {
+    CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("cannotDisplay"));
+    CObjectBase::setTexture(CTextureList::getInstance()->texture("cannotDisplay"));
 }
 
 CWorldObj::CWorldObj(const CWorldObj &wo):

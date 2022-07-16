@@ -186,7 +186,7 @@ struct SUnitStat
     SUnitStat();
     SUnitStat(const SUnitStat& stat);
     SUnitStat(QJsonObject data);
-    QJsonObject toJson();
+    QJsonObject toJson() const;
     int HP;
     int MaxHP;
     int MP;

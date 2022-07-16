@@ -14,7 +14,7 @@ CObjectBase::CObjectBase():
   ,m_texture(nullptr)
   ,m_pFigure(nullptr)
 {
-    m_bodyParts.clear();
+
 }
 
 CObjectBase::CObjectBase(const CObjectBase &base):
@@ -90,8 +90,8 @@ void CObjectBase::loadFigure()
 
 void CObjectBase::loadTexture()
 {
-    QString texName("default0");
-    setTexture(CTextureList::getInstance()->texture(texName));
+//    QString texName("default0");
+//    setTexture(CTextureList::getInstance()->texture(texName));
 }
 
 void CObjectBase::setTexture(QOpenGLTexture* texture)

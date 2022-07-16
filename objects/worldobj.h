@@ -29,7 +29,7 @@ protected:
     QString m_secondaryTexture;
     QString m_parentTemplate;
     char m_player;
-    uint m_parentID;
+    int m_parentID;
     bool m_bUseInScript;
     bool m_bShadow;
     QString m_questInfo;

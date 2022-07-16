@@ -132,7 +132,7 @@ SUnitStat::SUnitStat(QJsonObject data)
     PeripherialArc = data["PeripherialArc"].toVariant().toFloat();
     AttackDistance = data["AttackDistance"].toVariant().toFloat();
     AIClassStay = (unsigned char)data["AI Class Stay"].toVariant().toInt();
-    AIClassLay = (unsigned char)data[" AIClassLay"].toVariant().toInt();
+    AIClassLay = (unsigned char)data["AIClassLay"].toVariant().toInt();
     empty1 = (short)data["empty1"].toVariant().toInt();
     range = data["range"].toVariant().toFloat();
     attack = data["attack"].toVariant().toFloat();
@@ -170,7 +170,7 @@ SUnitStat::SUnitStat(QJsonObject data)
     empty3 = (unsigned char)data["empty3"].toVariant().toInt();
 }
 
-QJsonObject SUnitStat::toJson()
+QJsonObject SUnitStat::toJson() const
 {
     QJsonObject obj;
     obj.insert("HP", HP);
@@ -188,7 +188,7 @@ QJsonObject SUnitStat::toJson()
     obj.insert("PeripherialArc", PeripherialArc);
     obj.insert("AttackDistance", AttackDistance);
     obj.insert("AI Class Stay", QJsonValue::fromVariant(AIClassStay));// byte;
-    obj.insert(" AIClassLay", QJsonValue::fromVariant(AIClassLay));// byte;
+    obj.insert("AIClassLay", QJsonValue::fromVariant(AIClassLay));// byte;
     obj.insert("empty1", empty1);// smallint;
     obj.insert("range", range);
     obj.insert("attack", attack);

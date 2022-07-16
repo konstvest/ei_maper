@@ -101,7 +101,7 @@ public:
     void operator=(CTextureList const&)  = delete;
 
     void loadTexture(QSet<QString>& aName);
-    QOpenGLTexture* texture(QString& name);
+    QOpenGLTexture* texture(const QString& name);
     QOpenGLTexture* buildLandTex(QString& name, int& texCount);
     QOpenGLTexture* textureDefault();
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
@@ -112,6 +112,7 @@ private:
     CTextureList();
     ~CTextureList();
     void parse(QByteArray& data, const QString& name);
+    void initAuxTexture();
 
 private:
     static CTextureList* m_pTextureContainer;

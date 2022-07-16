@@ -268,7 +268,7 @@ void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
         title += QString(" MPR: (%1)").arg(m_sWindowTitle.mpr);
 
     if(!m_sWindowTitle.activeMob.isEmpty())
-        title += QString(" MOB: (%1)").arg(m_sWindowTitle.activeMob);
+        title += QString(" Active MOB: (%1)").arg(m_sWindowTitle.activeMob);
 
     setWindowTitle(title);
 }

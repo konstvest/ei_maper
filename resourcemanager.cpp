@@ -22,7 +22,7 @@ CObjectList::CObjectList():
 {
     //read figures for aux objects.
     //TODO: can be conflict with user model name. load aux figures in separate map
-    auto auxFile = QFileInfo(":/aux.res");
+    auto auxFile = QFileInfo(":/auxData.res");
 
     ResFile res(auxFile.filePath());
     QMap<QString, QByteArray> aFile = res.bufferOfFiles();
@@ -406,7 +406,7 @@ void CTextureList::initAuxTexture()
 {
     //read textures for aux objects.
     //TODO: can be conflict with user tex name. load aux textures in separate map
-    auto auxFile = QFileInfo(":/aux.res");
+    auto auxFile = QFileInfo(":/auxData.res");
 
     ResFile res(auxFile.filePath());
     QMap<QString, QByteArray> aFile = res.bufferOfFiles();

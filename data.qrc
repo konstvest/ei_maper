@@ -2,6 +2,6 @@
     <qresource prefix="/">
         <file>optSet.txt</file>
         <file>_emptyIco.ico</file>
-        <file>aux.res</file>
+        <file>auxData.res</file>
     </qresource>
 </RCC>

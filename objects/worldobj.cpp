@@ -183,7 +183,6 @@ void CWorldObj::loadTexture()
 {
     QString texName(m_primaryTexture.toLower());
     setTexture(CTextureList::getInstance()->texture(texName));
-    //todo: load texture for logic
 }
 
 void CWorldObj::serializeJson(QJsonObject& obj)
@@ -241,21 +240,21 @@ uint CWorldObj::serialize(util::CMobParser &parser)
 
     if(nodeType() == ENodeType::eMagicTrap)
     {
-    writeByte += parser.startSection("OBJ_TEMPLATE");
-    writeByte += parser.writeString("efcu0");
-    parser.endSection(); //OBJ_TEMPLATE
+        writeByte += parser.startSection("OBJ_TEMPLATE");
+        writeByte += parser.writeString("efcu0");
+        parser.endSection(); //OBJ_TEMPLATE
 
-    writeByte += parser.startSection("PARENT_TEMPLATE");
-    writeByte += parser.writeString(m_parentTemplate);
-    parser.endSection(); //PARENT_TEMPLATE
+        writeByte += parser.startSection("PARENT_TEMPLATE");
+        writeByte += parser.writeString(m_parentTemplate);
+        parser.endSection(); //PARENT_TEMPLATE
 
-    writeByte += parser.startSection("OBJ_PRIM_TXTR");
-    writeByte += parser.writeString("sound");
-    parser.endSection(); //OBJ_PRIM_TXTR
+        writeByte += parser.startSection("OBJ_PRIM_TXTR");
+        writeByte += parser.writeString("sound");
+        parser.endSection(); //OBJ_PRIM_TXTR
 
-    writeByte += parser.startSection("OBJ_SEC_TXTR");
-    writeByte += parser.writeString("none");
-    parser.endSection(); //OBJ_SEC_TXTR
+        writeByte += parser.startSection("OBJ_SEC_TXTR");
+        writeByte += parser.writeString("none");
+        parser.endSection(); //OBJ_SEC_TXTR
     }
     else
     {

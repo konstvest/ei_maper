@@ -99,7 +99,7 @@ void MainWindow::initShortcuts()
 
     m_ui->actionSave->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
     m_ui->actionSave_all_MOB_s->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
-    m_ui->actionSave_as->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+    m_ui->actionSave_as->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_S));
 
     m_ui->actionSelect_All->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_A));
     m_ui->actionClose_all->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));

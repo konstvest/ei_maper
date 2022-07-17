@@ -350,7 +350,7 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_LEVER_IS_DOOR] = "Is door?";
     m_aRowName[eObjParam_LEVER_RECALC_GRAPH] = "Is recalc graph?";
     m_aRowName[eObjParam_TRAP_DIPLOMACY] = "Trap group";
-    m_aRowName[eObjParam_TRAP_SPELL] = "Trap spells";
+    m_aRowName[eObjParam_TRAP_SPELL] = "Trap spell";
     m_aRowName[eObjParam_TRAP_AREAS] = "Trap Areas";
     m_aRowName[eObjParam_TRAP_TARGETS] = "Trap targets";
     m_aRowName[eObjParam_TRAP_CAST_INTERVAL] = "Cast interval";

@@ -18,6 +18,7 @@ public:
     QString getParam(EObjParam param) override;
     QJsonObject toJson() override;
     void loadFigure() override {}
+    void loadTexture() override;
 
 private:
     int m_diplomacy; //can be -1

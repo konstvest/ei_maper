@@ -812,13 +812,13 @@ QString util::makeString(const QVector<SArea> &aArea)
     {
         QJsonObject areaObj;
         QJsonArray pos;
-        pos.append(QJsonValue::fromVariant(area.m_pointTo.y()));
         pos.append(QJsonValue::fromVariant(area.m_pointTo.x()));
+        pos.append(QJsonValue::fromVariant(area.m_pointTo.y()));
         areaObj.insert("Point to", pos);
         areaObj.insert("Radius", QJsonValue::fromVariant(area.m_radius));
         arrArea.append(areaObj);
     }
-    obj.insert("Area", arrArea);
+    obj.insert("Area act.", arrArea);
     QJsonDocument doc(obj);
     QString str(doc.toJson(QJsonDocument::Compact));
 
@@ -836,7 +836,7 @@ QString util::makeString(const QVector<QVector2D> &aPoint)
         pos.append(QJsonValue::fromVariant(target.y()));
         aTarget.append(pos);
     }
-    obj.insert("Targets(Points?!)", aTarget);
+    obj.insert("Cast Points", aTarget);
     QJsonDocument doc(obj);
     QString str(doc.toJson(QJsonDocument::Compact));
 
@@ -917,7 +917,7 @@ QVector<SArea> util::vecAreaFromString(const QString &str)
 {
     QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
     QJsonObject area = doc.object();
-    QJsonArray arrArea = area["Area"].toArray();
+    QJsonArray arrArea = area["Area act."].toArray();
     QVector<SArea> vec;
     for(auto it=arrArea.begin(); it<arrArea.end(); ++it)
     {
@@ -940,7 +940,7 @@ QVector<QVector2D> util::vecTargetFromString(const QString &str)
 {
     QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
     QJsonObject obj = doc.object();
-    QJsonArray arrPoint = obj["Targets(Points?!)"].toArray();
+    QJsonArray arrPoint = obj["Cast Points"].toArray();
     QVector<QVector2D> vec;
     for (auto it=arrPoint.begin(); it<arrPoint.end(); ++it)
     {

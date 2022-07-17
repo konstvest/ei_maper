@@ -3,7 +3,7 @@
 
 CLever::CLever():
     m_curState(0)
-    ,m_totalState(0)
+    ,m_totalState(2)
     ,m_bCycled(false)
     ,m_bCastOnce(false)
     ,m_typeOpen(0)

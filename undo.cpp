@@ -55,6 +55,7 @@ void CChangeStringParam::undo()
     pNode->applyParam(m_objParam, m_oldValue);
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
+    m_pView->setDurty();
 }
 
 void CChangeStringParam::redo()
@@ -65,6 +66,7 @@ void CChangeStringParam::redo()
     pNode->applyParam(m_objParam, m_newValue);
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
+    m_pView->setDurty();
 }
 
 //bool CChangeObjectParam::mergeWith(const QUndoCommand *command)
@@ -86,6 +88,7 @@ void CChangeModelParam::undo()
     pNode->applyParam(eObjParam_BODYPARTS, util::makeString(m_oldBodyparts));
     emit updatePosOnLand(pNode);
     emit updateParam();
+    m_pView->setDurty();
 }
 
 void CChangeModelParam::redo()
@@ -100,6 +103,7 @@ void CChangeModelParam::redo()
     pNode->applyParam(eObjParam_BODYPARTS, empty);
     emit updatePosOnLand(pNode);
     emit updateParam();
+    m_pView->setDurty();
 }
 
 CDeleteNodeCommand::CDeleteNodeCommand(CView* pView, uint nodeId, QUndoCommand *parent)
@@ -107,12 +111,12 @@ CDeleteNodeCommand::CDeleteNodeCommand(CView* pView, uint nodeId, QUndoCommand *
     ,m_pView(pView)
     ,m_nodeId(nodeId)
 {
-
 }
 
 void CDeleteNodeCommand::undo()
 {
     m_pView->currentMob()->undo_deleteNode(m_nodeId);
+    m_pView->setDurty();
 }
 
 void CDeleteNodeCommand::redo()
@@ -120,6 +124,7 @@ void CDeleteNodeCommand::redo()
     auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
     setText(QString("Delete node ID: %1").arg(pNode->mapId()));
     m_pView->currentMob()->deleteNode(m_nodeId);
+    m_pView->setDurty();
 }
 
 CCreateNodeCommand::CCreateNodeCommand(CView* pView, QJsonObject nodeData, QUndoCommand *parent):
@@ -134,11 +139,16 @@ CCreateNodeCommand::CCreateNodeCommand(CView* pView, QJsonObject nodeData, QUndo
 void CCreateNodeCommand::undo()
 {
     m_pView->currentMob()->undo_createNode(m_createdNodeId);
+    m_pView->setDurty();
 }
 
 void CCreateNodeCommand::redo()
 {
     auto pNode = m_pView->currentMob()->createNode(m_nodeData);
+
+
+
     m_createdNodeId = pNode->mapId();
     setText("Node created ID: " + QString::number(pNode->mapId()));
+    m_pView->setDurty();
 }

@@ -57,6 +57,7 @@ public:
     CView* view() {Q_ASSERT(m_view); return m_view;}
     QString mobName();
     const QFileInfo& filePath() {return m_filePath;}
+    void setFileName(const QFileInfo& fileInfo) {m_filePath = fileInfo;}
     const SWorldSet& worldSet() {return m_worldSet;}
     void setWorldSet(const SWorldSet& ws){m_worldSet = ws;}
     const QVector<SRange>& mainRanges() {return m_aMainRange;}

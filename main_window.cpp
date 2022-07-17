@@ -96,10 +96,13 @@ void MainWindow::initShortcuts()
 {
     m_ui->actionSelect_by->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F));
     m_ui->actionOpen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
+
+    m_ui->actionSave->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    m_ui->actionSave_all_MOB_s->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
     m_ui->actionSave_as->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+
     m_ui->actionSelect_All->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_A));
     m_ui->actionClose_all->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
-    m_ui->actionSave->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
     m_ui->actionUndo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
     m_ui->actionRedo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
     m_ui->actionCreate_new_object->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
@@ -195,7 +198,7 @@ void MainWindow::on_actionClose_all_triggered()
 
 void MainWindow::on_actionSave_triggered()
 {
-    m_pView->saveAllMob();
+    m_pView->saveActiveMob();
 }
 
 void MainWindow::on_action_Mob_parameters_triggered()
@@ -259,6 +262,11 @@ void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
         m_sWindowTitle.mpr = data;
         break;
     }
+    case eTitleTypeData::eTitleTypeDataDurtyFlag:
+    {
+        m_sWindowTitle.durty = !data.isEmpty();
+        break;
+    }
     default:
         Q_ASSERT(false);
         break;
@@ -268,8 +276,19 @@ void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
         title += QString(" MPR: (%1)").arg(m_sWindowTitle.mpr);
 
     if(!m_sWindowTitle.activeMob.isEmpty())
+    {
         title += QString(" Active MOB: (%1)").arg(m_sWindowTitle.activeMob);
+        if(m_sWindowTitle.durty) //show durty flag only if mob is loaded. if it will be possible to edit mpr, move flag outside this block
+            title += " *";
+    }
+
 
     setWindowTitle(title);
+}
+
+
+void MainWindow::on_actionSave_all_MOB_s_triggered()
+{
+    m_pView->saveAllMob();
 }
 

@@ -23,6 +23,7 @@ struct SWindowTitle
 {
     QString mpr;
     QString activeMob;
+    bool durty{false};
 };
 
 class MainWindow : public QMainWindow
@@ -58,6 +59,8 @@ private slots:
     void on_actionCreate_new_object_triggered();
 
     void updateWindowTitle(eTitleTypeData type, QString data);
+
+    void on_actionSave_all_MOB_s_triggered();
 
 private:
     Ui::MainWindow* m_ui;

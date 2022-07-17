@@ -45,7 +45,6 @@ private:
     int m_height;
     int m_width;
     QMatrix4x4 m_projection;
-    //QOpenGLShaderProgram m_program;
     CView* m_pView;
     QSharedPointer<CCamera> m_cam;
 };

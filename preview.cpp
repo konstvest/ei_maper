@@ -23,6 +23,7 @@ void CPreview::attachSettings(CSettings *pSet)
     m_cam->attachSettings(pSet);
 }
 
+
 CPreview::~CPreview()
 {
     //!!! MUST DESTROY PARENT OPENGL WIDGET FIRST
@@ -71,6 +72,7 @@ void CPreview::wheelEvent(QWheelEvent *event)
 
 void CPreview::draw()
 {
+    makeCurrent();
     if(nullptr == m_pNode || nullptr == m_pView)
         return;
 

@@ -375,7 +375,7 @@ QString CUnit::getParam(EObjParam param)
     }
     case eObjParam_UNIT_STATS:
     {
-        value = "TODO";
+        value = util::makeString(*m_stat.get());
         break;
     }
     default:

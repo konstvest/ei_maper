@@ -13,6 +13,7 @@
 #include "log.h"
 #include "preview.h"
 #include "undo.h"
+#include <QJsonArray>
 
 CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     QDialog(parent),
@@ -177,7 +178,6 @@ void CCreateObjectForm::onObjectChoose(QString& object)
     }
     m_pPreview->attachNode(m_pNode);
     updateTable();
-    //ui->openGLWidget->updateGL();
 }
 
 void CCreateObjectForm::onParamChange(SParam& param)
@@ -192,7 +192,6 @@ void CCreateObjectForm::onParamChange(SParam& param)
 
 void CCreateObjectForm::on_buttonCancel_clicked()
 {
-    //close();
     hide();
 }
 
@@ -212,7 +211,6 @@ void CCreateObjectForm::on_buttonCreate_clicked()
     ENodeType type = m_pNode->nodeType();
     switch (type)
     {
-    case eBaseType:
     case eWorldObject:
     case eUnit:
     case eTorch:
@@ -222,19 +220,21 @@ void CCreateObjectForm::on_buttonCreate_clicked()
         posOnLand.setZ(0.0f);
         break;
     }
-
     default:
         break;
     }
 
-    //m_pNode->setPos(posOnLand);
+    QVector3D posBackup(m_pNode->position());
     m_pNode->updatePos(posOnLand);
     CLandscape::getInstance()->projectPosition(m_pNode);
+
     CCreateNodeCommand* pUndo = new CCreateNodeCommand(m_pView, m_pNode->toJson());
     m_pUndoStack->push(pUndo);
+    //restore node position after projection. it is temporary solution for correct drawing object in preview window
+    m_pNode->setPos(posBackup);
+    m_pNode->setDrawPosition(posBackup);
 
-    //pMob->createNode(m_pNode);
     m_pView->changeOperation(EButtonOpMove);
-    close();
+    hide();
 }
 

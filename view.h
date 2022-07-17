@@ -42,6 +42,7 @@ public:
     void unloadLand();
     void loadMob(QFileInfo& filePath);
     void saveMobAs();
+    void saveActiveMob();
     void saveAllMob();
     void unloadMob(QString mobName);
     void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord);
@@ -67,6 +68,7 @@ public:
     void unHideAll();
     CMob* currentMob() {return m_activeMob;}
     QOpenGLShaderProgram& shaderObject() {return m_program;}
+    void setDurty();
 
 protected:
     void initializeGL() override;

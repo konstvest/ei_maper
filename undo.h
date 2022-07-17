@@ -63,7 +63,6 @@ public:
 
 signals:
     void updateParam();
-    //void updateParam(EObjParam param);
     void updatePosOnLand(CNode* pNode);
 
 protected:

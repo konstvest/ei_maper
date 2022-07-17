@@ -239,8 +239,10 @@ uint CWorldObj::serialize(util::CMobParser &parser)
     writeByte += parser.writeString(m_name);
     parser.endSection(); //OBJ_NAME
 
+    if(nodeType() == ENodeType::eMagicTrap)
+    {
     writeByte += parser.startSection("OBJ_TEMPLATE");
-    writeByte += parser.writeString(m_modelName);
+    writeByte += parser.writeString("efcu0");
     parser.endSection(); //OBJ_TEMPLATE
 
     writeByte += parser.startSection("PARENT_TEMPLATE");
@@ -248,12 +250,31 @@ uint CWorldObj::serialize(util::CMobParser &parser)
     parser.endSection(); //PARENT_TEMPLATE
 
     writeByte += parser.startSection("OBJ_PRIM_TXTR");
-    writeByte += parser.writeString(m_primaryTexture);
+    writeByte += parser.writeString("sound");
     parser.endSection(); //OBJ_PRIM_TXTR
 
     writeByte += parser.startSection("OBJ_SEC_TXTR");
-    writeByte += parser.writeString(m_secondaryTexture);
+    writeByte += parser.writeString("none");
     parser.endSection(); //OBJ_SEC_TXTR
+    }
+    else
+    {
+        writeByte += parser.startSection("OBJ_TEMPLATE");
+        writeByte += parser.writeString(m_modelName);
+        parser.endSection(); //OBJ_TEMPLATE
+
+        writeByte += parser.startSection("PARENT_TEMPLATE");
+        writeByte += parser.writeString(m_parentTemplate);
+        parser.endSection(); //PARENT_TEMPLATE
+
+        writeByte += parser.startSection("OBJ_PRIM_TXTR");
+        writeByte += parser.writeString(m_primaryTexture);
+        parser.endSection(); //OBJ_PRIM_TXTR
+
+        writeByte += parser.startSection("OBJ_SEC_TXTR");
+        writeByte += parser.writeString(m_secondaryTexture);
+        parser.endSection(); //OBJ_SEC_TXTR
+    }
 
     writeByte += parser.startSection("OBJ_COMMENTS");
     writeByte += parser.writeString(m_comment);

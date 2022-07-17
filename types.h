@@ -317,6 +317,7 @@ enum eTitleTypeData
     eTitleTypeDataUnknown = 0
     ,eTitleTypeDataMpr
     ,eTitleTypeDataActiveMob
+    ,eTitleTypeDataDurtyFlag
     ,eTitleTypeDataCount
 };
 

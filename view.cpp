@@ -471,6 +471,9 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
 {
     //TODO: use different buffer => save picking in image
     // Bind shader pipeline for use
+    if(nullptr == m_activeMob)
+        return;
+
     if (!m_selectProgram.bind())
         close();
 
@@ -535,21 +538,29 @@ void CView::loadMob(QFileInfo &filePath)
 
 void CView::saveMobAs()
 {
+    if(nullptr == m_activeMob)
+        return;
+
+    const QFileInfo fileName = QFileDialog::getSaveFileName(this, "Save " + m_activeMob->mobName() + " as... ", "" , tr("Map objects (*.mob);;Mob as JSON(*.json)"));
+
     QSet<uint> aId;
-    for(auto& mob: m_aMob)
-    {
-        const QFileInfo fileName = QFileDialog::getSaveFileName(this, "Save " + mob->mobName() + " as... ", "" , tr("Map objects (*.mob);;Mob as JSON(*.json)"));
-        if (fileName.fileName().endsWith(".json"))
-        {
-            mob->checkUniqueId(aId);
-            mob->serializeJson(fileName);
-        }
-        else if (fileName.fileName().endsWith(".mob"))
-        {
-            mob->checkUniqueId(aId);
-            mob->saveAs(fileName);
-        }
-    }
+    m_activeMob->checkUniqueId(aId);
+    if (fileName.fileName().endsWith(".json"))
+        m_activeMob->serializeJson(fileName);
+    else if (fileName.fileName().endsWith(".mob"))
+        m_activeMob->saveAs(fileName);
+
+    m_activeMob->setFileName(fileName);
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, fileName.baseName());
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
+}
+
+void CView::saveActiveMob()
+{
+    QSet<uint> aId;
+    m_activeMob->checkUniqueId(aId);
+    m_activeMob->save();
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
 }
 
 void CView::saveAllMob()
@@ -561,6 +572,7 @@ void CView::saveAllMob()
         pMob->checkUniqueId(aId);
         pMob->save();
     }
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
 }
 
 void CView::unloadMob(QString mobName)
@@ -1072,4 +1084,9 @@ void CView::unHideAll()
             pNode->setState(ENodeState::eDraw);
     }
 
+}
+
+void CView::setDurty()
+{
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "*");
 }

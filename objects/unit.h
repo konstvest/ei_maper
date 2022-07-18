@@ -9,6 +9,7 @@ class CLookPoint : public CObjectBase
 {
 public:
     CLookPoint();
+    CLookPoint(const CLookPoint& look);
     //CLookPoint(CNode* node);
     ~CLookPoint() {}
     ENodeType nodeType() override {return ENodeType::eLookPoint;}
@@ -28,12 +29,11 @@ class CPatrolPoint : public CObjectBase
 {
 public:
     CPatrolPoint();
+    CPatrolPoint(const CPatrolPoint& patrol);
     ~CPatrolPoint();
     ENodeType nodeType() override {return ENodeType::ePatrolPoint;}
     void draw(QOpenGLShaderProgram* program) override final;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override final;
-    void updateFigure(ei::CFigure* fig) override final;
-    void setTexture(QOpenGLTexture* texture) override final;
     void update();
     uint deserialize(util::CMobParser& parser) override final;
     void serializeJson(QJsonObject &obj) override final;
@@ -74,7 +74,10 @@ enum EBehaviourType //todo: move to logic m_model
 class CLogic
 {
 public:
-    CLogic(CUnit* unit);
+    CLogic() = delete;
+    CLogic(const CLogic& logic) = delete;
+    CLogic(CUnit* unit, bool bUse=false);
+    CLogic(CUnit* unit, const CLogic& logic);
     ~CLogic();
     void draw(QOpenGLShaderProgram* program);
     void drawSelect(QOpenGLShaderProgram* program = nullptr);
@@ -82,8 +85,6 @@ public:
     void serializeJson(QJsonObject& obj);
     void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser);
-    void updatePointFigure(ei::CFigure* fig);
-    void setPointTexture(QOpenGLTexture* pTexture);
     bool isUse() {return m_use;}
     void update();
     void updatePos(QVector3D& dir);
@@ -115,21 +116,18 @@ class CUnit: public CWorldObj
 {
 public:
     CUnit();
-    CUnit(QJsonObject data, CMob* pMob);
+    CUnit(const CUnit& unit);
+    CUnit(QJsonObject data);
     ~CUnit() override;
     ENodeType nodeType() override {return ENodeType::eUnit; }
     uint deserialize(util::CMobParser& parser) override;
     void draw(QOpenGLShaderProgram* program) override;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override;
-    void updateFigure(ei::CFigure* fig) override;
-    void setTexture(QOpenGLTexture* texture) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
-    CSettings* settings();
     void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
-    //bool updatePos(QVector3D& pos) override; //TODO
     const QString& databaseName(){return m_prototypeName;}
     bool updatePos(QVector3D& pos) override;
     QJsonObject toJson() override;

@@ -15,7 +15,7 @@ TEMPLATE = app
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
-DEFINES += QT_DEPRECATED_WARNINGS
+#DEFINES += QT_DEPRECATED_WARNINGS
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -25,30 +25,31 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    createobjectform.cpp \
+    dynamiccombobox.cpp \
     key_manager.cpp \
+    main_window.cpp \
     mobparameters.cpp \
     objects/lever.cpp \
     objects/light.cpp \
     log.cpp \
-    logwindow.cpp \
     objects/magictrap.cpp \
     main.cpp \
-    mainwindow.cpp \
     math_utils.cpp \
     objects/object_base.cpp \
+    ogl_utils.cpp \
     operationmanager.cpp \
     options.cpp \
     part.cpp \
     objects/particle.cpp \
+    preview.cpp \
     progressview.cpp \
+    resourcemanager.cpp \
     sector.cpp \
-    selectframe.cpp \
-    selector.cpp \
+    select_window.cpp \
     settings.cpp \
     objects/sound.cpp \
-    table_item.cpp \
     tablemanager.cpp \
-    texturelist.cpp \
     objects/torch.cpp \
     objects/unit.cpp \
     types.cpp \
@@ -57,7 +58,6 @@ SOURCES += \
     view.cpp \
     figure.cpp \
     res_file.cpp \
-    objectlist.cpp \
     node.cpp \
     utils.cpp \
     landscape.cpp \
@@ -67,30 +67,30 @@ SOURCES += \
     objects/worldobj.cpp
 
 HEADERS += \
-    color.h \
+    createobjectform.h \
+    dynamiccombobox.h \
     key_manager.h \
+    main_window.h \
     mobparameters.h \
     objects/lever.h \
     objects/light.h \
     log.h \
-    logwindow.h \
     objects/magictrap.h \
-    mainwindow.h \
     math_utils.h \
     objects/object_base.h \
+    ogl_utils.h \
     operationmanager.h \
     options.h \
     part.h \
     objects/particle.h \
+    preview.h \
     progressview.h \
+    resourcemanager.h \
     sector.h \
-    selectframe.h \
-    selector.h \
+    select_window.h \
     settings.h \
     objects/sound.h \
-    table_item.h \
     tablemanager.h \
-    texturelist.h \
     objects/torch.h \
     objects/unit.h \
     ui_connectors.h \
@@ -100,19 +100,18 @@ HEADERS += \
     types.h \
     vectors.h \
     res_file.h \
-    objectlist.h \
     node.h \
     utils.h \
     landscape.h \
-    map_mp.h \
     camera.h \
     mob.h \
     objects/worldobj.h
 
 FORMS += \
-        mainwindow.ui \
+        createobjectform.ui \
+        main_window.ui \
         mobParameters.ui \
-        selector.ui \
+        select_window.ui \
         settings.ui
 
 LIBS += -lglu32 -lopengl32

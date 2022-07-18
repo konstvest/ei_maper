@@ -5,23 +5,39 @@
 #include "landscape.h"
 #include "view.h"
 #include "log.h"
-#include "objectlist.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 
-CObjectBase::CObjectBase():
-    m_pMob(nullptr)
-    ,m_texture(nullptr)
-    ,m_pFigure(nullptr)
+CObjectBase::CObjectBase(): 
+  m_modelName("")
+  ,m_complection(1.0f, 1.0f, 1.0f)
+  ,m_minPoint(0.0f, 0.0f, 0.0f)
+  ,m_texture(nullptr)
+  ,m_pFigure(nullptr)
 {
-    m_bodyParts.clear();
+
+}
+
+CObjectBase::CObjectBase(const CObjectBase &base):
+    CNode(base)
+{
+    m_complection = base.m_complection;
+    m_texture = base.m_texture;
+    m_pFigure = base.m_pFigure;
+    m_minPoint = base.m_minPoint;
+    m_bodyParts = base.m_bodyParts;
+
+    m_aPart.clear();
+    for(auto& part:base.m_aPart)
+    {
+        m_aPart.append(new CPart(*part));
+    }
 }
 
 CObjectBase::CObjectBase(QJsonObject data):
-    m_pMob(nullptr)
-    ,m_texture(nullptr)
+    m_texture(nullptr)
     ,m_pFigure(nullptr)
 {
-    m_modelName = data["Model name"].toString();
+
     //m_mapID = data["Id"].toVariant().toUInt(); //TODO: generate mapID
     m_mapID = 333777;
 
@@ -68,18 +84,13 @@ void CObjectBase::updateFigure(ei::CFigure* fig)
 
 void CObjectBase::loadFigure()
 {
-    if(!m_pMob)
-    {
-        ei::log(eLogError, "Updating figure failed, Mob file empty");
-        return;
-    }
     updateFigure(CObjectList::getInstance()->getFigure(m_modelName));
 }
 
 void CObjectBase::loadTexture()
 {
-    QString texName("default0");
-    setTexture(CTextureList::getInstance()->texture(texName));
+//    QString texName("default0");
+//    setTexture(CTextureList::getInstance()->texture(texName));
 }
 
 void CObjectBase::setTexture(QOpenGLTexture* texture)
@@ -93,9 +104,13 @@ void CObjectBase::draw(QOpenGLShaderProgram* program)
     if (m_state == ENodeState::eHidden) //dont draw hidden objects
         return;
 
-    Q_ASSERT(m_texture);
+    //Q_ASSERT(m_texture);
     if(m_texture == nullptr)
+    {
+        loadTexture();
+        ei::log(eLogWarning, "empty texture, set default");
         return;
+    }
 
     m_texture->bind(0);
     if (!m_parent)
@@ -119,6 +134,9 @@ void CObjectBase::draw(QOpenGLShaderProgram* program)
 
 void CObjectBase::drawSelect(QOpenGLShaderProgram* program)
 {
+    if (m_state == ENodeState::eHidden) //skip hidden object for select
+        return;
+
     Q_ASSERT(m_texture);
     m_texture->bind(0);
     if(m_texture == nullptr)
@@ -179,7 +197,7 @@ void CObjectBase::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QS
     if (aParam.contains(param))
     {
         if (aParam[param] != str)
-            aParam.insert(param, "");
+            aParam.insert(param, valueDifferent());
     }
     else
         aParam.insert(param, str);
@@ -188,34 +206,26 @@ void CObjectBase::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QS
 bool CObjectBase::updatePos(QVector3D& pos)
 {
     m_position = pos;
-    m_pMob->view()->land()->projectPosition(this);
+    CLandscape::getInstance()->projectPosition(this);
     return true;
-}
-
-void CObjectBase::attachMob(CMob *mob)
-{
-    m_pMob = mob;
 }
 
 void CObjectBase::setConstitution(QVector3D &vec)
 {
     m_complection = vec;
     recalcFigure();
-    m_pMob->view()->land()->projectPosition(this);
+    CLandscape::getInstance()->projectPosition(this);
 }
 
 QJsonObject CObjectBase::toJson()
 {
     QJsonObject obj;
-    obj.insert("Model name", m_modelName);
     obj.insert("Id", QJsonValue::fromVariant(m_mapID));
     obj.insert("Node type", nodeType());
 
     obj.insert("Map name", m_name);
     obj.insert("Comments", m_comment);
 
-    Q_ASSERT(m_pMob);
-    obj.insert("Parent mob", m_pMob->mobName() );
     QJsonArray aComplection;
     aComplection.append(QJsonValue::fromVariant(m_complection.x()));
     aComplection.append(QJsonValue::fromVariant(m_complection.y()));
@@ -240,6 +250,53 @@ QJsonObject CObjectBase::toJson()
     return obj;
 }
 
+CBox CObjectBase::getBBox()
+{
+    QVector3D min;
+    QVector3D max;
+    bool bInit = false;
+    const auto fillPoint = [&min, &max](QVector3D& vec)
+    {
+        //x
+        if(vec.x() < min.x())
+            min.setX(vec.x());
+        else if(vec.x() > max.x())
+            max.setX(vec.x());
+        //y
+        if(vec.y() < min.y())
+            min.setY(vec.y());
+        else if(vec.y() > max.y())
+            max.setY(vec.y());
+        //z
+        if(vec.z() < min.z())
+            min.setZ(vec.z());
+        else if(vec.z() > max.z())
+            max.setZ(vec.z());
+    };
+
+    QVector3D rotatedPos;
+    for(auto& part: m_aPart)
+    {
+        auto& arrVert = part->vertData();
+        for(int i(0); i < arrVert.size(); ++i)
+        {
+            if(!bInit)
+            {
+                min = arrVert[i].position;
+                max = arrVert[i].position;
+                bInit = true;
+                continue;
+            }
+
+            rotatedPos = m_rotateMatrix*arrVert[i].position; //get vector, rotated with matrix
+            fillPoint(rotatedPos);
+        }
+    }
+
+   CBox bbox(min, max);
+   return bbox;
+}
+
 void CObjectBase::setRot(const QQuaternion& quat)
 {
     CNode::setRot(quat);
@@ -250,7 +307,7 @@ void CObjectBase::collectParams(QMap<EObjParam, QString> &aParam, ENodeType para
 {
     Q_UNUSED(paramType);
     addParam(aParam, eObjParam_NID, QString::number(m_mapID));
-    addParam(aParam, eObjParam_TEMPLATE, m_modelName);
+
     addParam(aParam, eObjParam_COMMENTS, m_comment);
     addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
 }
@@ -261,7 +318,7 @@ void CObjectBase::applyParam(EObjParam param, const QString &value)
     switch (param){
     case eObjParam_NID:
     {
-        m_mapID = value.toInt();
+        m_mapID = value.toUInt();
         break;
     }
     case eObjParam_NAME:
@@ -338,8 +395,7 @@ void CObjectBase::recalcMinPos()
         }
 
     m_minPoint = QVector3D(0.0f, 0.0f, min);
-    if(m_pMob)
-        m_pMob->view()->land()->projectPosition(this);
+    CLandscape::getInstance()->projectPosition(this);
 }
 
 

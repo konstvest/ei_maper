@@ -9,16 +9,13 @@
 #include <QTableWidget>
 
 #include "types.h"
-#include "selector.h"
+#include "select_window.h"
 
 class QLineEdit;
-class CObjectList;
-class CTextureList;
 class CKeyManager;
 class CMob;
 class CCamera;
 class CNode;
-class CLandscape;
 class CKeyManager;
 class CSettings;
 class CStringItem;
@@ -37,21 +34,21 @@ class CView : public QGLWidget
     Q_OBJECT
 
 public:
-    explicit CView(QWidget* parent=nullptr);
+    explicit CView(QWidget* parent=nullptr) = delete;
+    explicit CView(QWidget* parent=nullptr, const QGLWidget* pShareWidget=nullptr);
     ~CView();
 
     void loadLandscape(QFileInfo& filePath);
     void unloadLand();
     void loadMob(QFileInfo& filePath);
     void saveMobAs();
+    void saveActiveMob();
     void saveAllMob();
     void unloadMob(QString mobName);
-    CLandscape* land() {Q_ASSERT(m_landscape); return m_landscape;}
-    bool isLandLoaded() {return nullptr != m_landscape;}
-    CTextureList* texList();
     void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
     int select(const SSelect& selectParam, bool bAddToSelect = false);
+    CMob* mob(QString mobName);
     const QVector<CMob*> mobs() {return m_aMob;}
     void drawSelectFrame(QRect& rect);
     void pickObject(QPoint mousePos, bool bAddToSelect);
@@ -69,42 +66,46 @@ public:
     void clipboradObjectsToScene();
     void hideSelectedNodes();
     void unHideAll();
+    CMob* currentMob() {return m_activeMob;}
+    QOpenGLShaderProgram& shaderObject() {return m_program;}
+    void setDurty();
 
 protected:
-    void initializeGL();
-    void initShaders();
-    void paintGL();
-    void resizeGL(int width, int height);
-    void keyPressEvent(QKeyEvent* event);
-    void keyReleaseEvent(QKeyEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
-    void wheelEvent(QWheelEvent* event);
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int width, int height) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
 
 private:
+    void initShaders();
     void draw();
     CNode* pickObject(QList<CNode*>& aNode, int x, int y);
 
     int cauntSelectedNodes();
     void applyParam(SParam& param);
     void getColorFromRect(const QRect& rect, QVector<SColor>& aColor);
+    void changeCurrentMob(CMob* pMob);
 
 public slots:
     void updateWindow();
+    void updateParameter(EObjParam param);
     void viewParameters();
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(SParam& sParam);
-    void landPositionUpdate(CNode* pNode);
 
 signals:
     void updateMsg(QString msg);
     void mobLoad(bool bReset);
+    void updateMainWindowTitle(eTitleTypeData, QString);
 
 private:
     int m_height; //for redraw window
     int m_width;
-    CLandscape* m_landscape;
     QSharedPointer<CCamera> m_cam;
     QOpenGLShaderProgram m_program;
     QOpenGLShaderProgram m_landProgram;
@@ -122,6 +123,7 @@ private:
     EOperationType m_operationType;
     QSharedPointer<CSelectFrame> m_selectFrame;
     QFile m_clipboard_buffer_file;
+    CMob* m_activeMob;
 };
 
 #endif // MYGLWIDGET_H

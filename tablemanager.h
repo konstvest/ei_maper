@@ -2,9 +2,44 @@
 #define CTABLEMANAGER_H
 #include <QTableWidget>
 #include <QSharedPointer>
+#include <QTableWidgetItem>
+#include <QComboBox>
+#include <QList>
 
 #include "types.h"
 #include "undo.h"
+
+class CStringItem : public QTableWidgetItem
+{
+public:
+    CStringItem(QString value, EObjParam param);
+    EObjParam& param(){return m_parameter;}
+
+private:
+    EObjParam m_parameter;
+};
+
+class CComboBoxItem : public QComboBox
+{
+Q_OBJECT
+public:
+    CComboBoxItem(const QString& currentValue, EObjParam param);
+    void getKey(QString& val);
+    void getValue(QString& val);
+    EObjParam& param(){return m_parameter;}
+    void subscribe(QTableWidget* pTable);
+    void showPopup() override;
+
+public slots:
+    void currentIndexChangedOver(QString);
+
+signals:
+    void updateValueOver(CComboBoxItem*);
+
+private:
+    EObjParam m_parameter;
+    QMap<uint, QString> m_aComboString;
+};
 
 class CTableManager : public QObject
 {
@@ -14,6 +49,7 @@ public:
     CTableManager(QTableWidget* pTable);
 
     void reset();
+    void updateParam(EObjParam param, QString newValue);
     void setNewData(QMap<EObjParam, QString>& aParam);
 
 private:

@@ -2,20 +2,44 @@
 #include <QJsonArray>
 #include "unit.h"
 #include "view.h"
-#include "objectlist.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 #include "landscape.h"
 #include "settings.h"
 #include "log.h"
 
-CUnit::CUnit()
+CUnit::CUnit():
+    m_prototypeName("")
+    ,m_bImport(false)
 {
+    m_type = 50; //Human by default
+    m_aLogic.clear();
+    for(int i(0); i<5; ++i)
+    {
+        m_aLogic.append(new CLogic(this, i==0));
+    }
+    m_stat.reset(new SUnitStat());
 }
 
-CUnit::CUnit(QJsonObject data, CMob* pMob):
+CUnit::CUnit(const CUnit &unit):
+    CWorldObj(unit)
+{
+    m_prototypeName = unit.m_prototypeName;
+    m_stat.reset(new SUnitStat(*unit.m_stat.get()));
+    m_aQuestItem = unit.m_aQuestItem;
+    m_aQuickItem = unit.m_aQuickItem;
+    m_aSpell = unit.m_aSpell;
+    m_aWeapon = unit.m_aWeapon;
+    m_aArmor = unit.m_aArmor;
+    m_bImport = unit.m_bImport;
+    m_aLogic.clear();
+    for(auto& pLogic : unit.m_aLogic)
+        m_aLogic.append(new CLogic(this, *pLogic));
+}
+
+CUnit::CUnit(QJsonObject data):
     CWorldObj(data["World object"].toObject())
 {
-    m_pMob = pMob;
+    //m_pMob = pMob;
     m_prototypeName = data["Prototype name"].toString();
     m_stat.reset(new SUnitStat(data["Unit stats"].toObject()));
     const auto deSerializeStringList = [&data](QVector<QString>& aList, QString name)
@@ -70,26 +94,10 @@ void CUnit::drawSelect(QOpenGLShaderProgram* program)
     }
 }
 
-void CUnit::updateFigure(ei::CFigure* fig)
-{
-    QString pointName("ppoint");
-    CObjectBase::updateFigure(fig);
-    for(auto& logic: m_aLogic)
-    {
-        logic->updatePointFigure(CObjectList::getInstance()->getFigure(pointName));
-    }
-}
-
-void CUnit::setTexture(QOpenGLTexture* texture)
-{
-    CObjectBase::setTexture(texture);
-    for(auto& logic: m_aLogic)
-        logic->setPointTexture(CTextureList::getInstance()->textureDefault()); //todo: set looking point and guard point meaningfull textures
-}
-
 uint CUnit::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
+    int logicNum(0);
     while(true)
     {
         if(parser.isNextTag("UNIT_R"))
@@ -145,9 +153,9 @@ uint CUnit::deserialize(util::CMobParser& parser)
         else if(parser.isNextTag("UNIT_LOGIC"))
         {
             readByte += parser.skipHeader();
-            CLogic* logic = new CLogic(this);
-            readByte += logic->deserialize(parser);
-            m_aLogic.append(logic);
+            CLogic* pLogic = m_aLogic[logicNum];
+            readByte += pLogic->deserialize(parser);
+            ++logicNum;
         }
         else
         {
@@ -155,16 +163,17 @@ uint CUnit::deserialize(util::CMobParser& parser)
             if(baseByte > 0)
                 readByte += baseByte;
             else
-            {
-                auto a = parser.nextTag();
+            { //debugging branch :)
+                auto tag = parser.nextTag();
+                Q_UNUSED(tag);
                 break;
             }
         }
         //"UNIT_R", eNull};
         //"UNIT_ITEMS", eNull};
     }
-    Q_ASSERT(m_aLogic.size() == 5);
-
+    Q_ASSERT(logicNum == 5);
+    Q_ASSERT((m_type==50)||(m_type==51)||(m_type==52));
     return readByte;
 }
 
@@ -251,10 +260,10 @@ uint CUnit::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-CSettings* CUnit::settings()
-{
-    return m_pMob->view()->settings();
-}
+//CSettings* CUnit::settings()
+//{
+//    return m_pMob->view()->settings();
+//}
 
 void CUnit::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
 {
@@ -271,7 +280,8 @@ void CUnit::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
     addParam(aParam, eObjParam_UNIT_SPELLS, util::makeString(m_aSpell));
     addParam(aParam, eObjParam_UNIT_QUICK_ITEMS, util::makeString(m_aQuickItem));
     addParam(aParam, eObjParam_UNIT_QUEST_ITEMS, util::makeString(m_aQuestItem));
-    addParam(aParam, eObjParam_UNIT_STATS, "TODO");
+    addParam(aParam, eObjParam_UNIT_STATS, util::makeString(*m_stat.get()));
+    addParam(aParam, eObjParam_TYPE, QString::number(m_type));
 }
 
 void CUnit::applyParam(EObjParam param, const QString &value)
@@ -315,7 +325,7 @@ void CUnit::applyParam(EObjParam param, const QString &value)
     }
     case eObjParam_UNIT_STATS:
     {
-        //TODO
+        m_stat.reset(new SUnitStat(util::unitStatFromString(value)));
         break;
     }
     default:
@@ -365,7 +375,7 @@ QString CUnit::getParam(EObjParam param)
     }
     case eObjParam_UNIT_STATS:
     {
-        value = "TODO";
+        value = util::makeString(*m_stat.get());
         break;
     }
     default:
@@ -418,11 +428,38 @@ QJsonObject CUnit::toJson()
     return obj;
 }
 
-CLogic::CLogic(CUnit* unit):
+CLogic::CLogic(CUnit* unit, bool bUse):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
-    ,m_use(false)
+    ,m_bCyclic(false)
+    ,m_model(eRadius)
+    ,m_guardRadius(10.0f)
+    ,m_use(bUse)
+    ,m_wait(0.0f)
+    ,m_help(10.0f)
     ,m_parent(unit)
 {
+}
+
+CLogic::CLogic(CUnit* unit, const CLogic &logic):
+    m_parent(unit)
+{
+    m_bCyclic = logic.m_bCyclic;
+    m_model = logic.m_model;
+    m_guardRadius = logic.m_guardRadius;
+    m_guardPlacement = logic.m_guardPlacement;
+    m_numAlarm = logic.m_numAlarm;
+    m_use = logic.m_use;
+    m_wait = logic.m_wait;
+    m_alarmCondition = logic.m_alarmCondition;
+    m_help = logic.m_help;
+    m_alwaysActive = logic.m_alwaysActive;
+    m_agressionMode = logic.m_agressionMode;
+    for(auto pP: logic.m_aPatrolPt)
+        m_aPatrolPt.append(new CPatrolPoint(*pP));
+
+    m_aDrawPoint = logic.m_aDrawPoint;
+    update();
+    Q_ASSERT(m_parent);
 }
 
 CLogic::~CLogic()
@@ -439,7 +476,7 @@ void CLogic::draw(QOpenGLShaderProgram* program)
         return;
 
     //todo: for selected objects ALWAYS draw logic
-    COptBool* pOpt = dynamic_cast<COptBool*>(m_parent->settings()->opt("drawLogic"));
+    COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawLogic"));
     if (nullptr == pOpt)
         return;
 
@@ -489,7 +526,7 @@ void CLogic::drawSelect(QOpenGLShaderProgram* program)
     if(!m_use)
         return;
 
-    COptBool* pOpt = dynamic_cast<COptBool*>(m_parent->settings()->opt("drawLogic"));
+    COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawLogic"));
     if (pOpt && !pOpt->value())
         return;
 
@@ -501,18 +538,6 @@ void CLogic::drawSelect(QOpenGLShaderProgram* program)
     glEnable(GL_DEPTH_TEST);
 }
 
-void CLogic::updatePointFigure(ei::CFigure* fig)
-{
-    for(auto& pp: m_aPatrolPt)
-        pp->updateFigure(fig);
-}
-
-void CLogic::setPointTexture(QOpenGLTexture* pTexture)
-{
-    for(auto& pp: m_aPatrolPt)
-        pp->setTexture(pTexture);
-}
-
 void CLogic::update()
 {
     m_aDrawPoint.clear();
@@ -522,7 +547,7 @@ void CLogic::update()
         QVector3D centr(m_guardPlacement);
         centr.setZ(.0f);
         util::getCirclePoint(m_aDrawPoint, centr, double(m_guardRadius), 40);
-        m_parent->mob()->view()->land()->projectPt(m_aDrawPoint);
+        CLandscape::getInstance()->projectPt(m_aDrawPoint);
         break;
     }
     case EBehaviourType::ePath:
@@ -530,13 +555,13 @@ void CLogic::update()
         Q_ASSERT(m_parent);
         QVector3D pos(m_parent->position());
         pos.setZ(0.0f);
-        m_parent->mob()->view()->land()->projectPt(pos);
+        CLandscape::getInstance()->projectPt(pos);
         m_aDrawPoint.append(pos);
         for (auto& pt: m_aPatrolPt)
         {
             pos = pt->position();
             pos.setZ(0.0f);
-            m_parent->mob()->view()->land()->projectPt(pos);
+            CLandscape::getInstance()->projectPt(pos);
             pt->setPos(pos);
             pt->setDrawPosition(pos);
             m_aDrawPoint.append(pos);
@@ -544,7 +569,7 @@ void CLogic::update()
             {
                 pos = look->position();
                 pos.setZ(0.0f);
-                m_parent->mob()->view()->land()->projectPt(pos);
+                CLandscape::getInstance()->projectPt(pos);
                 look->setPos(pos);
                 look->setDrawPosition(pos);
             }
@@ -594,7 +619,7 @@ void CLogic::update()
 void CLogic::updatePos(QVector3D &dir)
 {
     m_guardPlacement+=dir;
-    m_parent->mob()->view()->land()->projectPt(m_guardPlacement);
+    CLandscape::getInstance()->projectPt(m_guardPlacement);
     //m_parent->mob()->view()->land()->projectPosition(this);
     for(auto& patrol : m_aPatrolPt)
     {
@@ -673,7 +698,7 @@ uint CLogic::deserialize(util::CMobParser& parser)
         {
             readByte += parser.skipHeader();
             CPatrolPoint* place = new CPatrolPoint(); //need unit parent?
-            place->attachMob(m_parent->mob());
+            //place->attachMob(m_parent->mob());
             readByte += place->deserialize(parser);
             m_aPatrolPt.append(place);
         }
@@ -794,9 +819,10 @@ uint CLogic::serialize(util::CMobParser& parser)
     writeByte += parser.writeByte(m_numAlarm);
     parser.endSection(); //"UNIT_LOGIC_NALARM"
 
-    for(const auto& pt : m_aPatrolPt)
+    CPatrolPoint* pPoint = nullptr;
+    foreach(pPoint, m_aPatrolPt)
     {
-        writeByte += pt->serialize(parser);
+        writeByte += pPoint->serialize(parser);
     }
     parser.endSection(); //"UNIT_LOGIC"
     return writeByte;
@@ -805,7 +831,22 @@ uint CLogic::serialize(util::CMobParser& parser)
 CPatrolPoint::CPatrolPoint():
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
 {
-    setModelName("ppoint");
+    CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("point"));
+    CObjectBase::setTexture(CTextureList::getInstance()->texture("point"));
+}
+
+CPatrolPoint::CPatrolPoint(const CPatrolPoint &patrol):
+    CObjectBase(patrol)
+    ,m_indexBuf(QOpenGLBuffer::IndexBuffer)
+{
+    //m_vertexBuf = patrol.m_vertexBuf;
+    //m_indexBuf = patrol.m_indexBuf;
+    CLookPoint* pPoint = nullptr;
+    foreach(pPoint, patrol.m_aLookPt)
+        m_aLookPt.append(new CLookPoint(*pPoint));
+
+    m_aDrawingLine = patrol.m_aDrawingLine;
+    update();
 }
 
 
@@ -867,24 +908,6 @@ void CPatrolPoint::drawSelect(QOpenGLShaderProgram* program)
     }
 }
 
-void CPatrolPoint::updateFigure(ei::CFigure* fig)
-{
-    CObjectBase::updateFigure(fig);
-    //get view model
-    QString model("viewPoint");
-    auto lookFig = CObjectList::getInstance()->getFigure(model);
-    for(auto& lp : m_aLookPt)
-    {
-        lp->updateFigure(lookFig);
-    }
-}
-
-void CPatrolPoint::setTexture(QOpenGLTexture* texture)
-{
-    CObjectBase::setTexture(texture);
-    for(auto& lp : m_aLookPt)
-        lp->setTexture(texture);
-}
 
 void CPatrolPoint::update()
 {
@@ -944,7 +967,6 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
         {
             readByte += parser.skipHeader();
             CLookPoint* act = new CLookPoint();
-            act->attachMob(m_pMob);
             readByte += act->deserialize(parser);
             m_aLookPt.append(act);
         }
@@ -987,7 +1009,6 @@ void CPatrolPoint::deSerializeJson(QJsonObject data)
     for(auto it=arrLP.begin(); it<arrLP.end(); ++it)
     {
         CLookPoint* pLook = new CLookPoint();
-        pLook->attachMob(m_pMob);
         pLook->deSerializeJson(it->toObject());
         m_aLookPt.append(pLook);
     }
@@ -1012,7 +1033,16 @@ uint CPatrolPoint::serialize(util::CMobParser &parser)
 
 CLookPoint::CLookPoint()
 {
-    setModelName("viewPoint");
+    CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("view"));
+    CObjectBase::setTexture(CTextureList::getInstance()->texture("view"));
+}
+
+CLookPoint::CLookPoint(const CLookPoint &look):
+    CObjectBase(look)
+{
+    m_wait = look.m_wait;
+    m_turnSpeed = look.m_turnSpeed;
+    m_flag = look.m_flag;
 }
 
 uint CLookPoint::deserialize(util::CMobParser& parser)

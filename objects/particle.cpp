@@ -1,8 +1,21 @@
 #include "particle.h"
+#include "resourcemanager.h"
 
-CParticle::CParticle()
+CParticle::CParticle():
+    m_kind(0)
+    ,m_scale(0.0f)
 {
+    updateFigure(CObjectList::getInstance()->getFigure("particle"));
+    setTexture(CTextureList::getInstance()->texture("particle"));
+}
 
+CParticle::CParticle(const CParticle &particle):
+    CObjectBase(particle)
+{
+    m_kind = particle.m_kind;
+    m_scale = particle.m_scale;
+    updateFigure(CObjectList::getInstance()->getFigure("particle"));
+    setTexture(CTextureList::getInstance()->texture("particle"));
 }
 
 CParticle::CParticle(QJsonObject data):
@@ -10,6 +23,8 @@ CParticle::CParticle(QJsonObject data):
 {
     m_kind = data["Type"].toVariant().toUInt();
     m_scale = data["Scale"].toVariant().toFloat();
+    updateFigure(CObjectList::getInstance()->getFigure("particle"));
+    setTexture(CTextureList::getInstance()->texture("particle"));
 }
 
 uint CParticle::deserialize(util::CMobParser& parser)
@@ -50,7 +65,7 @@ uint CParticle::deserialize(util::CMobParser& parser)
         else
             break;
     }
-    m_modelName = "particle";
+
     return readByte;
 }
 
@@ -133,6 +148,7 @@ QString CParticle::getParam(EObjParam param)
     {
     case eObjParam_PARTICL_TYPE:
     {
+        value = QString::number(m_kind);
         break;
     }
     case eObjParam_PARTICL_SCALE:

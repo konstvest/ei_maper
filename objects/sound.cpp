@@ -1,9 +1,31 @@
 #include <QJsonArray>
 #include "sound.h"
+#include "resourcemanager.h"
 
-CSound::CSound()
+CSound::CSound():
+    m_range(0)
+    ,m_range2(0)
+    ,m_min(0)
+    ,m_max(0)
+    ,m_bAmbient(false)
+    ,m_bMusic(false)
 {
+    updateFigure(CObjectList::getInstance()->getFigure("sound"));
+    setTexture(CTextureList::getInstance()->texture("sound"));
+}
 
+CSound::CSound(const CSound &sound):
+    CObjectBase(sound)
+{
+    m_range = sound.m_range;
+    m_range2 = sound.m_range2;
+    m_min = sound.m_min;
+    m_max = sound.m_max;
+    m_aResName = sound.m_aResName;
+    m_bAmbient = sound.m_bAmbient;
+    m_bMusic = sound.m_bMusic;
+    updateFigure(CObjectList::getInstance()->getFigure("sound"));
+    setTexture(CTextureList::getInstance()->texture("sound"));
 }
 
 CSound::CSound(QJsonObject data):
@@ -21,6 +43,8 @@ CSound::CSound(QJsonObject data):
     }
     m_bAmbient = data["Is ambient?"].toBool();
     m_bMusic = data["Is Music?"].toBool();
+    updateFigure(CObjectList::getInstance()->getFigure("sound"));
+    setTexture(CTextureList::getInstance()->texture("sound"));
 }
 
 uint CSound::deserialize(util::CMobParser &parser)
@@ -94,7 +118,6 @@ uint CSound::deserialize(util::CMobParser &parser)
             break;
         }
     }
-    m_modelName = "sound";
     return readByte;
 }
 

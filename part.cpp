@@ -7,6 +7,15 @@ CPart::CPart():
     m_aVertData.clear();
 }
 
+CPart::CPart(const CPart &part):
+    m_indexBuf(QOpenGLBuffer::IndexBuffer)
+{
+    m_name = part.m_name;
+    m_bShow = part.m_bShow;
+    m_aVertData = part.m_aVertData;
+    update(); //create new index and vertex buffers
+}
+
 CPart::~CPart()
 {
     m_vertexBuf.destroy();

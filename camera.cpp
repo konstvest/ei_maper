@@ -3,15 +3,29 @@
 #include "camera.h"
 #include "key_manager.h"
 #include "settings.h"
+#include "log.h"
 
 CCamera::CCamera()
     :m_keyManager(nullptr)
+    ,m_pSettings(nullptr)
 {
     m_pos = QVector3D(0.0, 1.0, 10.0);
     m_pivot = QVector3D(0.0, 0.0, 0.0);
     m_xRot = -90.0f;
     m_zRot = 0.0f;
     m_step = 0.5f;
+}
+
+CCamera::CCamera(QVector3D pos, QVector3D pivot, float xRot, float zRot)
+    :m_pos(pos)
+    ,m_pivot(pivot)
+    ,m_xRot(xRot)
+    ,m_zRot(zRot)
+    ,m_step(0.5f)
+    ,m_keyManager(nullptr)
+    ,m_pSettings(nullptr)
+{
+
 }
 
 void CCamera::reset()
@@ -32,7 +46,7 @@ void CCamera::reset()
         m_pivot = QVector3D(0.0, 0.0, 20.0);
         m_xRot = -70.0f;
         m_zRot = 45.0f;
-        m_step = 0.5f;
+        m_step = 1.0f;
     }
 }
 
@@ -176,14 +190,19 @@ void CCamera::enlarge(const bool bZoom)
     else
     {
         if(bZoom)
-            strafeDownward(m_keyManager->isPressed(Qt::Key_Shift));
+            strafeDownward(nullptr == m_keyManager ? false : m_keyManager->isPressed(Qt::Key_Shift));
         else
-            strafeUpward(m_keyManager->isPressed(Qt::Key_Shift));
+            strafeUpward(nullptr == m_keyManager ? false : m_keyManager->isPressed(Qt::Key_Shift));
     }
 }
 
 void CCamera::move()
 {
+    if(nullptr ==  m_keyManager)
+    {
+        return;
+    }
+
     COptBool* pOpt = dynamic_cast<COptBool*>(m_pSettings->opt("freeCamera"));
     Q_ASSERT(pOpt);
     if (pOpt->value())
@@ -208,6 +227,27 @@ void CCamera::move()
         strafeUpward(m_keyManager->isPressed(Qt::Key_Shift));
     if(m_keyManager->isPressed(Qt::Key_Q))
         strafeDownward(m_keyManager->isPressed(Qt::Key_Shift));
+}
+
+// move camera to 'posTarget' point
+void CCamera::moveTo(QVector3D posTarget)
+{
+    QVector3D dif = m_pos - m_pivot;
+    m_pivot = posTarget;
+    m_pos = m_pivot + dif;
+}
+
+//move camera away on 'distance' point from pivot
+void CCamera::moveAwayOn(float distance)
+{
+    if(distance==0)
+    {
+        ei::log(eLogWarning, "show distance is null. object empty");
+        return;
+    }
+    QVector3D dir(m_pos-m_pivot);
+    dir.normalize();
+    m_pos = m_pivot + dir*distance;
 }
 
 void CCamera::attachSettings(CSettings *pSetting)

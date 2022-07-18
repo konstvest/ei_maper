@@ -11,7 +11,7 @@ void ei::SHeader::read(QDataStream& stream)
 
 ei::CFigure::CFigure()
 {
-    //m_aChild.clear();
+    m_aChild.clear();
     m_offset.fill(QVector3D(0.0, 0.0, 0.0), 8);
 }
 

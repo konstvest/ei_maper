@@ -1,5 +1,5 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef MAIN_WINDOW_H
+#define MAIN_WINDOW_H
 
 #include <QMainWindow>
 #include <QKeyEvent>
@@ -7,6 +7,7 @@
 #include <QUndoStack>
 #include <QUndoView>
 #include <QPlainTextEdit>
+#include "types.h"
 
 namespace Ui {
 class MainWindow;
@@ -15,6 +16,15 @@ class MainWindow;
 class CSettings;
 class CSelector;
 class CMobParameters;
+class CCreateObjectForm;
+class CView;
+
+struct SWindowTitle
+{
+    QString mpr;
+    QString activeMob;
+    bool durty{false};
+};
 
 class MainWindow : public QMainWindow
 {
@@ -44,17 +54,24 @@ private slots:
     void on_actionUndo_triggered();
     void on_toolButton_2_clicked();
     void on_selectButton_clicked();
-
     void on_moveButton_clicked();
+    void on_actionRedo_triggered();
+    void on_actionCreate_new_object_triggered();
+
+    void updateWindowTitle(eTitleTypeData type, QString data);
+
+    void on_actionSave_all_MOB_s_triggered();
 
 private:
     Ui::MainWindow* m_ui;
     QSharedPointer<CSettings> m_settings;
     QSharedPointer<CSelector> m_selector;
     QSharedPointer<CMobParameters> m_mobParams;
+    QSharedPointer<CCreateObjectForm> m_createDialog;
     QUndoStack* m_undoStack;
     QUndoView* m_undoView;
-
+    CView* m_pView;
+    SWindowTitle m_sWindowTitle;
 };
 
-#endif // MAINWINDOW_H
+#endif // MAIN_WINDOW_H

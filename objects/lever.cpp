@@ -1,9 +1,32 @@
 #include <QJsonArray>
 #include "lever.h"
 
-CLever::CLever()
+CLever::CLever():
+    m_curState(0)
+    ,m_totalState(2)
+    ,m_bCycled(false)
+    ,m_bCastOnce(false)
+    ,m_typeOpen(0)
+    ,m_keyID(0)
+    ,m_handsSleight(0)
+    ,m_bDoor(false)
+    ,m_bRecalcGraph(false)
 {
+    m_type = 60;
+}
 
+CLever::CLever(const CLever &lever):
+    CWorldObj(lever)
+{
+    m_curState = lever.m_curState;
+    m_totalState = lever.m_totalState;
+    m_bCycled = lever.m_bCycled;
+    m_bCastOnce = lever.m_bCastOnce;
+    m_typeOpen = lever.m_typeOpen;
+    m_keyID = lever.m_keyID;
+    m_handsSleight = lever.m_handsSleight;
+    m_bDoor = lever.m_bDoor;
+    m_bRecalcGraph = lever.m_bRecalcGraph;
 }
 
 CLever::CLever(QJsonObject data):
@@ -83,6 +106,7 @@ uint CLever::deserialize(util::CMobParser& parser)
                 break;
         }
     }
+    Q_ASSERT(m_type==60);
     return readByte;
 }
 

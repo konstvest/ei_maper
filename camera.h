@@ -11,6 +11,7 @@ class CCamera
 {
 public:
     CCamera();
+    CCamera(QVector3D pos, QVector3D pivot, float xRot, float zRot);
     ~CCamera(){}
 
     QMatrix4x4 update();
@@ -32,6 +33,8 @@ public:
     float step() const {return m_step;}
     QVector3D& pos() {return m_pos;}
     void move();
+    void moveTo(QVector3D posTarget);
+    void moveAwayOn(float distance);
     void attachKeyManager(CKeyManager* km) {m_keyManager = km;}
     void attachSettings(CSettings* pSetting);
 

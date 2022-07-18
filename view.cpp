@@ -8,14 +8,12 @@
 #include "view.h"
 #include "camera.h"
 #include "mob.h"
-#include "texturelist.h"
-#include "objectlist.h"
+#include "resourcemanager.h"
 #include "node.h"
 #include "landscape.h"
 #include "key_manager.h"
 #include "log.h"
 #include "settings.h"
-#include "table_item.h"
 #include "undo.h"
 #include "objects/object_base.h"
 #include "objects/worldobj.h"
@@ -24,17 +22,17 @@
 #include "progressview.h"
 #include "tablemanager.h"
 #include "operationmanager.h"
-#include "selectframe.h"
+#include "ogl_utils.h"
 
 class CLogic;
 
-CView::CView(QWidget* parent):
-    QGLWidget (parent)
-    , m_landscape(nullptr)
+CView::CView(QWidget *parent, const QGLWidget *pShareWidget):
+    QGLWidget(parent, pShareWidget)
     , m_pSettings(nullptr)
     , m_pProgress(nullptr)
     , m_operationType(EOperationTypeObjects)
     , m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
+    , m_activeMob(nullptr)
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -44,7 +42,10 @@ CView::CView(QWidget* parent):
     connect(m_timer, SIGNAL(timeout()), this, SLOT(updateWindow()));
     m_operationBackup.clear();
     m_selectFrame.reset(new CSelectFrame);
+    //qDebug() << format();
+    //qDebug() << isSharing();
 }
+
 
 
 void CView::updateReadState(EReadState state)
@@ -55,9 +56,6 @@ void CView::updateReadState(EReadState state)
 
 CView::~CView()
 {
-    if (m_landscape)
-        m_landscape->~CLandscape();
-
     for(auto& mob: m_aMob)
         delete mob;
 }
@@ -72,8 +70,6 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     QObject::connect(m_tableManager.get(), SIGNAL(changeParamSignal(SParam&)), this, SLOT(onParamChange(SParam&)));
     m_pUndoStack = pStack;
 
-    //init object list
-    CObjectList::getInstance()->attachSettings(m_pSettings);
     m_pProgress = pProgress;
     m_pOp.reset(new COperation(new CSelect(this)));
     m_pOp->attachCam(m_cam.get());
@@ -132,6 +128,7 @@ void CView::initShaders()
 
 void CView::initializeGL()
 {
+    makeCurrent();
     qglClearColor(Qt::black);
     //glEnable(GL_EXT_texture_filter_anisotropic);
     glEnable(GL_DEPTH_TEST);
@@ -141,11 +138,15 @@ void CView::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     initShaders();
+    CTextureList::getInstance()->initResource();
+    CObjectList::getInstance()->initResource();
     //loadResource();
+    //doneCurrent();
 }
 
 void CView::resizeGL(int width, int height)
 {
+    makeCurrent();
     m_height = height;
     m_width = width;
     //const int side = qMin(width, height);
@@ -157,12 +158,15 @@ void CView::resizeGL(int width, int height)
     m_projection.perspective(45, ratio, 1, 1000);
     //glOrtho(-2, +2, -2, +2, -2.0, 2.0);   // draw objects in orthogaphic view
     //glFrustum (-2.0, 2.0, -2.0, 2.0, 1.5, 20.0); //convert project matrix to perpective view
+    //doneCurrent();
 }
 
 void CView::paintGL()
 {
+    makeCurrent();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     draw();
+    //doneCurrent();
 }
 
 void CView::draw()
@@ -184,8 +188,9 @@ void CView::draw()
 //    m_landProgram.setUniformValue("u_lightPower", 5.0f);
 //    m_landProgram.setUniformValue("u_lightColor", QVector4D(1.0, 1.0, 1.0, 1.0));
 //    m_landProgram.setUniformValue("u_highlight", false);
-    if (m_landscape)
-        m_landscape->draw(&m_landProgram);
+    auto pLand = CLandscape::getInstance();
+    if (pLand && pLand->isMprLoad())
+        pLand->draw(&m_landProgram);
 
     // Bind shader pipeline for use
     if (!m_program.bind())
@@ -198,7 +203,7 @@ void CView::draw()
         for (auto& node: mob->nodes())
             node->draw(&m_program);
 
-    if (m_landscape)
+    if (pLand && pLand->isMprLoad())
     {
         COptBool* pOpt = dynamic_cast<COptBool*>(settings()->opt("drawWater"));
         if (pOpt and pOpt->value() == true)
@@ -208,7 +213,7 @@ void CView::draw()
                 close();
 
             m_landProgram.setUniformValue("transparency", 0.3f);
-            m_landscape->drawWater(&m_landProgram);
+            pLand->drawWater(&m_landProgram);
             m_landProgram.setUniformValue("transparency", 0.0f);
         }
     }
@@ -217,7 +222,7 @@ void CView::draw()
     if (!m_program.bind())
         close();
 
-    if (m_landscape)
+    if (pLand && pLand->isMprLoad())
     {
         QMatrix4x4 mtrx;
         mtrx.setToIdentity();
@@ -229,18 +234,16 @@ void CView::draw()
 
 void CView::loadLandscape(QFileInfo& filePath)
 {
-    if(m_landscape)
+    if(CLandscape::getInstance()->isMprLoad())
     {
         QMessageBox::warning(this, "Warning","Landscape already loaded. Please close before opening new zone (*mpr)");
         //LOG_FATAL("ahtung"); //test logging critial error
         return;
     }
-    CTextureList::getInstance()->attachSettings(m_pSettings);
 
     ei::log(eLogInfo, "Start read landscape");
-    m_landscape = new CLandscape;
-    m_landscape->setParentView(this);
-    m_landscape->readMap(filePath);
+    CLandscape::getInstance()->readMap(filePath);
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, filePath.baseName());
     ei::log(eLogInfo, "End read landscape");
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
@@ -248,10 +251,8 @@ void CView::loadLandscape(QFileInfo& filePath)
 
 void CView::unloadLand()
 {
-    if(m_landscape)
-        delete m_landscape;
-
-    m_landscape = nullptr;
+    CLandscape::getInstance()->unloadMpr();
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, "");
     ei::log(eLogInfo, "Landscape unloaded");
 }
 
@@ -395,6 +396,16 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
     return cauntSelectedNodes();
 }
 
+CMob *CView::mob(QString mobName)
+{
+    CMob* pMob = nullptr;
+    foreach(pMob, m_aMob)
+        if (pMob->mobName().toLower() == mobName.toLower())
+            break;
+
+    return pMob;
+}
+
 void CView::pickObject(QPoint mousePos, bool bAddToSelect)
 {
     QRect rect(mousePos, mousePos);
@@ -420,8 +431,8 @@ void CView::getColorFromRect(const QRect& rect, QVector<SColor>& aColor)
     const QPoint btmRight(rect.right(), m_height - rect.top());
     const QRect inversedRect(topLeft, btmRight);
 
-    const auto h = qAbs(inversedRect.height());
-    const auto w = qAbs(inversedRect.width());
+    const int h = inversedRect.height() == 0 ? 1 : qAbs(inversedRect.height());
+    const int w = inversedRect.width() == 0 ? 1 :qAbs(inversedRect.width());
     uint size = component * w * h;
     QByteArray* pixel = new QByteArray();
     pixel->resize(size);
@@ -435,6 +446,13 @@ void CView::getColorFromRect(const QRect& rect, QVector<SColor>& aColor)
             aColor.append(SColor(color));
     }
     delete pixel;
+}
+
+void CView::changeCurrentMob(CMob *pMob)
+{
+    m_activeMob = pMob;
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
+
 }
 
 void CView::drawSelectFrame(QRect &rect)
@@ -453,6 +471,9 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
 {
     //TODO: use different buffer => save picking in image
     // Bind shader pipeline for use
+    if(nullptr == m_activeMob)
+        return;
+
     if (!m_selectProgram.bind())
         close();
 
@@ -462,118 +483,134 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
 
     if(m_operationType == EOperationTypeObjects)
         //for(const auto& mob : m_aMob)
-        foreach(const auto& mob, m_aMob)
-            foreach (auto& node, mob->nodes())
+        //foreach(const auto& mob, m_aMob)
+            foreach (auto& node, m_activeMob->nodes())
                 node->drawSelect(&m_selectProgram);
 
     QVector<SColor> aColor;
     getColorFromRect(rect, aColor);
 
     if(m_operationType == EOperationTypeObjects)
-        foreach(const auto& mob, m_aMob)
-        {
-            if (!bAddToSelect) // clear selection buffer if we click out of objects in single selection mode
-                mob->clearSelect();
-            foreach (auto& node, mob->nodes())
-                foreach (const auto& color, aColor)
-                {
-                    if (node->isColorSuitable(color))
-                    {
-                        if (bAddToSelect)
-                        {//shift pressed
 
-                            if (node->nodeState() & ENodeState::eSelect)
-                            {//remove from select
-                                node->setState(ENodeState::eDraw);
-                            }
-                            else
-                            {// add to select
-                                node->setState(ENodeState::eSelect);
-                            }
-                            break;
+        if (!bAddToSelect) // clear selection buffer if we click out of objects in single selection mode
+            m_activeMob->clearSelect();
+
+    if (!aColor.isEmpty())
+        foreach (auto& node, m_activeMob->nodes())
+            foreach (const auto& color, aColor)
+            {
+                if (node->isColorSuitable(color))
+                {
+                    if (bAddToSelect)
+                    {//shift pressed
+
+                        if (node->nodeState() & ENodeState::eSelect)
+                        {//remove from select
+                            node->setState(ENodeState::eDraw);
                         }
                         else
-                        {//shift not pressed
+                        {// add to select
                             node->setState(ENodeState::eSelect);
-                            break;
                         }
                         break;
                     }
+                    else
+                    {//shift not pressed
+                        node->setState(ENodeState::eSelect);
+                        break;
+                    }
+                    break;
                 }
-        }
+            }
+
     m_selectFrame->reset();
 }
 
 void CView::loadMob(QFileInfo &filePath)
 {
     m_pProgress->reset();
-    CMob* mob = new CMob;
-    mob->attach(this, m_pProgress);
-    mob->readMob(filePath);
-    m_aMob.append(mob);
-
-    // update position on the map for each node
-    Q_ASSERT(m_landscape);
-    m_landscape->projectPositions(mob->nodes());
+    CMob* pMob = new CMob;
+    pMob->attach(this, m_pProgress);
+    pMob->readMob(filePath);
+    m_aMob.append(pMob);
+    changeCurrentMob(pMob);
     emit mobLoad(false);
 }
 
 void CView::saveMobAs()
 {
+    if(nullptr == m_activeMob)
+        return;
+
+    const QFileInfo fileName = QFileDialog::getSaveFileName(this, "Save " + m_activeMob->mobName() + " as... ", "" , tr("Map objects (*.mob);;Mob as JSON(*.json)"));
+
     QSet<uint> aId;
-    for(auto& mob: m_aMob)
-    {
-        const QFileInfo fileName = QFileDialog::getSaveFileName(this, "Save " + mob->mobName() + " as... ", "" , tr("Map objects (*.mob);;Mob as JSON(*.json)"));
-        if (fileName.fileName().endsWith(".json"))
-        {
-            mob->checkUniqueId(aId);
-            mob->serializeJson(fileName);
-        }
-        else if (fileName.fileName().endsWith(".mob"))
-        {
-            mob->checkUniqueId(aId);
-            mob->saveAs(fileName);
-        }
-    }
+    m_activeMob->checkUniqueId(aId);
+    if (fileName.fileName().endsWith(".json"))
+        m_activeMob->serializeJson(fileName);
+    else if (fileName.fileName().endsWith(".mob"))
+        m_activeMob->saveAs(fileName);
+
+    m_activeMob->setFileName(fileName);
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, fileName.baseName());
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
+}
+
+void CView::saveActiveMob()
+{
+    QSet<uint> aId;
+    m_activeMob->checkUniqueId(aId);
+    m_activeMob->save();
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
 }
 
 void CView::saveAllMob()
 {
+    CMob* pMob = nullptr;
     QSet<uint> aId;
-    for(const auto& mob: m_aMob)
+    foreach(pMob, m_aMob)
     {
-        mob->checkUniqueId(aId);
-        mob->save();
+        pMob->checkUniqueId(aId);
+        pMob->save();
     }
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
 }
 
 void CView::unloadMob(QString mobName)
 {
+    ei::log(eLogInfo, "unloading mob " + mobName);
+    CMob* pMob = nullptr;
     if(mobName.isEmpty())
     {
-        for(auto mob: m_aMob)
-            delete mob;
+        foreach(pMob, m_aMob)
+            delete pMob;
         m_aMob.clear();
     }
     else
     {
-        for(auto mob: m_aMob)
+        foreach(pMob, m_aMob)
         {
-            if (mob->mobName().toLower() == mobName.toLower())
+            if (pMob->mobName().toLower() == mobName.toLower())
             {
-                delete mob;
-                m_aMob.removeOne(mob);
+                delete pMob;
+                m_aMob.removeOne(pMob);
                 break;
             }
         }
     }
     emit mobLoad(true);
-    ei::log(eLogInfo, "Mob(s) unloaded " + mobName);
+    if(!m_aMob.isEmpty())
+        changeCurrentMob(m_aMob.back());
+    else
+        changeCurrentMob(nullptr);
+
+    ei::log(eLogInfo, "Mob unloaded");
+    viewParameters();
 }
 
 int CView::cauntSelectedNodes()
 {
-   int n = 0;
+    int n = 0;
     for(const auto& mob: m_aMob)
     {
         for(const auto& node: mob->nodes())
@@ -583,12 +620,35 @@ int CView::cauntSelectedNodes()
     return n;
 }
 
+void CView::updateParameter(EObjParam param)
+{
+    QString valueToUpdate("");
+    QString value;
+    for (const auto& mob : m_aMob)
+        for (const auto& node : mob->nodes())
+        {
+            if (node->nodeState() != ENodeState::eSelect)
+                continue;
+
+            value = node->getParam(param);
+            if(!valueToUpdate.isEmpty() && valueToUpdate != value)
+            {
+                valueToUpdate = "";
+                break;
+            }
+            valueToUpdate = value; //same values will be copied every time
+        }
+
+    m_tableManager->updateParam(param, valueToUpdate);
+}
+
 void CView::viewParameters()
 {
     QSet<ENodeType> aType;
     //find unique selected node types
-    for (const auto& mob : m_aMob)
-        for (const auto& node : mob->nodes())
+    CMob* pMob = nullptr;
+    foreach(pMob, m_aMob)
+        for (const auto& node : pMob->nodes())
         {
             if (node->nodeState() != ENodeState::eSelect)
                 continue;
@@ -634,25 +694,23 @@ void CView::onParamChange(SParam &param)
             case eObjParam_ROTATION: //todo: need recalc landscape position for objects?
             case eObjParam_COMPLECTION:
             {
-                CChangeStringParam* pChanger = new CChangeStringParam(node, param.param, param.value);
+                CChangeStringParam* pChanger = new CChangeStringParam(this, node->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                 QObject::connect(pChanger, SIGNAL(updatePosOnLand(CNode*)), this, SLOT(landPositionUpdate(CNode*)));
                 m_pUndoStack->push(pChanger);
-                //m_landscape->projectPosition(node);
                 break;
             }
             case eObjParam_TEMPLATE:
             {
-                CChangeModelParam* pChanger = new CChangeModelParam(node, param.param, param.value);
+                CChangeModelParam* pChanger = new CChangeModelParam(this, node->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                 QObject::connect(pChanger, SIGNAL(updatePosOnLand(CNode*)), this, SLOT(landPositionUpdate(CNode*)));
                 m_pUndoStack->push(pChanger);
-                //m_landscape->projectPosition(node);
                 break;
             }
             default:
             {
-                CChangeStringParam* pChanger = new CChangeStringParam(node, param.param, param.value);
+                CChangeStringParam* pChanger = new CChangeStringParam(this, node->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                 m_pUndoStack->push(pChanger);
                 break;
@@ -660,11 +718,6 @@ void CView::onParamChange(SParam &param)
             }
         }
     }
-}
-
-void CView::landPositionUpdate(CNode *pNode)
-{
-    m_landscape->projectPosition(pNode);
 }
 
 void CView::mousePressEvent(QMouseEvent* event)
@@ -731,8 +784,9 @@ QVector3D CView::getLandPos(const int cursorPosX, const int cursorPosY)
     m_landProgram.setUniformValue("u_projMmatrix", m_projection);
     m_landProgram.setUniformValue("u_viewMmatrix", camMatrix);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (m_landscape)
-        m_landscape->draw(&m_landProgram);
+    auto pLand = CLandscape::getInstance();
+    if (pLand && pLand->isMprLoad())
+        pLand->draw(&m_landProgram);
 
     const int posY (height() - cursorPosY);
     float z;
@@ -804,6 +858,7 @@ void CView::operationRevert(EOperationAxisType operationType)
         case EOperationAxisType::eScale:
             pair.first->setConstitution(pair.second); break;
         }
+
 }
 
 void CView::operationApply(EOperationAxisType operationType)
@@ -816,31 +871,35 @@ void CView::operationApply(EOperationAxisType operationType)
         {
         case EOperationAxisType::eMove:
         {
-            CChangeStringParam* op = new CChangeStringParam(pair.first, EObjParam::eObjParam_POSITION, util::makeString(pair.first->position()));
+            CChangeStringParam* pOp = new CChangeStringParam(this, pair.first->mapId(), EObjParam::eObjParam_POSITION, util::makeString(pair.first->position()));
+            QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             //pair.first->setPos(m_operationBackup[pair.first]);
             pair.first->updatePos(m_operationBackup[pair.first]);
-            m_pUndoStack->push(op);
+            m_pUndoStack->push(pOp);
             break;
         }
         case EOperationAxisType::eRotate:
         {
             rot = pair.first->getEulerRotation();
-            CChangeStringParam* op = new CChangeStringParam(pair.first, EObjParam::eObjParam_ROTATION, util::makeString(rot));
+            CChangeStringParam* pOp = new CChangeStringParam(this, pair.first->mapId(), EObjParam::eObjParam_ROTATION, util::makeString(rot));
+            QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             quat = QQuaternion::fromEulerAngles(m_operationBackup[pair.first]);
             pair.first->setRot(quat);
-            m_pUndoStack->push(op);
+            m_pUndoStack->push(pOp);
             break;
         }
         case EOperationAxisType::eScale:
-            CChangeStringParam* op = new CChangeStringParam(pair.first, EObjParam::eObjParam_COMPLECTION, util::makeString(pair.first->constitution()));
+        {
+            CChangeStringParam* pOp = new CChangeStringParam(this, pair.first->mapId(), EObjParam::eObjParam_COMPLECTION, util::makeString(pair.first->constitution()));
+            QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             pair.first->setConstitution(m_operationBackup[pair.first]);
-            m_pUndoStack->push(op);
+            m_pUndoStack->push(pOp);
             break;
+        }
         }
 
     }
     m_operationBackup.clear();
-    viewParameters();
 }
 
 void CView::moveTo(QVector3D &dir)
@@ -857,7 +916,7 @@ void CView::moveTo(QVector3D &dir)
             }
         }
     }
-    viewParameters();
+    updateParameter(EObjParam::eObjParam_POSITION);
 }
 
 void CView::rotateTo(QVector3D &rot)
@@ -902,15 +961,16 @@ void CView::rotateTo(QVector3D &rot)
             }
         }
     }
-    viewParameters();
+    updateParameter(EObjParam::eObjParam_ROTATION);
 }
 
 void CView::scaleTo(QVector3D &scale)
 {
     QVector3D constitution;
-    for(const auto& mob : m_aMob)
+    CMob* pMob = nullptr;
+    foreach(pMob, m_aMob)
     {
-        for (auto& node : mob->nodes())
+        for (auto& node : pMob->nodes())
         {
             if (node->nodeState() == ENodeState::eSelect)
             {
@@ -919,25 +979,20 @@ void CView::scaleTo(QVector3D &scale)
             }
         }
     }
-    viewParameters();
+    updateParameter(EObjParam::eObjParam_COMPLECTION);
 }
 
 void CView::deleteSelectedNodes()
 {
-    QVector<CNode*> aNode;
-    CMob* mob = nullptr;
-    foreach(mob, m_aMob)
-    {
-        aNode.clear();
-        for (auto& node : mob->nodes())
-            if (node->nodeState() == ENodeState::eSelect)
-                aNode.append(node);
+    QVector<uint> arrMapId;
+    for (auto& node : m_activeMob->nodes())
+        if (node->nodeState() == ENodeState::eSelect)
+            arrMapId.append(node->mapId());
 
-        for(auto& nd : aNode)
-        {
-            CDeleteNodeCommand* pUndo = new CDeleteNodeCommand(mob, nd);
-            m_pUndoStack->push(pUndo);
-        }
+    for(auto& id : arrMapId)
+    {
+        CDeleteNodeCommand* pUndo = new CDeleteNodeCommand(this, id);
+        m_pUndoStack->push(pUndo);
     }
     viewParameters();
 }
@@ -947,10 +1002,10 @@ void CView::selectedObjectToClipboardBuffer()
     CNode* pNode;
 
     QJsonArray arrObj;
-    for(auto& mob: m_aMob)
-        foreach(pNode, mob->nodes())
-            if (pNode->nodeState() & ENodeState::eSelect)
-                arrObj.append(pNode->toJson());
+    //for(auto& mob: m_aMob)
+    foreach(pNode, m_activeMob->nodes())
+        if (pNode->nodeState() & ENodeState::eSelect)
+            arrObj.append(pNode->toJson());
 
     QJsonObject obj;
     obj.insert("Data", arrObj);
@@ -997,11 +1052,10 @@ void CView::clipboradObjectsToScene()
         return;
     }
 
-    CMob* pMob = m_aMob.front(); //TODO use 'active mob' instead first
-    pMob->clearSelect();
+    m_activeMob->clearSelect();
     for(auto it = array.begin(); it < array.end(); ++it)
     {
-        CCreateNodeCommand* pUndo = new CCreateNodeCommand(pMob, it->toObject());
+        CCreateNodeCommand* pUndo = new CCreateNodeCommand(this, it->toObject());
         m_pUndoStack->push(pUndo);
     }
     viewParameters();
@@ -1031,4 +1085,9 @@ void CView::unHideAll()
             pNode->setState(ENodeState::eDraw);
     }
 
+}
+
+void CView::setDurty()
+{
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "*");
 }

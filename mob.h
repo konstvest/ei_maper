@@ -44,14 +44,20 @@ public:
     void serializeMob(QByteArray& data);
     void addNode(QList<CNode*>& aNode) {m_aNode.append(aNode); }
     void addNode(CNode* aNode) {m_aNode.append(aNode); }
+    void createNode(CNode* pNode);
+    CNode* createNode(QJsonObject data);
+    void undo_createNode(uint mapId);
     QList<CNode*>& nodes() {return m_aNode; }
+    void deleteNode(uint mapId);
+    void undo_deleteNode(uint mapId);
     void deleteNode(CNode* pNode);
-    void restoreNode(const uint innerId);
     void clearSelect();
     void delNodes();
+    CNode* nodeByMapId(uint id);
     CView* view() {Q_ASSERT(m_view); return m_view;}
     QString mobName();
     const QFileInfo& filePath() {return m_filePath;}
+    void setFileName(const QFileInfo& fileInfo) {m_filePath = fileInfo;}
     const SWorldSet& worldSet() {return m_worldSet;}
     void setWorldSet(const SWorldSet& ws){m_worldSet = ws;}
     const QVector<SRange>& mainRanges() {return m_aMainRange;}
@@ -64,7 +70,7 @@ public:
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
-    CNode* createNode(QJsonObject data);
+
 
 private:
     void init();

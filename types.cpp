@@ -4,6 +4,117 @@
 #include <QJsonArray>
 #include <QVariant>
 
+SUnitStat::SUnitStat():
+    HP(0)
+    ,MaxHP(0)
+    ,MP(0)
+    ,MaxMP(0)
+    ,move(0.0f)
+    ,actions(0.0f)
+    ,SpeedRun(0.0f)
+    ,SpeedWalk(0.0f)
+    ,SpeedCrouch(0.0f)
+    ,SpeedCrawl(0.0f)
+    ,VisionArc(0.0f)
+    ,SkillsPeripherial(0.0f)
+    ,PeripherialArc(0.0f)
+    ,AttackDistance(0.0f)
+    ,AIClassStay('\0')
+    ,AIClassLay('\0')
+    ,empty1(0)
+    ,range(0.0f)
+    ,attack(0.0f)
+    ,defence(0.0f)
+    ,weight(0.0f)
+    ,damageMin(0.0f)
+    ,damageRange(0.0f)
+    ,aImpalling(0.0f)
+    ,aSlashing(0.0f)
+    ,aCrushing(0.0f)
+    ,aThermal(0.0f)
+    ,aChemical(0.0f)
+    ,aElectrical(0.0f)
+    ,aGeneral(0.0f)
+    ,absorption(0)
+    ,Sight(0.0f)
+    ,NightSight(0.0f)
+    ,SenseLife(0.0f)
+    ,SenseHear(0.0f)
+    ,SenseSmell(0.0f)
+    ,SenseTracking(0.0f)
+    ,pSight(0.0f)
+    ,pNightSight(0.0f)
+    ,pSenseLife(0.0f)
+    ,pSenseHear(0.0f)
+    ,pSenseSmell(0.0f)
+    ,pSenseTracking(0.0f)
+    ,ManualSkill_SCIENCE('\0')
+    ,ManualSkill_STEALING('\0')
+    ,ManualSkill_TAME('\0')
+    ,MagicalSkill_1('\0')
+    ,MagicalSkill_2('\0')
+    ,MagicalSkill_3('\0')
+    ,empty2('\0')
+    ,empty3('\0')
+{
+
+}
+
+SUnitStat::SUnitStat(const SUnitStat &stat)
+{
+    HP = stat.HP;
+    MaxHP = stat.MaxHP;
+    MP = stat.MP;
+    MaxMP = stat.MaxMP;
+    move = stat.move;
+    actions = stat.actions;
+    SpeedRun = stat.SpeedRun;
+    SpeedWalk = stat.SpeedWalk;
+    SpeedCrouch = stat.SpeedCrouch;
+    SpeedCrawl = stat.SpeedCrawl;
+    VisionArc = stat.VisionArc;
+    SkillsPeripherial = stat.SkillsPeripherial;
+    PeripherialArc = stat.PeripherialArc;
+    AttackDistance = stat.AttackDistance;
+    AIClassStay = stat.AIClassStay;
+    AIClassLay = stat.AIClassLay;
+    empty1 = stat.empty1;
+    range = stat.range;
+    attack = stat.attack;
+    defence = stat.defence;
+    weight = stat.weight;
+    damageMin = stat.damageMin;
+    damageRange = stat.damageRange;
+    aImpalling = stat.aImpalling;
+    aSlashing = stat.aSlashing;
+    aCrushing = stat.aCrushing;
+    aThermal = stat.aThermal;
+    aChemical = stat.aChemical;
+    aElectrical = stat.aElectrical;
+    aGeneral = stat.aGeneral;
+    absorption = stat.absorption;
+    Sight = stat.Sight;
+    NightSight = stat.NightSight;
+    SenseLife = stat.SenseLife;
+    SenseHear = stat.SenseHear;
+    SenseSmell = stat.SenseSmell;
+    SenseTracking = stat.SenseTracking;
+    pSight = stat.pSight;
+    pNightSight = stat.pNightSight;
+    pSenseLife = stat.pSenseLife;
+    pSenseHear = stat.pSenseHear;
+    pSenseSmell = stat.pSenseSmell;
+    pSenseTracking = stat.pSenseTracking;
+    ManualSkill_SCIENCE = stat.ManualSkill_SCIENCE;
+    ManualSkill_STEALING = stat.ManualSkill_STEALING;
+    ManualSkill_TAME = stat.ManualSkill_TAME;
+    MagicalSkill_1 = stat.MagicalSkill_1;
+    MagicalSkill_2 = stat.MagicalSkill_2;
+    MagicalSkill_3 = stat.MagicalSkill_3;
+    empty2 = stat.empty2;
+    empty3 = stat.empty3;
+}
+
 SUnitStat::SUnitStat(QJsonObject data)
 {
     HP = data["HP"].toInt();
@@ -21,7 +132,7 @@ SUnitStat::SUnitStat(QJsonObject data)
     PeripherialArc = data["PeripherialArc"].toVariant().toFloat();
     AttackDistance = data["AttackDistance"].toVariant().toFloat();
     AIClassStay = (unsigned char)data["AI Class Stay"].toVariant().toInt();
-    AIClassLay = (unsigned char)data[" AIClassLay"].toVariant().toInt();
+    AIClassLay = (unsigned char)data["AIClassLay"].toVariant().toInt();
     empty1 = (short)data["empty1"].toVariant().toInt();
     range = data["range"].toVariant().toFloat();
     attack = data["attack"].toVariant().toFloat();
@@ -59,7 +170,7 @@ SUnitStat::SUnitStat(QJsonObject data)
     empty3 = (unsigned char)data["empty3"].toVariant().toInt();
 }
 
-QJsonObject SUnitStat::toJson()
+QJsonObject SUnitStat::toJson() const
 {
     QJsonObject obj;
     obj.insert("HP", HP);
@@ -77,7 +188,7 @@ QJsonObject SUnitStat::toJson()
     obj.insert("PeripherialArc", PeripherialArc);
     obj.insert("AttackDistance", AttackDistance);
     obj.insert("AI Class Stay", QJsonValue::fromVariant(AIClassStay));// byte;
-    obj.insert(" AIClassLay", QJsonValue::fromVariant(AIClassLay));// byte;
+    obj.insert("AIClassLay", QJsonValue::fromVariant(AIClassLay));// byte;
     obj.insert("empty1", empty1);// smallint;
     obj.insert("range", range);
     obj.insert("attack", attack);
@@ -115,5 +226,30 @@ QJsonObject SUnitStat::toJson()
     obj.insert("empty3", QJsonValue::fromVariant(empty3));// byte;
 
     return obj;
+}
+
+CBox::CBox(const CBox &box):
+    m_minPos(box.m_minPos)
+  ,m_maxPos(box.m_maxPos)
+  ,m_center(box.m_center)
+{
+
+}
+
+CBox::CBox(QVector3D minPos, QVector3D maxPos):
+    m_minPos(minPos)
+  ,m_maxPos(maxPos)
+{
+
+}
+
+QVector3D CBox::center()
+{
+    return QVector3D ((m_minPos + m_maxPos)/2);
+}
+
+float CBox::radius()
+{
+    return (m_maxPos-m_minPos).length();
 }
 

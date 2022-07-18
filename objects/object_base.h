@@ -16,6 +16,7 @@ class CObjectBase : public CNode
 {
 public:
     CObjectBase();
+    CObjectBase(const CObjectBase& base);
     CObjectBase(QJsonObject data);
     CObjectBase(CNode* node);
     ~CObjectBase() override;
@@ -37,13 +38,12 @@ public:
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
     bool updatePos(QVector3D& pos) override;
-    void attachMob(CMob* mob) override final;
-    CMob* mob() {return m_pMob;}
     void setRot(const QQuaternion& quat) override;
     const QVector3D& constitution() override final {return m_complection;}
     const QVector3D& complection() override {return m_complection;}
     void setConstitution(QVector3D& vec) override;
     QJsonObject toJson() override;
+    CBox getBBox() override final;
 
 protected:
     void recalcFigure();
@@ -55,7 +55,6 @@ protected:
     QString m_modelName;
     QVector3D m_complection;    //x-grace, y-strength, z-tall
     QVector<QString> m_bodyParts; // for preparing vertex data
-    CMob* m_pMob;
 
 private:
     QVector<CPart*> m_aPart;

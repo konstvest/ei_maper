@@ -19,8 +19,7 @@
 #include "objects\worldobj.h"
 #include "objects\unit.h"
 #include "view.h"
-#include "objectlist.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 #include "landscape.h"
 #include "settings.h"
 #include "progressview.h"
@@ -220,7 +219,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CWorldObj* obj = new CWorldObj();
                     readSecByte += parser.skipHeader(); // "OBJECT";
-                    obj->attachMob(this);
                     readSecByte += obj->deserialize(parser);
                     addNode(obj);
                 }
@@ -228,7 +226,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CLever* lever = new CLever();
                     readSecByte += parser.skipHeader(); // "LEVER";
-                    lever->attachMob(this);
                     readSecByte += lever->deserialize(parser);
                     addNode(lever);
                 }
@@ -236,7 +233,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CUnit* unit = new CUnit();
                     readSecByte += parser.skipHeader(); // "UNIT";
-                    unit->attachMob(this);
                     readSecByte += unit->deserialize(parser);
                     addNode(unit);
                 }
@@ -244,7 +240,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CTorch* torch = new CTorch();
                     readSecByte += parser.skipHeader(); // "TORCH";
-                    torch->attachMob(this);
                     readSecByte += torch->deserialize(parser);
                     addNode(torch);
                 }
@@ -252,7 +247,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CMagicTrap* trap = new CMagicTrap();
                     readSecByte += parser.skipHeader();  // "MAGIC_TRAP";
-                    trap->attachMob(this);
                     readSecByte += trap->deserialize(parser);
                     addNode(trap);
                 }
@@ -260,7 +254,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CLight* light = new CLight();
                     readByte += parser.skipHeader(); // "LIGHT";
-                    light->attachMob(this);
                     readByte += light->deserialize(parser);
                     addNode(light);
                 }
@@ -268,7 +261,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CSound* sound = new CSound();
                     readByte += parser.skipHeader(); // "SOUND";
-                    sound->attachMob(this);
                     readByte += sound->deserialize(parser);
                     addNode(sound);
                 }
@@ -276,7 +268,6 @@ bool CMob::deserialize(QByteArray data)
                 {
                     CParticle* particle = new CParticle();
                     readByte += parser.skipHeader(); // "PARTICL";
-                    particle->attachMob(this);
                     readByte += particle->deserialize(parser);
                     addNode(particle);
                 }
@@ -324,26 +315,13 @@ bool CMob::deserialize(QByteArray data)
 void CMob::updateObjects()
 {
     ei::log(eLogInfo, "Start update objects");
-    QSet<QString> aModelName;
-    QSet<QString> aTextureName;
-    for(auto& node: m_aNode)
-    {
-        aModelName.insert(node->modelName() + ".mod");
-        aTextureName.insert(node->textureName());
-    }
-    //preload figures
-    CObjectList::getInstance()->loadFigures(aModelName);
-    m_pProgress->update(15);
-    CTextureList::getInstance()->loadTexture(aTextureName);
-    m_pProgress->update(15);
-    QString texName;
-    double step = 21/double(m_aNode.size());
     for(auto& node: m_aNode)
     {
         node->loadFigure();
         node->loadTexture();
-        m_pProgress->update(step);
     }
+    CLandscape::getInstance()->projectPositions(m_aNode);
+    m_pProgress->update(50);
     ei::log(eLogInfo, "End update objects");
 }
 
@@ -361,6 +339,17 @@ void CMob::delNodes()
         delete m_aNode[*i];
         m_aNode.removeAt(*i);
     }
+}
+
+CNode *CMob::nodeByMapId(uint id)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(pNode->mapId()==id)
+            break;
+    }
+    return pNode;
 }
 
 QString CMob::mobName()
@@ -388,12 +377,16 @@ CNode* CMob::createNode(QJsonObject data)
     {
     case ENodeType::eUnit:
     {
-        pNode = new CUnit(data, this);
+        pNode = new CUnit(data);
+        pNode->loadFigure();
+        pNode->loadTexture();
         break;
     }
     case ENodeType::eTorch:
     {
         pNode = new CTorch(data);
+        pNode->loadFigure();
+        pNode->loadTexture();
         break;
     }
     case ENodeType::eMagicTrap:
@@ -404,6 +397,8 @@ CNode* CMob::createNode(QJsonObject data)
     case ENodeType::eLever:
     {
         pNode = new CLever(data);
+        pNode->loadFigure();
+        pNode->loadTexture();
         break;
     }
     case ENodeType::eLight:
@@ -424,6 +419,8 @@ CNode* CMob::createNode(QJsonObject data)
     case ENodeType::eWorldObject:
     {
         pNode = new CWorldObj(data);
+        pNode->loadFigure();
+        pNode->loadTexture();
         break;
     }
     default:
@@ -437,11 +434,9 @@ CNode* CMob::createNode(QJsonObject data)
     {
         Q_ASSERT("Failed to create new node" && false);
     }
-    pNode->attachMob(this);
-    //todo: create operation stack for this op
+
     addNode(pNode);
-    pNode->loadFigure();
-    pNode->loadTexture();
+
 
     if(pNode)
     {
@@ -465,6 +460,51 @@ CNode* CMob::createNode(QJsonObject data)
     }
 
     return pNode;
+}
+
+void CMob::undo_createNode(uint mapId)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(pNode->mapId() == mapId)
+        {
+            //m_aDeletedNode.append(pNode);
+            m_aNode.removeAt(m_aNode.indexOf(pNode));
+            ei::log(eLogDebug, QString("undo create node with %1 map ID").arg(pNode->mapId()));
+            return;
+        }
+    }
+}
+
+void CMob::deleteNode(uint mapId)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(pNode->mapId() == mapId)
+        {
+            pNode->setState(ENodeState::eDraw); // for restoring draw state
+            m_aDeletedNode.append(pNode);
+            m_aNode.removeOne(pNode);
+            ei::log(eLogDebug, QString("delete node with %1").arg(pNode->mapId()));
+        }
+    }
+}
+
+void CMob::undo_deleteNode(uint mapId)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aDeletedNode)
+    {
+        if(pNode->mapId() == mapId)
+        {
+            m_aNode.append(pNode);
+            m_aDeletedNode.removeOne(pNode);
+            ei::log(eLogDebug, QString("node with %1 restored").arg(pNode->mapId()));
+            break;
+        }
+    }
 }
 
 void CMob::readMob(QFileInfo &path)
@@ -847,32 +887,105 @@ void CMob::serializeMob(QByteArray& data)
     return;
 }
 
+void CMob::createNode(CNode *pNode)
+{
+    CNode* pNewNode = nullptr;
+    ENodeType type = pNode->nodeType();
+    if (type == ENodeType::eUnknown)
+    {
+        qDebug() << "cant recognize type of obj";
+        return;
+    }
+
+    switch (type)
+    {
+    case ENodeType::eUnit:
+    {
+        pNewNode = new CUnit(*dynamic_cast<CUnit*>(pNode));
+        break;
+    }
+    case ENodeType::eTorch:
+    {
+        pNewNode = new CTorch(*dynamic_cast<CTorch*>(pNode));
+        break;
+    }
+    case ENodeType::eMagicTrap:
+    {
+        pNewNode = new CMagicTrap(*dynamic_cast<CMagicTrap*>(pNode));
+        break;
+    }
+    case ENodeType::eLever:
+    {
+        pNewNode = new CLever(*dynamic_cast<CLever*>(pNode));
+        break;
+    }
+    case ENodeType::eLight:
+    {
+        pNewNode = new CLight(*dynamic_cast<CLight*>(pNode));
+        break;
+    }
+    case ENodeType::eSound:
+    {
+        pNewNode = new CSound(*dynamic_cast<CSound*>(pNode));
+        break;
+    }
+    case ENodeType::eParticle:
+    {
+        pNewNode = new CParticle(*dynamic_cast<CParticle*>(pNode));
+        break;
+    }
+    case ENodeType::eWorldObject:
+    {
+        pNewNode = new CWorldObj(*dynamic_cast<CWorldObj*>(pNode));
+        break;
+    }
+    default:
+    {
+        Q_ASSERT("unknown node type" && false);
+        break;
+    }
+    }
+
+    if(nullptr == pNode)
+    {
+        Q_ASSERT("Failed to create new node" && false);
+    }
+    addNode(pNewNode);
+
+    if(pNewNode)
+    {
+        uint freeId(1000);
+        QVector<uint> arrId;
+        arrId.resize(m_aNode.size());
+
+        for (int i(0); i<m_aNode.size(); ++i)
+            arrId[i] = m_aNode[i]->mapId();
+
+        for (; freeId<100000; ++freeId)
+        {
+            //TODO: find more suitable ID from mob ranges
+            if(!arrId.contains(freeId))
+            {
+                pNewNode->setMapId(freeId);
+                break;
+            }
+        }
+        pNewNode->setState(ENodeState::eSelect);
+    }
+
+    return;
+}
+
 void CMob::deleteNode(CNode *pNode)
 {
     const int ind = m_aNode.indexOf(pNode);
     if(ind >=0)
     {
         m_aDeletedNode.append(m_aNode.at(ind));
-        m_aNode.at(ind)->setState(ENodeState::eDraw);
+        //m_aNode.at(ind)->setState(ENodeState::eDraw);
         m_aNode.removeAt(ind);
-        ei::log(eLogDebug, QString("delete node with %1").arg(pNode->innerId()));
+        ei::log(eLogDebug, QString("delete node with %1").arg(pNode->mapId()));
     }
-}
-
-void CMob::restoreNode(const uint innerId)
-{
-    int ind(-1);
-    for(auto& node: m_aDeletedNode)
-    {
-        if(node->innerId() == innerId)
-            ind = m_aDeletedNode.indexOf(node);
-    }
-    if(ind >=0)
-    {
-        m_aNode.append(m_aDeletedNode.at(ind));
-        m_aDeletedNode.removeAt(ind);
-    }
-    ei::log(eLogDebug, QString("node with %1 restored").arg(innerId));
 }
 
 void CMob::clearSelect()

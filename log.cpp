@@ -56,6 +56,10 @@ void CLogger::log(ELogMessageType type, const QString msg)
     textStream << txt << endl;
     log_file.close();
 
+#ifdef QT_DEBUG
+  qDebug() << txt;
+#endif
+
 //    if(type == eLogFatal)
     //        QCoreApplication::exit(-1);
 }

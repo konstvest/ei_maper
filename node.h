@@ -11,7 +11,6 @@
 #include "types.h"
 #include "utils.h"
 #include "figure.h"
-#include "color.h"
 
 enum ENodeType
 {
@@ -44,6 +43,7 @@ class CNode
 public:
     CNode();
     CNode(CNode* parent);
+    CNode(const CNode& node);
     static uint s_freeId;
     virtual ~CNode();
     virtual void draw(QOpenGLShaderProgram* program = nullptr) = 0;
@@ -68,7 +68,7 @@ public:
     virtual void setConstitution(QVector3D& vec) = 0;
     virtual const QVector3D& constitution() = 0;
     virtual QJsonObject toJson() = 0;
-    virtual void attachMob(CMob* mob) = 0;
+    virtual CBox getBBox() = 0;
 
     const uint& innerId() {return m_id; }
     const uint& mapId(){return m_mapID;}

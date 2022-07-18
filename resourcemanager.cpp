@@ -1,10 +1,199 @@
+#include "resourcemanager.h"
 #include <QDebug>
 #include <QMessageBox>
-#include "texturelist.h"
 #include "res_file.h"
 #include "utils.h"
-#include "color.h"
+#include "view.h"
+#include "types.h"
 #include "settings.h"
+#include "log.h"
+
+CObjectList* CObjectList::m_pObjectContainer = nullptr;
+
+CObjectList *CObjectList::getInstance()
+{
+    if(nullptr == m_pObjectContainer)
+        m_pObjectContainer = new CObjectList();
+    return m_pObjectContainer;
+}
+
+CObjectList::CObjectList():
+    m_pSettings(nullptr)
+{
+    //read figures for aux objects.
+    //TODO: can be conflict with user model name. load aux figures in separate map
+    auto auxFile = QFileInfo(":/auxData.res");
+
+    ResFile res(auxFile.filePath());
+    QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+
+    for(auto file : aFile.toStdMap())
+    {
+        if (file.first.toLower().endsWith(".mod"))
+            readAssembly(aFile, file.first);
+    }
+    ei::log(eLogInfo, "aux objects loaded");
+}
+
+CObjectList::~CObjectList()
+{
+    ei::CFigure* pFig = nullptr;
+    foreach (pFig, m_aFigure)
+        pFig->~CFigure();
+}
+
+
+void CObjectList::readFigure(const QByteArray& file, const QString& name)
+{
+    QDataStream stream(file);
+    util::formatStream(stream);
+    ei::CFigure* fig = new ei::CFigure;
+    fig->readData(stream);
+    fig->setName(name);
+    m_aFigure.insert(name, fig);
+    //addItem(name);
+}
+
+//read *.mod files, create figure hierarchy with part offsets
+//in: aFile, assemblyRoot
+void CObjectList::readAssembly(const QMap<QString, QByteArray>& aFile, const QString& assemblyRoot)
+{
+    ResFile model(aFile[assemblyRoot]);
+    QMap<QString, QByteArray> aComponent  = model.bufferOfFiles();
+    QDataStream lnkStream(aComponent[assemblyRoot.split(".mod").first()]);
+    util::formatStream(lnkStream);
+    int nLink;
+    lnkStream >> nLink;
+
+    int compLength;
+    QVector<char> name;
+    QString compName;
+    QMap<QString, ei::CFigure*> aParent;
+    for (int i(0); i<nLink; ++i)
+    {
+        lnkStream >> compLength;
+        name.resize(compLength);
+        lnkStream.readRawData(name.data(), name.size());
+        compName = name.data();
+        //create node
+        QDataStream compStream(aComponent[compName]);
+        util::formatStream(compStream);
+        ei::CFigure* fig = new ei::CFigure;
+        aParent.insert(compName, fig);
+        fig->readData(compStream);
+        fig->setName(compName);
+        lnkStream >> compLength;
+        if (compLength == 0)
+        { // place root figure to object list
+            m_aFigure.insert(assemblyRoot, fig);
+            continue;
+        }
+        name.resize(compLength);
+        lnkStream.readRawData(name.data(), name.size());
+        compName = name.data();
+        aParent[compName]->addChild(fig);
+    }
+
+    //.bon file parse here
+    QString bonFile (assemblyRoot.split(".mod").first());
+    bonFile.append(".bon");
+    ResFile position(aFile[bonFile]);
+    aComponent  = position.bufferOfFiles();
+    for (auto& fig: aParent.values())
+    {
+        QDataStream bonStream(aComponent[fig->name()]);
+        util::formatStream(bonStream);
+        fig->readAssemblyOffset(bonStream);
+    }
+    m_aFigure[assemblyRoot]->applyAssemblyOffset();
+}
+
+void CObjectList::loadFigures(QSet<QString>& aFigure)
+{
+    QVector<QFileInfo> fileInfo;
+    auto pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "figPath1"));
+    if (!pOpt || pOpt->value().isEmpty())
+    {
+        QMessageBox::warning(m_pSettings, "Warning","Choose path to figures.res");
+        m_pSettings->onShow(eOptSetResource);
+        //todo: wait until user choose resource file and continue
+        return;
+    }
+    else
+        fileInfo.append(pOpt->value());
+
+    pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "figPath2"));
+    if(pOpt && !pOpt->value().isEmpty())
+        fileInfo.append(pOpt->value());
+
+    uint n(0);
+    QString figName;
+    for(auto& file: fileInfo)
+    {
+        ResFile res(file.filePath());
+        QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+        if(aFigure.isEmpty())
+        {
+            QRegExp rx("(infa\\S+face)|(init(ar|we|li|qi|qu)\\S*\\d+(armor|weapon|item))"); //TODO: remove this if figure will load faster
+            for (auto& fig : aFile.toStdMap())
+            {
+                figName = fig.first.split(".")[0];
+                if(rx.exactMatch(figName)) continue;
+
+                if(m_aFigure.contains(fig.first)) continue;
+                if(fig.first.contains(".mod"))
+                    readAssembly(aFile, fig.first);
+                else if(fig.first.contains(".fig"))
+                    readFigure(aFile[fig.second], fig.first);
+                else //bon, lnk files
+                    continue;
+
+                m_arrFigureForComboBox.append(figName);
+                ++n;
+            }
+        }
+
+        for (auto& fig: aFigure)
+        {
+            if(m_aFigure.contains(fig)) continue;
+            if(!aFile.contains(fig)) continue;
+
+            //parse *.mod & *.bon files for assembly
+            if(fig.contains(".mod"))
+                readAssembly(aFile, fig);
+            else if(fig.contains(".fig"))
+                readFigure(aFile[fig], fig);
+        }
+    }
+    std::sort(m_arrFigureForComboBox.begin(), m_arrFigureForComboBox.end());
+}
+
+ei::CFigure* CObjectList::getFigure(const QString& name)
+{
+    QString figureName = name + ".mod";
+    if(!m_aFigure.contains(figureName))
+    {
+        QSet<QString> figure;
+        figure.insert(figureName);
+        loadFigures(figure);
+    }
+
+    return m_aFigure.contains(figureName) ? m_aFigure[figureName] : figureDefault();
+}
+
+void CObjectList::initResource()
+{
+    QSet<QString> empty;
+    loadFigures(empty);
+}
+
+ei::CFigure *CObjectList::figureDefault()
+{
+    Q_ASSERT(m_aFigure.contains("cannotDisplay.mod"));
+    return m_aFigure["cannotDisplay.mod"];
+}
+
+
 
 CTextureList* CTextureList::m_pTextureContainer = nullptr;
 
@@ -18,15 +207,6 @@ CTextureList *CTextureList::getInstance()
 CTextureList::CTextureList():
     m_pSettings(nullptr)
 {
-    QImage img(":/default0.png", "PNG");
-    QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
-    texture->setMinificationFilter(QOpenGLTexture::Nearest);
-    texture->setMagnificationFilter(QOpenGLTexture::Linear);
-    texture->setWrapMode(QOpenGLTexture::Repeat);
-    texture->setSize(img.width(), img.height());
-    texture->setFormat(QOpenGLTexture::TextureFormat::RGBA8_UNorm);
-    texture->setData(img.mirrored());
-    m_aTexture.insert(QString("default"), texture);
 }
 
 CTextureList::~CTextureList()
@@ -159,12 +339,18 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
     texture->setMinificationFilter(QOpenGLTexture::NearestMipMapNearest);
     texture->setMagnificationFilter(QOpenGLTexture::NearestMipMapNearest);
-    texture->setMipLevels(4);
+    //texture->setMipLevels(4); //this code will generate mipmaps for textures
+    //TODO: read mipmaps
+//    for (int i(0); i<mipMapsCount; ++i)
+//    {
+//        texture->setCompressedData(i, 0, size, data.data() + header.size());
+//    }
     texture->setWrapMode(QOpenGLTexture::Repeat);
     switch (header.m_format)
     {
     case ETextureFormat::eMMP_DXT1:
     {
+        //TODO: read mipmaps
         texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT1);
         texture->setSize(int(header.m_width), int(header.m_height));
         texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
@@ -174,12 +360,12 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     }
     case ETextureFormat::eMMP_DXT3:
     {
+        //TODO: read mipmaps
         texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT3);
         texture->setSize(int(header.m_width), int(header.m_height));
         texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
         const int size = int(header.m_width * header.m_height);
         texture->setCompressedData(0, 0, size, data.data() + header.size());
-
         break;
     }
     case ETextureFormat::eMMP_5650    : // use the same direct draw reading algorithm
@@ -216,6 +402,26 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     m_aTexture.insert(name, texture);
 }
 
+void CTextureList::initAuxTexture()
+{
+    //read textures for aux objects.
+    //TODO: can be conflict with user tex name. load aux textures in separate map
+    auto auxFile = QFileInfo(":/auxData.res");
+
+    ResFile res(auxFile.filePath());
+    QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+
+    QString texName;
+    for (auto& packedTex : aFile.toStdMap())
+    {
+        if(!packedTex.first.toLower().endsWith(".mmp")) continue;
+        texName = packedTex.first.split(".")[0];
+        if(m_aTexture.contains(texName)) continue;
+        parse(packedTex.second, texName);
+    }
+    ei::log(eLogInfo, "aux texture loaded");
+}
+
 void CTextureList::loadTexture(QSet<QString>& aName)
 {
     QVector<QFileInfo> fileInfo;
@@ -236,23 +442,43 @@ void CTextureList::loadTexture(QSet<QString>& aName)
 
     QString texName;
 
+    uint n(0);
     for(auto& file: fileInfo)
     {
         ResFile res(file.filePath());
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
-
-        for(auto& name: aName)
+        if (aName.isEmpty())
         {
-            //if(!name.contains(".mmp")) continue;
-            if(m_aTexture.contains(name)) continue;
-            if(!aFile.contains(name + ".mmp")) continue;
 
-            parse(aFile[name + ".mmp"], name);
+            //load all textures exclude "special"
+            QRegExp rx("((material|spell|modifier|prototype|qitem|quitem|litem|skill)\\d{2,4})|(^\\S+\\d{3})|(_\\d{2}\\.\\d)|(face\\S*\\d+\\S*)|((sm_)?cursor_\\S+)|(zone\\S+(questm?|map))|(un(mo|un)\\S+w[1-3])"); //TODO: delete this when loading textures will be faster...
+            rx.setCaseSensitivity(Qt::CaseInsensitive);
+            for (auto& packedTex : aFile.toStdMap())
+            {
+                texName = packedTex.first.split(".")[0];
+                if(rx.exactMatch(texName)) continue;
+                if(m_aTexture.contains(texName)) continue;
+                //if(packedTex.first.toLower().contains("zone")) continue;
+                parse(packedTex.second, texName);
+                m_arrCellComboBox.append(texName);
+                ++n;
+            }
+
         }
+        else
+            for(auto& name: aName)
+            {
+                //if(!name.contains(".mmp")) continue;
+                if(m_aTexture.contains(name)) continue;
+                if(!aFile.contains(name + ".mmp")) continue;
+
+                parse(aFile[name + ".mmp"], name);
+            }
     }
+    std::sort(m_arrCellComboBox.begin(), m_arrCellComboBox.end());
 }
 
-QOpenGLTexture* CTextureList::texture(QString& name)
+QOpenGLTexture* CTextureList::texture(const QString& name)
 {
     if(!m_aTexture.contains(name))
     {
@@ -268,6 +494,28 @@ QOpenGLTexture* CTextureList::textureDefault()
 {
     Q_ASSERT(m_aTexture.contains("default"));
     return m_aTexture[QString("default")];
+}
+
+void CTextureList::initResource()
+{
+
+    QImage img(":/default0.png", "PNG");
+    QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
+    texture->setMinificationFilter(QOpenGLTexture::Nearest);
+    texture->setMagnificationFilter(QOpenGLTexture::Linear);
+    texture->setWrapMode(QOpenGLTexture::Repeat);
+    texture->setSize(img.width(), img.height());
+    texture->setFormat(QOpenGLTexture::TextureFormat::RGBA8_UNorm);
+    texture->setData(img.mirrored());
+    m_aTexture.insert(QString("default"), texture);
+
+    initAuxTexture();
+
+    if(true)
+    {
+        QSet<QString> aEmpty;
+        loadTexture(aEmpty);
+    }
 }
 
 struct STexSpecified
@@ -378,11 +626,34 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
     texture->setMagnificationFilter(QOpenGLTexture::NearestMipMapNearest);
     texture->setWrapMode(QOpenGLTexture::Repeat);
     texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT1); //todo: read texture format from file. EI can use both dxt3 and dxt1
-    texture->setMipLevels(4);
+    //texture->setMipLevels(4);
     texture->setSize(minTexSize*texCount, minTexSize);
     texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
     const int size = minTexSize*minTexSize*texCount/2;
     texture->setCompressedData(0, 0, size, combineTextureData.data());
     m_aTexture[name] = texture;
     return texture;
+}
+
+CResourceManager::CResourceManager()
+{
+
+}
+
+void CResourceManager::loadResources()
+{
+    QSet<QString> aEmpty;
+    CTextureList::getInstance()->loadTexture(aEmpty);
+}
+
+bool isDIfferent(const QString &value)
+{
+    {
+        return value == "<different>";
+    }
+}
+
+QString valueDifferent()
+{
+    return "<different>";
 }

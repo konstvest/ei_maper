@@ -8,7 +8,7 @@
 
 #include "settings.h"
 #include "ui_settings.h"
-#include "mainwindow.h"
+#include "main_window.h"
 #include "utils.h"
 
 CSettings::CSettings(QWidget *parent) :

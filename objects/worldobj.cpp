@@ -3,19 +3,44 @@
 #include "objects\worldobj.h"
 #include "mob.h"
 #include "view.h"
-#include "objectlist.h"
-#include "texturelist.h"
+#include "resourcemanager.h"
 #include "landscape.h"
 #include "log.h"
 
-CWorldObj::CWorldObj()
+CWorldObj::CWorldObj():
+    m_type(54)
+    ,m_secondaryTexture("default0")
+    ,m_parentTemplate("")
+    ,m_player(0)
+    ,m_parentID(-1)
+    ,m_bUseInScript(false)
+    ,m_bShadow(true)
+    ,m_questInfo()
 {
+    CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("cannotDisplay"));
+    CObjectBase::setTexture(CTextureList::getInstance()->texture("cannotDisplay"));
+}
+
+CWorldObj::CWorldObj(const CWorldObj &wo):
+    CObjectBase(wo)
+{
+    m_type = wo.m_type;
+    m_modelName = wo.m_modelName;
+    m_primaryTexture = wo.m_primaryTexture;
+    m_secondaryTexture = wo.m_secondaryTexture;
+    m_parentTemplate = wo.m_parentTemplate;
+    m_player = wo.m_player;
+    m_parentID = wo.m_parentID;
+    m_bUseInScript = wo.m_bUseInScript;
+    m_bShadow = wo.m_bShadow;
+    m_questInfo = wo.m_questInfo;
 }
 
 CWorldObj::CWorldObj(QJsonObject data):
     CObjectBase(data["Base object"].toObject())
 {
     m_type = (uint)data["Type"].toVariant().toUInt();
+    m_modelName = data["Model name"].toString();
     m_primaryTexture = data["Primary texture"].toString();
     m_secondaryTexture = data["Secondary texture"].toString();
 
@@ -158,7 +183,6 @@ void CWorldObj::loadTexture()
 {
     QString texName(m_primaryTexture.toLower());
     setTexture(CTextureList::getInstance()->texture(texName));
-    //todo: load texture for logic
 }
 
 void CWorldObj::serializeJson(QJsonObject& obj)
@@ -205,6 +229,7 @@ uint CWorldObj::serialize(util::CMobParser &parser)
     writeByte += parser.writeDword(m_mapID);
     parser.endSection(); //"NID"
 
+    Q_ASSERT(m_type);
     writeByte += parser.startSection("OBJ_TYPE");
     writeByte += parser.writeDword(m_type);
     parser.endSection(); //"OBJ_TYPE"
@@ -213,21 +238,42 @@ uint CWorldObj::serialize(util::CMobParser &parser)
     writeByte += parser.writeString(m_name);
     parser.endSection(); //OBJ_NAME
 
-    writeByte += parser.startSection("OBJ_TEMPLATE");
-    writeByte += parser.writeString(m_modelName);
-    parser.endSection(); //OBJ_TEMPLATE
+    if(nodeType() == ENodeType::eMagicTrap)
+    {
+        writeByte += parser.startSection("OBJ_TEMPLATE");
+        writeByte += parser.writeString("efcu0");
+        parser.endSection(); //OBJ_TEMPLATE
 
-    writeByte += parser.startSection("PARENT_TEMPLATE");
-    writeByte += parser.writeString(m_parentTemplate);
-    parser.endSection(); //PARENT_TEMPLATE
+        writeByte += parser.startSection("PARENT_TEMPLATE");
+        writeByte += parser.writeString(m_parentTemplate);
+        parser.endSection(); //PARENT_TEMPLATE
 
-    writeByte += parser.startSection("OBJ_PRIM_TXTR");
-    writeByte += parser.writeString(m_primaryTexture);
-    parser.endSection(); //OBJ_PRIM_TXTR
+        writeByte += parser.startSection("OBJ_PRIM_TXTR");
+        writeByte += parser.writeString("sound");
+        parser.endSection(); //OBJ_PRIM_TXTR
 
-    writeByte += parser.startSection("OBJ_SEC_TXTR");
-    writeByte += parser.writeString(m_secondaryTexture);
-    parser.endSection(); //OBJ_SEC_TXTR
+        writeByte += parser.startSection("OBJ_SEC_TXTR");
+        writeByte += parser.writeString("none");
+        parser.endSection(); //OBJ_SEC_TXTR
+    }
+    else
+    {
+        writeByte += parser.startSection("OBJ_TEMPLATE");
+        writeByte += parser.writeString(m_modelName);
+        parser.endSection(); //OBJ_TEMPLATE
+
+        writeByte += parser.startSection("PARENT_TEMPLATE");
+        writeByte += parser.writeString(m_parentTemplate);
+        parser.endSection(); //PARENT_TEMPLATE
+
+        writeByte += parser.startSection("OBJ_PRIM_TXTR");
+        writeByte += parser.writeString(m_primaryTexture);
+        parser.endSection(); //OBJ_PRIM_TXTR
+
+        writeByte += parser.startSection("OBJ_SEC_TXTR");
+        writeByte += parser.writeString(m_secondaryTexture);
+        parser.endSection(); //OBJ_SEC_TXTR
+    }
 
     writeByte += parser.startSection("OBJ_COMMENTS");
     writeByte += parser.writeString(m_comment);
@@ -283,7 +329,7 @@ void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
 
     //addParam(aParam, eObjParam_TYPE, QString::number(m_type));
     addParam(aParam, eObjParam_NAME, m_name);
-    //addParam(aParam, eObjParam_TEMPLATE, m_modelName);
+    addParam(aParam, eObjParam_TEMPLATE, m_modelName);
     addParam(aParam, eObjParam_PARENT_TEMPLATE, m_parentTemplate);
     addParam(aParam, eObjParam_PRIM_TXTR, m_primaryTexture);
     //addParam(aParam, eObjParam_SEC_TXTR, m_secondaryTexture);
@@ -320,7 +366,7 @@ void CWorldObj::applyParam(EObjParam param, const QString &value)
 
     case eObjParam_TYPE:
     {
-        Q_ASSERT(false);
+        m_type = value.toUInt();
         break;
     }
     case eObjParam_TEMPLATE:
@@ -431,11 +477,11 @@ QString CWorldObj::getParam(EObjParam param)
         value = QString::number(m_player);
         break;
     }
-    case eObjParam_TYPE:
-    {
-        value = QString::number(m_type);
-        break;
-    }
+//    case eObjParam_TYPE:
+//    {
+//        value = QString::number(m_type);
+//        break;
+//    }
     case eObjParam_TEMPLATE:
     {
         value = m_modelName;
@@ -500,6 +546,7 @@ QJsonObject CWorldObj::toJson()
     QJsonObject base_obj = CObjectBase::toJson();
     obj.insert("Base object", base_obj);
     obj.insert("Type", QJsonValue::fromVariant(m_type));
+    obj.insert("Model name", m_modelName);
     obj.insert("Primary texture", m_primaryTexture);
     obj.insert("Secondary texture", m_secondaryTexture);
 

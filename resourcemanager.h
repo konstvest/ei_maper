@@ -1,13 +1,48 @@
-#ifndef TEXTURELIST_H
-#define TEXTURELIST_H
+#ifndef CRESOURCEMANAGER_H
+#define CRESOURCEMANAGER_H
+
+#include <QListWidget>
+#include <QFileInfo>
 #include <QMap>
 #include <QImage>
-#include <QFileInfo>
 #include <QOpenGLTexture>
+#include "figure.h"
+
+//forward declarations
+class CSettings;
+
+class CObjectList
+{
+public:
+    static CObjectList* getInstance();
+    CObjectList(CObjectList const&) = delete;
+    void operator=(CObjectList const&)  = delete;
+
+    void loadFigures(QSet<QString>& aFigure);
+    void readFigure(const QByteArray& file, const QString& name);
+    void readAssembly(const QMap<QString, QByteArray>& aFile, const QString& assemblyRoot);
+    ei::CFigure* getFigure(const QString& name);
+    CSettings* settings(){Q_ASSERT(m_pSettings); return m_pSettings;}
+    void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
+    QList<QString>& figureList() {return m_arrFigureForComboBox;}
+
+    void initResource();
+
+private:
+    CObjectList();
+    ~CObjectList();
+    ei::CFigure* figureDefault();
+
+private:
+    static CObjectList* m_pObjectContainer;
+    CSettings* m_pSettings;
+    QMap<QString, ei::CFigure*> m_aFigure;
+    QList<QString> m_arrFigureForComboBox; //optimization for cell widget
+};
+
+
 
 // https://www.gipat.ru/forum/index.php?showtopic=3357 - format description
-
-class CSettings;
 
 enum ETextureFormat
 {
@@ -30,8 +65,6 @@ enum ETextureFormat
     ,eMMP_PAINT32 = 0x32544E50
     ,eMMP_PNT3    = 0x33544E50
 };
-
-
 
 struct SMmpHeader
 {
@@ -68,20 +101,35 @@ public:
     void operator=(CTextureList const&)  = delete;
 
     void loadTexture(QSet<QString>& aName);
-    QOpenGLTexture* texture(QString& name);
+    QOpenGLTexture* texture(const QString& name);
     QOpenGLTexture* buildLandTex(QString& name, int& texCount);
     QOpenGLTexture* textureDefault();
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
+    void initResource();
+    QList<QString>& textureList() {return m_arrCellComboBox;}
 
 private:
     CTextureList();
     ~CTextureList();
     void parse(QByteArray& data, const QString& name);
+    void initAuxTexture();
 
 private:
     static CTextureList* m_pTextureContainer;
     QMap<QString, QOpenGLTexture*> m_aTexture;
     CSettings* m_pSettings;
+    QList<QString> m_arrCellComboBox; //optimization for cell widget
 };
 
-#endif // TEXTURELIST_H
+class CResourceManager
+{
+public:
+    CResourceManager();
+    void loadResources();
+};
+
+bool isDIfferent(const QString& value);
+QString valueDifferent();
+
+
+#endif // CRESOURCEMANAGER_H

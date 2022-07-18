@@ -30,7 +30,7 @@ class CDeleteNodeCommand: public QUndoCommand
 public:
     enum { Id = 101 };
     CDeleteNodeCommand() = delete;
-    CDeleteNodeCommand(CMob* pMob, CNode* pNode, QUndoCommand *parent = nullptr);
+    CDeleteNodeCommand(CView* pView, uint nodeId, QUndoCommand *parent = nullptr);
 
     void undo() override;
     void redo() override;
@@ -38,8 +38,8 @@ public:
     int id() const override { return Id; }
 
 private:
-    CMob* m_pMob;
-    CNode* m_pNode;
+    CView* m_pView;
+    uint m_nodeId;
 };
 
 struct SParam
@@ -54,7 +54,7 @@ class CChangeStringParam : public QObject, public QUndoCommand
 public:
     enum { Id = 102 };
     CChangeStringParam();
-    CChangeStringParam(CNode* pNode, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
+    CChangeStringParam(CView* pView, uint nodeId, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
 
     void undo() override;
     void redo() override;
@@ -66,7 +66,8 @@ signals:
     void updatePosOnLand(CNode* pNode);
 
 protected:
-    CNode* m_pNode;
+    CView* m_pView;
+    uint m_nodeId;
     EObjParam m_objParam;
     QString m_oldValue;
     QString m_newValue;
@@ -78,7 +79,7 @@ class CChangeModelParam : public CChangeStringParam
 public:
     enum { Id = 103 };
 
-    CChangeModelParam(CNode* pNode, EObjParam& objParam, QString value, QUndoCommand *parent = nullptr);
+    CChangeModelParam(CView* pView, uint nodeId, EObjParam& objParam, QString value, QUndoCommand *parent = nullptr);
 
     void undo() override;
     void redo() override;
@@ -94,7 +95,7 @@ class CCreateNodeCommand: public QUndoCommand
 public:
     enum { Id = 104 };
     CCreateNodeCommand() = delete;
-    CCreateNodeCommand(CMob* pMob, QJsonObject nodeData, QUndoCommand *parent = nullptr);
+    CCreateNodeCommand(CView* pView, QJsonObject nodeData, QUndoCommand *parent = nullptr);
 
     void undo() override;
     void redo() override;
@@ -102,10 +103,9 @@ public:
     int id() const override { return Id; }
 
 private:
-    CMob* m_pMob;
+    CView* m_pView;
     QJsonObject m_nodeData;
-
-    CNode* m_pNode;
+    uint m_createdNodeId;
 };
 
 #endif // UNDO_H

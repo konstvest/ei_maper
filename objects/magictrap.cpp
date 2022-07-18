@@ -1,10 +1,28 @@
 #include <QJsonArray>
 #include "magictrap.h"
+#include "resourcemanager.h"
 
-CMagicTrap::CMagicTrap()
-//TODO: set default value
+CMagicTrap::CMagicTrap():
+    m_diplomacy(0)
+    ,m_castInterval(0)
+    ,m_bCastOnce(false)
 {
+    m_type = 59;
+    updateFigure(CObjectList::getInstance()->getFigure("trap"));
+    setTexture(CTextureList::getInstance()->texture("trap"));
+}
 
+CMagicTrap::CMagicTrap(const CMagicTrap &trap):
+    CWorldObj(trap)
+{
+    m_diplomacy = trap.m_diplomacy;
+    m_spell = trap.m_spell;
+    m_aArea = trap.m_aArea;
+    m_aTarget = trap.m_aTarget;
+    m_castInterval = trap.m_castInterval;
+    m_bCastOnce = trap.m_bCastOnce;
+    updateFigure(CObjectList::getInstance()->getFigure("trap"));
+    setTexture(CTextureList::getInstance()->texture("trap"));
 }
 
 CMagicTrap::CMagicTrap(QJsonObject data):
@@ -12,14 +30,14 @@ CMagicTrap::CMagicTrap(QJsonObject data):
 {
     m_diplomacy = data["Diplomacy group"].toVariant().toUInt();
     m_spell = data["Spell"].toString();
-    QJsonArray aArea = data["Area"].toArray();
+    QJsonArray aArea = data["Area act."].toArray();
     for(auto it=aArea.begin(); it<aArea.end(); ++it)
     {
         QJsonObject obj = it->toObject();
         SArea area;
         area.m_radius = obj["Radius"].toVariant().toUInt();
 
-        QJsonArray arrPos = data["Point to"].toArray();
+        QJsonArray arrPos = obj["Point to"].toArray();
         if (arrPos.size() == 2)
             area.m_pointTo = QVector2D(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat());
 
@@ -27,7 +45,7 @@ CMagicTrap::CMagicTrap(QJsonObject data):
     }
 
 
-    QJsonArray aTarget = data["Targets(Points?!)"].toArray();
+    QJsonArray aTarget = data["Cast Points"].toArray();
     for (auto it=aTarget.begin(); it<aTarget.end(); ++it)
     {
         QJsonArray aPos = it->toArray();
@@ -36,6 +54,8 @@ CMagicTrap::CMagicTrap(QJsonObject data):
 
     m_castInterval = data["Cast interval"].toVariant().toUInt();
     m_bCastOnce = data["Is cast once?"].toBool();
+    updateFigure(CObjectList::getInstance()->getFigure("trap"));
+    setTexture(CTextureList::getInstance()->texture("trap"));
 }
 
 uint CMagicTrap::deserialize(util::CMobParser& parser)
@@ -101,6 +121,7 @@ uint CMagicTrap::deserialize(util::CMobParser& parser)
                 break;
         }
     }
+    Q_ASSERT(m_type==59);
     return readByte;
 }
 
@@ -114,13 +135,13 @@ void CMagicTrap::serializeJson(QJsonObject& obj)
     {
         QJsonObject areaObj;
         QJsonArray pos;
-        pos.append(QJsonValue::fromVariant(area.m_pointTo.y()));
         pos.append(QJsonValue::fromVariant(area.m_pointTo.x()));
+        pos.append(QJsonValue::fromVariant(area.m_pointTo.y()));
         areaObj.insert("Point to", pos);
         areaObj.insert("Radius", QJsonValue::fromVariant(area.m_radius));
         aArea.append(areaObj);
     }
-    obj.insert("Area", aArea);
+    obj.insert("Area act.", aArea);
 
     QJsonArray aTarget;
     for (auto& target: m_aTarget)
@@ -130,7 +151,7 @@ void CMagicTrap::serializeJson(QJsonObject& obj)
         pos.append(QJsonValue::fromVariant(target.y()));
         aTarget.append(pos);
     }
-    obj.insert("Targets(Points?!)", aTarget);
+    obj.insert("Cast Points", aTarget);
     obj.insert("Cast interval", QJsonValue::fromVariant(m_castInterval));
     obj.insert("Is cast once?", m_bCastOnce);
 }
@@ -185,6 +206,10 @@ void CMagicTrap::collectParams(QMap<EObjParam, QString> &aParam, ENodeType param
     addParam(aParam, eObjParam_TRAP_TARGETS, util::makeString(m_aTarget));
     addParam(aParam, eObjParam_TRAP_CAST_INTERVAL, QString::number(m_castInterval));
     addParam(aParam, eObjParam_TRAP_CAST_ONCE, util::makeString(m_bCastOnce));
+
+    aParam.remove(eObjParam_TEMPLATE); //dont allow change
+    aParam.remove(eObjParam_PRIM_TXTR); //dont allow change
+
 }
 
 void CMagicTrap::applyParam(EObjParam param, const QString &value)
@@ -283,13 +308,13 @@ QJsonObject CMagicTrap::toJson()
     {
         QJsonObject areaObj;
         QJsonArray pos;
-        pos.append(QJsonValue::fromVariant(area.m_pointTo.y()));
         pos.append(QJsonValue::fromVariant(area.m_pointTo.x()));
+        pos.append(QJsonValue::fromVariant(area.m_pointTo.y()));
         areaObj.insert("Point to", pos);
         areaObj.insert("Radius", QJsonValue::fromVariant(area.m_radius));
         aArea.append(areaObj);
     }
-    obj.insert("Area", aArea);
+    obj.insert("Area act.", aArea);
 
     QJsonArray aTarget;
     for (auto& target: m_aTarget)
@@ -299,8 +324,13 @@ QJsonObject CMagicTrap::toJson()
         pos.append(QJsonValue::fromVariant(target.y()));
         aTarget.append(pos);
     }
-    obj.insert("Targets(Points?!)", aTarget);
+    obj.insert("Cast Points", aTarget);
     obj.insert("Cast interval", QJsonValue::fromVariant(m_castInterval));
     obj.insert("Is cast once?", m_bCastOnce);
     return obj;
+}
+
+void CMagicTrap::loadTexture()
+{
+    //do nothing. trap has hardcoded texture
 }

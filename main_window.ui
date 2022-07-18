@@ -146,25 +146,6 @@
         <property name="bottomMargin">
          <number>0</number>
         </property>
-        <item>
-         <widget class="CView" name="myGLWidget">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>200</width>
-            <height>200</height>
-           </size>
-          </property>
-          <property name="mouseTracking">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
       <item>
@@ -178,23 +159,31 @@
         <item>
          <widget class="QTableWidget" name="tableWidget">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
           <property name="horizontalScrollBarPolicy">
            <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
           </property>
           <property name="rowCount">
            <number>0</number>
           </property>
           <property name="columnCount">
-           <number>0</number>
+           <number>2</number>
           </property>
           <attribute name="horizontalHeaderVisible">
-           <bool>true</bool>
+           <bool>false</bool>
           </attribute>
+          <column/>
+          <column/>
          </widget>
         </item>
        </layout>
@@ -283,6 +272,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
+    <addaction name="actionSave_all_MOB_s"/>
     <addaction name="actionSave_as"/>
     <addaction name="actionClose_all"/>
     <addaction name="separator"/>
@@ -302,6 +292,8 @@
     </property>
     <addaction name="actionSettings"/>
     <addaction name="actionShow_undo_redo"/>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="enabled">
@@ -319,8 +311,7 @@
     </widget>
     <addaction name="action_Mob_parameters"/>
     <addaction name="menuSelect"/>
-    <addaction name="actionCreate_new_object_TODO"/>
-    <addaction name="actionUndo"/>
+    <addaction name="actionCreate_new_object"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -351,7 +342,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Save as...</string>
+    <string>Save active MOB as...</string>
    </property>
   </action>
   <action name="actionClose_all">
@@ -382,9 +373,12 @@
     <string>Select by...</string>
    </property>
   </action>
-  <action name="actionCreate_new_object_TODO">
+  <action name="actionCreate_new_object">
    <property name="text">
-    <string>Create &amp;new object (TODO)</string>
+    <string>Create &amp;new object</string>
+   </property>
+   <property name="toolTip">
+    <string>Create new object</string>
    </property>
   </action>
   <action name="actionShow_undo_redo">
@@ -402,19 +396,19 @@
     <string>Un&amp;do</string>
    </property>
   </action>
+  <action name="actionRedo">
+   <property name="text">
+    <string>Redo</string>
+   </property>
+  </action>
+  <action name="actionSave_all_MOB_s">
+   <property name="text">
+    <string>Save all MOB's</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
-  <customwidget>
-   <class>CView</class>
-   <extends>QOpenGLWidget</extends>
-   <header>view.h</header>
-   <slots>
-    <slot>setXRot(int)</slot>
-    <slot>setYRot(int)</slot>
-    <slot>setZRot(int)</slot>
-   </slots>
-  </customwidget>
   <customwidget>
    <class>CProgressView</class>
    <extends>QProgressBar</extends>

@@ -1,9 +1,24 @@
 #include <QJsonArray>
 #include "light.h"
+#include "resourcemanager.h"
 
-CLight::CLight()
+CLight::CLight():
+    m_range(0.0f)
+    ,m_bShadow(false)
+    ,m_color(0.0f, 0.0f, 0.0f)
 {
+    updateFigure(CObjectList::getInstance()->getFigure("light"));
+    setTexture(CTextureList::getInstance()->texture("light"));
+}
 
+CLight::CLight(const CLight &light):
+    CObjectBase(light)
+{
+    m_range = light.m_range;
+    m_bShadow = light.m_bShadow;
+    m_color = light.m_color;
+    updateFigure(CObjectList::getInstance()->getFigure("light"));
+    setTexture(CTextureList::getInstance()->texture("light"));
 }
 
 CLight::CLight(QJsonObject data):
@@ -14,6 +29,8 @@ CLight::CLight(QJsonObject data):
     QJsonArray aColor = data["Color"].toArray();
     if (aColor.size()==3)
         m_color = QVector3D(aColor[0].toVariant().toFloat(), aColor[1].toVariant().toFloat(), aColor[2].toVariant().toFloat());
+    updateFigure(CObjectList::getInstance()->getFigure("light"));
+    setTexture(CTextureList::getInstance()->texture("light"));
 }
 
 uint CLight::deserialize(util::CMobParser& parser)
@@ -61,7 +78,6 @@ uint CLight::deserialize(util::CMobParser& parser)
             break;
         }
     }
-    m_modelName = "light";
     return readByte;
 }
 

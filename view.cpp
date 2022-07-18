@@ -222,7 +222,7 @@ void CView::draw()
     if (!m_program.bind())
         close();
 
-    if (pLand && pLand->isMprLoad())
+    if (pLand && pLand->isMprLoad() && !m_aMob.isEmpty())
     {
         QMatrix4x4 mtrx;
         mtrx.setToIdentity();

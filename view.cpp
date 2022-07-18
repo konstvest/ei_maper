@@ -431,8 +431,8 @@ void CView::getColorFromRect(const QRect& rect, QVector<SColor>& aColor)
     const QPoint btmRight(rect.right(), m_height - rect.top());
     const QRect inversedRect(topLeft, btmRight);
 
-    const auto h = qAbs(inversedRect.height());
-    const auto w = qAbs(inversedRect.width());
+    const int h = inversedRect.height() == 0 ? 1 : qAbs(inversedRect.height());
+    const int w = inversedRect.width() == 0 ? 1 :qAbs(inversedRect.width());
     uint size = component * w * h;
     QByteArray* pixel = new QByteArray();
     pixel->resize(size);
@@ -491,37 +491,38 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
     getColorFromRect(rect, aColor);
 
     if(m_operationType == EOperationTypeObjects)
-        foreach(const auto& mob, m_aMob)
-        {
-            if (!bAddToSelect) // clear selection buffer if we click out of objects in single selection mode
-                mob->clearSelect();
-            foreach (auto& node, mob->nodes())
-                foreach (const auto& color, aColor)
-                {
-                    if (node->isColorSuitable(color))
-                    {
-                        if (bAddToSelect)
-                        {//shift pressed
 
-                            if (node->nodeState() & ENodeState::eSelect)
-                            {//remove from select
-                                node->setState(ENodeState::eDraw);
-                            }
-                            else
-                            {// add to select
-                                node->setState(ENodeState::eSelect);
-                            }
-                            break;
+        if (!bAddToSelect) // clear selection buffer if we click out of objects in single selection mode
+            m_activeMob->clearSelect();
+
+    if (!aColor.isEmpty())
+        foreach (auto& node, m_activeMob->nodes())
+            foreach (const auto& color, aColor)
+            {
+                if (node->isColorSuitable(color))
+                {
+                    if (bAddToSelect)
+                    {//shift pressed
+
+                        if (node->nodeState() & ENodeState::eSelect)
+                        {//remove from select
+                            node->setState(ENodeState::eDraw);
                         }
                         else
-                        {//shift not pressed
+                        {// add to select
                             node->setState(ENodeState::eSelect);
-                            break;
                         }
                         break;
                     }
+                    else
+                    {//shift not pressed
+                        node->setState(ENodeState::eSelect);
+                        break;
+                    }
+                    break;
                 }
-        }
+            }
+
     m_selectFrame->reset();
 }
 

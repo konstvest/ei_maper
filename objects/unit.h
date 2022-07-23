@@ -28,7 +28,7 @@ signals:
 
 private:
     //QVector3D m_lookPoint;//"ACTION_PT_LOOK_PT", ePlot}; //replaced by CNode pos
-    uint m_wait;//"ACTION_PT_WAIT_SEG", eDword};
+    int m_wait;//"ACTION_PT_WAIT_SEG", eDword};
     uint m_turnSpeed;//"ACTION_PT_TURN_SPEED", eDword};
     char m_flag;//"ACTION_PT_FLAGS", eByte};
 };

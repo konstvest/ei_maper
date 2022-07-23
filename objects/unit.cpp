@@ -1071,7 +1071,9 @@ void CPatrolPoint::applyParam(EObjParam param, const QString &value)
     switch (param){
     case eObjParam_POSITION:
     {
-        m_position = util::vec3FromString(value);
+        //m_position = util::vec3FromString(value);
+        QVector3D pos = util::vec3FromString(value);
+        updatePos(pos);
         break;
     }
     default:
@@ -1208,12 +1210,14 @@ void CLookPoint::applyParam(EObjParam param, const QString &value)
     switch (param){
     case eObjParam_POSITION:
     {
-        m_position = util::vec3FromString(value);
+        //m_position = util::vec3FromString(value);
+        QVector3D pos = util::vec3FromString(value);
+        updatePos(pos);
         break;
     }
     case eObjParam_VIEW_WAIT:
     {
-        m_wait = value.toUInt();
+        m_wait = value.toInt();
         break;
     }
     case eObjParam_VIEW_TURN_SPEED:
@@ -1291,7 +1295,7 @@ void CLookPoint::serializeJson(QJsonObject &obj)
 
 void CLookPoint::deSerializeJson(QJsonObject data)
 {
-    m_wait = data["Wait"].toVariant().toUInt();
+    m_wait = data["Wait"].toVariant().toInt();
     m_turnSpeed = data["Turn speed"].toVariant().toUInt();
     m_flag = (char)data["Point flag"].toInt();
     QJsonArray arrPos = data["Position"].toArray();

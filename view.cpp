@@ -986,7 +986,7 @@ void CView::operationApply(EOperationAxisType operationType)
             {
                 CChangeLogicParam* pOp = new CChangeLogicParam(this, pair.first, EObjParam::eObjParam_POSITION, util::makeString(pair.first->position()));
                 QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
-                pair.first->updatePos(m_operationBackup[pair.first]);
+                pair.first->updatePos(m_operationBackup[pair.first]); //revert position to start (it will apply in 'push' operation
                 m_pUndoStack->push(pOp);
             }
             else

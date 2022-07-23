@@ -324,14 +324,14 @@ void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
     if (comm != eWorldObject)
         return;
 
-    addParam(aParam, eObjParam_BODYPARTS, util::makeString(m_bodyParts));
-    addParam(aParam, eObjParam_PLAYER, QString::number(m_player));
+    util::addParam(aParam, eObjParam_BODYPARTS, util::makeString(m_bodyParts));
+    util::addParam(aParam, eObjParam_PLAYER, QString::number(m_player));
 
     //addParam(aParam, eObjParam_TYPE, QString::number(m_type));
-    addParam(aParam, eObjParam_NAME, m_name);
-    addParam(aParam, eObjParam_TEMPLATE, m_modelName);
-    addParam(aParam, eObjParam_PARENT_TEMPLATE, m_parentTemplate);
-    addParam(aParam, eObjParam_PRIM_TXTR, m_primaryTexture);
+    util::addParam(aParam, eObjParam_NAME, m_name);
+    util::addParam(aParam, eObjParam_TEMPLATE, m_modelName);
+    util::addParam(aParam, eObjParam_PARENT_TEMPLATE, m_parentTemplate);
+    util::addParam(aParam, eObjParam_PRIM_TXTR, m_primaryTexture);
     //addParam(aParam, eObjParam_SEC_TXTR, m_secondaryTexture);
 
 
@@ -339,12 +339,12 @@ void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
     QQuaternion quat;
     quat = QQuaternion::fromRotationMatrix(mtrx3);
     QVector3D eulerRot = quat.toEulerAngles();
-    addParam(aParam, eObjParam_ROTATION, util::makeString(eulerRot));  //todo: show rotation as X,Y,Z rotation, don't use quaternion
-    addParam(aParam, eObjParam_USE_IN_SCRIPT, util::makeString(m_bUseInScript));
-    addParam(aParam, eObjParam_IS_SHADOW, util::makeString(m_bShadow));
-    addParam(aParam, eObjParam_PARENT_ID, QString::number(m_parentID));
-    addParam(aParam, eObjParam_QUEST_INFO, m_questInfo);
-    addParam(aParam, eObjParam_COMPLECTION, util::makeString(m_complection));
+    util::addParam(aParam, eObjParam_ROTATION, util::makeString(eulerRot));  //todo: show rotation as X,Y,Z rotation, don't use quaternion
+    util::addParam(aParam, eObjParam_USE_IN_SCRIPT, util::makeString(m_bUseInScript));
+    util::addParam(aParam, eObjParam_IS_SHADOW, util::makeString(m_bShadow));
+    util::addParam(aParam, eObjParam_PARENT_ID, QString::number(m_parentID));
+    util::addParam(aParam, eObjParam_QUEST_INFO, m_questInfo);
+    util::addParam(aParam, eObjParam_COMPLECTION, util::makeString(m_complection));
 
 }
 

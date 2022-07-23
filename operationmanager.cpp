@@ -9,6 +9,7 @@
 #include "camera.h"
 #include "ui_connectors.h"
 #include "log.h"
+#include "scene.h"
 
 void strToOperValue(QVector3D& vec, const EOperateAxis axis, const QString& value)
 {
@@ -161,6 +162,7 @@ void CSelect::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
         QRect rect(topLeft, bottomRight);
         m_pView->pickObject(rect, pOp->keyManager()->isPressed(Qt::Key_Shift));
         m_pView->viewParameters();
+
         break;
     }
     default: //TODO

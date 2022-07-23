@@ -118,8 +118,8 @@ void CParticle::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
         return;
 
 
-    addParam(aParam, eObjParam_PARTICL_TYPE, QString::number(m_kind));
-    addParam(aParam, eObjParam_PARTICL_SCALE, QString::number(m_scale));
+    util::addParam(aParam, eObjParam_PARTICL_TYPE, QString::number(m_kind));
+    util::addParam(aParam, eObjParam_PARTICL_SCALE, QString::number(m_scale));
 }
 
 void CParticle::applyParam(EObjParam param, const QString &value)

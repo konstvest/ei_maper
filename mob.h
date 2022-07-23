@@ -47,11 +47,12 @@ public:
     void createNode(CNode* pNode);
     CNode* createNode(QJsonObject data);
     void undo_createNode(uint mapId);
-    QList<CNode*>& nodes() {return m_aNode; }
+    QList<CNode*>& nodes();
+    QList<CNode*>& logicNodes();
     void deleteNode(uint mapId);
     void undo_deleteNode(uint mapId);
     void deleteNode(CNode* pNode);
-    void clearSelect();
+    void clearSelect(bool bClearLogic = false);
     void delNodes();
     CNode* nodeByMapId(uint id);
     CView* view() {Q_ASSERT(m_view); return m_view;}
@@ -70,7 +71,7 @@ public:
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
-
+    CNode* findUnitParent(CNode* pPointIn);
 
 private:
     void init();
@@ -101,6 +102,7 @@ private:
     //todo: include ALL nodes into these lists, for node assemly use children\parents
     QList<CNode*> m_aNode;
     QList<CNode*> m_aDeletedNode;
+    QList<CNode*> m_aLogicNode;
     EMobOrder m_order;
 };
 

@@ -53,7 +53,7 @@ class CChangeStringParam : public QObject, public QUndoCommand
     Q_OBJECT
 public:
     enum { Id = 102 };
-    CChangeStringParam();
+    CChangeStringParam() = delete;
     CChangeStringParam(CView* pView, uint nodeId, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
 
     void undo() override;
@@ -106,6 +106,31 @@ private:
     CView* m_pView;
     QJsonObject m_nodeData;
     uint m_createdNodeId;
+};
+
+class CChangeLogicParam : public QObject, public QUndoCommand
+{
+    Q_OBJECT
+public:
+    enum { Id = 102 };
+    CChangeLogicParam() = delete;
+    CChangeLogicParam(CView* pView, CNode* pPoint, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void updateParam();
+    void updatePosOnLand(CNode* pNode);
+
+protected:
+    CView* m_pView;
+    CNode* m_pPoint;
+    EObjParam m_objParam;
+    QString m_oldValue;
+    QString m_newValue;
 };
 
 #endif // UNDO_H

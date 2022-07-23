@@ -11,6 +11,7 @@
 #include <QJsonArray>
 
 #include "utils.h"
+#include "resourcemanager.h" //TODO: delete this (now it uses only for valuediff)
 
 void util::formatStream(QDataStream& stream)
 {
@@ -497,6 +498,12 @@ uint util::CMobParser::writeDiplomacy(const QVector<QVector<uint>>& data)
 uint util::CMobParser::readDword(uint& data)
 {
     m_stream >> data;
+    return 4;
+}
+
+uint util::CMobParser::readDword(EBehaviourType &data)
+{
+    m_stream >> (qint32&)data;
     return 4;
 }
 
@@ -1005,4 +1012,16 @@ SUnitStat util::unitStatFromString(const QString &str)
     QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
     SUnitStat stat(doc.object());
     return stat;
+}
+
+
+void util::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str)
+{
+    if (aParam.contains(param))
+    {
+        if (aParam[param] != str)
+            aParam.insert(param, valueDifferent());
+    }
+    else
+        aParam.insert(param, str);
 }

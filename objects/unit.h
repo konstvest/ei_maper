@@ -7,16 +7,24 @@ class CSettings;
 
 class CLookPoint : public CObjectBase
 {
+    Q_OBJECT
 public:
     CLookPoint();
     CLookPoint(const CLookPoint& look);
     //CLookPoint(CNode* node);
     ~CLookPoint() {}
     ENodeType nodeType() override {return ENodeType::eLookPoint;}
+    QString getParam(EObjParam param) override;
+    void applyParam(EObjParam param, const QString& value) override;
+    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override final;
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject &obj) override;
     void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser) override;
+    bool updatePos(QVector3D& pos) override;
+
+signals:
+    void lookPointChanges();
 
 private:
     //QVector3D m_lookPoint;//"ACTION_PT_LOOK_PT", ePlot}; //replaced by CNode pos
@@ -27,6 +35,7 @@ private:
 
 class CPatrolPoint : public CObjectBase
 {
+    Q_OBJECT;
 public:
     CPatrolPoint();
     CPatrolPoint(const CPatrolPoint& patrol);
@@ -34,12 +43,24 @@ public:
     ENodeType nodeType() override {return ENodeType::ePatrolPoint;}
     void draw(QOpenGLShaderProgram* program) override final;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override final;
-    void update();
     uint deserialize(util::CMobParser& parser) override final;
+    QString getParam(EObjParam param) override;
+    void applyParam(EObjParam param, const QString& value) override;
+    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override final;
     void serializeJson(QJsonObject &obj) override final;
     void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser) override final;
     QVector<CLookPoint*>& lookPoint() {return m_aLookPt;}
+    void collectLookNodes(QList<CNode*>& arrNode);
+    void clearLookSelect();
+    bool updatePos(QVector3D& pos) override;
+
+signals:
+    void patrolChanges();
+
+public slots:
+    void update();
+
 
 private:
     QOpenGLBuffer m_vertexBuf; //vertex buffer for drawing links between look point and patrol point
@@ -53,26 +74,9 @@ private:
 
 class CUnit;
 
-enum EBehaviourType //todo: move to logic m_model
-//zone view has these parameters
-//idle -BZ
-//guard - radius
-//patrol - path
-//sentry - place
-//player - briffing
-//guard alarm
+class CLogic : public QObject
 {
-    eBZ = 0 // ?!
-    , eRadius
-    , ePath
-    , ePlace
-    , eBriffing
-    , eGuardAlaram
-
-};
-
-class CLogic
-{
+    Q_OBJECT
 public:
     CLogic() = delete;
     CLogic(const CLogic& logic) = delete;
@@ -86,14 +90,21 @@ public:
     void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser);
     bool isUse() {return m_use;}
-    void update();
     void updatePos(QVector3D& dir);
+    void collectPatrolNodes(QList<CNode*>& arrNode);
+    void clearPatrolSelect();
+    void collectlogicParams(QMap<EObjParam, QString>& aParam);
+    bool isChild(CPatrolPoint* pPointIn);
+
+public slots:
+    void update();
 
 private:
     QOpenGLBuffer m_vertexBuf;
     QOpenGLBuffer m_indexBuf;
     bool m_bCyclic; // true/false
-    uint m_model;//behaviour type (see enum EBehaviourType)
+    //uint m_model;//behaviour type (see enum EBehaviourType)
+    EBehaviourType m_model;
 
     //guard point + radius in case of "random" bahavior
     float m_guardRadius; // guard radius
@@ -126,11 +137,15 @@ public:
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
     void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
+    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
     const QString& databaseName(){return m_prototypeName;}
     bool updatePos(QVector3D& pos) override;
     QJsonObject toJson() override;
+    void collectLogicNodes(QList<CNode*>& arrNode);
+    void clearLogicSelect();
+    bool isChild(CPatrolPoint* pPointIn);
 
 private:
     //"UNIT_R", eNull};

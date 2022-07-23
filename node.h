@@ -38,8 +38,9 @@ enum ENodeState
 
 class CMob;
 
-class CNode
+class CNode : public QObject
 {
+    Q_OBJECT
 public:
     CNode();
     CNode(CNode* parent);
@@ -60,6 +61,7 @@ public:
     virtual void serializeJson(QJsonObject& obj) = 0;
     virtual uint serialize(util::CMobParser& parser) = 0;
     virtual void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) = 0;
+    virtual void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) = 0;
     virtual void applyParam(EObjParam param, const QString& value) = 0;
     virtual QString getParam(EObjParam param) = 0;
     virtual bool updatePos(QVector3D& pos) = 0;

@@ -21,6 +21,7 @@
 #include "ui_connectors.h"
 #include "preview.h"
 #include "log.h"
+#include "scene.h"
 
 
 #include <QImageReader>
@@ -63,7 +64,7 @@ MainWindow::MainWindow(QWidget* parent) :
     createUndoView();
     CStatusConnector::getInstance()->attach(m_ui->statusIco, m_ui->statusBar);
     connectUiButtons();
-    m_pView->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText);
+    m_pView->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText, m_ui->treeWidget);
     initShortcuts();
     QObject::connect(m_pView, SIGNAL(mobLoad(bool)), this, SLOT(updateMobListInParam(bool)));
     QObject::connect(m_pView, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
@@ -106,6 +107,8 @@ void MainWindow::initShortcuts()
     m_ui->actionUndo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
     m_ui->actionRedo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
     m_ui->actionCreate_new_object->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+    m_ui->actionReset_cam_position->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_R));
+    m_ui->actionChange_mod_e->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Tab));
 
 }
 
@@ -113,12 +116,13 @@ void MainWindow::connectUiButtons()
 {
     CButtonConnector::getInstance()->attach(m_pView);
     CButtonConnector::getInstance()->addButton(EButtonOpSelect, m_ui->selectButton);
-    m_ui->selectButton->setEnabled(false);
     CButtonConnector::getInstance()->addButton(EButtonOpMove, m_ui->moveButton);
-    m_ui->moveButton->setEnabled(false);
     CButtonConnector::getInstance()->addButton(EButtonOpRotate, m_ui->rotateButton);
-    m_ui->rotateButton->setEnabled(false);
     CButtonConnector::getInstance()->addButton(EButtonOpScale, m_ui->scaleButton);
+    //disable buttons bcs operations works bad for mouse'moove' action without start point. op's starts work frommouse button position
+    m_ui->selectButton->setEnabled(false);
+    m_ui->moveButton->setEnabled(false);
+    m_ui->rotateButton->setEnabled(false);
     m_ui->scaleButton->setEnabled(false);
 }
 
@@ -222,7 +226,21 @@ void MainWindow::on_actionUndo_triggered()
 void MainWindow::on_toolButton_2_clicked()
 {
     ei::log(eLogDebug, "btn test start");
-    m_createDialog->show();
+    auto pTree = m_ui->treeWidget;
+    pTree->clear();
+    pTree->setColumnCount(2);
+    QStringList header;
+    header << "Point" << "Parameter";
+    pTree->setHeaderLabels(header);
+    auto pPoint = new QTreeWidgetItem(pTree);
+    pTree->addTopLevelItem(pPoint);
+    pPoint->setText(0, "pos(x,y,z)");
+    pPoint->setText(1, "view count: 3");
+
+    auto pView = new QTreeWidgetItem();
+    pView->setText(0, "pos(X,Y,Z)");
+    pView->setText(1, "look time: 150");
+    pPoint->addChild(pView);
     ei::log(eLogDebug, "btn test end");
 }
 
@@ -290,5 +308,29 @@ void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
 void MainWindow::on_actionSave_all_MOB_s_triggered()
 {
     m_pView->saveAllMob();
+}
+
+
+void MainWindow::on_rotateButton_clicked()
+{
+    CButtonConnector::getInstance()->clickButton(EButtonOpRotate);
+}
+
+
+void MainWindow::on_scaleButton_clicked()
+{
+    CButtonConnector::getInstance()->clickButton(EButtonOpScale);
+}
+
+
+void MainWindow::on_actionReset_cam_position_triggered()
+{
+    m_pView->resetCamPosition();
+}
+
+
+void MainWindow::on_actionChange_mod_e_triggered()
+{
+    CScene::getInstance()->changeMode(CScene::getInstance()->getMode() == eEditModeObjects ? eEditModeLogic : eEditModeObjects);
 }
 

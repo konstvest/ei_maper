@@ -36,6 +36,8 @@ QString appPath();
 QString makeString(const SUnitStat& stat);
 SUnitStat unitStatFromString(const QString& str);
 
+void addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str);
+
 enum EType
 {
     eUnknown = 0
@@ -96,6 +98,7 @@ public:
     uint readDiplomacy(QVector<QVector<uint>>& data);
     uint writeDiplomacy(const QVector<QVector<uint>>& data);
     uint readDword(uint& data);
+    uint readDword(EBehaviourType& data);
     uint writeDword(const uint& data);
     uint readDword(int& data);
     uint readFloat(float& data);

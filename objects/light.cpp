@@ -137,13 +137,13 @@ void CLight::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType
     if (comm != eLight)
         return;
 
-    addParam(aParam, eObjParam_NID, QString::number(m_mapID));
-    addParam(aParam, eObjParam_LIGHT_SHADOW, util::makeString(m_bShadow));
-    addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
-    addParam(aParam, eObjParam_LIGHT_COLOR, util::makeString(m_color));
-    addParam(aParam, eObjParam_RANGE, QString::number(m_range));
-    addParam(aParam, eObjParam_NAME, m_name);
-    addParam(aParam, eObjParam_COMMENTS, m_comment);
+    util::addParam(aParam, eObjParam_NID, QString::number(m_mapID));
+    util::addParam(aParam, eObjParam_LIGHT_SHADOW, util::makeString(m_bShadow));
+    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+    util::addParam(aParam, eObjParam_LIGHT_COLOR, util::makeString(m_color));
+    util::addParam(aParam, eObjParam_RANGE, QString::number(m_range));
+    util::addParam(aParam, eObjParam_NAME, m_name);
+    util::addParam(aParam, eObjParam_COMMENTS, m_comment);
 }
 
 void CLight::applyParam(EObjParam param, const QString &value)

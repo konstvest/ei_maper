@@ -24,6 +24,7 @@
 #include "settings.h"
 #include "progressview.h"
 #include "log.h"
+#include "scene.h"
 
 CMob::CMob():
     m_view(nullptr)
@@ -357,6 +358,25 @@ QString CMob::mobName()
     return m_filePath.fileName();
 }
 
+CNode *CMob::findUnitParent(CNode *pPointIn)
+{
+    CNode* pParentNode = nullptr;
+    CPatrolPoint* pPoint = dynamic_cast<CPatrolPoint*>(pPointIn);
+    if(nullptr == pPoint)
+        return pParentNode;
+
+    CNode* pNode = nullptr;
+    foreach(pNode, logicNodes())
+    {
+        CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+        if(nullptr != pUnit)
+            continue;
+
+
+    }
+    return pParentNode;
+}
+
 CNode* CMob::createNode(QJsonObject data)
 {
     auto wo = data;
@@ -475,6 +495,32 @@ void CMob::undo_createNode(uint mapId)
             return;
         }
     }
+}
+
+QList<CNode*>& CMob::nodes()
+{
+    return m_aNode;
+}
+
+QList<CNode *> &CMob::logicNodes()
+{
+    //collect logic nodes
+    if(!m_aLogicNode.isEmpty())
+        return m_aLogicNode;
+
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(pNode->nodeType() != ENodeType::eUnit)
+            continue;
+
+        m_aLogicNode.append(pNode);
+        CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+        Q_ASSERT(pUnit);
+        pUnit->collectLogicNodes(m_aLogicNode);
+
+    }
+    return m_aLogicNode;
 }
 
 void CMob::deleteNode(uint mapId)
@@ -988,13 +1034,18 @@ void CMob::deleteNode(CNode *pNode)
     }
 }
 
-void CMob::clearSelect()
+void CMob::clearSelect(bool bClearLogic)
 {
     CNode* pNode;
     foreach (pNode, m_aNode)
     {
         if(pNode->nodeState() == ENodeState::eSelect)
             pNode->setState(ENodeState::eDraw);
+        if(bClearLogic && pNode->nodeType() == ENodeType::eUnit)
+        {
+            CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+            pUnit->clearLogicSelect();
+        }
     }
 }
 

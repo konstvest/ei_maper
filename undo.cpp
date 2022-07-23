@@ -152,3 +152,31 @@ void CCreateNodeCommand::redo()
     setText("Node created ID: " + QString::number(pNode->mapId()));
     m_pView->setDurty();
 }
+
+CChangeLogicParam::CChangeLogicParam(CView* pView, CNode *pPoint, EObjParam objParam, QString value, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_pPoint(pPoint)
+  ,m_objParam(objParam)
+  ,m_newValue(value)
+{
+
+}
+
+void CChangeLogicParam::undo()
+{
+    m_pPoint->applyParam(m_objParam, m_oldValue);
+    emit updateParam();
+    //emit updatePosOnLand(m_pNode);
+    m_pView->setDurty();
+}
+
+void CChangeLogicParam::redo()
+{
+    setText("Change value to " + m_newValue);
+    m_oldValue = m_pPoint->getParam(m_objParam);
+    m_pPoint->applyParam(m_objParam, m_newValue);
+    emit updateParam();
+    //emit updatePosOnLand(m_pNode);
+    m_pView->setDurty();
+}

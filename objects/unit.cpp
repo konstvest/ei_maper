@@ -6,6 +6,7 @@
 #include "landscape.h"
 #include "settings.h"
 #include "log.h"
+#include "scene.h"
 
 CUnit::CUnit():
     m_prototypeName("")
@@ -79,7 +80,7 @@ CUnit::~CUnit()
 void CUnit::draw(QOpenGLShaderProgram* program)
 {
     CObjectBase::draw(program);
-    if (m_aLogic.empty())
+    if (m_aLogic.empty() || m_state == ENodeState::eHidden)
         return;
 
     m_aLogic.front()->draw(program);
@@ -273,15 +274,24 @@ void CUnit::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
     if (comm != eUnit)
         return;
 
-    addParam(aParam, eObjParam_UNIT_NEED_IMPORT, util::makeString(m_bImport));
-    addParam(aParam, eObjParam_UNIT_PROTOTYPE, m_prototypeName);
-    addParam(aParam, eObjParam_UNIT_ARMORS, util::makeString(m_aArmor));
-    addParam(aParam, eObjParam_UNIT_WEAPONS, util::makeString(m_aWeapon));
-    addParam(aParam, eObjParam_UNIT_SPELLS, util::makeString(m_aSpell));
-    addParam(aParam, eObjParam_UNIT_QUICK_ITEMS, util::makeString(m_aQuickItem));
-    addParam(aParam, eObjParam_UNIT_QUEST_ITEMS, util::makeString(m_aQuestItem));
-    addParam(aParam, eObjParam_UNIT_STATS, util::makeString(*m_stat.get()));
-    addParam(aParam, eObjParam_TYPE, QString::number(m_type));
+    util::addParam(aParam, eObjParam_UNIT_NEED_IMPORT, util::makeString(m_bImport));
+    util::addParam(aParam, eObjParam_UNIT_PROTOTYPE, m_prototypeName);
+    util::addParam(aParam, eObjParam_UNIT_ARMORS, util::makeString(m_aArmor));
+    util::addParam(aParam, eObjParam_UNIT_WEAPONS, util::makeString(m_aWeapon));
+    util::addParam(aParam, eObjParam_UNIT_SPELLS, util::makeString(m_aSpell));
+    util::addParam(aParam, eObjParam_UNIT_QUICK_ITEMS, util::makeString(m_aQuickItem));
+    util::addParam(aParam, eObjParam_UNIT_QUEST_ITEMS, util::makeString(m_aQuestItem));
+    util::addParam(aParam, eObjParam_UNIT_STATS, util::makeString(*m_stat.get()));
+    util::addParam(aParam, eObjParam_TYPE, QString::number(m_type));
+}
+
+void CUnit::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    auto comm = paramType & eUnit;
+    if (comm != eUnit)
+        return;
+
+    m_aLogic.front()->collectlogicParams(aParam);
 }
 
 void CUnit::applyParam(EObjParam param, const QString &value)
@@ -391,7 +401,11 @@ bool CUnit::updatePos(QVector3D &pos)
     if(m_aLogic.isEmpty())
         return true;
 
-    m_aLogic[0]->updatePos(dir);
+    if(CScene::getInstance()->getMode()==eEditModeObjects)
+        m_aLogic.front()->updatePos(dir);
+    else
+        m_aLogic.front()->update();
+
     return true;
 }
 
@@ -426,6 +440,21 @@ QJsonObject CUnit::toJson()
 
     obj.insert("Logics", logicArr);
     return obj;
+}
+
+void CUnit::collectLogicNodes(QList<CNode *> &arrNode)
+{
+    m_aLogic.front()->collectPatrolNodes(arrNode);
+}
+
+void CUnit::clearLogicSelect()
+{
+    m_aLogic.front()->clearPatrolSelect();
+}
+
+bool CUnit::isChild(CPatrolPoint *pPointIn)
+{
+    return m_aLogic.front()->isChild(pPointIn);
 }
 
 CLogic::CLogic(CUnit* unit, bool bUse):
@@ -480,7 +509,7 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     if (nullptr == pOpt)
         return;
 
-    if (!pOpt->value() && m_parent->nodeState() != ENodeState::eSelect)
+    if (!pOpt->value() && m_parent->nodeState() != ENodeState::eSelect && CScene::getInstance()->getMode() != eEditModeLogic)
         return;
 
     glDisable(GL_DEPTH_TEST);
@@ -489,7 +518,7 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     matrix.setToIdentity();
     program->setUniformValue("u_modelMmatrix", matrix);
 
-    program->setUniformValue("customColor", QVector4D(1.0, 0.0, 0.0, 1.0));
+    program->setUniformValue("customColor", QVector4D(0.8f, 0.8f, 0.2f, 1.0f));
     int offset(0);
     // Tell OpenGL which VBOs to use
     m_vertexBuf.bind();
@@ -634,6 +663,46 @@ void CLogic::updatePos(QVector3D &dir)
     update();
 }
 
+void CLogic::collectPatrolNodes(QList<CNode *> &arrNode)
+{
+    CPatrolPoint* pPoint = nullptr;
+    foreach(pPoint, m_aPatrolPt)
+    {
+        arrNode.append(pPoint);
+        pPoint->collectLookNodes(arrNode);
+    }
+}
+
+void CLogic::clearPatrolSelect()
+{
+    for(auto& pPoint : m_aPatrolPt)
+    {
+        pPoint->setState(ENodeState::eDraw);
+        pPoint->clearLookSelect();
+    }
+}
+
+void CLogic::collectlogicParams(QMap<EObjParam, QString> &aParam)
+{
+    util::addParam(aParam, eObjParam_LOGIC_BEHAVIOUR, QString::number(m_model));
+    util::addParam(aParam, eObjParam_GUARD_ALARM, QString::number(m_help));
+    //if behaviour is radius
+    util::addParam(aParam, eObjParam_GUARD_RADIUS, QString::number(m_guardRadius));
+    util::addParam(aParam, eObjParam_GUARD_PLACE, util::makeString(m_guardPlacement));
+    util::addParam(aParam, eObjParam_AGRESSION_MODE, QString::number(m_agressionMode));
+}
+
+bool CLogic::isChild(CPatrolPoint *pPointIn)
+{
+    CPatrolPoint* pPoint = nullptr;
+    foreach(pPoint, m_aPatrolPt)
+    {
+        if(pPoint == pPointIn)
+            return true;
+    }
+    return false;
+}
+
 uint CLogic::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
@@ -699,7 +768,9 @@ uint CLogic::deserialize(util::CMobParser& parser)
             readByte += parser.skipHeader();
             CPatrolPoint* place = new CPatrolPoint(); //need unit parent?
             //place->attachMob(m_parent->mob());
+            QObject::connect(place, SIGNAL(patrolChanges()), this, SLOT(update()));
             readByte += place->deserialize(parser);
+
             m_aPatrolPt.append(place);
         }
         else
@@ -745,7 +816,7 @@ void CLogic::serializeJson(QJsonObject& obj)
 void CLogic::deSerializeJson(QJsonObject data)
 {
     m_bCyclic = data["Is cyclyc?"].toBool();
-    m_model = data["Model"].toVariant().toUInt();
+    m_model = (EBehaviourType)data["Model"].toVariant().toUInt();
     m_guardRadius = data["Guard raidus"].toVariant().toFloat();
 
     QJsonArray aPlacement = data["Guard placement"].toArray();
@@ -869,7 +940,7 @@ void CPatrolPoint::draw(QOpenGLShaderProgram* program)
     matrix.setToIdentity();
     program->setUniformValue("u_modelMmatrix", matrix);
 
-    program->setUniformValue("customColor", QVector4D(1.0, 0.0, 0.0, 1.0));
+    program->setUniformValue("customColor", QVector4D(0.12f, 0.4f, 0.8f, 1.0));
     int offset(0);
     // Tell OpenGL which VBOs to use
 
@@ -966,9 +1037,10 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
         else if(parser.isNextTag("ACTION_PT"))
         {
             readByte += parser.skipHeader();
-            CLookPoint* act = new CLookPoint();
-            readByte += act->deserialize(parser);
-            m_aLookPt.append(act);
+            CLookPoint* pLook = new CLookPoint();
+            readByte += pLook->deserialize(parser);
+            QObject::connect(pLook, SIGNAL(lookPointChanges()), this, SLOT(update()));
+            m_aLookPt.append(pLook);
         }
         else
         {
@@ -977,6 +1049,45 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
         }
     }
     return readByte;
+}
+
+QString CPatrolPoint::getParam(EObjParam param)
+{
+    QString value;
+    switch (param){
+    case eObjParam_POSITION:
+    {
+        value = util::makeString(m_position);
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
+    return value;
+}
+
+void CPatrolPoint::applyParam(EObjParam param, const QString &value)
+{
+    switch (param){
+    case eObjParam_POSITION:
+    {
+        m_position = util::vec3FromString(value);
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
+    emit patrolChanges();
+}
+
+void CPatrolPoint::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    //CObjectBase::collectParams(aParam, paramType);
+    auto comm = paramType & ePatrolPoint;
+    if (comm != ePatrolPoint)
+        return;
+
+    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
 }
 
 void CPatrolPoint::serializeJson(QJsonObject &obj)
@@ -1031,6 +1142,28 @@ uint CPatrolPoint::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
+void CPatrolPoint::collectLookNodes(QList<CNode *> &arrNode)
+{
+    CLookPoint* pLook = nullptr;
+    foreach(pLook, m_aLookPt)
+    {
+        arrNode.append(pLook);
+    }
+}
+
+void CPatrolPoint::clearLookSelect()
+{
+    for(auto pLook : m_aLookPt)
+        pLook->setState(ENodeState::eDraw);
+}
+
+bool CPatrolPoint::updatePos(QVector3D &pos)
+{
+    bool res = CObjectBase::updatePos(pos);
+    emit patrolChanges();
+    return res;
+}
+
 CLookPoint::CLookPoint()
 {
     CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("view"));
@@ -1043,6 +1176,67 @@ CLookPoint::CLookPoint(const CLookPoint &look):
     m_wait = look.m_wait;
     m_turnSpeed = look.m_turnSpeed;
     m_flag = look.m_flag;
+}
+
+QString CLookPoint::getParam(EObjParam param)
+{
+    QString value;
+    switch (param){
+    case eObjParam_POSITION:
+    {
+        value = util::makeString(m_position);
+        break;
+    }
+    case eObjParam_VIEW_WAIT:
+    {
+        value = QString::number(m_wait);
+        break;
+    }
+    case eObjParam_VIEW_TURN_SPEED:
+    {
+        value = QString::number(m_turnSpeed);
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
+    return value;
+}
+
+void CLookPoint::applyParam(EObjParam param, const QString &value)
+{
+    switch (param){
+    case eObjParam_POSITION:
+    {
+        m_position = util::vec3FromString(value);
+        break;
+    }
+    case eObjParam_VIEW_WAIT:
+    {
+        m_wait = value.toUInt();
+        break;
+    }
+    case eObjParam_VIEW_TURN_SPEED:
+    {
+        m_turnSpeed = value.toUInt();
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
+    emit lookPointChanges();
+}
+
+void CLookPoint::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    //CObjectBase::collectParams(aParam, paramType);
+    auto comm = paramType & eLookPoint;
+    if (comm != eLookPoint)
+        return;
+
+    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+    util::addParam(aParam, eObjParam_VIEW_WAIT, QString::number(m_wait)); //TODO: calc to seconds
+    util::addParam(aParam, eObjParam_VIEW_TURN_SPEED, QString::number(m_turnSpeed));
 }
 
 uint CLookPoint::deserialize(util::CMobParser& parser)
@@ -1131,4 +1325,11 @@ uint CLookPoint::serialize(util::CMobParser &parser)
 
     parser.endSection(); //"ACTION_PT"
     return writeByte;
+}
+
+bool CLookPoint::updatePos(QVector3D &pos)
+{
+    bool res = CObjectBase::updatePos(pos);
+    emit lookPointChanges();
+    return res;
 }

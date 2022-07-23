@@ -8,6 +8,14 @@
 #include <QDebug>
 #include "vectors.h"
 
+enum EEditMode
+{
+    eEditModeObjects = 0
+    ,eEditModeLogic
+    //,eEditModeMpr
+    ,eCount
+};
+
 enum EOperationType
 {
     EOperationTypeObjects = 1
@@ -108,6 +116,15 @@ enum EObjParam
     ,eObjParam_UNIT_QUICK_ITEMS
     ,eObjParam_UNIT_QUEST_ITEMS
     ,eObjParam_UNIT_STATS
+    //logic params
+    ,eObjParam_GUARD_PLACE
+    ,eObjParam_GUARD_RADIUS
+    ,eObjParam_GUARD_ALARM
+    ,eObjParam_LOGIC_BEHAVIOUR
+    ,eObjParam_AGRESSION_MODE
+    ,eObjParam_POINT_WAIT
+    ,eObjParam_VIEW_WAIT
+    ,eObjParam_VIEW_TURN_SPEED
 
 };
 
@@ -319,6 +336,24 @@ enum eTitleTypeData
     ,eTitleTypeDataActiveMob
     ,eTitleTypeDataDurtyFlag
     ,eTitleTypeDataCount
+};
+
+enum EBehaviourType //todo: move to logic m_model
+//zone view has these parameters
+//idle -BZ
+//guard - radius
+//patrol - path
+//sentry - place
+//player - briffing
+//guard alarm
+{
+    eBZ = 0 // ?!
+    , eRadius
+    , ePath
+    , ePlace
+    , eBriffing
+    , eGuardAlaram
+
 };
 
 typedef ei::vector2<short> S2;

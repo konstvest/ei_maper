@@ -35,6 +35,7 @@ public:
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
     void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
+    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
     bool updatePos(QVector3D& pos) override;
@@ -44,12 +45,13 @@ public:
     void setConstitution(QVector3D& vec) override;
     QJsonObject toJson() override;
     CBox getBBox() override final;
+    void markAsDelete(bool bDeleted = true) {m_bDeleted = bDeleted;}
+    bool isMarkDeleted() {return m_bDeleted;}
 
 protected:
     void recalcFigure();
     void recalcMinPos();
     //void updateVisibility(QVector<QString>& aPart);
-    void addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str);
 
 protected:
     QString m_modelName;
@@ -61,6 +63,7 @@ private:
     QVector3D m_minPoint;   // min position of model bound boxes(units half body under ground)
     QOpenGLTexture* m_texture;
     ei::CFigure* m_pFigure;
+    bool m_bDeleted;
 };
 
 #endif // OBJECT_H

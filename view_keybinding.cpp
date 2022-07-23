@@ -14,6 +14,7 @@
 #include "camera.h"
 #include "landscape.h"
 #include "operationmanager.h"
+#include "scene.h"
 
 void CView::keyPressEvent(QKeyEvent* event)
 {
@@ -43,18 +44,9 @@ void CView::keyPressEvent(QKeyEvent* event)
             }
         break;
     }
-    case Qt::Key_K:
-        m_cam->reset();
-        break;
-    case Qt::Key_O:
-    {
-        viewParameters();
-        break;
-    }
     case Qt::Key_I:
     {
-
-
+        updateTreeLogic();
         break;
     }
     default:

@@ -13,6 +13,7 @@ CObjectBase::CObjectBase():
   ,m_minPoint(0.0f, 0.0f, 0.0f)
   ,m_texture(nullptr)
   ,m_pFigure(nullptr)
+  ,m_bDeleted(false)
 {
 
 }
@@ -39,7 +40,7 @@ CObjectBase::CObjectBase(QJsonObject data):
 {
 
     //m_mapID = data["Id"].toVariant().toUInt(); //TODO: generate mapID
-    m_mapID = 333777;
+    //m_mapID = 333777;
 
     m_name = data["Map name"].toString();
     m_comment = data["Comments"].toString();
@@ -113,7 +114,7 @@ void CObjectBase::draw(QOpenGLShaderProgram* program)
     }
 
     m_texture->bind(0);
-    if (!m_parent)
+    //if (!m_parent)
     {
         QMatrix4x4 matrix;
         matrix.setToIdentity();
@@ -142,7 +143,7 @@ void CObjectBase::drawSelect(QOpenGLShaderProgram* program)
     if(m_texture == nullptr)
         return;
 
-    if (!m_parent)
+    //if (!m_parent)
     {
         QMatrix4x4 matrix;
         matrix.setToIdentity();
@@ -192,16 +193,7 @@ uint CObjectBase::serialize(util::CMobParser &parser)
     return 0;
 }
 
-void CObjectBase::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str)
-{
-    if (aParam.contains(param))
-    {
-        if (aParam[param] != str)
-            aParam.insert(param, valueDifferent());
-    }
-    else
-        aParam.insert(param, str);
-}
+
 
 bool CObjectBase::updatePos(QVector3D& pos)
 {
@@ -306,10 +298,17 @@ void CObjectBase::setRot(const QQuaternion& quat)
 void CObjectBase::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
 {
     Q_UNUSED(paramType);
-    addParam(aParam, eObjParam_NID, QString::number(m_mapID));
+    util::addParam(aParam, eObjParam_NID, QString::number(m_mapID));
 
-    addParam(aParam, eObjParam_COMMENTS, m_comment);
-    addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+    util::addParam(aParam, eObjParam_COMMENTS, m_comment);
+    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+}
+
+void CObjectBase::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    Q_UNUSED(aParam);
+    Q_UNUSED(paramType);
+    Q_ASSERT(false);
 }
 
 void CObjectBase::applyParam(EObjParam param, const QString &value)

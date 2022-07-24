@@ -165,7 +165,7 @@ CChangeLogicParam::CChangeLogicParam(CView* pView, CNode *pPoint, EObjParam objP
 
 void CChangeLogicParam::undo()
 {
-    m_pPoint->applyParam(m_objParam, m_oldValue);
+    m_pPoint->applyLogicParam(m_objParam, m_oldValue);
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
     m_pView->setDurty();
@@ -174,8 +174,8 @@ void CChangeLogicParam::undo()
 void CChangeLogicParam::redo()
 {
     setText("Change value to " + m_newValue);
-    m_oldValue = m_pPoint->getParam(m_objParam);
-    m_pPoint->applyParam(m_objParam, m_newValue);
+    m_oldValue = m_pPoint->getLogicParam(m_objParam);
+    m_pPoint->applyLogicParam(m_objParam, m_newValue);
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
     m_pView->setDurty();

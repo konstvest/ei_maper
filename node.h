@@ -64,6 +64,8 @@ public:
     virtual void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) = 0;
     virtual void applyParam(EObjParam param, const QString& value) = 0;
     virtual QString getParam(EObjParam param) = 0;
+    virtual QString getLogicParam(EObjParam param) = 0;
+    virtual void applyLogicParam(EObjParam param, const QString& value) = 0;
     virtual bool updatePos(QVector3D& pos) = 0;
     virtual const QVector3D& complection() = 0;
     virtual void setRot(const QQuaternion& quat);

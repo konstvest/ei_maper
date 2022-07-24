@@ -42,6 +42,23 @@ private:
     uint m_nodeId;
 };
 
+class CDeleteLogicPoint: public QUndoCommand
+{
+public:
+    enum { Id = 106 };
+    CDeleteLogicPoint() = delete;
+    CDeleteLogicPoint(CView* pView, uint nodeId, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CView* m_pView;
+    CNode* m_pPoint;
+};
+
 struct SParam
 {
     EObjParam param;
@@ -112,7 +129,7 @@ class CChangeLogicParam : public QObject, public QUndoCommand
 {
     Q_OBJECT
 public:
-    enum { Id = 102 };
+    enum { Id = 105 };
     CChangeLogicParam() = delete;
     CChangeLogicParam(CView* pView, CNode* pPoint, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
 

@@ -1106,9 +1106,10 @@ void CView::scaleTo(QVector3D &scale)
 void CView::deleteSelectedNodes()
 {
     QVector<uint> arrMapId;
-    for (auto& node : m_activeMob->nodes())
-        if (node->nodeState() == ENodeState::eSelect)
-            arrMapId.append(node->mapId());
+    CNode* pNode = nullptr;
+    foreach(pNode, m_activeMob->nodes())
+        if (pNode->nodeState() == ENodeState::eSelect)
+            arrMapId.append(pNode->mapId());
 
     for(auto& id : arrMapId)
     {

@@ -38,6 +38,8 @@ public:
     void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
+    QString getLogicParam(EObjParam param) override;
+    void applyLogicParam(EObjParam param, const QString& value) override;
     bool updatePos(QVector3D& pos) override;
     void setRot(const QQuaternion& quat) override;
     const QVector3D& constitution() override final {return m_complection;}

@@ -14,8 +14,10 @@ public:
     //CLookPoint(CNode* node);
     ~CLookPoint() {}
     ENodeType nodeType() override {return ENodeType::eLookPoint;}
-    QString getParam(EObjParam param) override;
-    void applyParam(EObjParam param, const QString& value) override;
+    //QString getParam(EObjParam param) override;
+    //void applyParam(EObjParam param, const QString& value) override;
+    QString getLogicParam(EObjParam param) override final;
+    void applyLogicParam(EObjParam param, const QString& value) override final;
     void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override final;
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject &obj) override;
@@ -44,8 +46,10 @@ public:
     void draw(QOpenGLShaderProgram* program) override final;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override final;
     uint deserialize(util::CMobParser& parser) override final;
-    QString getParam(EObjParam param) override;
-    void applyParam(EObjParam param, const QString& value) override;
+    //QString getParam(EObjParam param) override;
+    //void applyParam(EObjParam param, const QString& value) override;
+    QString getLogicParam(EObjParam param) override final;
+    void applyLogicParam(EObjParam param, const QString& value) override final;
     void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override final;
     void serializeJson(QJsonObject &obj) override final;
     void deSerializeJson(QJsonObject data);
@@ -94,6 +98,8 @@ public:
     void collectPatrolNodes(QList<CNode*>& arrNode);
     void clearPatrolSelect();
     void collectlogicParams(QMap<EObjParam, QString>& aParam);
+    QString getLogicParam(EObjParam param);
+    void applyLogicParam(EObjParam param, const QString& value);
     bool isChild(CPatrolPoint* pPointIn);
 
 public slots:
@@ -140,6 +146,8 @@ public:
     void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
+    QString getLogicParam(EObjParam param) override final;
+    void applyLogicParam(EObjParam param, const QString& value) override final;
     const QString& databaseName(){return m_prototypeName;}
     bool updatePos(QVector3D& pos) override;
     QJsonObject toJson() override;

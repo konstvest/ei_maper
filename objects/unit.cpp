@@ -394,6 +394,16 @@ QString CUnit::getParam(EObjParam param)
     return value;
 }
 
+QString CUnit::getLogicParam(EObjParam param)
+{
+    return m_aLogic.front()->getLogicParam(param);
+}
+
+void CUnit::applyLogicParam(EObjParam param, const QString &value)
+{
+    m_aLogic.front()->applyLogicParam(param, value);
+}
+
 bool CUnit::updatePos(QVector3D &pos)
 {
     QVector3D dir = pos - m_position;
@@ -690,6 +700,74 @@ void CLogic::collectlogicParams(QMap<EObjParam, QString> &aParam)
     util::addParam(aParam, eObjParam_GUARD_RADIUS, QString::number(m_guardRadius));
     util::addParam(aParam, eObjParam_GUARD_PLACE, util::makeString(m_guardPlacement));
     util::addParam(aParam, eObjParam_AGRESSION_MODE, QString::number(m_agressionMode));
+}
+
+QString CLogic::getLogicParam(EObjParam param)
+{
+    QString value;
+    switch (param){
+    case eObjParam_LOGIC_BEHAVIOUR:
+    {
+        value = QString::number(m_model);
+        break;
+    }
+    case eObjParam_GUARD_ALARM:
+    {
+        value = QString::number(m_help);
+        break;
+    }
+    case eObjParam_GUARD_RADIUS:
+    {
+        value = QString::number(m_guardRadius);
+        break;
+    }
+    case eObjParam_GUARD_PLACE:
+    {
+        value = util::makeString(m_guardPlacement);
+        break;
+    }
+    case eObjParam_AGRESSION_MODE:
+    {
+        value = QString::number(m_agressionMode);
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
+    return value;
+}
+
+void CLogic::applyLogicParam(EObjParam param, const QString &value)
+{
+    switch (param){
+    case eObjParam_LOGIC_BEHAVIOUR:
+    {
+        m_model = (EBehaviourType)value.toUInt();
+        break;
+    }
+    case eObjParam_GUARD_ALARM:
+    {
+        m_help = value.toFloat();
+        break;
+    }
+    case eObjParam_GUARD_RADIUS:
+    {
+        m_guardRadius = char(value.toInt());
+        break;
+    }
+    case eObjParam_GUARD_PLACE:
+    {
+        m_guardPlacement = util::vec3FromString(value);
+        break;
+    }
+    case eObjParam_AGRESSION_MODE:
+    {
+        m_agressionMode = char(value.toInt());
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
 }
 
 bool CLogic::isChild(CPatrolPoint *pPointIn)
@@ -1051,7 +1129,38 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
     return readByte;
 }
 
-QString CPatrolPoint::getParam(EObjParam param)
+//QString CPatrolPoint::getParam(EObjParam param)
+//{
+//    QString value;
+//    switch (param){
+//    case eObjParam_POSITION:
+//    {
+//        value = util::makeString(m_position);
+//        break;
+//    }
+//    default:
+//        Q_ASSERT(false);
+//    }
+//    return value;
+//}
+
+//void CPatrolPoint::applyParam(EObjParam param, const QString &value)
+//{
+//    switch (param){
+//    case eObjParam_POSITION:
+//    {
+//        //m_position = util::vec3FromString(value);
+//        QVector3D pos = util::vec3FromString(value);
+//        updatePos(pos);
+//        break;
+//    }
+//    default:
+//        Q_ASSERT(false);
+//    }
+//    emit patrolChanges();
+//}
+
+QString CPatrolPoint::getLogicParam(EObjParam param)
 {
     QString value;
     switch (param){
@@ -1066,7 +1175,7 @@ QString CPatrolPoint::getParam(EObjParam param)
     return value;
 }
 
-void CPatrolPoint::applyParam(EObjParam param, const QString &value)
+void CPatrolPoint::applyLogicParam(EObjParam param, const QString &value)
 {
     switch (param){
     case eObjParam_POSITION:
@@ -1180,7 +1289,58 @@ CLookPoint::CLookPoint(const CLookPoint &look):
     m_flag = look.m_flag;
 }
 
-QString CLookPoint::getParam(EObjParam param)
+//QString CLookPoint::getParam(EObjParam param)
+//{
+//    QString value;
+//    switch (param){
+//    case eObjParam_POSITION:
+//    {
+//        value = util::makeString(m_position);
+//        break;
+//    }
+//    case eObjParam_VIEW_WAIT:
+//    {
+//        value = QString::number(m_wait);
+//        break;
+//    }
+//    case eObjParam_VIEW_TURN_SPEED:
+//    {
+//        value = QString::number(m_turnSpeed);
+//        break;
+//    }
+//    default:
+//        Q_ASSERT(false);
+//    }
+//    return value;
+//}
+
+//void CLookPoint::applyParam(EObjParam param, const QString &value)
+//{
+//    switch (param){
+//    case eObjParam_POSITION:
+//    {
+//        //m_position = util::vec3FromString(value);
+//        QVector3D pos = util::vec3FromString(value);
+//        updatePos(pos);
+//        break;
+//    }
+//    case eObjParam_VIEW_WAIT:
+//    {
+//        m_wait = value.toInt();
+//        break;
+//    }
+//    case eObjParam_VIEW_TURN_SPEED:
+//    {
+//        m_turnSpeed = value.toUInt();
+//        break;
+//    }
+//    default:
+//        Q_ASSERT(false);
+//    }
+//    emit lookPointChanges();
+//}
+
+QString CLookPoint::getLogicParam(EObjParam param)
 {
     QString value;
     switch (param){
@@ -1205,7 +1365,7 @@ QString CLookPoint::getParam(EObjParam param)
     return value;
 }
 
-void CLookPoint::applyParam(EObjParam param, const QString &value)
+void CLookPoint::applyLogicParam(EObjParam param, const QString &value)
 {
     switch (param){
     case eObjParam_POSITION:

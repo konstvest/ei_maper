@@ -372,6 +372,16 @@ QString CObjectBase::getParam(EObjParam param)
     return value;
 }
 
+QString CObjectBase::getLogicParam(EObjParam param)
+{
+    Q_ASSERT(false);
+}
+
+void CObjectBase::applyLogicParam(EObjParam param, const QString &value)
+{
+    Q_ASSERT(false);
+}
+
 void CObjectBase::recalcFigure()
 {
     for(auto& part: m_aPart)

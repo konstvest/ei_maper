@@ -99,6 +99,13 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
 
         break;
     }
+    case Qt::Key_F:
+    {
+        if(CScene::getInstance()->getMode() == eEditModeLogic)
+            m_pView->addPatrolPoint();
+
+        break;
+    }
 //    case Qt::Key_Shift:
 //    case Qt::Key_W:
 //    case Qt::Key_Up:

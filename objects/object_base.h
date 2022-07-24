@@ -47,8 +47,8 @@ public:
     void setConstitution(QVector3D& vec) override;
     QJsonObject toJson() override;
     CBox getBBox() override final;
-    void markAsDelete(bool bDeleted = true) {m_bDeleted = bDeleted;}
-    bool isMarkDeleted() {return m_bDeleted;}
+    void markAsDeleted(bool bDeleted = true) override {m_bDeleted = bDeleted;}
+    bool isMarkDeleted() override {return m_bDeleted;}
 
 protected:
     void recalcFigure();

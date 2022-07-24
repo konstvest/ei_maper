@@ -2,6 +2,7 @@
 #include "node.h"
 #include "main_window.h"
 #include "mob.h"
+#include "objects/unit.h"
 
 COpenCommand::COpenCommand(CView* pView, QFileInfo& path, MainWindow* pMain, QUndoCommand *parent):
     QUndoCommand(parent)
@@ -179,4 +180,63 @@ void CChangeLogicParam::redo()
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
     m_pView->setDurty();
+}
+
+CDeletePatrol::CDeletePatrol(CNode *pNode, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pNode(pNode)
+{
+
+}
+
+void CDeletePatrol::undo()
+{
+    m_pNode->markAsDeleted(false);
+}
+
+void CDeletePatrol::redo()
+{
+    setText("Delete logic node");
+    m_pNode->markAsDeleted(true);
+}
+
+CCreatePatrolCommand::CCreatePatrolCommand(CView* pView, CPatrolPoint *pBasePoint, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_pBasePoint(pBasePoint)
+{
+}
+
+void CCreatePatrolCommand::undo()
+{
+    m_pBasePoint->undo_createNewPoint(m_pCreatedPoint);
+    m_pView->currentMob()->logicNodesUpdate();
+}
+
+void CCreatePatrolCommand::redo()
+{
+    m_pCreatedPoint = m_pBasePoint->createNewPoint();
+    m_pView->currentMob()->logicNodesUpdate();
+    m_pCreatedPoint->setState(ENodeState::eSelect);
+    setText("Created new Patrol point");
+}
+
+CCreateUnitPatrolCommand::CCreateUnitPatrolCommand(CView *pView, CUnit *pUnit, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_pUnit(pUnit)
+{
+}
+
+void CCreateUnitPatrolCommand::undo()
+{
+    m_pUnit->undo_addFirstPatrolPoint();
+    m_pView->currentMob()->logicNodesUpdate();
+}
+
+void CCreateUnitPatrolCommand::redo()
+{
+    m_pUnit->addFirstPatrolPoint();
+    setText("Added first patrol");
+    m_pView->currentMob()->logicNodesUpdate();
 }

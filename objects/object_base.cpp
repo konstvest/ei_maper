@@ -102,6 +102,9 @@ void CObjectBase::setTexture(QOpenGLTexture* texture)
 
 void CObjectBase::draw(QOpenGLShaderProgram* program)
 {
+    if(isMarkDeleted())
+        return;
+
     if (m_state == ENodeState::eHidden) //dont draw hidden objects
         return;
 
@@ -135,6 +138,9 @@ void CObjectBase::draw(QOpenGLShaderProgram* program)
 
 void CObjectBase::drawSelect(QOpenGLShaderProgram* program)
 {
+    if(isMarkDeleted())
+        return;
+
     if (m_state == ENodeState::eHidden) //skip hidden object for select
         return;
 

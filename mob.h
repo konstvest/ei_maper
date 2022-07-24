@@ -49,6 +49,7 @@ public:
     void undo_createNode(uint mapId);
     QList<CNode*>& nodes();
     QList<CNode*>& logicNodes();
+    void logicNodesUpdate();
     void deleteNode(uint mapId);
     void undo_deleteNode(uint mapId);
     void deleteNode(CNode* pNode);

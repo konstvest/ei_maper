@@ -505,8 +505,16 @@ QList<CNode*>& CMob::nodes()
 QList<CNode *> &CMob::logicNodes()
 {
     //collect logic nodes
-    if(!m_aLogicNode.isEmpty())
-        return m_aLogicNode;
+    if(m_aLogicNode.isEmpty()) //can be optimized but need to control add\delete nodes/patrol points\view
+        logicNodesUpdate();
+
+
+    return m_aLogicNode;
+}
+
+void CMob::logicNodesUpdate()
+{
+    m_aLogicNode.clear();
 
     CNode* pNode = nullptr;
     foreach(pNode, m_aNode)
@@ -518,9 +526,7 @@ QList<CNode *> &CMob::logicNodes()
         CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
         Q_ASSERT(pUnit);
         pUnit->collectLogicNodes(m_aLogicNode);
-
     }
-    return m_aLogicNode;
 }
 
 void CMob::deleteNode(uint mapId)

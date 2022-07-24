@@ -73,6 +73,8 @@ public:
     virtual const QVector3D& constitution() = 0;
     virtual QJsonObject toJson() = 0;
     virtual CBox getBBox() = 0;
+    virtual void markAsDeleted(bool bDeleted = true) = 0;
+    virtual bool isMarkDeleted() = 0;
 
     const uint& innerId() {return m_id; }
     const uint& mapId(){return m_mapID;}

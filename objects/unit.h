@@ -24,6 +24,7 @@ public:
     void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser) override;
     bool updatePos(QVector3D& pos) override;
+    void markAsDeleted(bool bDeleted = true) override final;
 
 signals:
     void lookPointChanges();
@@ -58,9 +59,14 @@ public:
     void collectLookNodes(QList<CNode*>& arrNode);
     void clearLookSelect();
     bool updatePos(QVector3D& pos) override;
+    void markAsDeleted(bool bDeleted = true) override final;
+    CPatrolPoint* createNewPoint();
+    void undo_createNewPoint(CPatrolPoint* pCreatedPoint);
 
 signals:
     void patrolChanges();
+    void addNewPatrolPoint(CPatrolPoint* base, CPatrolPoint* created);
+    void undo_addNewPatrolPoint(CPatrolPoint* created);
 
 public slots:
     void update();
@@ -101,9 +107,14 @@ public:
     QString getLogicParam(EObjParam param);
     void applyLogicParam(EObjParam param, const QString& value);
     bool isChild(CPatrolPoint* pPointIn);
+    void addFirstPoint(QVector3D& pos);
+    void undo_addFirstPoint();
+    bool isBehaviourPath() {return m_model == EBehaviourType::ePath;}
 
 public slots:
     void update();
+    void addNewPatrolPoint(CPatrolPoint* base, CPatrolPoint* created);
+    void undo_addNewPatrolPoint(CPatrolPoint* pCreated);
 
 private:
     QOpenGLBuffer m_vertexBuf;
@@ -154,6 +165,9 @@ public:
     void collectLogicNodes(QList<CNode*>& arrNode);
     void clearLogicSelect();
     bool isChild(CPatrolPoint* pPointIn);
+    void addFirstPatrolPoint();
+    void undo_addFirstPatrolPoint();
+    bool isBehaviourPath();
 
 private:
     //"UNIT_R", eNull};

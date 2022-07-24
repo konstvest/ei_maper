@@ -5,6 +5,8 @@
 #include "view.h"
 
 class MainWindow;
+class CPatrolPoint;
+class CUnit;
 
 class COpenCommand: public QUndoCommand
 {
@@ -42,10 +44,25 @@ private:
     uint m_nodeId;
 };
 
+class CDeletePatrol: public QUndoCommand
+{
+public:
+    enum { Id = 102 };
+    CDeletePatrol() = delete;
+    CDeletePatrol(CNode* pNode, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    int id() const override { return Id; }
+
+private:
+    CNode* m_pNode;
+};
+
 class CDeleteLogicPoint: public QUndoCommand
 {
 public:
-    enum { Id = 106 };
+    enum { Id = 103 };
     CDeleteLogicPoint() = delete;
     CDeleteLogicPoint(CView* pView, uint nodeId, QUndoCommand *parent = nullptr);
 
@@ -69,7 +86,7 @@ class CChangeStringParam : public QObject, public QUndoCommand
 {
     Q_OBJECT
 public:
-    enum { Id = 102 };
+    enum { Id = 104 };
     CChangeStringParam() = delete;
     CChangeStringParam(CView* pView, uint nodeId, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
 
@@ -94,7 +111,7 @@ class CChangeModelParam : public CChangeStringParam
 {
     Q_OBJECT
 public:
-    enum { Id = 103 };
+    enum { Id = 105 };
 
     CChangeModelParam(CView* pView, uint nodeId, EObjParam& objParam, QString value, QUndoCommand *parent = nullptr);
 
@@ -110,7 +127,7 @@ private:
 class CCreateNodeCommand: public QUndoCommand
 {
 public:
-    enum { Id = 104 };
+    enum { Id = 106 };
     CCreateNodeCommand() = delete;
     CCreateNodeCommand(CView* pView, QJsonObject nodeData, QUndoCommand *parent = nullptr);
 
@@ -129,7 +146,7 @@ class CChangeLogicParam : public QObject, public QUndoCommand
 {
     Q_OBJECT
 public:
-    enum { Id = 105 };
+    enum { Id = 107 };
     CChangeLogicParam() = delete;
     CChangeLogicParam(CView* pView, CNode* pPoint, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
 
@@ -148,6 +165,43 @@ protected:
     EObjParam m_objParam;
     QString m_oldValue;
     QString m_newValue;
+};
+
+
+
+class CCreatePatrolCommand: public QUndoCommand
+{
+public:
+    enum { Id = 108 };
+    CCreatePatrolCommand() = delete;
+    CCreatePatrolCommand(CView* pView, CPatrolPoint* pBasePoint, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CView* m_pView;
+    CPatrolPoint* m_pBasePoint;
+    CPatrolPoint* m_pCreatedPoint;
+};
+
+class CCreateUnitPatrolCommand: public QUndoCommand
+{
+public:
+    enum { Id = 109 };
+    CCreateUnitPatrolCommand() = delete;
+    CCreateUnitPatrolCommand(CView* pView, CUnit* pUnit, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CView* m_pView;
+    CUnit* m_pUnit;
 };
 
 #endif // UNDO_H

@@ -982,7 +982,7 @@ void CView::operationApply(EOperationAxisType operationType)
         {
         case EOperationAxisType::eMove:
         {
-            if(CScene::getInstance()->getMode() == eEditModeLogic)
+            if(CScene::getInstance()->getMode() == eEditModeLogic && (pair.first->nodeType() == ePatrolPoint || pair.first->nodeType() == eLookPoint))
             {
                 CChangeLogicParam* pOp = new CChangeLogicParam(this, pair.first, EObjParam::eObjParam_POSITION, util::makeString(pair.first->position()));
                 QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
@@ -1107,15 +1107,28 @@ void CView::deleteSelectedNodes()
 {
     QVector<uint> arrMapId;
     CNode* pNode = nullptr;
-    foreach(pNode, m_activeMob->nodes())
-        if (pNode->nodeState() == ENodeState::eSelect)
+    foreach(pNode, CScene::getInstance()->getMode()==eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
+    {
+        if (pNode->nodeState() != ENodeState::eSelect)
+            continue;
+
+        if(pNode->nodeType() == ePatrolPoint || pNode->nodeType() == eLookPoint)
+        {
+            CDeletePatrol* pUndo = new CDeletePatrol(pNode);
+            m_pUndoStack->push(pUndo);
+        }
+        else
+        {
             arrMapId.append(pNode->mapId());
+        }
+    }
 
     for(auto& id : arrMapId)
     {
         CDeleteNodeCommand* pUndo = new CDeleteNodeCommand(this, id);
         m_pUndoStack->push(pUndo);
     }
+
     viewParameters();
 }
 
@@ -1217,4 +1230,44 @@ void CView::setDurty()
 void CView::resetCamPosition()
 {
     m_cam->reset();
+}
+
+void CView::addPatrolPoint()
+{
+    if(nullptr == m_activeMob)
+        return;
+
+    bool bChangeToMove = false;
+
+    CNode* pNode = nullptr;
+    foreach(pNode, m_activeMob->logicNodes())
+    {
+        if(pNode->nodeState() != ENodeState::eSelect)
+            continue;
+
+        if(pNode->nodeType() == ePatrolPoint)
+        {
+            CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, dynamic_cast<CPatrolPoint*>(pNode));
+            m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+        }
+        else if(pNode->nodeType() == eUnit)
+        {
+            auto pUnit = dynamic_cast<CUnit*>(pNode);
+            if(!pUnit->isBehaviourPath())
+            {
+                ei::log(eLogInfo, "object has no Path behaviour. adding patrol point skipped");
+                continue; //skip different behaviour
+            }
+
+            CCreateUnitPatrolCommand* pUndo = new CCreateUnitPatrolCommand(this, pUnit);
+            m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+        }
+        pNode->setState(ENodeState::eDraw);
+
+    }
+
+    if(bChangeToMove)
+        m_pOp->changeState(new CMoveAxis(this, EOperateAxisXY));
 }

@@ -467,6 +467,23 @@ bool CUnit::isChild(CPatrolPoint *pPointIn)
     return m_aLogic.front()->isChild(pPointIn);
 }
 
+void CUnit::addFirstPatrolPoint()
+{
+    QVector3D pos(m_position);
+    CLandscape::getInstance()->projectPt(pos);
+    m_aLogic.front()->addFirstPoint(pos);
+}
+
+void CUnit::undo_addFirstPatrolPoint()
+{
+    m_aLogic.front()->undo_addFirstPoint();
+}
+
+bool CUnit::isBehaviourPath()
+{
+    return m_aLogic.front()->isBehaviourPath();
+}
+
 CLogic::CLogic(CUnit* unit, bool bUse):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
     ,m_bCyclic(false)
@@ -527,8 +544,11 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     QMatrix4x4 matrix;
     matrix.setToIdentity();
     program->setUniformValue("u_modelMmatrix", matrix);
+    if (m_model == EBehaviourType::eRadius)
+        program->setUniformValue("customColor", QVector4D(0.9f, 0.4f, 0.1f, 1.0f));
+    else
+        program->setUniformValue("customColor", QVector4D(0.8f, 0.8f, 0.2f, 1.0f));
 
-    program->setUniformValue("customColor", QVector4D(0.8f, 0.8f, 0.2f, 1.0f));
     int offset(0);
     // Tell OpenGL which VBOs to use
     m_vertexBuf.bind();
@@ -550,10 +570,20 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     // Draw cube geometry using indices from VBO 1
     m_indexBuf.bind();
     glLineWidth(2);
+    bool bDottedLines = false;
+    if(bDottedLines)
+    {
+        glEnable(GL_LINE_STIPPLE);
+        glLineStipple(3,555);
+    }
+
     glDrawElements(GL_LINE_STRIP, m_aDrawPoint.count(), GL_UNSIGNED_SHORT, nullptr);
+    if(bDottedLines)
+        glDisable(GL_LINE_STIPPLE);
+
     program->setUniformValue("customColor", QVector4D(0.0, 0.0, 0.0, 0.0));
 
-    if (m_model == EBehaviourType::ePath)
+    if(m_model == EBehaviourType::ePath)
         for(auto& pp : m_aPatrolPt)
             pp->draw(program);
 
@@ -598,6 +628,7 @@ void CLogic::update()
         m_aDrawPoint.append(pos);
         for (auto& pt: m_aPatrolPt)
         {
+            if(pt->isMarkDeleted()) continue;
             pos = pt->position();
             pos.setZ(0.0f);
             CLandscape::getInstance()->projectPt(pos);
@@ -653,6 +684,24 @@ void CLogic::update()
     m_indexBuf.bind();
     m_indexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
     m_indexBuf.release();
+}
+
+void CLogic::addNewPatrolPoint(CPatrolPoint *base, CPatrolPoint *created)
+{
+    int i = m_aPatrolPt.indexOf(base);
+    m_aPatrolPt.insert(i+1, created);
+    QObject::connect(created, SIGNAL(patrolChanges()), this, SLOT(update()));
+    QObject::connect(created, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
+    QObject::connect(created, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
+    update();
+}
+
+void CLogic::undo_addNewPatrolPoint(CPatrolPoint *pCreated)
+{
+    int index = m_aPatrolPt.indexOf(pCreated);
+    m_aPatrolPt.removeAt(index);
+    delete pCreated;
+    update();
 }
 
 void CLogic::updatePos(QVector3D &dir)
@@ -781,6 +830,25 @@ bool CLogic::isChild(CPatrolPoint *pPointIn)
     return false;
 }
 
+void CLogic::addFirstPoint(QVector3D& pos)
+{
+    CPatrolPoint* pPoint = new CPatrolPoint();
+    pPoint->updatePos(pos);
+    m_aPatrolPt.push_front(pPoint);
+    pPoint->setState(ENodeState::eSelect);
+    QObject::connect(pPoint, SIGNAL(patrolChanges()), this, SLOT(update()));
+    QObject::connect(pPoint, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
+    QObject::connect(pPoint, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
+    update();
+}
+
+void CLogic::undo_addFirstPoint()
+{
+    CPatrolPoint* pPoint = m_aPatrolPt.front();
+    m_aPatrolPt.pop_front();
+    delete pPoint;
+}
+
 uint CLogic::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
@@ -847,6 +915,8 @@ uint CLogic::deserialize(util::CMobParser& parser)
             CPatrolPoint* place = new CPatrolPoint(); //need unit parent?
             //place->attachMob(m_parent->mob());
             QObject::connect(place, SIGNAL(patrolChanges()), this, SLOT(update()));
+            QObject::connect(place, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
+            QObject::connect(place, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
             readByte += place->deserialize(parser);
 
             m_aPatrolPt.append(place);
@@ -971,6 +1041,9 @@ uint CLogic::serialize(util::CMobParser& parser)
     CPatrolPoint* pPoint = nullptr;
     foreach(pPoint, m_aPatrolPt)
     {
+        if(pPoint->isMarkDeleted())
+            continue;
+
         writeByte += pPoint->serialize(parser);
     }
     parser.endSection(); //"UNIT_LOGIC"
@@ -1009,6 +1082,9 @@ CPatrolPoint::~CPatrolPoint()
 
 void CPatrolPoint::draw(QOpenGLShaderProgram* program)
 {
+    if(isMarkDeleted())
+        return;
+
     CObjectBase::draw(program);
 
     if(m_aDrawingLine.size() == 0) // do not draw looking point if absent
@@ -1050,6 +1126,9 @@ void CPatrolPoint::draw(QOpenGLShaderProgram* program)
 
 void CPatrolPoint::drawSelect(QOpenGLShaderProgram* program)
 {
+    if(isMarkDeleted())
+        return;
+
     CObjectBase::drawSelect(program);
     for(auto& look: m_aLookPt)
     {
@@ -1069,6 +1148,7 @@ void CPatrolPoint::update()
     m_aDrawingLine.append(position()); // self position
     for(auto& lp: m_aLookPt)
     {
+        if(lp->isMarkDeleted()) continue;
         m_aDrawingLine.append(lp->position());
 //        pos=lp->position();
 //        pos.setZ(0.0f);
@@ -1206,6 +1286,9 @@ void CPatrolPoint::serializeJson(QJsonObject &obj)
     QJsonArray lpArr;
     for(auto& lp: m_aLookPt)
     {
+        if(lp->isMarkDeleted())
+            continue;
+
         QJsonObject lpObj;
         lp->serializeJson(lpObj);
         lpArr.append(lpObj);
@@ -1246,6 +1329,9 @@ uint CPatrolPoint::serialize(util::CMobParser &parser)
     parser.endSection(); //"GUARD_PT_POSITION
     for(const auto& lookP : m_aLookPt)
     {
+        if(lookP->isMarkDeleted())
+            continue;
+
         writeByte += lookP->serialize(parser);
     }
 
@@ -1273,6 +1359,26 @@ bool CPatrolPoint::updatePos(QVector3D &pos)
     bool res = CObjectBase::updatePos(pos);
     emit patrolChanges();
     return res;
+}
+
+void CPatrolPoint::markAsDeleted(bool bDeleted)
+{
+    CObjectBase::markAsDeleted(bDeleted);
+    setState(ENodeState::eDraw); // clear select for undo-redo
+    emit patrolChanges();
+}
+
+CPatrolPoint* CPatrolPoint::createNewPoint()
+{
+    CPatrolPoint* pPoint = new CPatrolPoint;
+    pPoint->updatePos(m_position);
+    emit addNewPatrolPoint(this, pPoint);
+    return pPoint;
+}
+
+void CPatrolPoint::undo_createNewPoint(CPatrolPoint *pCreatedPoint)
+{
+    emit undo_addNewPatrolPoint(pCreatedPoint);
 }
 
 CLookPoint::CLookPoint()
@@ -1496,4 +1602,11 @@ bool CLookPoint::updatePos(QVector3D &pos)
     bool res = CObjectBase::updatePos(pos);
     emit lookPointChanges();
     return res;
+}
+
+void CLookPoint::markAsDeleted(bool bDeleted)
+{
+    CObjectBase::markAsDeleted(bDeleted);
+    setState(ENodeState::eDraw); // clear select for undo-redo
+    emit lookPointChanges();
 }

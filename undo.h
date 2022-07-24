@@ -6,6 +6,7 @@
 
 class MainWindow;
 class CPatrolPoint;
+class CLookPoint;
 class CUnit;
 
 class COpenCommand: public QUndoCommand
@@ -202,6 +203,41 @@ public:
 private:
     CView* m_pView;
     CUnit* m_pUnit;
+};
+
+class CCreateViewCommand: public QUndoCommand
+{
+public:
+    enum { Id = 110 };
+    CCreateViewCommand() = delete;
+    CCreateViewCommand(CView* pView, CLookPoint* pBasePoint, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CView* m_pView;
+    CLookPoint* m_pBasePoint;
+    CLookPoint* m_pCreatedPoint;
+};
+
+class CCreatePatrolViewCommand: public QUndoCommand
+{
+public:
+    enum { Id = 111 };
+    CCreatePatrolViewCommand() = delete;
+    CCreatePatrolViewCommand(CView* pView, CPatrolPoint* pPoint, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CView* m_pView;
+    CPatrolPoint* m_pPoint;
 };
 
 #endif // UNDO_H

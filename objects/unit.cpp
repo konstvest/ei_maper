@@ -792,6 +792,7 @@ void CLogic::applyLogicParam(EObjParam param, const QString &value)
     case eObjParam_LOGIC_BEHAVIOUR:
     {
         m_model = (EBehaviourType)value.toUInt();
+        update();
         break;
     }
     case eObjParam_GUARD_ALARM:
@@ -1175,6 +1176,24 @@ void CPatrolPoint::update()
     m_indexBuf.release();
 }
 
+void CPatrolPoint::addNewLookPoint(CLookPoint *pBase, CLookPoint *pCreated)
+{
+    int i = m_aLookPt.indexOf(pBase);
+    m_aLookPt.insert(i+1, pCreated);
+    QObject::connect(pCreated, SIGNAL(lookPointChanges()), this, SLOT(update()));
+    QObject::connect(pCreated, SIGNAL(addNewLookPoint(CLookPoint*,CLookPoint*)), this, SLOT(addNewLookPoint(CLookPoint*,CLookPoint*)));
+    QObject::connect(pCreated, SIGNAL(undo_addNewLookPoint(CLookPoint*)), this, SLOT(undo_addNewLookPoint(CLookPoint*)));
+    update();
+}
+
+void CPatrolPoint::undo_addNewLookPoint(CLookPoint *pCreated)
+{
+    int index = m_aLookPt.indexOf(pCreated);
+    m_aLookPt.removeAt(index);
+    delete pCreated;
+    update();
+}
+
 uint CPatrolPoint::deserialize(util::CMobParser& parser)
 {
     uint readByte(0);
@@ -1198,6 +1217,10 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
             CLookPoint* pLook = new CLookPoint();
             readByte += pLook->deserialize(parser);
             QObject::connect(pLook, SIGNAL(lookPointChanges()), this, SLOT(update()));
+
+            QObject::connect(pLook, SIGNAL(addNewLookPoint(CLookPoint*,CLookPoint*)), this, SLOT(addNewLookPoint(CLookPoint*,CLookPoint*)));
+            QObject::connect(pLook, SIGNAL(undo_addNewLookPoint(CLookPoint*)), this, SLOT(undo_addNewLookPoint(CLookPoint*)));
+
             m_aLookPt.append(pLook);
         }
         else
@@ -1381,7 +1404,29 @@ void CPatrolPoint::undo_createNewPoint(CPatrolPoint *pCreatedPoint)
     emit undo_addNewPatrolPoint(pCreatedPoint);
 }
 
-CLookPoint::CLookPoint()
+void CPatrolPoint::addFirstViewPoint()
+{
+    CLookPoint* pPoint = new CLookPoint();
+    pPoint->updatePos(m_position);
+    m_aLookPt.push_front(pPoint);
+    pPoint->setState(ENodeState::eSelect);
+    QObject::connect(pPoint, SIGNAL(lookPointChanges()), this, SLOT(update()));
+    QObject::connect(pPoint, SIGNAL(addNewLookPoint(CLookPoint*,CLookPoint*)), this, SLOT(addNewLookPoint(CLookPoint*,CLookPoint*)));
+    QObject::connect(pPoint, SIGNAL(undo_addNewLookPoint(CLookPoint*)), this, SLOT(undo_addNewLookPoint(CLookPoint*)));
+    update();
+}
+
+void CPatrolPoint::undo_addFirstViewPoint()
+{
+    CLookPoint* pPoint = m_aLookPt.front();
+    m_aLookPt.pop_front();
+    delete pPoint;
+}
+
+CLookPoint::CLookPoint():
+    m_wait(0)
+  ,m_turnSpeed(0)
+  ,m_flag(0)
 {
     CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("view"));
     CObjectBase::setTexture(CTextureList::getInstance()->texture("view"));
@@ -1609,4 +1654,17 @@ void CLookPoint::markAsDeleted(bool bDeleted)
     CObjectBase::markAsDeleted(bDeleted);
     setState(ENodeState::eDraw); // clear select for undo-redo
     emit lookPointChanges();
+}
+
+CLookPoint *CLookPoint::createLookPoint()
+{
+    CLookPoint* pPoint = new CLookPoint();
+    pPoint->updatePos(m_position);
+    emit addNewLookPoint(this, pPoint);
+    return pPoint;
+}
+
+void CLookPoint::undo_createLookPoint(CLookPoint *pCreatedPoint)
+{
+    emit undo_addNewLookPoint(pCreatedPoint);
 }

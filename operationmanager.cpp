@@ -99,24 +99,18 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
 
         break;
     }
-    case Qt::Key_F:
+    case Qt::Key_P:
     {
         if(CScene::getInstance()->getMode() == eEditModeLogic)
             m_pView->addPatrolPoint();
-
         break;
     }
-//    case Qt::Key_Shift:
-//    case Qt::Key_W:
-//    case Qt::Key_Up:
-//    case Qt::Key_S:
-//    case Qt::Key_Down:
-//    case Qt::Key_D:
-//    case Qt::Key_Right:
-//    case Qt::Key_A:
-//    case Qt::Key_Left:
-//    case Qt::Key_E:
-//    case Qt::Key_Q:
+    case Qt::Key_L:
+    {
+        if(CScene::getInstance()->getMode() == eEditModeLogic)
+            m_pView->addLookPoint();
+        break;
+    }
     default:
         pOp->keyManager()->press(Qt::Key(pEvent->key()));
         break;

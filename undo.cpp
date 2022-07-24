@@ -240,3 +240,44 @@ void CCreateUnitPatrolCommand::redo()
     setText("Added first patrol");
     m_pView->currentMob()->logicNodesUpdate();
 }
+
+CCreateViewCommand::CCreateViewCommand(CView *pView, CLookPoint *pBasePoint, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_pBasePoint(pBasePoint)
+{
+}
+
+void CCreateViewCommand::undo()
+{
+    m_pBasePoint->undo_createLookPoint(m_pCreatedPoint);
+    m_pView->currentMob()->logicNodesUpdate();
+}
+
+void CCreateViewCommand::redo()
+{
+    m_pCreatedPoint = m_pBasePoint->createLookPoint();
+    m_pView->currentMob()->logicNodesUpdate();
+    m_pCreatedPoint->setState(ENodeState::eSelect);
+    setText("Created new Look point");
+}
+
+CCreatePatrolViewCommand::CCreatePatrolViewCommand(CView *pView, CPatrolPoint *pPoint, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_pPoint(pPoint)
+{
+}
+
+void CCreatePatrolViewCommand::undo()
+{
+    m_pPoint->undo_addFirstViewPoint();
+    m_pView->currentMob()->logicNodesUpdate();
+}
+
+void CCreatePatrolViewCommand::redo()
+{
+    m_pPoint->addFirstViewPoint();
+    m_pView->currentMob()->logicNodesUpdate();
+    setText("Created view point");
+}

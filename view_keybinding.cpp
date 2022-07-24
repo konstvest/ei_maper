@@ -33,17 +33,6 @@ void CView::keyPressEvent(QKeyEvent* event)
     case Qt::Key_U:
         unloadMob("");
         break;
-    case Qt::Key_P:
-    {
-        CNode* pNode;
-        for(auto& mob: m_aMob)
-            foreach(pNode, mob->nodes())
-            {
-                if (pNode->nodeState() & ENodeState::eSelect)
-                    CLandscape::getInstance()->projectPosition(pNode);
-            }
-        break;
-    }
     case Qt::Key_I:
     {
         updateTreeLogic();

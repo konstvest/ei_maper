@@ -25,12 +25,15 @@ public:
     uint serialize(util::CMobParser& parser) override;
     bool updatePos(QVector3D& pos) override;
     void markAsDeleted(bool bDeleted = true) override final;
+    CLookPoint* createLookPoint();
+    void undo_createLookPoint(CLookPoint* pCreatedPoint);
 
 signals:
     void lookPointChanges();
+    void addNewLookPoint(CLookPoint* pBase, CLookPoint* pCreated);
+    void undo_addNewLookPoint(CLookPoint* created);
 
 private:
-    //QVector3D m_lookPoint;//"ACTION_PT_LOOK_PT", ePlot}; //replaced by CNode pos
     int m_wait;//"ACTION_PT_WAIT_SEG", eDword};
     uint m_turnSpeed;//"ACTION_PT_TURN_SPEED", eDword};
     char m_flag;//"ACTION_PT_FLAGS", eByte};
@@ -62,6 +65,8 @@ public:
     void markAsDeleted(bool bDeleted = true) override final;
     CPatrolPoint* createNewPoint();
     void undo_createNewPoint(CPatrolPoint* pCreatedPoint);
+    void addFirstViewPoint();
+    void undo_addFirstViewPoint();
 
 signals:
     void patrolChanges();
@@ -70,6 +75,8 @@ signals:
 
 public slots:
     void update();
+    void addNewLookPoint(CLookPoint* pBase, CLookPoint* pCreated);
+    void undo_addNewLookPoint(CLookPoint* pCreated);
 
 
 private:

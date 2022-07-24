@@ -1271,3 +1271,37 @@ void CView::addPatrolPoint()
     if(bChangeToMove)
         m_pOp->changeState(new CMoveAxis(this, EOperateAxisXY));
 }
+
+void CView::addLookPoint()
+{
+    if(nullptr == m_activeMob)
+        return;
+
+    bool bChangeToMove = false;
+
+    CNode* pNode = nullptr;
+    foreach(pNode, m_activeMob->logicNodes())
+    {
+        if(pNode->nodeState() != ENodeState::eSelect)
+            continue;
+
+        if(pNode->nodeType() == eLookPoint)
+        {
+            CCreateViewCommand* pUndo = new CCreateViewCommand(this, dynamic_cast<CLookPoint*>(pNode));
+            m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+        }
+        else if(pNode->nodeType() == ePatrolPoint)
+        {
+            auto pPoint = dynamic_cast<CPatrolPoint*>(pNode);
+            CCreatePatrolViewCommand* pUndo = new CCreatePatrolViewCommand(this, pPoint);
+            m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+        }
+        pNode->setState(ENodeState::eDraw);
+
+    }
+
+    if(bChangeToMove)
+        m_pOp->changeState(new CMoveAxis(this, EOperateAxisXY));
+}

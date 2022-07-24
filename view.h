@@ -72,6 +72,7 @@ public:
     void setDurty();
     void resetCamPosition();
     void addPatrolPoint();
+    void addLookPoint();
 
 protected:
     void initializeGL() override;

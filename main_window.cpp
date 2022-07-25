@@ -68,6 +68,7 @@ MainWindow::MainWindow(QWidget* parent) :
     initShortcuts();
     QObject::connect(m_pView, SIGNAL(mobLoad(bool)), this, SLOT(updateMobListInParam(bool)));
     QObject::connect(m_pView, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
+    QObject::connect(CScene::getInstance(), SIGNAL(modeChanged()), m_pView, SLOT(viewParameters()));
 
 //    m_ui->progressBar->setValue(0);
     m_ui->progressBar->reset();

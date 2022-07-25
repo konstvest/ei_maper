@@ -3,19 +3,25 @@
 
 #include "types.h"
 
-class CScene
+class CScene : public QObject
 {
+Q_OBJECT
+
 public:
     static CScene* getInstance();
     CScene(CScene const&) = delete;
     void operator=(CScene const&)  = delete;
+    ~CScene() override {} //for QObject
 
     const EEditMode& getMode() {return m_editMode;}
     void changeMode(EEditMode mode);
 
+signals:
+    void modeChanged();
+
 private:
     CScene();
-    ~CScene();
+
 
 private:
     static CScene* m_pScene;

@@ -20,4 +20,5 @@ void CScene::changeMode(EEditMode mode)
     //TODO: add undo-redo for changing mode
     qDebug() << "switch edit mode to: " << mode;
     m_editMode = mode;
+    emit modeChanged();
 }

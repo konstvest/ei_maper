@@ -70,6 +70,7 @@ public:
     int getViewId(CLookPoint* pPoint);
     void createViewByIndex(int index);
     void undo_createViewByIndex(int index);
+    CLookPoint* viewByIndex(int index);
 
 signals:
     void patrolChanges();
@@ -126,6 +127,7 @@ public:
     void undo_createPatrolByIndex(int index);
     void createViewByIndex(int pointId, int viewId);
     void undo_createViewByIndex(int pointId, int viewId);
+    CPatrolPoint* patrolByIndex(int index);
 
 public slots:
     void update();
@@ -190,6 +192,7 @@ public:
     void undo_createPatrolByIndex(int index);
     void createViewByIndex(int pointId, int viewId);
     void undo_createViewByIndex(int pointId, int viewId);
+    CPatrolPoint *patrolByIndex(int index);
 
 private:
     //"UNIT_R", eNull};

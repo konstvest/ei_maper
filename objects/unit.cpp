@@ -514,6 +514,11 @@ void CUnit::undo_createViewByIndex(int pointId, int viewId)
     m_aLogic.front()->undo_createViewByIndex(pointId, viewId);
 }
 
+CPatrolPoint *CUnit::patrolByIndex(int index)
+{
+    return m_aLogic.front()->patrolByIndex(index);
+}
+
 CLogic::CLogic(CUnit* unit, bool bUse):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
     ,m_bCyclic(false)
@@ -828,11 +833,13 @@ void CLogic::applyLogicParam(EObjParam param, const QString &value)
     case eObjParam_GUARD_ALARM:
     {
         m_help = value.toFloat();
+        update();
         break;
     }
     case eObjParam_GUARD_RADIUS:
     {
         m_guardRadius = char(value.toInt());
+        update();
         break;
     }
     case eObjParam_GUARD_PLACE:
@@ -940,6 +947,12 @@ void CLogic::undo_createViewByIndex(int pointId, int viewId)
 {
     auto pPoint = m_aPatrolPt.at(pointId);
     pPoint->undo_createViewByIndex(viewId);
+}
+
+CPatrolPoint *CLogic::patrolByIndex(int index)
+{
+    Q_ASSERT(index < m_aPatrolPt.size());
+    return m_aPatrolPt[index];
 }
 
 uint CLogic::deserialize(util::CMobParser& parser)
@@ -1549,6 +1562,12 @@ void CPatrolPoint::undo_createViewByIndex(int index)
     m_aLookPt.remove(index+1);
     delete pLook;
     update();
+}
+
+CLookPoint *CPatrolPoint::viewByIndex(int index)
+{
+    Q_ASSERT(index < m_aLookPt.size());
+    return m_aLookPt[index];
 }
 
 CLookPoint::CLookPoint():

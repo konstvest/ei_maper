@@ -93,6 +93,8 @@ private:
     void getColorFromRect(const QRect& rect, QVector<SColor>& aColor);
     void changeCurrentMob(CMob* pMob);
 
+    void onParamChangeLogic(CNode* pNode, SParam& sParam);
+
 public slots:
     void updateWindow();
     void updateParameter(EObjParam param);

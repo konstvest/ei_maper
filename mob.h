@@ -51,7 +51,6 @@ public:
     CNode* createNode(QJsonObject data);
     void undo_createNode(uint mapId);
     QList<CNode*>& nodes();
-    QList<CNode*>& logicNodes();
     void deleteNode(uint mapId);
     void undo_deleteNode(uint mapId);
     void deleteNode(CNode* pNode);
@@ -75,12 +74,15 @@ public:
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
 
-    CNode* findUnitParent(CNode* pPointIn);
+    //functions for logic processing
+    QList<CNode*>& logicNodes();
     void getPatrolHash(int& unitMapIdOut, int& pointIdOut, CPatrolPoint* pPoint);
     void getViewHash(int& unitMapIdOut, int& pointIdOut, int& viewIdOut, CLookPoint* pPoint);
     int getPatrolId(uint unitMapId, CPatrolPoint* pPoint);
     void createPatrolByHash(QString hash);
     void undo_createPatrolByHash(QString hash);
+    CPatrolPoint* patrolPointById(int unitId, int patrolId);
+    CLookPoint* viewPointById(int unitId, int patrolId, int viewId);
 
 private:
     void init();

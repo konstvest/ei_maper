@@ -356,6 +356,7 @@ void CWorldObj::applyParam(EObjParam param, const QString &value)
     {
         m_bodyParts = util::strListFromString(value);
         recalcFigure();
+        updatePos(m_position);
         break;
     }
     case eObjParam_PLAYER:

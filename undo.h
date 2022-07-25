@@ -149,7 +149,7 @@ class CChangeLogicParam : public QObject, public QUndoCommand
 public:
     enum { Id = 107 };
     CChangeLogicParam() = delete;
-    CChangeLogicParam(CView* pView, CNode* pPoint, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
+    CChangeLogicParam(CView* pView, QString pointHash, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
 
     void undo() override;
     void redo() override;
@@ -162,7 +162,7 @@ signals:
 
 protected:
     CView* m_pView;
-    CNode* m_pPoint;
+    QString m_pointHash;
     EObjParam m_objParam;
     QString m_oldValue;
     QString m_newValue;

@@ -381,11 +381,14 @@ QString CObjectBase::getParam(EObjParam param)
 
 QString CObjectBase::getLogicParam(EObjParam param)
 {
+    Q_UNUSED(param);
     Q_ASSERT(false);
 }
 
 void CObjectBase::applyLogicParam(EObjParam param, const QString &value)
 {
+    Q_UNUSED(param);
+    Q_UNUSED(value);
     Q_ASSERT(false);
 }
 

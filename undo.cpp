@@ -151,39 +151,69 @@ void CCreateNodeCommand::redo()
     m_pView->setDurty();
 }
 
-CChangeLogicParam::CChangeLogicParam(CView* pView, CNode *pPoint, EObjParam objParam, QString value, QUndoCommand *parent):
+CChangeLogicParam::CChangeLogicParam(CView* pView, QString pointHash, EObjParam objParam, QString value, QUndoCommand *parent):
     QUndoCommand(parent)
   ,m_pView(pView)
-  ,m_pPoint(pPoint)
+  ,m_pointHash(pointHash)
   ,m_objParam(objParam)
   ,m_newValue(value)
 {
-
 }
 
 void CChangeLogicParam::undo()
 {
-    m_pPoint->applyLogicParam(m_objParam, m_oldValue);
+    QStringList list = m_pointHash.split(".");
+    if(list.size()==1)
+    {//unit
+        auto pUnit = m_pView->currentMob()->nodeByMapId(list[0].toUInt());
+        pUnit->applyLogicParam(m_objParam, m_oldValue);
+    }
+    else if(list.size()==2)
+    {//patrol point
+        CPatrolPoint* pPoint = m_pView->currentMob()->patrolPointById(list[0].toInt(), list[1].toInt());
+        pPoint->applyLogicParam(m_objParam, m_oldValue);
+    }
+    else if(list.size()==3)
+    {//look point
+        CLookPoint* pPoint = m_pView->currentMob()->viewPointById(list[0].toInt(), list[1].toInt(), list[2].toInt());
+        pPoint->applyLogicParam(m_objParam, m_oldValue);
+    }
+
     emit updateParam();
-    //emit updatePosOnLand(m_pNode);
     m_pView->setDurty();
 }
 
 void CChangeLogicParam::redo()
 {
-    setText("Change value to " + m_newValue);
-    m_oldValue = m_pPoint->getLogicParam(m_objParam);
-    m_pPoint->applyLogicParam(m_objParam, m_newValue);
+    QStringList list = m_pointHash.split(".");
+    if(list.size()==1)
+    {//unit
+        auto pUnit = m_pView->currentMob()->nodeByMapId(list[0].toUInt());
+        m_oldValue = pUnit->getLogicParam(m_objParam);
+        pUnit->applyLogicParam(m_objParam, m_newValue);
+    }
+    else if(list.size()==2)
+    {//patrol point
+        CPatrolPoint* pPoint = m_pView->currentMob()->patrolPointById(list[0].toInt(), list[1].toInt());
+        m_oldValue = pPoint->getLogicParam(m_objParam);
+        pPoint->applyLogicParam(m_objParam, m_newValue);
+    }
+    else if(list.size()==3)
+    {//look point
+        CLookPoint* pPoint = m_pView->currentMob()->viewPointById(list[0].toInt(), list[1].toInt(), list[2].toInt());
+        m_oldValue = pPoint->getLogicParam(m_objParam);
+        pPoint->applyLogicParam(m_objParam, m_newValue);
+    }
+
     emit updateParam();
-    //emit updatePosOnLand(m_pNode);
     m_pView->setDurty();
+    setText("Change value to " + m_newValue);
 }
 
 CDeletePatrol::CDeletePatrol(CNode *pNode, QUndoCommand *parent):
     QUndoCommand(parent)
   ,m_pNode(pNode)
 {
-
 }
 
 void CDeletePatrol::undo()

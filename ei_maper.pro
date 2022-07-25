@@ -45,6 +45,7 @@ SOURCES += \
     preview.cpp \
     progressview.cpp \
     resourcemanager.cpp \
+    scene.cpp \
     sector.cpp \
     select_window.cpp \
     settings.cpp \
@@ -86,6 +87,7 @@ HEADERS += \
     preview.h \
     progressview.h \
     resourcemanager.h \
+    scene.h \
     sector.h \
     select_window.h \
     settings.h \

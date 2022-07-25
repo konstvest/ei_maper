@@ -30,6 +30,9 @@ enum EMobOrder
 };
 
 class CProgressView;
+class CPatrolPoint;
+class CLookPoint;
+
 class CMob
 {
 public:
@@ -47,11 +50,11 @@ public:
     void createNode(CNode* pNode);
     CNode* createNode(QJsonObject data);
     void undo_createNode(uint mapId);
-    QList<CNode*>& nodes() {return m_aNode; }
+    QList<CNode*>& nodes();
     void deleteNode(uint mapId);
     void undo_deleteNode(uint mapId);
     void deleteNode(CNode* pNode);
-    void clearSelect();
+    void clearSelect(bool bClearLogic = false);
     void delNodes();
     CNode* nodeByMapId(uint id);
     CView* view() {Q_ASSERT(m_view); return m_view;}
@@ -71,6 +74,15 @@ public:
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
 
+    //functions for logic processing
+    QList<CNode*>& logicNodes();
+    void getPatrolHash(int& unitMapIdOut, int& pointIdOut, CPatrolPoint* pPoint);
+    void getViewHash(int& unitMapIdOut, int& pointIdOut, int& viewIdOut, CLookPoint* pPoint);
+    int getPatrolId(uint unitMapId, CPatrolPoint* pPoint);
+    void createPatrolByHash(QString hash);
+    void undo_createPatrolByHash(QString hash);
+    CPatrolPoint* patrolPointById(int unitId, int patrolId);
+    CLookPoint* viewPointById(int unitId, int patrolId, int viewId);
 
 private:
     void init();
@@ -79,6 +91,7 @@ private:
     void updateObjects();
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, const QString value);
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value);
+    void logicNodesUpdate();
 
 private:
     //todo: global text data, script
@@ -101,6 +114,7 @@ private:
     //todo: include ALL nodes into these lists, for node assemly use children\parents
     QList<CNode*> m_aNode;
     QList<CNode*> m_aDeletedNode;
+    QList<CNode*> m_aLogicNode;
     EMobOrder m_order;
 };
 

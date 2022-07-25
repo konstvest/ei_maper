@@ -38,8 +38,9 @@ enum ENodeState
 
 class CMob;
 
-class CNode
+class CNode : public QObject
 {
+    Q_OBJECT
 public:
     CNode();
     CNode(CNode* parent);
@@ -60,8 +61,11 @@ public:
     virtual void serializeJson(QJsonObject& obj) = 0;
     virtual uint serialize(util::CMobParser& parser) = 0;
     virtual void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) = 0;
+    virtual void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) = 0;
     virtual void applyParam(EObjParam param, const QString& value) = 0;
     virtual QString getParam(EObjParam param) = 0;
+    virtual QString getLogicParam(EObjParam param) = 0;
+    virtual void applyLogicParam(EObjParam param, const QString& value) = 0;
     virtual bool updatePos(QVector3D& pos) = 0;
     virtual const QVector3D& complection() = 0;
     virtual void setRot(const QQuaternion& quat);
@@ -69,6 +73,8 @@ public:
     virtual const QVector3D& constitution() = 0;
     virtual QJsonObject toJson() = 0;
     virtual CBox getBBox() = 0;
+    virtual void markAsDeleted(bool bDeleted = true) = 0;
+    virtual bool isMarkDeleted() = 0;
 
     const uint& innerId() {return m_id; }
     const uint& mapId(){return m_mapID;}

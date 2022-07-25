@@ -172,14 +172,14 @@ void CLever::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType
         return;
 
     //addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_NEW, util::makeString(m_stat));
-    addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_Type_Open, QString::number(m_typeOpen));
-    addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_Key_ID, QString::number(m_keyID));
-    addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight, QString::number(m_handsSleight));
-    addParam(aParam, eObjParam_LEVER_CUR_STATE, QString::number(m_curState));
-    addParam(aParam, eObjParam_LEVER_TOTAL_STATE, QString::number(m_totalState));
-    addParam(aParam, eObjParam_LEVER_IS_CYCLED, util::makeString(m_bCycled));
-    addParam(aParam, eObjParam_LEVER_IS_DOOR, util::makeString(m_bDoor));
-    addParam(aParam, eObjParam_LEVER_RECALC_GRAPH, util::makeString(m_bRecalcGraph));
+    util::addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_Type_Open, QString::number(m_typeOpen));
+    util::addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_Key_ID, QString::number(m_keyID));
+    util::addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight, QString::number(m_handsSleight));
+    util::addParam(aParam, eObjParam_LEVER_CUR_STATE, QString::number(m_curState));
+    util::addParam(aParam, eObjParam_LEVER_TOTAL_STATE, QString::number(m_totalState));
+    util::addParam(aParam, eObjParam_LEVER_IS_CYCLED, util::makeString(m_bCycled));
+    util::addParam(aParam, eObjParam_LEVER_IS_DOOR, util::makeString(m_bDoor));
+    util::addParam(aParam, eObjParam_LEVER_RECALC_GRAPH, util::makeString(m_bRecalcGraph));
 }
 
 void CLever::applyParam(EObjParam param, const QString &value)

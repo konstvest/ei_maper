@@ -101,9 +101,9 @@ void CTorch::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType
     if (comm != eTorch)
         return;
 
-    addParam(aParam, eObjParam_TORCH_PTLINK, util::makeString(m_pointLink));
-    addParam(aParam, eObjParam_TORCH_STRENGHT, QString::number(m_power));
-    addParam(aParam, eObjParam_TORCH_SOUND, m_sound);
+    util::addParam(aParam, eObjParam_TORCH_PTLINK, util::makeString(m_pointLink));
+    util::addParam(aParam, eObjParam_TORCH_STRENGHT, QString::number(m_power));
+    util::addParam(aParam, eObjParam_TORCH_SOUND, m_sound);
 }
 
 void CTorch::applyParam(EObjParam param, const QString &value)

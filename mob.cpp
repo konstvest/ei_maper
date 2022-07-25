@@ -24,6 +24,7 @@
 #include "settings.h"
 #include "progressview.h"
 #include "log.h"
+#include "scene.h"
 
 CMob::CMob():
     m_view(nullptr)
@@ -357,6 +358,142 @@ QString CMob::mobName()
     return m_filePath.fileName();
 }
 
+void CMob::getPatrolHash(int &unitMapIdOut, int &pointIdOut, CPatrolPoint *pPoint)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eUnit)
+        {
+            CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+            int index = pUnit->getPatrolId(pPoint);
+            if(index >=0)
+            {
+                unitMapIdOut = pUnit->mapId();
+                pointIdOut = index;
+                return;
+            }
+        }
+    }
+    return;
+}
+
+void CMob::getViewHash(int &unitMapIdOut, int &pointIdOut, int &viewIdOut, CLookPoint *pPoint)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() != eUnit)
+            continue;
+
+        int parentPatrol;
+        int parentView;
+        CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+        pUnit->getViewId(parentPatrol, parentView, pPoint);
+        if(parentPatrol >=0)
+        {
+            unitMapIdOut = pUnit->mapId();
+            pointIdOut = parentPatrol;
+            viewIdOut = parentView;
+            return;
+        }
+    }
+    return;
+}
+
+int CMob::getPatrolId(uint unitMapId, CPatrolPoint* pPoint)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->mapId() == unitMapId && pNode->nodeType() == eUnit)
+        {
+            CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+            return pUnit->getPatrolId(pPoint);
+        }
+    }
+    return -1;
+}
+
+void CMob::createPatrolByHash(QString hash)
+{
+    QStringList list = hash.split(".");
+    if(list.size()<2)
+    {
+        ei::log(eLogWarning, "Creating logic point failed. hash incorrect" + hash);
+    }
+
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eUnit && pNode->mapId() == list[0].toUInt())
+        {
+            CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+            if(list.size()==2)
+                pUnit->createPatrolByIndex(list[1].toInt());
+            else if(list.size()==3)
+                pUnit->createViewByIndex(list[1].toInt(), list[2].toInt());
+
+            break;
+        }
+    }
+
+    logicNodesUpdate();
+}
+
+void CMob::undo_createPatrolByHash(QString hash)
+{
+    QStringList list = hash.split(".");
+    if(list.size()==2) // patrol point
+    {
+        CNode* pNode = nullptr;
+        foreach(pNode, m_aLogicNode)
+        {
+            if(pNode->nodeType() == eUnit && pNode->mapId() == list[0].toUInt())
+            {
+                CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+                pUnit->undo_createPatrolByIndex(list[1].toInt());
+                break;
+            }
+        }
+    }
+    else if(list.size()==3)
+    {
+        CNode* pNode = nullptr;
+        foreach(pNode, m_aLogicNode)
+        {
+            if(pNode->nodeType() == eUnit && pNode->mapId() == list[0].toUInt())
+            {
+                CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+                pUnit->undo_createViewByIndex(list[1].toInt(), list[2].toInt());
+                break;
+            }
+        }
+    }
+    logicNodesUpdate();
+}
+
+CPatrolPoint *CMob::patrolPointById(int unitId, int patrolId)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eUnit && pNode->mapId() == (uint)unitId)
+        {
+            CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+            return pUnit->patrolByIndex(patrolId);
+        }
+    }
+    Q_ASSERT(false && "cant find patrol point by unit map id");
+    return nullptr;
+}
+
+CLookPoint *CMob::viewPointById(int unitId, int patrolId, int viewId)
+{
+    CPatrolPoint* pPoint = patrolPointById(unitId, patrolId);
+    return pPoint->viewByIndex(viewId);
+}
+
 CNode* CMob::createNode(QJsonObject data)
 {
     auto wo = data;
@@ -436,7 +573,7 @@ CNode* CMob::createNode(QJsonObject data)
     }
 
     addNode(pNode);
-
+    logicNodesUpdate();
 
     if(pNode)
     {
@@ -474,6 +611,38 @@ void CMob::undo_createNode(uint mapId)
             ei::log(eLogDebug, QString("undo create node with %1 map ID").arg(pNode->mapId()));
             return;
         }
+    }
+}
+
+QList<CNode*>& CMob::nodes()
+{
+    return m_aNode;
+}
+
+QList<CNode *> &CMob::logicNodes()
+{
+    //collect logic nodes
+    if(m_aLogicNode.isEmpty()) //can be optimized but need to control add\delete nodes/patrol points\view
+        logicNodesUpdate();
+
+
+    return m_aLogicNode;
+}
+
+void CMob::logicNodesUpdate()
+{
+    m_aLogicNode.clear();
+
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(pNode->nodeType() != ENodeType::eUnit)
+            continue;
+
+        m_aLogicNode.append(pNode);
+        CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+        Q_ASSERT(pUnit);
+        pUnit->collectLogicNodes(m_aLogicNode);
     }
 }
 
@@ -534,7 +703,7 @@ void CMob::readMob(QFileInfo &path)
     }
 
     updateObjects();
-
+    logicNodesUpdate();
 }
 
 void CMob::checkUniqueId(QSet<uint> &aId)
@@ -988,13 +1157,18 @@ void CMob::deleteNode(CNode *pNode)
     }
 }
 
-void CMob::clearSelect()
+void CMob::clearSelect(bool bClearLogic)
 {
     CNode* pNode;
     foreach (pNode, m_aNode)
     {
         if(pNode->nodeState() == ENodeState::eSelect)
             pNode->setState(ENodeState::eDraw);
+        if(bClearLogic && pNode->nodeType() == ENodeType::eUnit)
+        {
+            CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+            pUnit->clearLogicSelect();
+        }
     }
 }
 

@@ -62,6 +62,14 @@ private slots:
 
     void on_actionSave_all_MOB_s_triggered();
 
+    void on_rotateButton_clicked();
+
+    void on_scaleButton_clicked();
+
+    void on_actionReset_cam_position_triggered();
+
+    void on_actionChange_mod_e_triggered();
+
 private:
     Ui::MainWindow* m_ui;
     QSharedPointer<CSettings> m_settings;

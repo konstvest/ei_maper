@@ -197,13 +197,13 @@ void CSound::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType
     if (comm != eSound)
         return;
 
-    addParam(aParam, eObjParam_RANGE, QString::number(m_range));
-    addParam(aParam, eObjParam_SOUND_MIN, QString::number(m_min));
-    addParam(aParam, eObjParam_SOUND_MAX, QString::number(m_max));
-    addParam(aParam, eObjParam_SOUND_RESNAME, util::makeString(m_aResName));
-    addParam(aParam, eObjParam_SOUND_RANGE, QString::number(m_range2));
-    addParam(aParam, eObjParam_SOUND_AMBIENT, util::makeString(m_bAmbient));
-    addParam(aParam, eObjParam_SOUND_IS_MUSIC, util::makeString(m_bMusic));
+    util::addParam(aParam, eObjParam_RANGE, QString::number(m_range));
+    util::addParam(aParam, eObjParam_SOUND_MIN, QString::number(m_min));
+    util::addParam(aParam, eObjParam_SOUND_MAX, QString::number(m_max));
+    util::addParam(aParam, eObjParam_SOUND_RESNAME, util::makeString(m_aResName));
+    util::addParam(aParam, eObjParam_SOUND_RANGE, QString::number(m_range2));
+    util::addParam(aParam, eObjParam_SOUND_AMBIENT, util::makeString(m_bAmbient));
+    util::addParam(aParam, eObjParam_SOUND_IS_MUSIC, util::makeString(m_bMusic));
 }
 
 void CSound::applyParam(EObjParam param, const QString &value)

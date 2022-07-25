@@ -13,6 +13,7 @@ CObjectBase::CObjectBase():
   ,m_minPoint(0.0f, 0.0f, 0.0f)
   ,m_texture(nullptr)
   ,m_pFigure(nullptr)
+  ,m_bDeleted(false)
 {
 
 }
@@ -36,10 +37,11 @@ CObjectBase::CObjectBase(const CObjectBase &base):
 CObjectBase::CObjectBase(QJsonObject data):
     m_texture(nullptr)
     ,m_pFigure(nullptr)
+  ,m_bDeleted(false)
 {
 
     //m_mapID = data["Id"].toVariant().toUInt(); //TODO: generate mapID
-    m_mapID = 333777;
+    //m_mapID = 333777;
 
     m_name = data["Map name"].toString();
     m_comment = data["Comments"].toString();
@@ -101,6 +103,9 @@ void CObjectBase::setTexture(QOpenGLTexture* texture)
 
 void CObjectBase::draw(QOpenGLShaderProgram* program)
 {
+    if(isMarkDeleted())
+        return;
+
     if (m_state == ENodeState::eHidden) //dont draw hidden objects
         return;
 
@@ -113,7 +118,7 @@ void CObjectBase::draw(QOpenGLShaderProgram* program)
     }
 
     m_texture->bind(0);
-    if (!m_parent)
+    //if (!m_parent)
     {
         QMatrix4x4 matrix;
         matrix.setToIdentity();
@@ -134,6 +139,9 @@ void CObjectBase::draw(QOpenGLShaderProgram* program)
 
 void CObjectBase::drawSelect(QOpenGLShaderProgram* program)
 {
+    if(isMarkDeleted())
+        return;
+
     if (m_state == ENodeState::eHidden) //skip hidden object for select
         return;
 
@@ -142,7 +150,7 @@ void CObjectBase::drawSelect(QOpenGLShaderProgram* program)
     if(m_texture == nullptr)
         return;
 
-    if (!m_parent)
+    //if (!m_parent)
     {
         QMatrix4x4 matrix;
         matrix.setToIdentity();
@@ -192,16 +200,7 @@ uint CObjectBase::serialize(util::CMobParser &parser)
     return 0;
 }
 
-void CObjectBase::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str)
-{
-    if (aParam.contains(param))
-    {
-        if (aParam[param] != str)
-            aParam.insert(param, valueDifferent());
-    }
-    else
-        aParam.insert(param, str);
-}
+
 
 bool CObjectBase::updatePos(QVector3D& pos)
 {
@@ -306,10 +305,17 @@ void CObjectBase::setRot(const QQuaternion& quat)
 void CObjectBase::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
 {
     Q_UNUSED(paramType);
-    addParam(aParam, eObjParam_NID, QString::number(m_mapID));
+    util::addParam(aParam, eObjParam_NID, QString::number(m_mapID));
 
-    addParam(aParam, eObjParam_COMMENTS, m_comment);
-    addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+    util::addParam(aParam, eObjParam_COMMENTS, m_comment);
+    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+}
+
+void CObjectBase::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    Q_UNUSED(aParam);
+    Q_UNUSED(paramType);
+    Q_ASSERT(false);
 }
 
 void CObjectBase::applyParam(EObjParam param, const QString &value)
@@ -371,6 +377,19 @@ QString CObjectBase::getParam(EObjParam param)
         Q_ASSERT(false);
     }
     return value;
+}
+
+QString CObjectBase::getLogicParam(EObjParam param)
+{
+    Q_UNUSED(param);
+    Q_ASSERT(false);
+}
+
+void CObjectBase::applyLogicParam(EObjParam param, const QString &value)
+{
+    Q_UNUSED(param);
+    Q_UNUSED(value);
+    Q_ASSERT(false);
 }
 
 void CObjectBase::recalcFigure()

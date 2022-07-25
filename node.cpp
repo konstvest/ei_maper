@@ -24,7 +24,6 @@ void CNode::init()
 
 CNode::CNode():
     m_position(0.0, 0.0, 0.0)
-    //,m_rotation(0.0, 0.0, 0.0)
     ,m_mapID(0)
     ,m_name("")
     ,m_comment("")
@@ -36,7 +35,6 @@ CNode::CNode():
 
 CNode::CNode(CNode* parent):
     m_position(0.0, 0.0, 0.0)
-    //,m_rotation(0.0, 0.0, 0.0)
 {
     if (m_parent)
         m_parent = parent;
@@ -44,17 +42,17 @@ CNode::CNode(CNode* parent):
 }
 
 CNode::CNode(const CNode &node):
-    //m_position(0.0, 0.0, 0.0)
-    //,m_rotation(0.0, 0.0, 0.0)
-    m_mapID(0)
-    ,m_parent(nullptr)
-    ,m_state(eDraw)
+    QObject()
+  ,m_position(node.m_position)
+  ,m_drawPosition(node.m_drawPosition)
+  ,m_mapID(node.m_mapID)
+  ,m_name(node.m_name)
+  ,m_comment(node.m_comment)
+  ,m_rotateMatrix(node.m_rotateMatrix)
+  ,m_parent(node.m_parent)
+  ,m_state(node.m_state)
 {
     init();
-    m_position = node.m_position;
-    m_drawPosition = node.m_drawPosition;
-    m_name = node.m_name;
-    m_comment = node.m_comment;
     //children?
 }
 

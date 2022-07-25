@@ -147,6 +147,24 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
       aStr[8274] = "TRANSFORM";
         break;
     }
+    case eObjParam_LOGIC_BEHAVIOUR:
+    {
+        aStr[0] = "BZ?!";
+        aStr[1] = "Guard radius";
+        aStr[2] = "Path";
+        aStr[3] = "Place";
+        aStr[4] = "Briffing";
+        aStr[5] = "Guard Alaram";
+        break;
+    }
+    case eObjParam_AGRESSION_MODE:
+    {
+        aStr[0] = "Attack";
+        aStr[1] = "Revenge";
+        aStr[2] = "Fear";
+        aStr[3] = "Fear player";
+        break;
+    }
     default:
         break;
     }
@@ -363,6 +381,14 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_UNIT_QUICK_ITEMS] = "Quick items";
     m_aRowName[eObjParam_UNIT_QUEST_ITEMS] = "Quest items";
     m_aRowName[eObjParam_UNIT_STATS] = "Unit parameters";
+
+    m_aRowName[eObjParam_GUARD_PLACE] = "Guard place";
+    m_aRowName[eObjParam_GUARD_RADIUS] = "Guard radius";
+    m_aRowName[eObjParam_GUARD_ALARM] = "Guard help";
+    m_aRowName[eObjParam_LOGIC_BEHAVIOUR] = "Behaviour";
+    m_aRowName[eObjParam_AGRESSION_MODE] = "Agression mode";
+    m_aRowName[eObjParam_VIEW_WAIT] = "Watch time";
+    m_aRowName[eObjParam_VIEW_TURN_SPEED] = "Turn speed";
 }
 
 void CTableManager::onParamChange(CComboBoxItem *pItem)
@@ -417,6 +443,7 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         case eObjParam_LIGHT_SHADOW:
         case eObjParam_TYPE:
         case eObjParam_PARTICL_TYPE:
+        case eObjParam_AGRESSION_MODE:
         {
             m_pTable->insertRow(i);
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem
@@ -429,6 +456,33 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
             QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
+            break;
+        }
+        case eObjParam_GUARD_RADIUS:
+        { //this case process below
+            break;
+        }
+        case eObjParam_LOGIC_BEHAVIOUR:
+        {
+            //insert combobox
+            m_pTable->insertRow(i);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
+            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+            CComboBoxItem* pCombo = new CComboBoxItem(item.second, eObjParam_LOGIC_BEHAVIOUR);
+            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            m_pTable->setCellWidget(i, 1, pCombo);
+            ++i;
+
+            EBehaviourType type = (EBehaviourType)item.second.toUInt();
+            if(type == EBehaviourType::eRadius)
+            {
+                m_pTable->insertRow(i);
+                m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_GUARD_RADIUS]));
+                m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+                m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_GUARD_RADIUS], eObjParam_GUARD_RADIUS));
+                m_pTable->resizeColumnToContents(0);
+                ++i;
+            }
             break;
         }
         case eObjParam_LEVER_SCIENCE_STATS_Key_ID:

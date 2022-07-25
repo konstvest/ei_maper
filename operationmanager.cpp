@@ -9,6 +9,7 @@
 #include "camera.h"
 #include "ui_connectors.h"
 #include "log.h"
+#include "scene.h"
 
 void strToOperValue(QVector3D& vec, const EOperateAxis axis, const QString& value)
 {
@@ -98,17 +99,18 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
 
         break;
     }
-//    case Qt::Key_Shift:
-//    case Qt::Key_W:
-//    case Qt::Key_Up:
-//    case Qt::Key_S:
-//    case Qt::Key_Down:
-//    case Qt::Key_D:
-//    case Qt::Key_Right:
-//    case Qt::Key_A:
-//    case Qt::Key_Left:
-//    case Qt::Key_E:
-//    case Qt::Key_Q:
+    case Qt::Key_P:
+    {
+        if(CScene::getInstance()->getMode() == eEditModeLogic)
+            m_pView->addLogicPoint(false);
+        break;
+    }
+    case Qt::Key_L:
+    {
+        if(CScene::getInstance()->getMode() == eEditModeLogic)
+            m_pView->addLogicPoint(true);
+        break;
+    }
     default:
         pOp->keyManager()->press(Qt::Key(pEvent->key()));
         break;
@@ -161,6 +163,7 @@ void CSelect::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
         QRect rect(topLeft, bottomRight);
         m_pView->pickObject(rect, pOp->keyManager()->isPressed(Qt::Key_Shift));
         m_pView->viewParameters();
+
         break;
     }
     default: //TODO

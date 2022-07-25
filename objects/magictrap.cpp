@@ -200,12 +200,12 @@ void CMagicTrap::collectParams(QMap<EObjParam, QString> &aParam, ENodeType param
     if (comm != eMagicTrap)
         return;
 
-    addParam(aParam, eObjParam_TRAP_DIPLOMACY, QString::number(m_diplomacy));
-    addParam(aParam, eObjParam_TRAP_SPELL, m_spell);
-    addParam(aParam, eObjParam_TRAP_AREAS, util::makeString(m_aArea));
-    addParam(aParam, eObjParam_TRAP_TARGETS, util::makeString(m_aTarget));
-    addParam(aParam, eObjParam_TRAP_CAST_INTERVAL, QString::number(m_castInterval));
-    addParam(aParam, eObjParam_TRAP_CAST_ONCE, util::makeString(m_bCastOnce));
+    util::addParam(aParam, eObjParam_TRAP_DIPLOMACY, QString::number(m_diplomacy));
+    util::addParam(aParam, eObjParam_TRAP_SPELL, m_spell);
+    util::addParam(aParam, eObjParam_TRAP_AREAS, util::makeString(m_aArea));
+    util::addParam(aParam, eObjParam_TRAP_TARGETS, util::makeString(m_aTarget));
+    util::addParam(aParam, eObjParam_TRAP_CAST_INTERVAL, QString::number(m_castInterval));
+    util::addParam(aParam, eObjParam_TRAP_CAST_ONCE, util::makeString(m_bCastOnce));
 
     aParam.remove(eObjParam_TEMPLATE); //dont allow change
     aParam.remove(eObjParam_PRIM_TXTR); //dont allow change

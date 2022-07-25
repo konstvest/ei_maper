@@ -28,6 +28,7 @@ class CTableManager;
 class COperation;
 struct SColor;
 class CSelectFrame;
+class QTreeWidget;
 
 class CView : public QGLWidget
 {
@@ -45,7 +46,7 @@ public:
     void saveActiveMob();
     void saveAllMob();
     void unloadMob(QString mobName);
-    void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord);
+    void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, QTreeWidget* pTree);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
     int select(const SSelect& selectParam, bool bAddToSelect = false);
     CMob* mob(QString mobName);
@@ -69,6 +70,8 @@ public:
     CMob* currentMob() {return m_activeMob;}
     QOpenGLShaderProgram& shaderObject() {return m_program;}
     void setDurty();
+    void resetCamPosition();
+    void addLogicPoint(bool bLookPoint = false);
 
 protected:
     void initializeGL() override;
@@ -85,11 +88,12 @@ private:
     void initShaders();
     void draw();
     CNode* pickObject(QList<CNode*>& aNode, int x, int y);
-
     int cauntSelectedNodes();
     void applyParam(SParam& param);
     void getColorFromRect(const QRect& rect, QVector<SColor>& aColor);
     void changeCurrentMob(CMob* pMob);
+
+    void onParamChangeLogic(CNode* pNode, SParam& sParam);
 
 public slots:
     void updateWindow();
@@ -97,6 +101,7 @@ public slots:
     void viewParameters();
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(SParam& sParam);
+    void updateTreeLogic();
 
 signals:
     void updateMsg(QString msg);
@@ -120,10 +125,11 @@ private:
     CProgressView* m_pProgress;
     QSharedPointer<COperation> m_pOp;
     QMap<CNode*, QVector3D> m_operationBackup;
-    EOperationType m_operationType;
+    //EOperationType m_operationType;
     QSharedPointer<CSelectFrame> m_selectFrame;
     QFile m_clipboard_buffer_file;
     CMob* m_activeMob;
+    QTreeWidget* m_pTree;
 };
 
 #endif // MYGLWIDGET_H

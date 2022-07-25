@@ -52,7 +52,6 @@ public:
     void undo_createNode(uint mapId);
     QList<CNode*>& nodes();
     QList<CNode*>& logicNodes();
-    void logicNodesUpdate();
     void deleteNode(uint mapId);
     void undo_deleteNode(uint mapId);
     void deleteNode(CNode* pNode);
@@ -90,6 +89,7 @@ private:
     void updateObjects();
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, const QString value);
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value);
+    void logicNodesUpdate();
 
 private:
     //todo: global text data, script

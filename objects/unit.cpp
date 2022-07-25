@@ -1078,6 +1078,9 @@ void CLogic::deSerializeJson(QJsonObject data)
         CPatrolPoint* place = new CPatrolPoint(); //need unit parent?
         place->deSerializeJson(it->toObject());
         m_aPatrolPt.append(place);
+        QObject::connect(place, SIGNAL(patrolChanges()), this, SLOT(update()));
+        QObject::connect(place, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
+        QObject::connect(place, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
     }
     update();
 }
@@ -1309,7 +1312,6 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
             CLookPoint* pLook = new CLookPoint();
             readByte += pLook->deserialize(parser);
             QObject::connect(pLook, SIGNAL(lookPointChanges()), this, SLOT(update()));
-
             QObject::connect(pLook, SIGNAL(addNewLookPoint(CLookPoint*,CLookPoint*)), this, SLOT(addNewLookPoint(CLookPoint*,CLookPoint*)));
             QObject::connect(pLook, SIGNAL(undo_addNewLookPoint(CLookPoint*)), this, SLOT(undo_addNewLookPoint(CLookPoint*)));
 
@@ -1430,6 +1432,9 @@ void CPatrolPoint::deSerializeJson(QJsonObject data)
     {
         CLookPoint* pLook = new CLookPoint();
         pLook->deSerializeJson(it->toObject());
+        QObject::connect(pLook, SIGNAL(lookPointChanges()), this, SLOT(update()));
+        QObject::connect(pLook, SIGNAL(addNewLookPoint(CLookPoint*,CLookPoint*)), this, SLOT(addNewLookPoint(CLookPoint*,CLookPoint*)));
+        QObject::connect(pLook, SIGNAL(undo_addNewLookPoint(CLookPoint*)), this, SLOT(undo_addNewLookPoint(CLookPoint*)));
         m_aLookPt.append(pLook);
     }
 }
@@ -1562,57 +1567,6 @@ CLookPoint::CLookPoint(const CLookPoint &look):
     m_turnSpeed = look.m_turnSpeed;
     m_flag = look.m_flag;
 }
-
-//QString CLookPoint::getParam(EObjParam param)
-//{
-//    QString value;
-//    switch (param){
-//    case eObjParam_POSITION:
-//    {
-//        value = util::makeString(m_position);
-//        break;
-//    }
-//    case eObjParam_VIEW_WAIT:
-//    {
-//        value = QString::number(m_wait);
-//        break;
-//    }
-//    case eObjParam_VIEW_TURN_SPEED:
-//    {
-//        value = QString::number(m_turnSpeed);
-//        break;
-//    }
-//    default:
-//        Q_ASSERT(false);
-//    }
-//    return value;
-//}
-
-//void CLookPoint::applyParam(EObjParam param, const QString &value)
-//{
-//    switch (param){
-//    case eObjParam_POSITION:
-//    {
-//        //m_position = util::vec3FromString(value);
-//        QVector3D pos = util::vec3FromString(value);
-//        updatePos(pos);
-//        break;
-//    }
-//    case eObjParam_VIEW_WAIT:
-//    {
-//        m_wait = value.toInt();
-//        break;
-//    }
-//    case eObjParam_VIEW_TURN_SPEED:
-//    {
-//        m_turnSpeed = value.toUInt();
-//        break;
-//    }
-//    default:
-//        Q_ASSERT(false);
-//    }
-//    emit lookPointChanges();
-//}
 
 QString CLookPoint::getLogicParam(EObjParam param)
 {

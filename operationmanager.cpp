@@ -102,13 +102,13 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
     case Qt::Key_P:
     {
         if(CScene::getInstance()->getMode() == eEditModeLogic)
-            m_pView->addPatrolPoint();
+            m_pView->addLogicPoint(false);
         break;
     }
     case Qt::Key_L:
     {
         if(CScene::getInstance()->getMode() == eEditModeLogic)
-            m_pView->addLookPoint();
+            m_pView->addLogicPoint(true);
         break;
     }
     default:

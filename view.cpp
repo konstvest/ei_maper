@@ -1193,6 +1193,7 @@ void CView::clipboradObjectsToScene()
         CCreateNodeCommand* pUndo = new CCreateNodeCommand(this, it->toObject());
         m_pUndoStack->push(pUndo);
     }
+    m_pOp->changeState(new CMoveAxis(this, EOperateAxisXY));
     viewParameters();
 }
 
@@ -1232,7 +1233,7 @@ void CView::resetCamPosition()
     m_cam->reset();
 }
 
-void CView::addPatrolPoint()
+void CView::addLogicPoint(bool bLookPoint)
 {
     if(nullptr == m_activeMob)
         return;
@@ -1244,54 +1245,14 @@ void CView::addPatrolPoint()
     {
         if(pNode->nodeState() != ENodeState::eSelect)
             continue;
-
-        if(pNode->nodeType() == ePatrolPoint)
+        ENodeType type = pNode->nodeType();
+        switch(type)
         {
-            int unitId(0); //parent unit map id
-            int patrolId(0);
-            CPatrolPoint* pPoint = dynamic_cast<CPatrolPoint*>(pNode);
-            m_activeMob->getPatrolHash(unitId, patrolId, pPoint);
-            QString hash = QString("%1.%2").arg(unitId).arg(patrolId);
-            CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
-            m_pUndoStack->push(pUndo);
-            bChangeToMove = true;
-        }
-        else if(pNode->nodeType() == eUnit)
+        case eLookPoint:
         {
-            if(!dynamic_cast<CUnit*>(pNode)->isBehaviourPath())
-            {
-                ei::log(eLogInfo, "object has non-Path behaviour. adding patrol point skipped");
-                continue; //skip non-path behaviour
-            }
+            if(!bLookPoint)
+                break; //dont create patrol point for view point
 
-            QString hash = QString("%1.%2").arg(pNode->mapId()).arg(-1);
-            CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
-            m_pUndoStack->push(pUndo);
-            bChangeToMove = true;
-        }
-        pNode->setState(ENodeState::eDraw);
-
-    }
-
-    if(bChangeToMove)
-        m_pOp->changeState(new CMoveAxis(this, EOperateAxisXY));
-}
-
-void CView::addLookPoint()
-{
-    if(nullptr == m_activeMob)
-        return;
-
-    bool bChangeToMove = false;
-
-    CNode* pNode = nullptr;
-    foreach(pNode, m_activeMob->logicNodes())
-    {
-        if(pNode->nodeState() != ENodeState::eSelect)
-            continue;
-
-        if(pNode->nodeType() == eLookPoint)
-        {
             int unitId(0); //parent unit map id
             int patrolId(0); //patrol parent id
             int viewId(0); //parent view id
@@ -1300,19 +1261,48 @@ void CView::addLookPoint()
             QString hash = QString("%1.%2.%3").arg(unitId).arg(patrolId).arg(viewId);
             CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
             m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+            break;
         }
-        else if(pNode->nodeType() == ePatrolPoint)
+        case ePatrolPoint:
         {
             int unitId(0); //parent unit map id
             int patrolId(0); //patrol parent id
             int viewId(-1); //parent view id
             auto pPoint = dynamic_cast<CPatrolPoint*>(pNode);
+            QString hash;
             m_activeMob->getPatrolHash(unitId, patrolId, pPoint);
-            QString hash = QString("%1.%2.%3").arg(unitId).arg(patrolId).arg(viewId);
+            if(bLookPoint)
+                hash = QString("%1.%2.%3").arg(unitId).arg(patrolId).arg(viewId); // for creating first looking point
+            else
+                hash = QString("%1.%2").arg(unitId).arg(patrolId); // for creating patrol point
+
             CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
             m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+            break;
         }
-        bChangeToMove = true;
+        case eUnit:
+        {
+            if(bLookPoint)
+                break; //dont create look point for unit
+
+            if(!dynamic_cast<CUnit*>(pNode)->isBehaviourPath())
+            {
+                ei::log(eLogInfo, "object has non-Path behaviour. adding patrol point skipped");
+                break; //skip non-path behaviour
+            }
+
+            QString hash = QString("%1.%2").arg(pNode->mapId()).arg(-1);
+            CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
+            m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+            break;
+        }
+        default:
+            break;
+        }
+
         pNode->setState(ENodeState::eDraw);
 
     }

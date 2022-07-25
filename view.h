@@ -71,8 +71,7 @@ public:
     QOpenGLShaderProgram& shaderObject() {return m_program;}
     void setDurty();
     void resetCamPosition();
-    void addPatrolPoint();
-    void addLookPoint();
+    void addLogicPoint(bool bLookPoint = false);
 
 protected:
     void initializeGL() override;

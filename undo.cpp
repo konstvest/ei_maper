@@ -146,9 +146,6 @@ void CCreateNodeCommand::undo()
 void CCreateNodeCommand::redo()
 {
     auto pNode = m_pView->currentMob()->createNode(m_nodeData);
-
-
-
     m_createdNodeId = pNode->mapId();
     setText("Node created ID: " + QString::number(pNode->mapId()));
     m_pView->setDurty();
@@ -210,75 +207,10 @@ CCreatePatrolCommand::CCreatePatrolCommand(CView* pView, QString pointHash, QUnd
 void CCreatePatrolCommand::undo()
 {
     m_pView->currentMob()->undo_createPatrolByHash(m_pointHash);
-    //m_pView->currentMob()->logicNodesUpdate();
 }
 
 void CCreatePatrolCommand::redo()
 {
-    //m_pCreatedPoint = m_pBasePoint->createNewPoint();
     m_pView->currentMob()->createPatrolByHash(m_pointHash);
-    //m_pView->currentMob()->logicNodesUpdate();
-    //m_pCreatedPoint->setState(ENodeState::eSelect);
     setText("Created new point");
 }
-
-//CCreateUnitPatrolCommand::CCreateUnitPatrolCommand(CView *pView, CUnit *pUnit, QUndoCommand *parent):
-//    QUndoCommand(parent)
-//  ,m_pView(pView)
-//  ,m_pUnit(pUnit)
-//{
-//}
-
-//void CCreateUnitPatrolCommand::undo()
-//{
-//    m_pUnit->undo_addFirstPatrolPoint();
-//    m_pView->currentMob()->logicNodesUpdate();
-//}
-
-//void CCreateUnitPatrolCommand::redo()
-//{
-//    m_pUnit->addFirstPatrolPoint();
-//    setText("Added first patrol");
-//    m_pView->currentMob()->logicNodesUpdate();
-//}
-
-//CCreateViewCommand::CCreateViewCommand(CView *pView, CLookPoint *pBasePoint, QUndoCommand *parent):
-//    QUndoCommand(parent)
-//  ,m_pView(pView)
-//  ,m_pBasePoint(pBasePoint)
-//{
-//}
-
-//void CCreateViewCommand::undo()
-//{
-//    m_pBasePoint->undo_createLookPoint(m_pCreatedPoint);
-//    m_pView->currentMob()->logicNodesUpdate();
-//}
-
-//void CCreateViewCommand::redo()
-//{
-//    m_pCreatedPoint = m_pBasePoint->createLookPoint();
-//    m_pView->currentMob()->logicNodesUpdate();
-//    m_pCreatedPoint->setState(ENodeState::eSelect);
-//    setText("Created new Look point");
-//}
-
-//CCreatePatrolViewCommand::CCreatePatrolViewCommand(CView *pView, CPatrolPoint *pPoint, QUndoCommand *parent):
-//    QUndoCommand(parent)
-//  ,m_pView(pView)
-//  ,m_pPoint(pPoint)
-//{
-//}
-
-//void CCreatePatrolViewCommand::undo()
-//{
-//    m_pPoint->undo_addFirstViewPoint();
-//    m_pView->currentMob()->logicNodesUpdate();
-//}
-
-//void CCreatePatrolViewCommand::redo()
-//{
-//    m_pPoint->addFirstViewPoint();
-//    m_pView->currentMob()->logicNodesUpdate();
-//    setText("Created view point");
-//}

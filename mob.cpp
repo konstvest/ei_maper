@@ -577,7 +577,7 @@ CNode* CMob::createNode(QJsonObject data)
     }
 
     addNode(pNode);
-
+    logicNodesUpdate();
 
     if(pNode)
     {

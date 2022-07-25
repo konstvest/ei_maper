@@ -37,6 +37,7 @@ CObjectBase::CObjectBase(const CObjectBase &base):
 CObjectBase::CObjectBase(QJsonObject data):
     m_texture(nullptr)
     ,m_pFigure(nullptr)
+  ,m_bDeleted(false)
 {
 
     //m_mapID = data["Id"].toVariant().toUInt(); //TODO: generate mapID

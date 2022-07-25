@@ -67,6 +67,9 @@ public:
     void undo_createNewPoint(CPatrolPoint* pCreatedPoint);
     void addFirstViewPoint();
     void undo_addFirstViewPoint();
+    int getViewId(CLookPoint* pPoint);
+    void createViewByIndex(int index);
+    void undo_createViewByIndex(int index);
 
 signals:
     void patrolChanges();
@@ -117,6 +120,12 @@ public:
     void addFirstPoint(QVector3D& pos);
     void undo_addFirstPoint();
     bool isBehaviourPath() {return m_model == EBehaviourType::ePath;}
+    int getPatrolId(CPatrolPoint* pPoint);
+    void getViewId(int& parentPatrol, int& parentView, CLookPoint* pPoint);
+    void createPatrolByIndex(int index);
+    void undo_createPatrolByIndex(int index);
+    void createViewByIndex(int pointId, int viewId);
+    void undo_createViewByIndex(int pointId, int viewId);
 
 public slots:
     void update();
@@ -175,6 +184,12 @@ public:
     void addFirstPatrolPoint();
     void undo_addFirstPatrolPoint();
     bool isBehaviourPath();
+    int getPatrolId(CPatrolPoint* pPoint);
+    void getViewId(int& parentPatrol, int& parentView, CLookPoint* pPoint);
+    void createPatrolByIndex(int index);
+    void undo_createPatrolByIndex(int index);
+    void createViewByIndex(int pointId, int viewId);
+    void undo_createViewByIndex(int pointId, int viewId);
 
 private:
     //"UNIT_R", eNull};

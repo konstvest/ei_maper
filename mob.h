@@ -30,6 +30,9 @@ enum EMobOrder
 };
 
 class CProgressView;
+class CPatrolPoint;
+class CLookPoint;
+
 class CMob
 {
 public:
@@ -72,7 +75,13 @@ public:
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
+
     CNode* findUnitParent(CNode* pPointIn);
+    void getPatrolHash(int& unitMapIdOut, int& pointIdOut, CPatrolPoint* pPoint);
+    void getViewHash(int& unitMapIdOut, int& pointIdOut, int& viewIdOut, CLookPoint* pPoint);
+    int getPatrolId(uint unitMapId, CPatrolPoint* pPoint);
+    void createPatrolByHash(QString hash);
+    void undo_createPatrolByHash(QString hash);
 
 private:
     void init();

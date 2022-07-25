@@ -1247,20 +1247,25 @@ void CView::addPatrolPoint()
 
         if(pNode->nodeType() == ePatrolPoint)
         {
-            CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, dynamic_cast<CPatrolPoint*>(pNode));
+            int unitId(0); //parent unit map id
+            int patrolId(0);
+            CPatrolPoint* pPoint = dynamic_cast<CPatrolPoint*>(pNode);
+            m_activeMob->getPatrolHash(unitId, patrolId, pPoint);
+            QString hash = QString("%1.%2").arg(unitId).arg(patrolId);
+            CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
             m_pUndoStack->push(pUndo);
             bChangeToMove = true;
         }
         else if(pNode->nodeType() == eUnit)
         {
-            auto pUnit = dynamic_cast<CUnit*>(pNode);
-            if(!pUnit->isBehaviourPath())
+            if(!dynamic_cast<CUnit*>(pNode)->isBehaviourPath())
             {
-                ei::log(eLogInfo, "object has no Path behaviour. adding patrol point skipped");
-                continue; //skip different behaviour
+                ei::log(eLogInfo, "object has non-Path behaviour. adding patrol point skipped");
+                continue; //skip non-path behaviour
             }
 
-            CCreateUnitPatrolCommand* pUndo = new CCreateUnitPatrolCommand(this, pUnit);
+            QString hash = QString("%1.%2").arg(pNode->mapId()).arg(-1);
+            CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
             m_pUndoStack->push(pUndo);
             bChangeToMove = true;
         }
@@ -1287,17 +1292,27 @@ void CView::addLookPoint()
 
         if(pNode->nodeType() == eLookPoint)
         {
-            CCreateViewCommand* pUndo = new CCreateViewCommand(this, dynamic_cast<CLookPoint*>(pNode));
+            int unitId(0); //parent unit map id
+            int patrolId(0); //patrol parent id
+            int viewId(0); //parent view id
+            auto pLook = dynamic_cast<CLookPoint*>(pNode);
+            m_activeMob->getViewHash(unitId, patrolId, viewId, pLook);
+            QString hash = QString("%1.%2.%3").arg(unitId).arg(patrolId).arg(viewId);
+            CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
             m_pUndoStack->push(pUndo);
-            bChangeToMove = true;
         }
         else if(pNode->nodeType() == ePatrolPoint)
         {
+            int unitId(0); //parent unit map id
+            int patrolId(0); //patrol parent id
+            int viewId(-1); //parent view id
             auto pPoint = dynamic_cast<CPatrolPoint*>(pNode);
-            CCreatePatrolViewCommand* pUndo = new CCreatePatrolViewCommand(this, pPoint);
+            m_activeMob->getPatrolHash(unitId, patrolId, pPoint);
+            QString hash = QString("%1.%2.%3").arg(unitId).arg(patrolId).arg(viewId);
+            CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
             m_pUndoStack->push(pUndo);
-            bChangeToMove = true;
         }
+        bChangeToMove = true;
         pNode->setState(ENodeState::eDraw);
 
     }

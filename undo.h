@@ -175,7 +175,7 @@ class CCreatePatrolCommand: public QUndoCommand
 public:
     enum { Id = 108 };
     CCreatePatrolCommand() = delete;
-    CCreatePatrolCommand(CView* pView, CPatrolPoint* pBasePoint, QUndoCommand *parent = nullptr);
+    CCreatePatrolCommand(CView* pView, QString pointHash, QUndoCommand *parent = nullptr);
 
     void undo() override;
     void redo() override;
@@ -184,60 +184,59 @@ public:
 
 private:
     CView* m_pView;
-    CPatrolPoint* m_pBasePoint;
-    CPatrolPoint* m_pCreatedPoint;
+    QString m_pointHash;
 };
 
-class CCreateUnitPatrolCommand: public QUndoCommand
-{
-public:
-    enum { Id = 109 };
-    CCreateUnitPatrolCommand() = delete;
-    CCreateUnitPatrolCommand(CView* pView, CUnit* pUnit, QUndoCommand *parent = nullptr);
+//class CCreateUnitPatrolCommand: public QUndoCommand
+//{
+//public:
+//    enum { Id = 109 };
+//    CCreateUnitPatrolCommand() = delete;
+//    CCreateUnitPatrolCommand(CView* pView, CUnit* pUnit, QUndoCommand *parent = nullptr);
 
-    void undo() override;
-    void redo() override;
-    //bool mergeWith(const QUndoCommand *command) override;
-    int id() const override { return Id; }
+//    void undo() override;
+//    void redo() override;
+//    //bool mergeWith(const QUndoCommand *command) override;
+//    int id() const override { return Id; }
 
-private:
-    CView* m_pView;
-    CUnit* m_pUnit;
-};
+//private:
+//    CView* m_pView;
+//    CUnit* m_pUnit;
+//};
 
-class CCreateViewCommand: public QUndoCommand
-{
-public:
-    enum { Id = 110 };
-    CCreateViewCommand() = delete;
-    CCreateViewCommand(CView* pView, CLookPoint* pBasePoint, QUndoCommand *parent = nullptr);
+//class CCreateViewCommand: public QUndoCommand
+//{
+//public:
+//    enum { Id = 110 };
+//    CCreateViewCommand() = delete;
+//    CCreateViewCommand(CView* pView, CLookPoint* pBasePoint, QUndoCommand *parent = nullptr);
 
-    void undo() override;
-    void redo() override;
-    //bool mergeWith(const QUndoCommand *command) override;
-    int id() const override { return Id; }
+//    void undo() override;
+//    void redo() override;
+//    //bool mergeWith(const QUndoCommand *command) override;
+//    int id() const override { return Id; }
 
-private:
-    CView* m_pView;
-    CLookPoint* m_pBasePoint;
-    CLookPoint* m_pCreatedPoint;
-};
+//private:
+//    CView* m_pView;
+//    CLookPoint* m_pBasePoint;
+//    CLookPoint* m_pCreatedPoint;
+//};
 
-class CCreatePatrolViewCommand: public QUndoCommand
-{
-public:
-    enum { Id = 111 };
-    CCreatePatrolViewCommand() = delete;
-    CCreatePatrolViewCommand(CView* pView, CPatrolPoint* pPoint, QUndoCommand *parent = nullptr);
+//class CCreatePatrolViewCommand: public QUndoCommand
+//{
+//public:
+//    enum { Id = 111 };
+//    CCreatePatrolViewCommand() = delete;
+//    CCreatePatrolViewCommand(CView* pView, CPatrolPoint* pPoint, QUndoCommand *parent = nullptr);
 
-    void undo() override;
-    void redo() override;
-    //bool mergeWith(const QUndoCommand *command) override;
-    int id() const override { return Id; }
+//    void undo() override;
+//    void redo() override;
+//    //bool mergeWith(const QUndoCommand *command) override;
+//    int id() const override { return Id; }
 
-private:
-    CView* m_pView;
-    CPatrolPoint* m_pPoint;
-};
+//private:
+//    CView* m_pView;
+//    CPatrolPoint* m_pPoint;
+//};
 
 #endif // UNDO_H

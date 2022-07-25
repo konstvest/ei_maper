@@ -377,6 +377,127 @@ CNode *CMob::findUnitParent(CNode *pPointIn)
     return pParentNode;
 }
 
+void CMob::getPatrolHash(int &unitMapIdOut, int &pointIdOut, CPatrolPoint *pPoint)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eUnit)
+        {
+            CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+            int index = pUnit->getPatrolId(pPoint);
+            if(index >=0)
+            {
+                unitMapIdOut = pUnit->mapId();
+                pointIdOut = index;
+                return;
+            }
+        }
+    }
+    return;
+}
+
+void CMob::getViewHash(int &unitMapIdOut, int &pointIdOut, int &viewIdOut, CLookPoint *pPoint)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() != eUnit)
+            continue;
+
+        int parentPatrol;
+        int parentView;
+        CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+        pUnit->getViewId(parentPatrol, parentView, pPoint);
+        if(parentPatrol >=0)
+        {
+            unitMapIdOut = pUnit->mapId();
+            pointIdOut = parentPatrol;
+            viewIdOut = parentView;
+            return;
+        }
+    }
+    return;
+}
+
+int CMob::getPatrolId(uint unitMapId, CPatrolPoint* pPoint)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->mapId() == unitMapId && pNode->nodeType() == eUnit)
+        {
+            CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+            return pUnit->getPatrolId(pPoint);
+        }
+    }
+    return -1;
+}
+
+void CMob::createPatrolByHash(QString hash)
+{
+    QStringList list = hash.split(".");
+    if(list.size()==2) // patrol point
+    {
+        CNode* pNode = nullptr;
+        foreach(pNode, m_aLogicNode)
+        {
+            if(pNode->nodeType() == eUnit && pNode->mapId() == list[0].toUInt())
+            {
+                CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+                pUnit->createPatrolByIndex(list[1].toInt());
+                break;
+            }
+        }
+    }
+    else if(list.size()==3)
+    {
+        CNode* pNode = nullptr;
+        foreach(pNode, m_aLogicNode)
+        {
+            if(pNode->nodeType() == eUnit && pNode->mapId() == list[0].toUInt())
+            {
+                CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+                pUnit->createViewByIndex(list[1].toInt(), list[2].toInt());
+                break;
+            }
+        }
+    }
+    logicNodesUpdate();
+}
+
+void CMob::undo_createPatrolByHash(QString hash)
+{
+    QStringList list = hash.split(".");
+    if(list.size()==2) // patrol point
+    {
+        CNode* pNode = nullptr;
+        foreach(pNode, m_aLogicNode)
+        {
+            if(pNode->nodeType() == eUnit && pNode->mapId() == list[0].toUInt())
+            {
+                CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+                pUnit->undo_createPatrolByIndex(list[1].toInt());
+                break;
+            }
+        }
+    }
+    else if(list.size()==3)
+    {
+        CNode* pNode = nullptr;
+        foreach(pNode, m_aLogicNode)
+        {
+            if(pNode->nodeType() == eUnit && pNode->mapId() == list[0].toUInt())
+            {
+                CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+                pUnit->undo_createViewByIndex(list[1].toInt(), list[2].toInt());
+                break;
+            }
+        }
+    }
+    logicNodesUpdate();
+}
+
 CNode* CMob::createNode(QJsonObject data)
 {
     auto wo = data;
@@ -586,7 +707,7 @@ void CMob::readMob(QFileInfo &path)
     }
 
     updateObjects();
-
+    logicNodesUpdate();
 }
 
 void CMob::checkUniqueId(QSet<uint> &aId)

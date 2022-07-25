@@ -484,6 +484,36 @@ bool CUnit::isBehaviourPath()
     return m_aLogic.front()->isBehaviourPath();
 }
 
+int CUnit::getPatrolId(CPatrolPoint *pPoint)
+{
+    return m_aLogic.front()->getPatrolId(pPoint);
+}
+
+void CUnit::getViewId(int &parentPatrol, int &parentView, CLookPoint *pPoint)
+{
+    m_aLogic.front()->getViewId(parentPatrol, parentView, pPoint);
+}
+
+void CUnit::createPatrolByIndex(int index)
+{
+    m_aLogic.front()->createPatrolByIndex(index);
+}
+
+void CUnit::undo_createPatrolByIndex(int index)
+{
+    m_aLogic.front()->undo_createPatrolByIndex(index);
+}
+
+void CUnit::createViewByIndex(int pointId, int viewId)
+{
+    m_aLogic.front()->createViewByIndex(pointId, viewId);
+}
+
+void CUnit::undo_createViewByIndex(int pointId, int viewId)
+{
+    m_aLogic.front()->undo_createViewByIndex(pointId, viewId);
+}
+
 CLogic::CLogic(CUnit* unit, bool bUse):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
     ,m_bCyclic(false)
@@ -848,6 +878,68 @@ void CLogic::undo_addFirstPoint()
     CPatrolPoint* pPoint = m_aPatrolPt.front();
     m_aPatrolPt.pop_front();
     delete pPoint;
+}
+
+int CLogic::getPatrolId(CPatrolPoint *pPoint)
+{
+    return m_aPatrolPt.indexOf(pPoint);
+}
+
+void CLogic::getViewId(int &parentPatrol, int &parentView, CLookPoint *pPoint)
+{
+   parentPatrol = -1;
+   parentView = -1;
+   CPatrolPoint* point = nullptr;
+   foreach(point, m_aPatrolPt)
+   {
+       int index = point->getViewId(pPoint);
+       if(index >= 0)
+       {
+           parentView = index;
+           parentPatrol = m_aPatrolPt.indexOf(point);
+           break;
+       }
+   }
+}
+
+void CLogic::createPatrolByIndex(int index)
+{
+    CPatrolPoint* pPoint = new CPatrolPoint();
+    if(index >= 0)
+    {
+        QVector3D pos = m_aPatrolPt[index]->position();
+        pPoint->updatePos(pos);
+    }
+    else
+    {
+        pPoint->updatePos(m_guardPlacement);
+    }
+    m_aPatrolPt.insert(index+1, pPoint); //check first and final points
+    pPoint->setState(ENodeState::eSelect);
+    QObject::connect(pPoint, SIGNAL(patrolChanges()), this, SLOT(update()));
+    //QObject::connect(pPoint, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
+    //QObject::connect(pPoint, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
+    update();
+}
+
+void CLogic::undo_createPatrolByIndex(int index)
+{
+    CPatrolPoint* pPoint = m_aPatrolPt.at(index+1);
+    m_aPatrolPt.remove(index+1);
+    delete pPoint;
+    update();
+}
+
+void CLogic::createViewByIndex(int pointId, int viewId)
+{
+    auto pPoint = m_aPatrolPt.at(pointId);
+    pPoint->createViewByIndex(viewId);
+}
+
+void CLogic::undo_createViewByIndex(int pointId, int viewId)
+{
+    auto pPoint = m_aPatrolPt.at(pointId);
+    pPoint->undo_createViewByIndex(viewId);
 }
 
 uint CLogic::deserialize(util::CMobParser& parser)
@@ -1421,6 +1513,37 @@ void CPatrolPoint::undo_addFirstViewPoint()
     CLookPoint* pPoint = m_aLookPt.front();
     m_aLookPt.pop_front();
     delete pPoint;
+}
+
+int CPatrolPoint::getViewId(CLookPoint *pPoint)
+{
+    return m_aLookPt.indexOf(pPoint);
+}
+
+void CPatrolPoint::createViewByIndex(int index)
+{
+    CLookPoint* pPoint = new CLookPoint();
+    if(index >= 0)
+    {
+        QVector3D pos = m_aLookPt[index]->position();
+        pPoint->updatePos(pos);
+    }
+    else
+    {
+        pPoint->updatePos(m_position);
+    }
+    m_aLookPt.insert(index+1, pPoint); //check first and final points
+    pPoint->setState(ENodeState::eSelect);
+    QObject::connect(pPoint, SIGNAL(lookPointChanges()), this, SLOT(update()));
+    update();
+}
+
+void CPatrolPoint::undo_createViewByIndex(int index)
+{
+    auto pLook = m_aLookPt.at(index+1);
+    m_aLookPt.remove(index+1);
+    delete pLook;
+    update();
 }
 
 CLookPoint::CLookPoint():

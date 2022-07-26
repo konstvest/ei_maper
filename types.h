@@ -61,70 +61,81 @@ enum EOperationAxisType
 enum EObjParam
 {
     eObjParamUnknow = 0
-    ,eObjParam_BODYPARTS
-    ,eObjParam_PLAYER
+
     ,eObjParam_NID
+
     ,eObjParam_TYPE
-    ,eObjParam_NAME
     ,eObjParam_TEMPLATE
-    ,eObjParam_PARENT_TEMPLATE
+    ,eObjParam_BODYPARTS
     ,eObjParam_PRIM_TXTR
     ,eObjParam_SEC_TXTR
-    ,eObjParam_COMMENTS
-    ,eObjParam_POSITION
-    ,eObjParam_ROTATION
+    ,eObjParam_PLAYER
+    ,eObjParam_UNIT_PROTOTYPE
+
     ,eObjParam_USE_IN_SCRIPT
-    ,eObjParam_IS_SHADOW
-    ,eObjParam_PARENT_ID
+    ,eObjParam_NAME
     ,eObjParam_QUEST_INFO
-    ,eObjParam_COMPLECTION
+
+    //logic params
+    ,eObjParam_AGRESSION_MODE
+    ,eObjParam_LOGIC_BEHAVIOUR
+    ,eObjParam_GUARD_RADIUS
+    ,eObjParam_GUARD_ALARM
+    ,eObjParam_GUARD_PLACE
+    ,eObjParam_VIEW_WAIT
+    ,eObjParam_VIEW_TURN_SPEED
+
+    ,eObjParam_IS_SHADOW
     ,eObjParam_TORCH_PTLINK
     ,eObjParam_TORCH_STRENGHT
     ,eObjParam_TORCH_SOUND
+
+    ,eObjParam_PARENT_TEMPLATE
+    ,eObjParam_PARENT_ID
+
     ,eObjParam_RANGE
-    ,eObjParam_SOUND_RANGE
-    ,eObjParam_SOUND_MIN
-    ,eObjParam_SOUND_MAX
     ,eObjParam_SOUND_RESNAME
     ,eObjParam_SOUND_AMBIENT
     ,eObjParam_SOUND_IS_MUSIC
-    ,eObjParam_LIGHT_SHADOW
+    ,eObjParam_SOUND_RANGE
+    ,eObjParam_SOUND_MIN
+    ,eObjParam_SOUND_MAX
     ,eObjParam_LIGHT_COLOR
+    ,eObjParam_LIGHT_SHADOW
+
     ,eObjParam_PARTICL_TYPE
     ,eObjParam_PARTICL_SCALE
+
     //,eObjParam_LEVER_SCIENCE_STATS_NEW
     ,eObjParam_LEVER_SCIENCE_STATS_Type_Open
     ,eObjParam_LEVER_SCIENCE_STATS_Key_ID
     ,eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight
-    //
-    ,eObjParam_LEVER_CUR_STATE
     ,eObjParam_LEVER_TOTAL_STATE
+    ,eObjParam_LEVER_CUR_STATE
     ,eObjParam_LEVER_IS_CYCLED
     ,eObjParam_LEVER_IS_DOOR
     ,eObjParam_LEVER_RECALC_GRAPH
+
     ,eObjParam_TRAP_DIPLOMACY
     ,eObjParam_TRAP_SPELL
     ,eObjParam_TRAP_AREAS
     ,eObjParam_TRAP_TARGETS
-    ,eObjParam_TRAP_CAST_INTERVAL
     ,eObjParam_TRAP_CAST_ONCE
+    ,eObjParam_TRAP_CAST_INTERVAL //is it should not be displayed if cast once == true
+
     ,eObjParam_UNIT_NEED_IMPORT
-    ,eObjParam_UNIT_PROTOTYPE
-    ,eObjParam_UNIT_ARMORS
+    ,eObjParam_UNIT_STATS
     ,eObjParam_UNIT_WEAPONS
+    ,eObjParam_UNIT_ARMORS
     ,eObjParam_UNIT_SPELLS
     ,eObjParam_UNIT_QUICK_ITEMS
     ,eObjParam_UNIT_QUEST_ITEMS
-    ,eObjParam_UNIT_STATS
-    //logic params
-    ,eObjParam_GUARD_PLACE
-    ,eObjParam_GUARD_RADIUS
-    ,eObjParam_GUARD_ALARM
-    ,eObjParam_LOGIC_BEHAVIOUR
-    ,eObjParam_AGRESSION_MODE
-    ,eObjParam_POINT_WAIT
-    ,eObjParam_VIEW_WAIT
-    ,eObjParam_VIEW_TURN_SPEED
+
+    ,eObjParam_COMPLECTION
+    ,eObjParam_POSITION
+    ,eObjParam_ROTATION
+
+    ,eObjParam_COMMENTS
 
 };
 

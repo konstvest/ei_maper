@@ -5,6 +5,7 @@
 #include <QAbstractScrollArea>
 #include <QUndoStack>
 #include <QTreeWidget>
+#include <QPair>
 
 #include "view.h"
 #include "camera.h"

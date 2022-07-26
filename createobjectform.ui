@@ -90,6 +90,9 @@
        <property name="columnCount">
         <number>2</number>
        </property>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
        <column/>
        <column/>
       </widget>

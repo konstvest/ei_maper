@@ -220,6 +220,9 @@
           <attribute name="horizontalHeaderVisible">
            <bool>false</bool>
           </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
           <column/>
           <column/>
          </widget>

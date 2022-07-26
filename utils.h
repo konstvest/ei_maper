@@ -18,7 +18,7 @@ void normalizeAngle(float& angle);
 void getCirclePoint(QVector<QVector3D>& aPoint, const QVector3D centr, const double radius, const int nPoint);
 void splitByLen(QVector<QVector3D>& aPoint, float len);
 bool isEqual(const double& a, const double& b, double Eps = EPS);
-QString makeString(const QVector3D& vec, bool bFormat = false);
+QString makeString(const QVector3D& vec, bool bFormat = true);
 QString makeString(QVector4D& vec);
 QString makeString(QVector<QString>& vec);
 QVector<QString> strListFromString(QString string);

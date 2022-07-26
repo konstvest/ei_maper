@@ -38,6 +38,7 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
     case eObjParam_SOUND_AMBIENT:
     case eObjParam_SOUND_IS_MUSIC:
     case eObjParam_LIGHT_SHADOW:
+    case eObjParam_TRAP_CAST_ONCE:
     {
         aStr[0] = "false";
         aStr[1] = "true";
@@ -327,10 +328,10 @@ void CTableManager::updateParam(EObjParam param, QString newValue)
 void CTableManager::initRowName()
 {
     m_aRowName[eObjParam_BODYPARTS] = "Model parts";
-    m_aRowName[eObjParam_PLAYER] = "Player(group)";
+    m_aRowName[eObjParam_PLAYER] = "Player (group)";
     m_aRowName[eObjParam_NID] = "Map ID";
     m_aRowName[eObjParam_TYPE] = "Unit subtype";
-    m_aRowName[eObjParam_NAME] = "Map name";
+    m_aRowName[eObjParam_NAME] = "Map(script) name";
     m_aRowName[eObjParam_TEMPLATE] = "Model name";
     m_aRowName[eObjParam_PARENT_TEMPLATE] = "Template";
     m_aRowName[eObjParam_PRIM_TXTR] = "Texture";
@@ -338,10 +339,10 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_COMMENTS] = "Comments";
     m_aRowName[eObjParam_POSITION] = "Position";
     m_aRowName[eObjParam_ROTATION] = "Rotation";
-    m_aRowName[eObjParam_USE_IN_SCRIPT] = "Use in script?";
+    m_aRowName[eObjParam_USE_IN_SCRIPT] = "Is use in script?";
     m_aRowName[eObjParam_IS_SHADOW] = "Is shadow?";
     m_aRowName[eObjParam_PARENT_ID] = "Parent ID";
-    m_aRowName[eObjParam_QUEST_INFO] = "Quest name(marker)";
+    m_aRowName[eObjParam_QUEST_INFO] = "Quest marker";
     m_aRowName[eObjParam_COMPLECTION] = "Complection";
     m_aRowName[eObjParam_TORCH_PTLINK] = "Torch point";
     m_aRowName[eObjParam_TORCH_STRENGHT] = "Torch power";
@@ -350,7 +351,7 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_SOUND_RANGE] = "Sound distance";
     m_aRowName[eObjParam_SOUND_MIN] = "Sound min";
     m_aRowName[eObjParam_SOUND_MAX] = "Sound max";
-    m_aRowName[eObjParam_SOUND_RESNAME] = "Sound resource name";
+    m_aRowName[eObjParam_SOUND_RESNAME] = "Sound filepath";
     m_aRowName[eObjParam_SOUND_AMBIENT] = "Is ambient?";
     m_aRowName[eObjParam_SOUND_IS_MUSIC] = "Is music?";
     m_aRowName[eObjParam_LIGHT_SHADOW] = "Is shadow?";
@@ -435,7 +436,6 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         case eObjParam_LEVER_IS_DOOR:
         case eObjParam_USE_IN_SCRIPT:
         case eObjParam_LEVER_RECALC_GRAPH:
-        case eObjParam_UNIT_NEED_IMPORT:
         case eObjParam_SOUND_AMBIENT:
         case eObjParam_SOUND_IS_MUSIC:
         case eObjParam_PRIM_TXTR:
@@ -532,6 +532,46 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
                 }
             }
             break; //eObjParam_LEVER_SCIENCE_STATS_Type_Open
+        }
+        case eObjParam_UNIT_STATS:
+        case eObjParam_UNIT_WEAPONS:
+        case eObjParam_UNIT_ARMORS:
+        case eObjParam_UNIT_SPELLS:
+        case eObjParam_UNIT_QUICK_ITEMS:
+        case eObjParam_UNIT_QUEST_ITEMS:
+        {//will be processed below
+            break;
+        }
+        case eObjParam_UNIT_NEED_IMPORT:
+        {
+            //insert combobox
+            m_pTable->insertRow(i);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
+            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+            CComboBoxItem* pCombo = new CComboBoxItem(item.second, item.first);
+            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            m_pTable->setCellWidget(i, 1, pCombo);
+            ++i;
+            if(item.second == "1") // is need import unit stats == true
+            {
+                QVector<EObjParam> importStats;
+                importStats.resize(6);
+                importStats[0] = eObjParam_UNIT_STATS;
+                importStats[1] = eObjParam_UNIT_WEAPONS;
+                importStats[2] = eObjParam_UNIT_ARMORS;
+                importStats[3] = eObjParam_UNIT_SPELLS;
+                importStats[4] = eObjParam_UNIT_QUICK_ITEMS;
+                importStats[5] = eObjParam_UNIT_QUEST_ITEMS;
+                for(int j(0); j<importStats.size();++j)
+                {
+                    m_pTable->insertRow(i);
+                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[importStats[j]]));
+                    m_pTable->setItem(i, 1, new CStringItem(aParam[importStats[j]], importStats[j]));
+                    m_pTable->resizeColumnToContents(0);
+                    ++i;
+                }
+            }
+            break;
         }
         default:
         {

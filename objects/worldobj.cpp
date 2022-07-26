@@ -325,7 +325,8 @@ void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
         return;
 
     util::addParam(aParam, eObjParam_BODYPARTS, util::makeString(m_bodyParts));
-    util::addParam(aParam, eObjParam_PLAYER, QString::number(m_player));
+    if(nodeType() == eUnit) //show player group only for Units
+        util::addParam(aParam, eObjParam_PLAYER, QString::number(m_player));
 
     //addParam(aParam, eObjParam_TYPE, QString::number(m_type));
     util::addParam(aParam, eObjParam_NAME, m_name);

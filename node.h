@@ -26,7 +26,10 @@ enum ENodeType
     ,eParticle      =0x11   //0001 0001
 
     ,ePatrolPoint   =0x31   //0011 0001
-    ,eLookPoint   =0x51   //0101 0001
+    ,eLookPoint     =0x51   //0101 0001
+
+    ,eTrapActZone   =0x91 //1001 0001
+    ,eTrapCastPoint =0xC1 //1100 0001
 };
 
 enum ENodeState
@@ -90,6 +93,7 @@ public:
     void rotate(QQuaternion& quat);
     void move(float x, float y, float z);
     QVector3D& position() {return m_position; }
+    QVector3D& drawPosition() {return m_drawPosition;}
     void setDrawPosition(QVector3D pos) {m_drawPosition = pos;}
     void setState(ENodeState state) {m_state = state;}
     ENodeState nodeState() {return m_state;}

@@ -107,6 +107,8 @@ public:
     uint writePlot(const QVector3D& data);
     uint readPlot2DArray(QVector<QVector2D>& data);
     uint writePlot2DArray(const QVector<QVector2D>& data);
+    uint readPlot2D(QVector2D& data);
+    uint writePlot2D(const QVector2D& data);
     uint readAreaArray(QVector<SArea>& data);
     uint writeAreaArray(const QVector<SArea>& data);
     uint readQuaternion(QVector4D& data);

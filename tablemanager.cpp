@@ -444,6 +444,7 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         case eObjParam_TYPE:
         case eObjParam_PARTICL_TYPE:
         case eObjParam_AGRESSION_MODE:
+        case eObjParam_TRAP_CAST_ONCE:
         {
             m_pTable->insertRow(i);
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem

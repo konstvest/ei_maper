@@ -567,7 +567,7 @@ uint util::CMobParser::readAreaArray(QVector<SArea>& data)
 {
     uint size;
     m_stream >> size;
-    Q_ASSERT(size <=1);
+    //Q_ASSERT(size <=1);
     QVector2D pointTo;
     float val;
     for(uint i(0); i<size; ++i)
@@ -640,6 +640,24 @@ uint util::CMobParser::writePlot2DArray(const QVector<QVector2D>& data)
     const uint len(endPos - startPos);
     m_stack.back().second += len;
     return len;
+}
+
+uint util::CMobParser::readPlot2D(QVector2D &data)
+{
+    float val;
+    m_stream >> val;
+    data.setX(val);
+    m_stream >> val;
+    data.setY(val);
+
+    return sizeof(float)*2;
+}
+
+uint util::CMobParser::writePlot2D(const QVector2D &data)
+{
+    m_stream << data.x();
+    m_stream << data.y();
+    return 8;
 }
 
 uint util::CMobParser::readQuaternion(QVector4D& data)

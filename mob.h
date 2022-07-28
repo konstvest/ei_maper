@@ -32,6 +32,8 @@ enum EMobOrder
 class CProgressView;
 class CPatrolPoint;
 class CLookPoint;
+class CActivationZone;
+class CTrapCastPoint;
 
 class CMob
 {
@@ -83,6 +85,10 @@ public:
     void undo_createPatrolByHash(QString hash);
     CPatrolPoint* patrolPointById(int unitId, int patrolId);
     CLookPoint* viewPointById(int unitId, int patrolId, int viewId);
+    void getTrapZoneHash(int& unitMapIdOut, int& zoneIdOut, CActivationZone* pZone);
+    CActivationZone* actZoneById(int trapId, int zoneId);
+    void getTrapCastHash(int& unitMapIdOut, int& pointIdOut, CTrapCastPoint* pCast);
+    CTrapCastPoint* trapCastById(int trapId, int pointId);
 
 private:
     void init();

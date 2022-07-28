@@ -118,8 +118,9 @@ enum EObjParam
 
     ,eObjParam_TRAP_DIPLOMACY
     ,eObjParam_TRAP_SPELL
-    ,eObjParam_TRAP_AREAS
-    ,eObjParam_TRAP_TARGETS
+    ,eObjParam_TRAP_AREA_RADIUS
+    //,eObjParam_TRAP_AREAS
+    //,eObjParam_TRAP_TARGETS
     ,eObjParam_TRAP_CAST_ONCE
     ,eObjParam_TRAP_CAST_INTERVAL //is it should not be displayed if cast once == true
 

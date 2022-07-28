@@ -6,6 +6,7 @@
 class CMagicTrap; //forward declaration
 class CActivationZone : public CObjectBase
 {
+    Q_OBJECT
 public:
     CActivationZone() = delete;
     CActivationZone(CMagicTrap* pTrap);
@@ -14,6 +15,9 @@ public:
     ~CActivationZone();
     ENodeType nodeType() override {return ENodeType::eTrapActZone; }
 
+    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
+    QString getLogicParam(EObjParam param) override;
+    void applyLogicParam(EObjParam param, const QString& value) override;
     uint deserialize(util::CMobParser& parser) override;
     uint serialize(util::CMobParser& parser) override;
     void deSerializeJson(QJsonObject data);
@@ -21,6 +25,10 @@ public:
     //SArea getArea();
     void draw(QOpenGLShaderProgram* program) override;
     void update();
+    bool updatePos(QVector3D& pos) override;
+
+signals:
+    void changeActZone();
 
 private:
     QOpenGLBuffer m_vertexBuf; //vertex buffer for drawing area activating trap
@@ -32,6 +40,7 @@ private:
 
 class CTrapCastPoint : public CObjectBase
 {
+    Q_OBJECT
 public:
     CTrapCastPoint() = delete;
     CTrapCastPoint(CMagicTrap* pTrap);
@@ -40,11 +49,18 @@ public:
     ~CTrapCastPoint();
     ENodeType nodeType() override {return ENodeType::eTrapCastPoint; }
 
+    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
+    void applyLogicParam(EObjParam param, const QString& value) override;
+    QString getLogicParam(EObjParam param) override;
     uint deserialize(util::CMobParser& parser) override;
     uint serialize(util::CMobParser& parser) override;
     void deSerializeJsonArray(QJsonArray data);
     void serializeJsonArray(QJsonArray& obj);
     void draw(QOpenGLShaderProgram* program) override;
+    bool updatePos(QVector3D& pos) override;
+
+signals:
+    void changeCastPoint();
 
 private:
     CMagicTrap* m_pParent;
@@ -52,24 +68,36 @@ private:
 
 class CMagicTrap : public CWorldObj
 {
+    Q_OBJECT
 public:
     CMagicTrap();
     CMagicTrap(const CMagicTrap& trap);
     CMagicTrap(QJsonObject data);
     ~CMagicTrap();
     ENodeType nodeType() override {return ENodeType::eMagicTrap; }
+
     void draw(QOpenGLShaderProgram* program) override;
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
+    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
+    void applyLogicParam(EObjParam param, const QString& value) override;
+    QString getLogicParam(EObjParam param) override;
     void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
     void applyParam(EObjParam param, const QString& value) override;
     QString getParam(EObjParam param) override;
     QJsonObject toJson() override;
     void loadFigure() override {}
     void loadTexture() override;
+    void collectLogicNodes(QList<CNode*>& arrNode);
+    void clearLogicSelect();
+    bool updatePos(QVector3D& pos) override;
+    int getZoneId(CActivationZone* pZone);
+    CActivationZone* actZoneById(int zoneId);
+    int getCastPointId(CTrapCastPoint* pCast);
+    CTrapCastPoint* castPointById (int pointId);
 
-private:
+private slots:
     void update();
 
 private:

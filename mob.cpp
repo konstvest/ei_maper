@@ -494,6 +494,76 @@ CLookPoint *CMob::viewPointById(int unitId, int patrolId, int viewId)
     return pPoint->viewByIndex(viewId);
 }
 
+void CMob::getTrapZoneHash(int &unitMapIdOut, int &zoneIdOut, CActivationZone *pZone)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eMagicTrap)
+        {
+            CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(pNode);
+            int index = pTrap->getZoneId(pZone);
+            if(index >=0)
+            {
+                unitMapIdOut = pTrap->mapId();
+                zoneIdOut = index;
+                return;
+            }
+        }
+    }
+    return;
+}
+
+CActivationZone *CMob::actZoneById(int trapId, int zoneId)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eMagicTrap && pNode->mapId() == (uint)trapId)
+        {
+            CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(pNode);
+            return pTrap->actZoneById(zoneId);
+        }
+    }
+    Q_ASSERT(false && "cant find act zone by trap map id");
+    return nullptr;
+}
+
+void CMob::getTrapCastHash(int &unitMapIdOut, int &pointIdOut, CTrapCastPoint* pCast)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eMagicTrap)
+        {
+            CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(pNode);
+            int index = pTrap->getCastPointId(pCast);
+            if(index >=0)
+            {
+                unitMapIdOut = pTrap->mapId();
+                pointIdOut = index;
+                return;
+            }
+        }
+    }
+    return;
+}
+
+CTrapCastPoint *CMob::trapCastById(int trapId, int pointId)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eMagicTrap && pNode->mapId() == (uint)trapId)
+        {
+            CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(pNode);
+            return pTrap->castPointById(pointId);
+        }
+    }
+    Q_ASSERT(false && "cant find cast point by trap map id");
+    return nullptr;
+}
+
 CNode* CMob::createNode(QJsonObject data)
 {
     auto wo = data;
@@ -636,13 +706,27 @@ void CMob::logicNodesUpdate()
     CNode* pNode = nullptr;
     foreach(pNode, m_aNode)
     {
-        if(pNode->nodeType() != ENodeType::eUnit)
-            continue;
-
-        m_aLogicNode.append(pNode);
-        CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
-        Q_ASSERT(pUnit);
-        pUnit->collectLogicNodes(m_aLogicNode);
+        ENodeType type = pNode->nodeType();
+        switch(type)
+        {
+        case ENodeType::eUnit:
+        {
+            m_aLogicNode.append(pNode);
+            CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
+            Q_ASSERT(pUnit);
+            pUnit->collectLogicNodes(m_aLogicNode);
+            break;
+        }
+        case ENodeType::eMagicTrap:
+        {
+            m_aLogicNode.append(pNode);
+            CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(pNode);
+            pTrap->collectLogicNodes(m_aLogicNode);
+            break;
+        }
+        default:
+            break;
+        }
     }
 }
 
@@ -1168,6 +1252,11 @@ void CMob::clearSelect(bool bClearLogic)
         {
             CUnit* pUnit = dynamic_cast<CUnit*>(pNode);
             pUnit->clearLogicSelect();
+        }
+        else if(bClearLogic && pNode->nodeType() == ENodeType::eMagicTrap)
+        {
+            CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(pNode);
+            pTrap->clearLogicSelect();
         }
     }
 }

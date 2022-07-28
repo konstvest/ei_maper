@@ -26,11 +26,13 @@ CMagicTrap::CMagicTrap(const CMagicTrap &trap):
     for(auto& area : trap.m_aActZone)
     {
         CActivationZone* pZone = new CActivationZone(this, *area);
+        QObject::connect(pZone, SIGNAL(changeActZone()), this, SLOT(update()));
         m_aActZone.append(pZone);
     }
     for(const auto& pPoint : trap.m_aCastPoint)
     {
         CTrapCastPoint* pCast = new CTrapCastPoint(this, *pPoint);
+        QObject::connect(pCast, SIGNAL(changeCastPoint), this, SLOT(update()));
         m_aCastPoint.append(pCast);
     }
     m_castInterval = trap.m_castInterval;
@@ -51,6 +53,7 @@ CMagicTrap::CMagicTrap(QJsonObject data):
     {
         CActivationZone* pZone = new CActivationZone(this);
         pZone->deSerializeJson(it->toObject());
+        QObject::connect(pZone, SIGNAL(changeActZone()), this, SLOT(update()));
         m_aActZone.append(pZone);
     }
 
@@ -60,6 +63,7 @@ CMagicTrap::CMagicTrap(QJsonObject data):
     {
         CTrapCastPoint* pCast = new CTrapCastPoint(this);
         pCast->deSerializeJsonArray(it->toArray());
+        QObject::connect(pCast, SIGNAL(changeCastPoint), this, SLOT(update()));
         m_aCastPoint.append(pCast);
     }
 
@@ -145,6 +149,7 @@ uint CMagicTrap::deserialize(util::CMobParser& parser)
             {
                 CActivationZone* pZone = new CActivationZone(this);
                 readByte += pZone->deserialize(parser);
+                QObject::connect(pZone, SIGNAL(changeActZone()), this, SLOT(update()));
                 m_aActZone.append(pZone);
             }
             //todo: check len
@@ -159,6 +164,7 @@ uint CMagicTrap::deserialize(util::CMobParser& parser)
             {
                 CTrapCastPoint* pCast = new CTrapCastPoint(this);
                 readByte += pCast->deserialize(parser);
+                QObject::connect(pCast, SIGNAL(changeCastPoint()), this, SLOT(update()));
                 m_aCastPoint.append(pCast);
             }
             //todo: check len
@@ -256,6 +262,80 @@ uint CMagicTrap::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
+void CMagicTrap::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    auto comm = paramType & eMagicTrap;
+    if (comm != eMagicTrap)
+        return;
+
+    util::addParam(aParam, eObjParam_TRAP_DIPLOMACY, QString::number(m_diplomacy));
+    util::addParam(aParam, eObjParam_TRAP_SPELL, m_spell);
+    util::addParam(aParam, eObjParam_TRAP_CAST_INTERVAL, QString::number(m_castInterval));
+    util::addParam(aParam, eObjParam_TRAP_CAST_ONCE, util::makeString(m_bCastOnce));
+}
+
+void CMagicTrap::applyLogicParam(EObjParam param, const QString &value)
+{
+    switch (param){
+    case eObjParam_TRAP_DIPLOMACY:
+    {
+        m_diplomacy = value.toInt();
+        break;
+    }
+    case eObjParam_TRAP_SPELL:
+    {
+        m_spell = value;
+        break;
+    }
+    case eObjParam_TRAP_CAST_INTERVAL:
+    {
+        m_castInterval = value.toUInt();
+        break;
+    }
+    case eObjParam_TRAP_CAST_ONCE:
+    {
+        m_bCastOnce = util::boolFromString(value);
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
+}
+
+QString CMagicTrap::getLogicParam(EObjParam param)
+{
+    QString value;
+    switch (param) {
+    case eObjParam_TRAP_DIPLOMACY:
+    {
+        value = QString::number(m_diplomacy);
+        break;
+    }
+    case eObjParam_TRAP_SPELL:
+    {
+        value = m_spell;
+        break;
+    }
+    case eObjParam_TRAP_CAST_INTERVAL:
+    {
+        value = QString::number(m_castInterval);
+        break;
+    }
+    case eObjParam_TRAP_CAST_ONCE:
+    {
+        value = util::makeString(m_bCastOnce);
+        break;
+    }
+    default:
+    {
+        Q_ASSERT(false);
+        break;
+    }
+    }
+    return value;
+
+}
+
 void CMagicTrap::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
 {
     CWorldObj::collectParams(aParam, paramType);
@@ -264,13 +344,13 @@ void CMagicTrap::collectParams(QMap<EObjParam, QString> &aParam, ENodeType param
     if (comm != eMagicTrap)
         return;
 
-    util::addParam(aParam, eObjParam_TRAP_DIPLOMACY, QString::number(m_diplomacy));
-    util::addParam(aParam, eObjParam_TRAP_SPELL, m_spell);
+    //util::addParam(aParam, eObjParam_TRAP_DIPLOMACY, QString::number(m_diplomacy));
+    //util::addParam(aParam, eObjParam_TRAP_SPELL, m_spell);
     //TODO: move to logic parameters
     //util::addParam(aParam, eObjParam_TRAP_AREAS, util::makeString(arrArea));
     //util::addParam(aParam, eObjParam_TRAP_TARGETS, util::makeString(m_aTarget));
-    util::addParam(aParam, eObjParam_TRAP_CAST_INTERVAL, QString::number(m_castInterval));
-    util::addParam(aParam, eObjParam_TRAP_CAST_ONCE, util::makeString(m_bCastOnce));
+    //util::addParam(aParam, eObjParam_TRAP_CAST_INTERVAL, QString::number(m_castInterval));
+    //util::addParam(aParam, eObjParam_TRAP_CAST_ONCE, util::makeString(m_bCastOnce));
 
     aParam.remove(eObjParam_TEMPLATE); //dont allow change
     aParam.remove(eObjParam_PRIM_TXTR); //dont allow change
@@ -288,18 +368,6 @@ void CMagicTrap::applyParam(EObjParam param, const QString &value)
     case eObjParam_TRAP_SPELL:
     {
         m_spell = value;
-        break;
-    }
-    case eObjParam_TRAP_AREAS:
-    {
-        //m_aArea = util::vecAreaFromString(value);
-        update();
-        break;
-    }
-    case eObjParam_TRAP_TARGETS:
-    {
-        //m_aTarget = util::vecTargetFromString(value);
-        update();
         break;
     }
     case eObjParam_TRAP_CAST_INTERVAL:
@@ -332,16 +400,6 @@ QString CMagicTrap::getParam(EObjParam param)
     case eObjParam_TRAP_SPELL:
     {
         value = m_spell;
-        break;
-    }
-    case eObjParam_TRAP_AREAS:
-    {
-        //value = util::makeString(arrArea);
-        break;
-    }
-    case eObjParam_TRAP_TARGETS:
-    {
-        //value = util::makeString(m_aTarget);
         break;
     }
     case eObjParam_TRAP_CAST_INTERVAL:
@@ -393,6 +451,51 @@ QJsonObject CMagicTrap::toJson()
 void CMagicTrap::loadTexture()
 {
     //do nothing. trap has hardcoded texture
+}
+
+void CMagicTrap::collectLogicNodes(QList<CNode *> &arrNode)
+{
+    for(auto& pZone : m_aActZone)
+        arrNode.append(pZone);
+
+    for(auto& pCast : m_aCastPoint)
+        arrNode.append(pCast);
+}
+
+void CMagicTrap::clearLogicSelect()
+{
+    for(auto& pZone: m_aActZone)
+        pZone->setState(ENodeState::eDraw);
+
+    for(auto& pCast : m_aCastPoint)
+        pCast->setState(ENodeState::eDraw);
+}
+
+bool CMagicTrap::updatePos(QVector3D &pos)
+{
+    bool bRes = CObjectBase::updatePos(pos);
+    update();
+    return bRes;
+}
+
+int CMagicTrap::getZoneId(CActivationZone *pZone)
+{
+    return m_aActZone.indexOf(pZone);
+}
+
+CActivationZone *CMagicTrap::actZoneById(int zoneId)
+{
+    return m_aActZone[zoneId];
+}
+
+int CMagicTrap::getCastPointId(CTrapCastPoint *pCast)
+{
+    return m_aCastPoint.indexOf(pCast);
+}
+
+CTrapCastPoint *CMagicTrap::castPointById(int pointId)
+{
+    return m_aCastPoint[pointId];
 }
 
 void CMagicTrap::update()
@@ -458,6 +561,60 @@ CActivationZone::~CActivationZone()
 {
     m_vertexBuf.destroy();
     m_indexBuf.destroy();
+}
+
+void CActivationZone::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    auto comm = paramType & eTrapActZone;
+    if (comm != eTrapActZone)
+        return;
+
+    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+    util::addParam(aParam, eObjParam_TRAP_AREA_RADIUS, QString::number(m_radius));
+}
+
+QString CActivationZone::getLogicParam(EObjParam param)
+{
+    QString value;
+    switch (param) {
+    case eObjParam_POSITION:
+    {
+        value = util::makeString(m_position);
+        break;
+    }
+    case eObjParam_TRAP_AREA_RADIUS:
+    {
+        value = QString::number(m_radius);
+        break;
+    }
+    default:
+    {
+        Q_ASSERT(false);
+        break;
+    }
+    }
+    return value;
+}
+
+void CActivationZone::applyLogicParam(EObjParam param, const QString &value)
+{
+    switch (param){
+    case eObjParam_POSITION:
+    {
+        QVector3D pos = util::vec3FromString(value);
+        updatePos(pos);
+        emit changeActZone();
+        break;
+    }
+    case eObjParam_TRAP_AREA_RADIUS:
+    {
+        m_radius = value.toFloat();
+        update();
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
 }
 
 uint CActivationZone::deserialize(util::CMobParser &parser)
@@ -583,6 +740,14 @@ void CActivationZone::update()
     }
 }
 
+bool CActivationZone::updatePos(QVector3D &pos)
+{
+    bool res = CObjectBase::updatePos(pos);
+    update();
+    emit changeActZone();
+    return res;
+}
+
 CTrapCastPoint::CTrapCastPoint(CMagicTrap *pTrap):
     m_pParent(pTrap)
 {
@@ -600,6 +765,48 @@ CTrapCastPoint::CTrapCastPoint(CMagicTrap *pTrap, const CTrapCastPoint &pCast):
 
 CTrapCastPoint::~CTrapCastPoint()
 {
+}
+
+void CTrapCastPoint::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+{
+    auto comm = paramType & eTrapCastPoint;
+    if (comm != eTrapCastPoint)
+        return;
+
+    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+}
+
+void CTrapCastPoint::applyLogicParam(EObjParam param, const QString &value)
+{
+    switch (param){
+    case eObjParam_POSITION:
+    {
+        QVector3D pos = util::vec3FromString(value);
+        updatePos(pos);
+        emit changeCastPoint();
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
+}
+
+QString CTrapCastPoint::getLogicParam(EObjParam param)
+{
+    QString value;
+    switch (param) {
+    case eObjParam_POSITION:
+    {
+        value = util::makeString(m_position);
+        break;
+    }
+    default:
+    {
+        Q_ASSERT(false);
+        break;
+    }
+    }
+    return value;
 }
 
 uint CTrapCastPoint::deserialize(util::CMobParser &parser)
@@ -643,4 +850,11 @@ void CTrapCastPoint::draw(QOpenGLShaderProgram *program)
         return;
 
     CObjectBase::draw(program);
+}
+
+bool CTrapCastPoint::updatePos(QVector3D &pos)
+{
+    bool bRes = CObjectBase::updatePos(pos);
+    emit changeCastPoint();
+    return bRes;
 }

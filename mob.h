@@ -78,6 +78,7 @@ public:
 
     //functions for logic processing
     QList<CNode*>& logicNodes();
+    void logicNodesUpdate();
     void getPatrolHash(int& unitMapIdOut, int& pointIdOut, CPatrolPoint* pPoint);
     void getViewHash(int& unitMapIdOut, int& pointIdOut, int& viewIdOut, CLookPoint* pPoint);
     int getPatrolId(uint unitMapId, CPatrolPoint* pPoint);
@@ -89,6 +90,8 @@ public:
     CActivationZone* actZoneById(int trapId, int zoneId);
     void getTrapCastHash(int& unitMapIdOut, int& pointIdOut, CTrapCastPoint* pCast);
     CTrapCastPoint* trapCastById(int trapId, int pointId);
+    uint trapIdByPoint(CActivationZone* pZone);
+    uint trapIdByPoint(CTrapCastPoint* pPoint);
 
 private:
     void init();
@@ -97,7 +100,6 @@ private:
     void updateObjects();
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, const QString value);
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value);
-    void logicNodesUpdate();
 
 private:
     //todo: global text data, script

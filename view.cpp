@@ -1250,14 +1250,64 @@ void CView::deleteSelectedNodes()
         if (pNode->nodeState() != ENodeState::eSelect)
             continue;
 
-        if(pNode->nodeType() == ePatrolPoint || pNode->nodeType() == eLookPoint)
+        auto type = pNode->nodeType();
+        switch(type)
         {
-            CDeletePatrol* pUndo = new CDeletePatrol(pNode);
-            m_pUndoStack->push(pUndo);
+        case ePatrolPoint:
+        {
+            auto pPoint = dynamic_cast<CPatrolPoint*>(pNode);
+            int unitId(0);
+            int patrolId(0);
+            m_activeMob->getPatrolHash(unitId, patrolId, pPoint);
+            QString hash = QString("%1.%2").arg(unitId).arg(patrolId);
+            CDeleteLogicPoint* pOp = new CDeleteLogicPoint(this, hash);
+            m_pUndoStack->push(pOp);
+            break;
         }
-        else
+        case eLookPoint:
+        {
+            auto pPoint = dynamic_cast<CLookPoint*>(pNode);
+            int unitId(0);
+            int patrolId(0);
+            int viewId(0);
+            m_activeMob->getViewHash(unitId, patrolId, viewId, pPoint);
+            QString hash = QString("%1.%2.%3").arg(unitId).arg(patrolId).arg(viewId);
+            CDeleteLogicPoint* pOp = new CDeleteLogicPoint(this, hash);
+            m_pUndoStack->push(pOp);
+            break;
+        }
+        case eTrapActZone:
+        {
+            auto pZone = dynamic_cast<CActivationZone*>(pNode);
+            int unitId(0);
+            int patrolId(-2);
+            int viewId(-2);
+            int zoneId(0);
+            m_activeMob->getTrapZoneHash(unitId, zoneId, pZone);
+            QString hash = QString("%1.%2.%3.%4").arg(unitId).arg(patrolId).arg(viewId).arg(zoneId);
+            CDeleteLogicPoint* pOp = new CDeleteLogicPoint(this, hash);
+            m_pUndoStack->push(pOp);
+            break;
+        }
+        case eTrapCastPoint:
+        {
+            auto pCast = dynamic_cast<CTrapCastPoint*>(pNode);
+            int unitId(0);
+            int patrolId(-2);
+            int viewId(-2);
+            int zoneId(-2);
+            int castPointId(0);
+            m_activeMob->getTrapCastHash(unitId, castPointId, pCast);
+            QString hash = QString("%1.%2.%3.%4.%5").arg(unitId).arg(patrolId).arg(viewId).arg(zoneId).arg(castPointId);
+            CDeleteLogicPoint* pOp = new CDeleteLogicPoint(this, hash);
+            m_pUndoStack->push(pOp);
+            break;
+        }
+        default:
         {
             arrMapId.append(pNode->mapId());
+            break;
+        }
         }
     }
 
@@ -1433,6 +1483,29 @@ void CView::addLogicPoint(bool bLookPoint)
 
             QString hash = QString("%1.%2").arg(pNode->mapId()).arg(-1);
             CCreatePatrolCommand* pUndo = new CCreatePatrolCommand(this, hash);
+            m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+            break;
+        }
+        case eMagicTrap:
+        {
+            CCreateTrapPointCommand* pUndo = new CCreateTrapPointCommand(this, pNode->mapId(), !bLookPoint);
+            m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+            break;
+        }
+        case eTrapActZone:
+        {
+            uint trapId = m_activeMob->trapIdByPoint(dynamic_cast<CActivationZone*>(pNode));
+            CCreateTrapPointCommand* pUndo = new CCreateTrapPointCommand(this, trapId, !bLookPoint);
+            m_pUndoStack->push(pUndo);
+            bChangeToMove = true;
+            break;
+        }
+        case eTrapCastPoint:
+        {
+            uint trapId = m_activeMob->trapIdByPoint(dynamic_cast<CTrapCastPoint*>(pNode));
+            CCreateTrapPointCommand* pUndo = new CCreateTrapPointCommand(this, trapId, !bLookPoint);
             m_pUndoStack->push(pUndo);
             bChangeToMove = true;
             break;

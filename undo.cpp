@@ -233,23 +233,6 @@ void CChangeLogicParam::redo()
     setText("Change value to " + m_newValue);
 }
 
-CDeletePatrol::CDeletePatrol(CNode *pNode, QUndoCommand *parent):
-    QUndoCommand(parent)
-  ,m_pNode(pNode)
-{
-}
-
-void CDeletePatrol::undo()
-{
-    m_pNode->markAsDeleted(false);
-}
-
-void CDeletePatrol::redo()
-{
-    setText("Delete logic node");
-    m_pNode->markAsDeleted(true);
-}
-
 CCreatePatrolCommand::CCreatePatrolCommand(CView* pView, QString pointHash, QUndoCommand *parent):
     QUndoCommand(parent)
   ,m_pView(pView)
@@ -266,4 +249,103 @@ void CCreatePatrolCommand::redo()
 {
     m_pView->currentMob()->createPatrolByHash(m_pointHash);
     setText("Created new point");
+}
+
+CCreateTrapPointCommand::CCreateTrapPointCommand(CView *pView, uint trapId, bool bActZone, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_trapId(trapId)
+  ,m_bActZone(bActZone)
+{
+}
+
+void CCreateTrapPointCommand::undo()
+{
+    CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(m_pView->currentMob()->nodeByMapId(m_trapId));
+    if(m_bActZone)
+        pTrap->deleteLastActZone();
+    else
+        pTrap->deleteLastCastPoint();
+    m_pView->currentMob()->logicNodesUpdate();
+}
+
+void CCreateTrapPointCommand::redo()
+{
+    CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(m_pView->currentMob()->nodeByMapId(m_trapId));
+    if(m_bActZone)
+    {
+        auto pZone = pTrap->createActZone();
+        pZone->setState(ENodeState::eSelect);
+    }
+    else
+    {
+        auto pCast = pTrap->createCastPoint();
+        pCast->setState(ENodeState::eSelect);
+    }
+    m_pView->currentMob()->logicNodesUpdate();
+}
+
+CDeleteLogicPoint::CDeleteLogicPoint(CView *pView, QString hash, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_nodeHash(hash)
+{
+}
+
+void CDeleteLogicPoint::undo()
+{
+    QStringList list = m_nodeHash.split(".");
+    if(list.size()==1)
+    {
+        Q_ASSERT(false);
+    }
+    else if(list.size()==2)
+    {//patrol point
+        CPatrolPoint* pPoint = m_pView->currentMob()->patrolPointById(list[0].toInt(), list[1].toInt());
+        pPoint->markAsDeleted(false);
+    }
+    else if(list.size()==3)
+    {//look point
+        CLookPoint* pPoint = m_pView->currentMob()->viewPointById(list[0].toInt(), list[1].toInt(), list[2].toInt());
+        pPoint->markAsDeleted(false);
+    }
+    else if(list.size() == 4) //trap zone
+    {
+        CActivationZone* pZone = m_pView->currentMob()->actZoneById(list[0].toInt(), list[3].toInt());
+        pZone->markAsDeleted(false);
+    }
+    else if(list.size() == 5) //trap cast point
+    {
+        CTrapCastPoint* pCast = m_pView->currentMob()->trapCastById(list[0].toInt(), list[4].toInt());
+        pCast->markAsDeleted(false);
+    }
+}
+
+void CDeleteLogicPoint::redo()
+{
+    QStringList list = m_nodeHash.split(".");
+    if(list.size()==1)
+    {
+        Q_ASSERT(false);
+    }
+    else if(list.size()==2)
+    {//patrol point
+        CPatrolPoint* pPoint = m_pView->currentMob()->patrolPointById(list[0].toInt(), list[1].toInt());
+        pPoint->markAsDeleted(true);
+    }
+    else if(list.size()==3)
+    {//look point
+        CLookPoint* pPoint = m_pView->currentMob()->viewPointById(list[0].toInt(), list[1].toInt(), list[2].toInt());
+        pPoint->markAsDeleted(true);
+    }
+    else if(list.size() == 4) //trap zone
+    {
+        CActivationZone* pZone = m_pView->currentMob()->actZoneById(list[0].toInt(), list[3].toInt());
+        pZone->markAsDeleted(true);
+    }
+    else if(list.size() == 5) //trap cast point
+    {
+        CTrapCastPoint* pCast = m_pView->currentMob()->trapCastById(list[0].toInt(), list[4].toInt());
+        pCast->markAsDeleted(true);
+    }
 }

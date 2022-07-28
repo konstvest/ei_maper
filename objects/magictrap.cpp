@@ -498,6 +498,44 @@ CTrapCastPoint *CMagicTrap::castPointById(int pointId)
     return m_aCastPoint[pointId];
 }
 
+CActivationZone *CMagicTrap::createActZone()
+{
+    CActivationZone* pZone = new CActivationZone(this);
+    m_aActZone.append(pZone);
+    QVector3D pos(m_position.x(), m_position.y(), 0.0f);
+    pZone->updatePos(pos);
+    QObject::connect(pZone, SIGNAL(changeActZone()), this, SLOT(update()));
+    update();
+    return pZone;
+}
+
+void CMagicTrap::deleteLastActZone()
+{
+    auto pZone = m_aActZone.back();
+    delete pZone;
+    m_aActZone.pop_back();
+    update();
+}
+
+CTrapCastPoint *CMagicTrap::createCastPoint()
+{
+    CTrapCastPoint* pCast = new CTrapCastPoint(this);
+    m_aCastPoint.append(pCast);
+    QVector3D pos(m_position.x(), m_position.y(), 0.0f);
+    pCast->updatePos(pos);
+    QObject::connect(pCast, SIGNAL(changeCastPoint()), this, SLOT(update()));
+    update();
+    return pCast;
+}
+
+void CMagicTrap::deleteLastCastPoint()
+{
+    auto pCast = m_aCastPoint.back();
+    delete pCast;
+    m_aCastPoint.pop_back();
+    update();
+}
+
 void CMagicTrap::update()
 {
     for(auto& pZone : m_aActZone)
@@ -541,6 +579,7 @@ void CMagicTrap::update()
 
 CActivationZone::CActivationZone(CMagicTrap* pTrap):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
+  ,m_radius(2.0f)
   ,m_pParent(pTrap)
 {
     updateFigure(CObjectList::getInstance()->getFigure("particle"));
@@ -675,6 +714,9 @@ void CActivationZone::draw(QOpenGLShaderProgram *program)
     if(m_aDrawPoint.empty())
         return;
 
+    if(isMarkDeleted())
+        return;
+
     //todo: for selected objects ALWAYS draw logic
     COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawLogic"));
     if (nullptr == pOpt)
@@ -746,6 +788,13 @@ bool CActivationZone::updatePos(QVector3D &pos)
     update();
     emit changeActZone();
     return res;
+}
+
+void CActivationZone::markAsDeleted(bool bDeleted)
+{
+    CObjectBase::markAsDeleted(bDeleted);
+    setState(ENodeState::eDraw); // clear select for undo-redo
+    emit changeActZone();
 }
 
 CTrapCastPoint::CTrapCastPoint(CMagicTrap *pTrap):
@@ -857,4 +906,11 @@ bool CTrapCastPoint::updatePos(QVector3D &pos)
     bool bRes = CObjectBase::updatePos(pos);
     emit changeCastPoint();
     return bRes;
+}
+
+void CTrapCastPoint::markAsDeleted(bool bDeleted)
+{
+    CObjectBase::markAsDeleted(bDeleted);
+    setState(ENodeState::eDraw); // clear select for undo-redo
+    emit changeCastPoint();
 }

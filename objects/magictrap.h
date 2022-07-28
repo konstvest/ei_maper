@@ -26,6 +26,7 @@ public:
     void draw(QOpenGLShaderProgram* program) override;
     void update();
     bool updatePos(QVector3D& pos) override;
+    void markAsDeleted(bool bDeleted = true) override;
 
 signals:
     void changeActZone();
@@ -58,6 +59,7 @@ public:
     void serializeJsonArray(QJsonArray& obj);
     void draw(QOpenGLShaderProgram* program) override;
     bool updatePos(QVector3D& pos) override;
+    void markAsDeleted(bool bDeleted = true) override;
 
 signals:
     void changeCastPoint();
@@ -96,6 +98,12 @@ public:
     CActivationZone* actZoneById(int zoneId);
     int getCastPointId(CTrapCastPoint* pCast);
     CTrapCastPoint* castPointById (int pointId);
+    CActivationZone* createActZone();
+    void deleteLastActZone();
+    CTrapCastPoint* createCastPoint();
+    void deleteLastCastPoint();
+    const QVector<CActivationZone*>& actZones(){return m_aActZone;}
+    const QVector<CTrapCastPoint*>& castPoints() {return m_aCastPoint;}
 
 private slots:
     void update();

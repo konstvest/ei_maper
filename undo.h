@@ -45,27 +45,13 @@ private:
     uint m_nodeId;
 };
 
-class CDeletePatrol: public QUndoCommand
-{
-public:
-    enum { Id = 102 };
-    CDeletePatrol() = delete;
-    CDeletePatrol(CNode* pNode, QUndoCommand *parent = nullptr);
-
-    void undo() override;
-    void redo() override;
-    int id() const override { return Id; }
-
-private:
-    CNode* m_pNode;
-};
 
 class CDeleteLogicPoint: public QUndoCommand
 {
 public:
     enum { Id = 103 };
     CDeleteLogicPoint() = delete;
-    CDeleteLogicPoint(CView* pView, uint nodeId, QUndoCommand *parent = nullptr);
+    CDeleteLogicPoint(CView* pView, QString hash, QUndoCommand *parent = nullptr);
 
     void undo() override;
     void redo() override;
@@ -74,7 +60,7 @@ public:
 
 private:
     CView* m_pView;
-    CNode* m_pPoint;
+    QString m_nodeHash;
 };
 
 struct SParam
@@ -184,6 +170,24 @@ public:
 private:
     CView* m_pView;
     QString m_pointHash;
+};
+
+class CCreateTrapPointCommand: public QUndoCommand
+{
+public:
+    enum { Id = 109 };
+    CCreateTrapPointCommand() = delete;
+    CCreateTrapPointCommand(CView* pView, uint trapId, bool bActZone, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CView* m_pView;
+    uint m_trapId;
+    bool m_bActZone;
 };
 
 #endif // UNDO_H

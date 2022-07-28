@@ -564,6 +564,40 @@ CTrapCastPoint *CMob::trapCastById(int trapId, int pointId)
     return nullptr;
 }
 
+uint CMob::trapIdByPoint(CActivationZone *pZone)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eMagicTrap)
+        {
+            CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(pNode);
+            int index = pTrap->actZones().indexOf(pZone);
+            if(index >=0)
+                return pTrap->mapId();
+        }
+    }
+    Q_ASSERT(false);
+    return 0;
+}
+
+uint CMob::trapIdByPoint(CTrapCastPoint *pPoint)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aLogicNode)
+    {
+        if(pNode->nodeType() == eMagicTrap)
+        {
+            CMagicTrap* pTrap = dynamic_cast<CMagicTrap*>(pNode);
+            int index = pTrap->castPoints().indexOf(pPoint);
+            if(index >=0)
+                return pTrap->mapId();
+        }
+    }
+    Q_ASSERT(false);
+    return 0;
+}
+
 CNode* CMob::createNode(QJsonObject data)
 {
     auto wo = data;

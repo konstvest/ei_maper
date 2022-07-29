@@ -325,7 +325,7 @@ void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
         return;
 
     util::addParam(aParam, eObjParam_BODYPARTS, util::makeString(m_bodyParts));
-    if(nodeType() == eUnit) //show player group only for Units
+    if(nodeType() == eUnit || nodeType() == eMagicTrap) //show player group only for Units and Traps(traps works only for enemy)
         util::addParam(aParam, eObjParam_PLAYER, QString::number(m_player));
 
     //addParam(aParam, eObjParam_TYPE, QString::number(m_type));

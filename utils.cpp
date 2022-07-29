@@ -655,9 +655,13 @@ uint util::CMobParser::readPlot2D(QVector2D &data)
 
 uint util::CMobParser::writePlot2D(const QVector2D &data)
 {
+    const auto startPos = m_stream.device()->pos();
     m_stream << data.x();
     m_stream << data.y();
-    return 8;
+    const auto endPos = m_stream.device()->pos();
+    const uint len(endPos - startPos);
+    m_stack.back().second += len;
+    return len;
 }
 
 uint util::CMobParser::readQuaternion(QVector4D& data)

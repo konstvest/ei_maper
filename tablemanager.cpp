@@ -445,6 +445,7 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         case eObjParam_TYPE:
         case eObjParam_PARTICL_TYPE:
         case eObjParam_AGRESSION_MODE:
+        case eObjParam_TRAP_CAST_ONCE:
         {
             m_pTable->insertRow(i);
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem
@@ -459,30 +460,30 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
             ++i;
             break;
         }
-        case eObjParam_TRAP_CAST_INTERVAL:
-        {// will be processed below
-            break;
-        }
-        case eObjParam_TRAP_CAST_ONCE:
-        {
-            m_pTable->insertRow(i);
-            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-            CComboBoxItem* pCombo = new CComboBoxItem(item.second, item.first);
-            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
-            m_pTable->setCellWidget(i, 1, pCombo);
-            ++i;
-            if(item.second == "0") // cast once == false
-            {
-                m_pTable->insertRow(i);
-                m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_TRAP_CAST_INTERVAL]));
-                m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-                m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_TRAP_CAST_INTERVAL], eObjParam_TRAP_CAST_INTERVAL));
-                m_pTable->resizeColumnToContents(0);
-                ++i;
-            }
-            break;
-        }
+//        case eObjParam_TRAP_CAST_INTERVAL:
+//        {// will be processed below
+//            break;
+//        }
+//        case eObjParam_TRAP_CAST_ONCE:
+//        {
+//            m_pTable->insertRow(i);
+//            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
+//            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+//            CComboBoxItem* pCombo = new CComboBoxItem(item.second, item.first);
+//            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+//            m_pTable->setCellWidget(i, 1, pCombo);
+//            ++i;
+//            if(item.second == "0") // cast once == false
+//            {
+//                m_pTable->insertRow(i);
+//                m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_TRAP_CAST_INTERVAL]));
+//                m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+//                m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_TRAP_CAST_INTERVAL], eObjParam_TRAP_CAST_INTERVAL));
+//                m_pTable->resizeColumnToContents(0);
+//                ++i;
+//            }
+//            break;
+//        }
         case eObjParam_GUARD_RADIUS:
         { //this case process below
             break;

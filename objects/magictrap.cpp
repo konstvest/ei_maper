@@ -7,7 +7,7 @@
 
 CMagicTrap::CMagicTrap():
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
-  ,m_diplomacy(0)
+  ,m_diplomacy(-1)
     ,m_castInterval(0)
     ,m_bCastOnce(false)
 

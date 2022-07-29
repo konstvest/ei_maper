@@ -582,8 +582,8 @@ CActivationZone::CActivationZone(CMagicTrap* pTrap):
   ,m_radius(2.0f)
   ,m_pParent(pTrap)
 {
-    updateFigure(CObjectList::getInstance()->getFigure("particle"));
-    setTexture(CTextureList::getInstance()->texture("particle"));
+    updateFigure(CObjectList::getInstance()->getFigure("trapZone"));
+    setTexture(CTextureList::getInstance()->texture("trapZone"));
 }
 
 CActivationZone::CActivationZone(CMagicTrap* pTrap, const CActivationZone &zone):
@@ -591,8 +591,8 @@ CActivationZone::CActivationZone(CMagicTrap* pTrap, const CActivationZone &zone)
   ,m_radius(zone.m_radius)
   ,m_pParent(pTrap)
 {
-    updateFigure(CObjectList::getInstance()->getFigure("particle"));
-    setTexture(CTextureList::getInstance()->texture("particle"));
+    updateFigure(CObjectList::getInstance()->getFigure("trapZone"));
+    setTexture(CTextureList::getInstance()->texture("trapZone"));
     update();
 }
 
@@ -800,16 +800,16 @@ void CActivationZone::markAsDeleted(bool bDeleted)
 CTrapCastPoint::CTrapCastPoint(CMagicTrap *pTrap):
     m_pParent(pTrap)
 {
-    updateFigure(CObjectList::getInstance()->getFigure("sound"));
-    setTexture(CTextureList::getInstance()->texture("sound"));
+    updateFigure(CObjectList::getInstance()->getFigure("trapCast"));
+    setTexture(CTextureList::getInstance()->texture("trapCast"));
 }
 
 CTrapCastPoint::CTrapCastPoint(CMagicTrap *pTrap, const CTrapCastPoint &pCast):
     CObjectBase(pCast)
   ,m_pParent(pTrap)
 {
-    updateFigure(CObjectList::getInstance()->getFigure("sound"));
-    setTexture(CTextureList::getInstance()->texture("sound"));
+    updateFigure(CObjectList::getInstance()->getFigure("trapCast"));
+    setTexture(CTextureList::getInstance()->texture("trapCast"));
 }
 
 CTrapCastPoint::~CTrapCastPoint()

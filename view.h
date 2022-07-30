@@ -72,6 +72,7 @@ public:
     void setDurty();
     void resetCamPosition();
     void addLogicPoint(bool bLookPoint = false);
+    void copySelectedIDsToClipboard();
 
 protected:
     void initializeGL() override;

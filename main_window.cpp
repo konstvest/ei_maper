@@ -335,3 +335,9 @@ void MainWindow::on_actionChange_mod_e_triggered()
     CScene::getInstance()->changeMode(CScene::getInstance()->getMode() == eEditModeObjects ? eEditModeLogic : eEditModeObjects);
 }
 
+
+void MainWindow::on_actionCopy_IDs_to_clipboard_triggered()
+{
+    m_pView->copySelectedIDsToClipboard();
+}
+

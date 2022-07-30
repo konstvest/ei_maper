@@ -19,7 +19,7 @@ enum ESelectType
     ,eSelectType_Map_name
     ,eSelectType_Texture_name
     ,eSelectType_Model_name
-    ,eSelectType_Mob_file
+    //,eSelectType_Mob_file
     ,eSelectType_Position_circle
     ,eSelectType_Position_rectangle
     ,eSelectType_Diplomacy_group

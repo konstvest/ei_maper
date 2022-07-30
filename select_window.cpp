@@ -43,7 +43,7 @@ void CSelector::init()
     m_loc["Map name"] = {eSelectType_Map_name, "Map name", ""};
     m_loc["Texture name"] = {eSelectType_Texture_name, "Texture name", ""};
     m_loc["Model name"] = {eSelectType_Model_name, "Model name", ""};
-    m_loc["Mob file"] = {eSelectType_Mob_file, "Mob name", ""};
+    //m_loc["Mob file"] = {eSelectType_Mob_file, "Mob name", ""};
     m_loc["Diplomacy group"] = {eSelectType_Diplomacy_group, "Start group number", "End group number"};
     //TODO
     //m_loc["Position (circle)"] = {eSelectType_Position_circle, "Center point", "Radius"};

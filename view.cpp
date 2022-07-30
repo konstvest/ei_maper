@@ -269,138 +269,135 @@ void CView::unloadLand()
 
 int CView::select(const SSelect &selectParam, bool bAddToSelect)
 {
-    for (const auto& mob : m_aMob)
+    //const QString mobName = mob->mobName().toLower();
+    for (auto& node : m_activeMob->nodes())
     {
-        const QString mobName = mob->mobName().toLower();
-        for (auto& node : mob->nodes())
+        switch (selectParam.type) {
+        case eSelectType_Id_range:
         {
-            switch (selectParam.type) {
-            case eSelectType_Id_range:
+            uint id_min = selectParam.param1.toUInt();
+            uint id_max = selectParam.param2.toUInt();
+            if (id_max < id_min)
             {
-                uint id_min = selectParam.param1.toUInt();
-                uint id_max = selectParam.param2.toUInt();
-                if (id_max < id_min)
-                {
-                    uint temp = id_min;
-                    id_min = id_max;
-                    id_max = temp;
-                }
-                if (node->mapId() >= id_min && node->mapId() <=id_max)
-                {
-                    node->setState(eSelect);
-                }
-                else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                    node->setState(eDraw);
-                break;
+                uint temp = id_min;
+                id_min = id_max;
+                id_max = temp;
             }
-            case eSelectType_Map_name:
-            {
-                auto pObj = dynamic_cast<CObjectBase*>(node);
-                if (!pObj)
-                    break;
-                if (!selectParam.param1.isEmpty()
-                        && (node->prototypeName().toLower().contains(selectParam.param1.toLower())))
-                {
-                    node->setState(eSelect);
-                }
-                else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                    node->setState(eDraw);
-                break;
-            }
-            case eSelectType_Texture_name:
-            {
-                if (!(node->nodeType() & ENodeType::eWorldObject))
-                    break;
-                if (!selectParam.param1.isEmpty()
-                        && (node->textureName().toLower().contains(selectParam.param1.toLower())))
-                {
-                    node->setState(eSelect);
-                }
-                else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                    node->setState(eDraw);
-                break;
-            }
-            case eSelectType_Model_name:
-            {
-                if (!(node->nodeType() & ENodeType::eWorldObject))
-                    break;
-                if (!selectParam.param1.isEmpty()
-                        && (node->modelName().toLower().contains(selectParam.param1.toLower())))
-                {
-                    node->setState(eSelect);
-                }
-                else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                    node->setState(eDraw);
-                break;
-            }
-            case eSelectType_Mob_file:
-            {
-                if(mobName.toLower().contains(selectParam.param1.toLower()))
-                {
-                    node->setState(eSelect);
-                }
-                else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                    node->setState(eDraw);
-                break;
-            }
-            case eSelectType_Position_circle:
-            {
-                //TODO
-                break;
-            }
-            case eSelectType_Position_rectangle:
-            {
-                //TODO
-                break;
-            }
-            case eSelectType_Diplomacy_group:
-            {
-                auto pObj = dynamic_cast<CWorldObj*>(node);
-                if (!pObj)
-                    break;
-
-                int group_min = selectParam.param1.toUInt();
-                int group_max = selectParam.param2.toUInt();
-                if (group_max < group_min)
-                {
-                    uint temp = group_min;
-                    group_min = group_max;
-                    group_max = temp;
-                }
-                if (pObj->dipGroup() >= group_min && pObj->dipGroup() <= group_max )
-                {
-                    node->setState(eSelect);
-                }
-                else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                {
-                    node->setState(eDraw);
-                }
-                break;
-            }
-            case eSelectType_Database_name:
-            {
-                auto pObj = dynamic_cast<CUnit*>(node);
-                if (!pObj)
-                    break;
-
-                if (pObj->databaseName().toLower().contains(selectParam.param1.toLower()))
-                {
-                    node->setState(eSelect);
-                }
-                else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                {
-                    node->setState(eDraw);
-                }
-                break;
-            }
-            case eSelectType_all:
+            if (node->mapId() >= id_min && node->mapId() <=id_max)
             {
                 node->setState(eSelect);
-                break;
             }
-            default:
+            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
+                node->setState(eDraw);
+            break;
+        }
+        case eSelectType_Map_name:
+        {
+            auto pObj = dynamic_cast<CObjectBase*>(node);
+            if (!pObj)
                 break;
+            if (!selectParam.param1.isEmpty()
+                    && (node->prototypeName().toLower().contains(selectParam.param1.toLower())))
+            {
+                node->setState(eSelect);
             }
+            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
+                node->setState(eDraw);
+            break;
+        }
+        case eSelectType_Texture_name:
+        {
+            if (!(node->nodeType() & ENodeType::eWorldObject))
+                break;
+            if (!selectParam.param1.isEmpty()
+                    && (node->textureName().toLower().contains(selectParam.param1.toLower())))
+            {
+                node->setState(eSelect);
+            }
+            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
+                node->setState(eDraw);
+            break;
+        }
+        case eSelectType_Model_name:
+        {
+            if (!(node->nodeType() & ENodeType::eWorldObject))
+                break;
+            if (!selectParam.param1.isEmpty()
+                    && (node->modelName().toLower().contains(selectParam.param1.toLower())))
+            {
+                node->setState(eSelect);
+            }
+            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
+                node->setState(eDraw);
+            break;
+        }
+            //            case eSelectType_Mob_file:
+            //            {
+            //                if(mobName.toLower().contains(selectParam.param1.toLower()))
+            //                {
+            //                    node->setState(eSelect);
+            //                }
+            //                else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
+            //                    node->setState(eDraw);
+            //                break;
+            //            }
+        case eSelectType_Position_circle:
+        {
+            //TODO
+            break;
+        }
+        case eSelectType_Position_rectangle:
+        {
+            //TODO
+            break;
+        }
+        case eSelectType_Diplomacy_group:
+        {
+            auto pObj = dynamic_cast<CWorldObj*>(node);
+            if (!pObj)
+                break;
+
+            int group_min = selectParam.param1.toUInt();
+            int group_max = selectParam.param2.toUInt();
+            if (group_max < group_min)
+            {
+                uint temp = group_min;
+                group_min = group_max;
+                group_max = temp;
+            }
+            if (pObj->dipGroup() >= group_min && pObj->dipGroup() <= group_max )
+            {
+                node->setState(eSelect);
+            }
+            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
+            {
+                node->setState(eDraw);
+            }
+            break;
+        }
+        case eSelectType_Database_name:
+        {
+            auto pObj = dynamic_cast<CUnit*>(node);
+            if (!pObj)
+                break;
+
+            if (pObj->databaseName().toLower().contains(selectParam.param1.toLower()))
+            {
+                node->setState(eSelect);
+            }
+            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
+            {
+                node->setState(eDraw);
+            }
+            break;
+        }
+        case eSelectType_all:
+        {
+            node->setState(eSelect);
+            break;
+        }
+        default:
+            break;
         }
     }
     viewParameters();
@@ -1520,4 +1517,23 @@ void CView::addLogicPoint(bool bLookPoint)
 
     if(bChangeToMove)
         m_pOp->changeState(new CMoveAxis(this, EOperateAxisXY));
+}
+
+void CView::copySelectedIDsToClipboard()
+{
+    QVector<uint> arrId;
+    CNode* pNode = nullptr;
+    foreach(pNode, m_activeMob->nodes())
+    {
+        if(pNode->nodeState() != eSelect)
+            continue;
+        arrId.append(pNode->mapId());
+    }
+    QString text;
+    for(auto id : arrId)
+    {
+        text += QString::number(id) + "\n";
+    }
+    QClipboard* pClipboard = QGuiApplication::clipboard();
+    pClipboard->setText(text);
 }

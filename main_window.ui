@@ -336,6 +336,7 @@
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="actionReset_cam_position"/>
+    <addaction name="actionCopy_IDs_to_clipboard"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="enabled">
@@ -457,6 +458,11 @@
   <action name="actionChange_mod_e">
    <property name="text">
     <string>Change mod&amp;e</string>
+   </property>
+  </action>
+  <action name="actionCopy_IDs_to_clipboard">
+   <property name="text">
+    <string>Copy &amp;IDs to clipboard</string>
    </property>
   </action>
  </widget>

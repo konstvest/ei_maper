@@ -70,6 +70,8 @@ private slots:
 
     void on_actionChange_mod_e_triggered();
 
+    void on_actionCopy_IDs_to_clipboard_triggered();
+
 private:
     Ui::MainWindow* m_ui;
     QSharedPointer<CSettings> m_settings;

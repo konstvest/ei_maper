@@ -131,6 +131,7 @@ public:
 
 public slots:
     void update();
+    void recalcPatrolPath();
     void addNewPatrolPoint(CPatrolPoint* base, CPatrolPoint* created);
     void undo_addNewPatrolPoint(CPatrolPoint* pCreated);
 

@@ -721,6 +721,45 @@ void CLogic::update()
     m_indexBuf.release();
 }
 
+void CLogic::recalcPatrolPath()
+{
+    Q_ASSERT(m_model == EBehaviourType::ePath);
+    Q_ASSERT(m_parent);
+    m_aDrawPoint.clear();
+
+    QVector3D pos(m_parent->position());
+    pos.setZ(0.0f);
+    CLandscape::getInstance()->projectPt(pos);
+    m_aDrawPoint.append(pos);
+    for (auto& pt: m_aPatrolPt)
+    {
+        if(pt->isMarkDeleted()) continue;
+        pos = pt->position();
+        pos.setZ(0.0f);
+        CLandscape::getInstance()->projectPt(pos);
+        pt->setPos(pos);
+        pt->setDrawPosition(pos);
+        m_aDrawPoint.append(pos);
+        pt->update();
+    }
+    util::splitByLen(m_aDrawPoint, 2.0f);
+
+    // Generate VBOs and transfer data
+    m_vertexBuf.create();
+    m_vertexBuf.bind();
+    m_vertexBuf.allocate(m_aDrawPoint.data(), m_aDrawPoint.count() * int(sizeof(QVector3D)));
+    m_vertexBuf.release();
+
+    QVector<ushort> aInd;
+    for (ushort i(0); i<m_aDrawPoint.size(); ++i)
+        aInd.append(i);
+
+    m_indexBuf.create();
+    m_indexBuf.bind();
+    m_indexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
+    m_indexBuf.release();
+}
+
 void CLogic::addNewPatrolPoint(CPatrolPoint *base, CPatrolPoint *created)
 {
     int i = m_aPatrolPt.indexOf(base);
@@ -923,7 +962,7 @@ void CLogic::createPatrolByIndex(int index)
     }
     m_aPatrolPt.insert(index+1, pPoint); //check first and final points
     pPoint->setState(ENodeState::eSelect);
-    QObject::connect(pPoint, SIGNAL(patrolChanges()), this, SLOT(update()));
+    QObject::connect(pPoint, SIGNAL(patrolChanges()), this, SLOT(recalcPatrolPath()));
     //QObject::connect(pPoint, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
     //QObject::connect(pPoint, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
     update();
@@ -1020,7 +1059,7 @@ uint CLogic::deserialize(util::CMobParser& parser)
             readByte += parser.skipHeader();
             CPatrolPoint* place = new CPatrolPoint(); //need unit parent?
             //place->attachMob(m_parent->mob());
-            QObject::connect(place, SIGNAL(patrolChanges()), this, SLOT(update()));
+            QObject::connect(place, SIGNAL(patrolChanges()), this, SLOT(recalcPatrolPath()));
             QObject::connect(place, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
             QObject::connect(place, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
             readByte += place->deserialize(parser);
@@ -1091,7 +1130,7 @@ void CLogic::deSerializeJson(QJsonObject data)
         CPatrolPoint* place = new CPatrolPoint(); //need unit parent?
         place->deSerializeJson(it->toObject());
         m_aPatrolPt.append(place);
-        QObject::connect(place, SIGNAL(patrolChanges()), this, SLOT(update()));
+        QObject::connect(place, SIGNAL(patrolChanges()), this, SLOT(recalcPatrolPath()));
         QObject::connect(place, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
         QObject::connect(place, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
     }

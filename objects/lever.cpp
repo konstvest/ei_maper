@@ -41,8 +41,8 @@ CLever::CLever(QJsonObject data):
     if (aStat.size() == 3)
     {
         m_typeOpen = aStat[0].toVariant().toUInt();
-        m_keyID = aStat[0].toVariant().toUInt();
-        m_handsSleight = aStat[0].toVariant().toUInt();
+        m_keyID = aStat[1].toVariant().toUInt();
+        m_handsSleight = aStat[2].toVariant().toUInt();
     }
 
     m_bDoor = data["Is door?"].toBool();

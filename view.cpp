@@ -144,7 +144,7 @@ void CView::initializeGL()
     //glEnable(GL_EXT_texture_filter_anisotropic);
     glEnable(GL_DEPTH_TEST);
     //glEnable(GL_CULL_FACE); //draw only front faces (disable if need draw both sides)
-
+    glAlphaFunc(GL_GREATER, 0.1f);
     glEnable(GL_ALPHA_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

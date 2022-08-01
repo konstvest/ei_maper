@@ -24,6 +24,8 @@ enum ESelectType
     ,eSelectType_Position_rectangle
     ,eSelectType_Diplomacy_group
     ,eSelectType_Database_name
+    ,eSelectType_Template
+    ,eSelectType_ObjectType
     ,eSelectType_all
 };
 

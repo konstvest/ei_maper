@@ -49,6 +49,8 @@ void CSelector::init()
     //m_loc["Position (circle)"] = {eSelectType_Position_circle, "Center point", "Radius"};
     //m_loc["Position (rectangle)"] = {eSelectType_Position_rectangle, "Left down corner", "Right up corner"};
     m_loc["Database name"] = {eSelectType_Database_name, "Database name", ""};
+    m_loc["Template"] = {eSelectType_Template, "Template", ""};
+    //m_loc["Object type"] = {eSelectType_ObjectType, "Object type", ""};
 
     for (const auto& pair : m_loc.toStdMap())
         ui->combo_SelType->addItem(pair.first);

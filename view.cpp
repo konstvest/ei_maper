@@ -391,6 +391,18 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
             }
             break;
         }
+        case eSelectType_Template:
+        {
+            auto pWo = dynamic_cast<CWorldObj*>(node);
+            if(nullptr == pWo)
+                break;
+
+            QString templ = pWo->getParam(eObjParam_PARENT_TEMPLATE);
+            if(templ.toLower().contains(selectParam.param1.toLower()))
+                node->setState(ENodeState::eSelect);
+
+            break;
+        }
         case eSelectType_all:
         {
             node->setState(eSelect);

@@ -68,6 +68,8 @@ private slots:
 
     void on_pushApply_clicked();
 
+    void on_isPrimaryBox_clicked();
+
 private:
     Ui::CMobParameters *ui;
     QVector<CMob*> m_aMob;

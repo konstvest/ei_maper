@@ -75,6 +75,8 @@ public:
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
+    void setPrimaryMob(bool bPrimary = true) {m_order = bPrimary ? eEMobOrderPrimary : eEMobOrderSecondary;}
+    bool isPrimaryMob() {return m_order == EMobOrder::eEMobOrderPrimary;}
 
     //functions for logic processing
     QList<CNode*>& logicNodes();

@@ -62,6 +62,7 @@ void CMobParameters::reset()
     ui->mainRangesList->clear();
     ui->secRangesList->clear();
     ui->plainTextEdit->clear();
+    ui->isPrimaryBox->setChecked(false);
     m_pCurMob = nullptr;
 }
 
@@ -140,10 +141,7 @@ void CMobParameters::updateWindow()
             }
         }
     }
-
-
-
-
+    ui->isPrimaryBox->setChecked(m_pCurMob->isPrimaryMob());
 }
 
 void CMobParameters::onChooseMob(const QString &name)
@@ -391,5 +389,14 @@ void Highlighter::highlightBlock(const QString &text)
           setFormat(startIndex, commentLength, multiLineCommentFormat);
           startIndex = commentStartExpression.indexIn(text, startIndex + commentLength);
       }
+}
+
+
+void CMobParameters::on_isPrimaryBox_clicked()
+{
+    if(nullptr == m_pCurMob)
+        return;
+
+    m_pCurMob->setPrimaryMob(ui->isPrimaryBox->isChecked());
 }
 

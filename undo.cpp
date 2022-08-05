@@ -349,3 +349,20 @@ void CDeleteLogicPoint::redo()
         pCast->markAsDeleted(true);
     }
 }
+
+CRoundMobCommand::CRoundMobCommand(CView *pView, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+{
+}
+
+void CRoundMobCommand::undo()
+{
+    m_pView->undo_roundActiveMob();
+}
+
+void CRoundMobCommand::redo()
+{
+    m_pView->roundActiveMob();
+    setText("Switch Mob to " + m_pView->currentMob()->mobName());
+}

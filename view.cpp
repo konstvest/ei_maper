@@ -1549,3 +1549,39 @@ void CView::copySelectedIDsToClipboard()
     QClipboard* pClipboard = QGuiApplication::clipboard();
     pClipboard->setText(text);
 }
+
+void CView::execMobSwitch()
+{
+    CRoundMobCommand* pUndo = new CRoundMobCommand(this);
+    m_pUndoStack->push(pUndo);
+}
+
+void CView::roundActiveMob()
+{
+    if(m_aMob.size() <=1)
+        return;
+
+    m_activeMob->clearSelect();
+    int actIndex = m_aMob.indexOf(m_activeMob);
+    if(actIndex == m_aMob.size()-1)
+        actIndex = 0;
+    else
+        ++actIndex;
+
+    changeCurrentMob(m_aMob[actIndex]);
+}
+
+void CView::undo_roundActiveMob()
+{
+    if(m_aMob.size() <=1)
+        return;
+
+    m_activeMob->clearSelect();
+    int actIndex = m_aMob.indexOf(m_activeMob);
+    if(actIndex == 0)
+        actIndex = m_aMob.size()-1;
+    else
+        --actIndex;
+
+    changeCurrentMob(m_aMob[actIndex]);
+}

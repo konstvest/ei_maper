@@ -190,4 +190,20 @@ private:
     bool m_bActZone;
 };
 
+class CRoundMobCommand: public QUndoCommand
+{
+public:
+    enum { Id = 109 };
+    CRoundMobCommand() = delete;
+    CRoundMobCommand(CView* pView, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CView* m_pView;
+};
+
 #endif // UNDO_H

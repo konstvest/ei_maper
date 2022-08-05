@@ -73,6 +73,9 @@ public:
     void resetCamPosition();
     void addLogicPoint(bool bLookPoint = false);
     void copySelectedIDsToClipboard();
+    void execMobSwitch();
+    void roundActiveMob();
+    void undo_roundActiveMob();
 
 protected:
     void initializeGL() override;

@@ -10,6 +10,7 @@
 #include "ui_connectors.h"
 #include "log.h"
 #include "scene.h"
+#include "undo.h"
 
 void strToOperValue(QVector3D& vec, const EOperateAxis axis, const QString& value)
 {
@@ -68,8 +69,16 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
     }
     case Qt::Key_T:
     {
-        pOp->setCurrent(new CScaleAxis(m_pView, EOperateAxisZ));
-        delete this;
+        if (pOp->keyManager()->isPressed(Qt::Key_Control))
+        {
+            qDebug() << "execute switching mob";
+            m_pView->execMobSwitch();
+        }
+        else
+        {
+            pOp->setCurrent(new CScaleAxis(m_pView, EOperateAxisZ));
+            delete this;
+        }
         break;
     }
     case Qt::Key_Delete:
@@ -967,6 +976,6 @@ CSelect::CSelect(CView *pView):
     if(CScene::getInstance()->getMode()==eEditModeLogic)
         CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, P-Add Patrol(trap zone), L-Add look(cast point), CTLR+Tab-change mode");
     else
-        CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, T-Scale, R-Rotate, CTLR+Tab - change mode");
+        CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, T-Scale, R-Rotate, CTLR+Tab-change mode, CTRL+T-switch active Mob");
     CButtonConnector::getInstance()->pressButton(EButtonOpSelect);
 }

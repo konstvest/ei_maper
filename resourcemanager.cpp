@@ -339,6 +339,7 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
     texture->setMinificationFilter(QOpenGLTexture::NearestMipMapNearest);
     texture->setMagnificationFilter(QOpenGLTexture::NearestMipMapNearest);
+    //texture->setAutoMipMapGenerationEnabled(true);
     //texture->setMipLevels(4); //this code will generate mipmaps for textures
     //TODO: read mipmaps
 //    for (int i(0); i<mipMapsCount; ++i)

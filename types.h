@@ -192,6 +192,9 @@ private:
 
 struct SRange
 {
+    SRange();
+    SRange(const SRange& range) {minRange = range.minRange; maxRange = range.maxRange;}
+    SRange(uint min, uint max) {minRange = min; maxRange = max;}
     uint minRange;
     uint maxRange;
 };

@@ -679,8 +679,36 @@ CNode* CMob::createNode(QJsonObject data)
     addNode(pNode);
     logicNodesUpdate();
 
-    if(pNode)
+    if(nullptr == pNode)
+        return nullptr;
+
+    //set map ID
+    bool bFound = false;
+    QVector<SRange> arrRange;
+    for(auto& range : m_aMainRange)
+        arrRange.append(SRange(range));
+    for(auto& range : m_aSecRange)
+        arrRange.append(SRange(range));
+
+    for(auto& range : arrRange)
     {
+        if(bFound)
+            break;
+
+        for(uint i(range.minRange); i<range.maxRange; ++i)
+        {
+            if(isFreeMapId(i))
+            {
+                pNode->setMapId(i);
+                qDebug() << "id found:" << i;
+                bFound = true;
+                break;
+            }
+        }
+    }
+
+    if(!bFound)
+    { // try to set any free number
         uint freeId(1000);
         QVector<uint> arrId;
         arrId.resize(m_aNode.size());
@@ -690,15 +718,15 @@ CNode* CMob::createNode(QJsonObject data)
 
         for (; freeId<100000; ++freeId)
         {
-            //TODO: find more suitable ID from mob ranges
             if(!arrId.contains(freeId))
             {
                 pNode->setMapId(freeId);
                 break;
             }
         }
-        pNode->setState(ENodeState::eSelect);
     }
+    pNode->setState(ENodeState::eSelect);
+
 
     return pNode;
 }
@@ -910,6 +938,17 @@ void CMob::writeData(QJsonObject& mob, const QFileInfo& file, const QString key,
         temp.close();
     }
     mob.insert(key, fileRelPath);
+}
+
+bool CMob::isFreeMapId(uint id)
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(pNode->mapId() == id)
+            return false;
+    }
+    return true;
 }
 
 /// file - inout. mob file
@@ -1239,8 +1278,36 @@ void CMob::createNode(CNode *pNode)
     }
     addNode(pNewNode);
 
-    if(pNewNode)
+    if(nullptr == pNewNode)
+        return;
+
+    //set map ID
+    bool bFound = false;
+    QVector<SRange> arrRange;
+    for(auto& range : m_aMainRange)
+        arrRange.append(SRange(range));
+    for(auto& range : m_aSecRange)
+        arrRange.append(SRange(range));
+
+    for(auto& range : arrRange)
     {
+        if(bFound)
+            break;
+
+        for(uint i(range.minRange); i<range.maxRange; ++i)
+        {
+            if(isFreeMapId(i))
+            {
+                pNewNode->setMapId(i);
+                qDebug() << "id found:" << i;
+                bFound = true;
+                break;
+            }
+        }
+    }
+
+    if(!bFound)
+    { // try to set any free number
         uint freeId(1000);
         QVector<uint> arrId;
         arrId.resize(m_aNode.size());
@@ -1250,15 +1317,15 @@ void CMob::createNode(CNode *pNode)
 
         for (; freeId<100000; ++freeId)
         {
-            //TODO: find more suitable ID from mob ranges
             if(!arrId.contains(freeId))
             {
                 pNewNode->setMapId(freeId);
                 break;
             }
         }
-        pNewNode->setState(ENodeState::eSelect);
     }
+    pNewNode->setState(ENodeState::eSelect);
+
 
     return;
 }

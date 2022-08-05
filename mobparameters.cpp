@@ -268,7 +268,7 @@ void CMobParameters::on_pushApply_clicked()
     for(int i(0); i < ui->mainRangesList->count(); ++i)
     {
         auto a = util::vec2FromString(ui->mainRangesList->item(i)->text());
-        SRange r{a[0], a[1]};
+        SRange r(a[0], a[1]);
         aRange.append(r);
     }
     m_pCurMob->setMainRanges(aRange);
@@ -276,7 +276,7 @@ void CMobParameters::on_pushApply_clicked()
     for(int i(0); i < ui->secRangesList->count(); ++i)
     {
         auto a = util::vec2FromString(ui->secRangesList->item(i)->text());
-        SRange r{a[0], a[1]};
+        SRange r(a[0], a[1]);
         aRange.append(r);
     }
     m_pCurMob->setSecRanges(aRange);

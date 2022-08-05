@@ -100,6 +100,7 @@ private:
     void updateObjects();
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, const QString value);
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value);
+    bool isFreeMapId(uint id);
 
 private:
     //todo: global text data, script

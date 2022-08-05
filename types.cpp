@@ -253,3 +253,10 @@ float CBox::radius()
     return (m_maxPos-m_minPos).length();
 }
 
+
+SRange::SRange():
+    minRange(0)
+    ,maxRange(0)
+{
+
+}

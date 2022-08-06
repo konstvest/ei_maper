@@ -1331,6 +1331,9 @@ void CView::deleteSelectedNodes()
 
 void CView::selectedObjectToClipboardBuffer()
 {
+    if(nullptr == m_activeMob)
+        return;
+
     CNode* pNode;
 
     QJsonArray arrObj;
@@ -1340,8 +1343,16 @@ void CView::selectedObjectToClipboardBuffer()
             arrObj.append(pNode->toJson());
 
     QJsonObject obj;
+    obj.insert("Version", 2);
+    auto pos = QWidget::mapFromGlobal(QCursor::pos());
+    auto posOnLand = getLandPos(pos.x(), pos.y());
+    QJsonArray point;
+    point.append(QJsonValue::fromVariant(posOnLand.x()));
+    point.append(QJsonValue::fromVariant(posOnLand.y()));
+    point.append(QJsonValue::fromVariant(posOnLand.z()));
+    obj.insert("Mouse position", point);
     obj.insert("Data", arrObj);
-    obj.insert("Magic", 1);
+
     QJsonDocument doc(obj);
 
     if (!m_clipboard_buffer_file.open(QIODevice::WriteOnly))
@@ -1353,6 +1364,7 @@ void CView::selectedObjectToClipboardBuffer()
         m_clipboard_buffer_file.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
         m_clipboard_buffer_file.close();
     }
+
 }
 
 void CView::clipboradObjectsToScene()
@@ -1374,7 +1386,7 @@ void CView::clipboradObjectsToScene()
     m_clipboard_buffer_file.close();
     //todo: check if has no error
     QJsonObject obj = doc.object();
-    if (obj["Magic"].toInt() != 1)
+    if (obj["Version"].toInt() != 2)
         return;
 
     auto array = obj["Data"].toArray();
@@ -1390,7 +1402,19 @@ void CView::clipboradObjectsToScene()
         CCreateNodeCommand* pUndo = new CCreateNodeCommand(this, it->toObject());
         m_pUndoStack->push(pUndo);
     }
+    //move copyed nodes to new mouse position
+    QVector3D oldMousePos;
+    QJsonArray arrPoint = obj["Mouse position"].toArray();
+    if(arrPoint.size()==3)
+        oldMousePos = QVector3D(arrPoint[0].toVariant().toFloat(), arrPoint[1].toVariant().toFloat(), arrPoint[2].toVariant().toFloat());
+
+    auto pos = QWidget::mapFromGlobal(QCursor::pos());
+    auto posOnLand = getLandPos(pos.x(), pos.y());
+    auto mouseDif = posOnLand - oldMousePos;
+    mouseDif.setZ(0.0f);
     m_pOp->changeState(new CMoveAxis(this, EOperateAxisXY));
+    moveTo(mouseDif);
+
     viewParameters();
 }
 

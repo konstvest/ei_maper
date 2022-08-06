@@ -57,19 +57,12 @@ private slots:
     void on_moveButton_clicked();
     void on_actionRedo_triggered();
     void on_actionCreate_new_object_triggered();
-
     void updateWindowTitle(eTitleTypeData type, QString data);
-
     void on_actionSave_all_MOB_s_triggered();
-
     void on_rotateButton_clicked();
-
     void on_scaleButton_clicked();
-
     void on_actionReset_cam_position_triggered();
-
     void on_actionChange_mod_e_triggered();
-
     void on_actionCopy_IDs_to_clipboard_triggered();
 
 private:

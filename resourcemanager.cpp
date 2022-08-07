@@ -110,8 +110,7 @@ void CObjectList::readAssembly(const QMap<QString, QByteArray>& aFile, const QSt
 
 void CObjectList::loadFigures(QSet<QString>& aFigure)
 {
-    QVector<QFileInfo> fileInfo;
-    auto pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "figPath1"));
+    auto pOpt = dynamic_cast<COptStringList*>(m_pSettings->opt(eOptSetResource, "figPaths"));
     if (!pOpt || pOpt->value().isEmpty())
     {
         QMessageBox::warning(m_pSettings, "Warning","Choose path to figures.res");
@@ -119,18 +118,12 @@ void CObjectList::loadFigures(QSet<QString>& aFigure)
         //todo: wait until user choose resource file and continue
         return;
     }
-    else
-        fileInfo.append(pOpt->value());
-
-    pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "figPath2"));
-    if(pOpt && !pOpt->value().isEmpty())
-        fileInfo.append(pOpt->value());
 
     uint n(0);
     QString figName;
-    for(auto& file: fileInfo)
+    for(auto& file: pOpt->value())
     {
-        ResFile res(file.filePath());
+        ResFile res(file);
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
         if(aFigure.isEmpty())
         {
@@ -425,8 +418,7 @@ void CTextureList::initAuxTexture()
 
 void CTextureList::loadTexture(QSet<QString>& aName)
 {
-    QVector<QFileInfo> fileInfo;
-    auto pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath1"));
+    auto pOpt = dynamic_cast<COptStringList*>(m_pSettings->opt(eOptSetResource, "texPaths"));
     if (!pOpt || pOpt->value().isEmpty())
     {
         QMessageBox::warning(m_pSettings, "Warning", "Choose path to textures.res");
@@ -434,19 +426,13 @@ void CTextureList::loadTexture(QSet<QString>& aName)
         //todo: wait until user choose resource file and continue
         return;
     }
-    else
-        fileInfo.append(pOpt->value());
-
-    pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath2"));
-    if(pOpt && !pOpt->value().isEmpty())
-        fileInfo.append(pOpt->value());
 
     QString texName;
 
     uint n(0);
-    for(auto& file: fileInfo)
+    for(auto& file: pOpt->value())
     {
-        ResFile res(file.filePath());
+        ResFile res(file);
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
         if (aName.isEmpty())
         {
@@ -539,8 +525,7 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
     QVector<STexSpecified> aPart;
 
     //todo: remove code dublication. use the same way to load map texture and common texture {
-    QVector<QFileInfo> fileInfo;
-    auto pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath1"));
+    auto pOpt = dynamic_cast<COptStringList*>(m_pSettings->opt(eOptSetResource, "texPaths"));
     if (!pOpt || pOpt->value().isEmpty())
     {
         Q_ASSERT("ahtung. texture resource not found" && false);
@@ -548,20 +533,14 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
         m_pSettings->onShow(eOptSetResource);
         //todo: wait until user choose resource file and continue
     }
-    else
-        fileInfo.append(pOpt->value());
-
-    pOpt = dynamic_cast<COptString*>(m_pSettings->opt(eOptSetResource, "texPath2"));
-    if(pOpt && !pOpt->value().isEmpty())
-        fileInfo.append(pOpt->value());
     //<- todo}
 
-    for(auto& file: fileInfo)
+    for(auto& file: pOpt->value())
     {
         if(!aPart.isEmpty())
             break;
 
-        ResFile res(file.filePath());
+        ResFile res(file);
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
         for(int i(0); i<8; ++i)
         {

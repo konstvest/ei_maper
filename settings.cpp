@@ -10,14 +10,15 @@
 #include "ui_settings.h"
 #include "main_window.h"
 #include "utils.h"
+#include "log.h"
 
 CSettings::CSettings(QWidget *parent) :
     QWidget(parent)
     ,ui(new Ui::CSettings)
     ,m_fileOpt("options.json")
+  ,m_version(2.0)
 {
     ui->setupUi(this);
-    m_aOptCategory.resize(eOptSetCount);
     initOptions();
     readOptions();
 }
@@ -151,6 +152,16 @@ void CSettings::updateOptUi()
                 if (pSlider)
                     pSlider->setValue(pOpt->value());
             }
+            else if(COptStringList* pOpt = dynamic_cast<COptStringList*>(opt.get()))
+            {
+                QListWidget* pListWidget = ui->tabWidget->findChild<QListWidget*>(pOpt->name());
+                if (pListWidget)
+                {
+                    pListWidget->clear();
+                    for(auto& str : pOpt->value())
+                        pListWidget->addItem(str);
+                }
+            }
         }
     }
 }
@@ -188,6 +199,19 @@ void CSettings::updateOptFromUi()
                 if (pSlider)
                     pOpt->setValue(pSlider->value());
             }
+            else if (COptStringList* pOpt = dynamic_cast<COptStringList*>(opt.get()))
+            {
+                QListWidget* pListWidget = ui->tabWidget->findChild<QListWidget*>(pOpt->name());
+                if(pListWidget)
+                {
+                    //QStringList list;
+                    QVector<QString> list;
+                    for(int i(0); i<pListWidget->count();++i)
+                        list.append(pListWidget->item(i)->text());
+
+                    pOpt->setValue(list);
+                }
+            }
         }
     }
 }
@@ -195,16 +219,13 @@ void CSettings::updateOptFromUi()
 void CSettings::initOptions()
 {
     QList<QSharedPointer<COpt>> aOpt;
-
     //init default options for strings
-    aOpt.append(QSharedPointer<COpt>(new COptString("figPath1", "")));
-    aOpt.append(QSharedPointer<COpt>(new COptString("figPath2", "")));
-    aOpt.append(QSharedPointer<COpt>(new COptString("texPath1", "")));
-    aOpt.append(QSharedPointer<COpt>(new COptString("texPath2", "")));
+    aOpt.append(QSharedPointer<COpt>(new COptStringList("figPaths", {})));
+    aOpt.append(QSharedPointer<COpt>(new COptStringList("texPaths", {})));
     aOpt.append(QSharedPointer<COpt>(new COptString("lastVisitedFolder", "")));
 
     //init default options for bools
-    aOpt.append(QSharedPointer<COpt>(new COptBool("drawLogic", true)));
+    aOpt.append(QSharedPointer<COpt>(new COptBool("drawLogic", false)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("drawWater", true)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("freeCamera", false)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("saveSelectedOnly", false)));
@@ -213,7 +234,7 @@ void CSettings::initOptions()
 
 
     //init default options for digits
-    aOpt.append(QSharedPointer<COpt>(new COptDouble("version", 1.0)));
+    aOpt.append(QSharedPointer<COpt>(new COptDouble("version", m_version)));
     aOpt.append(QSharedPointer<COpt>(new COptInt("mouseSenseX", 25)));
     aOpt.append(QSharedPointer<COpt>(new COptInt("mouseSenseY", 25)));
 
@@ -300,39 +321,57 @@ void CSettings::readOptions()
 
     QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
     QJsonObject aOptObject = doc.object();
+    auto version = aOptObject["Version"].toVariant().toFloat();
+    if(version != m_version)
+    {
+        ei::log(eLogWarning, "option file version does not match. skip reading options");
+        return;
+    }
 
 
     auto readOptionTab = [&aOptObject, this](QString tabName, EOptSet optSet)
     {
         QJsonValue val = aOptObject.value(tabName);
-        if (val.isObject())
-        {
-            QJsonObject obj =  val.toObject(); // General
-            for(auto& opt : m_aOptCategory[optSet])
-            {
-                QJsonValue jVal = obj.value(opt.get()->name()); // figPath1
-                if (jVal == QJsonValue::Null || jVal.isUndefined())
-                    continue;
+        if (!val.isObject())
+            return;
 
-                if (COptString* pOpt = dynamic_cast<COptString*>(opt.get()))
-                {
-                    pOpt->setValue(jVal.toString());
-                }
-                else if(COptBool* pOpt = dynamic_cast<COptBool*>(opt.get()))
-                {
-                    pOpt->setValue(jVal.toBool());
-                }
-                else if(COptDouble* pOpt = dynamic_cast<COptDouble*>(opt.get()))
-                {
-                    pOpt->setValue(jVal.toDouble());
-                }
-                else if(COptInt* pOpt = dynamic_cast<COptInt*>(opt.get()))
-                {
-                    pOpt->setValue(jVal.toInt());
-                }
+        QJsonObject obj =  val.toObject(); // General
+        for(auto& opt : m_aOptCategory[optSet])
+        {
+            QJsonValue jVal = obj.value(opt.get()->name());
+            if (jVal == QJsonValue::Null || jVal.isUndefined())
+                continue;
+
+            if (COptString* pOpt = dynamic_cast<COptString*>(opt.get()))
+            {
+                pOpt->setValue(jVal.toString());
+            }
+            else if(COptBool* pOpt = dynamic_cast<COptBool*>(opt.get()))
+            {
+                pOpt->setValue(jVal.toBool());
+            }
+            else if(COptDouble* pOpt = dynamic_cast<COptDouble*>(opt.get()))
+            {
+                pOpt->setValue(jVal.toDouble());
+            }
+            else if(COptInt* pOpt = dynamic_cast<COptInt*>(opt.get()))
+            {
+                pOpt->setValue(jVal.toInt());
+            }
+            else if(COptStringList* pOpt = dynamic_cast<COptStringList*>(opt.get()))
+            {
+                QJsonArray arr = jVal.toArray();
+                //QStringList list;
+                QVector<QString> list;
+                for(auto elem : arr)
+                    list.append(elem.toString());
+
+                pOpt->setValue(list);
             }
         }
+
     };
+
     readOptionTab("General", eOptSetGeneral);
     readOptionTab("Render", eOptSetRender);
     readOptionTab("Resource", eOptSetResource);
@@ -367,6 +406,13 @@ void CSettings::saveOptions()
             {
                 tabObj.insert(opt.get()->name(), pOpt->value());
             }
+            if (COptStringList* pOpt = dynamic_cast<COptStringList*>(opt.get()))
+            {
+                QJsonArray arr;
+                for(auto& str : pOpt->value())
+                    arr.append(str);
+                tabObj.insert(opt.get()->name(), arr);
+            }
         }
         aOpt.insert(tabName, tabObj);
     };
@@ -375,6 +421,7 @@ void CSettings::saveOptions()
     optToObj("Render", eOptSetRender);
     optToObj("Resource", eOptSetResource);
     optToObj("KeyBinding", eOptSetKeyBinding);
+    aOpt.insert("Version", QString::number(m_version));
 
     QJsonDocument doc(aOpt);
     if (!m_fileOpt.open(QIODevice::WriteOnly)) {
@@ -392,46 +439,90 @@ void CSettings::on_buttonApply_clicked()
     onClose();
 }
 
-void CSettings::on_FigurePath_1_open_clicked()
+void CSettings::on_figPathAdd_clicked()
 {
     COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
-    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to mod Figures", option->value(), tr("RES (*.res)"));
+    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to Figures", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
-        ui->figPath1->setText(fileName.filePath());
+        ui->figPaths->addItem(fileName.filePath());
         option->setValue(fileName.path());
     }
 }
 
-void CSettings::on_FigurePath_2_open_clicked()
+
+void CSettings::on_texPathAdd_clicked()
 {
     COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
-    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to original Figures", option->value(), tr("RES (*.res)"));
+    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to mod Textures", option->value(), tr("RES (*.res)"));
     if(!fileName.path().isEmpty())
     {
-        ui->figPath2->setText(fileName.filePath());
+        ui->texPaths->addItem(fileName.filePath());
         option->setValue(fileName.path());
     }
 }
 
-void CSettings::on_TexturePath_1_open_clicked()
+
+void CSettings::on_figPathRemove_clicked()
 {
-    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
-    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to mod Texture", option->value(), tr("RES (*.res)"));
-    if(!fileName.path().isEmpty())
+    int index = ui->figPaths->currentRow();
+    if(index >=0)
+        ui->figPaths->takeItem(index);
+}
+
+
+void CSettings::on_texPathRemove_clicked()
+{
+    int index = ui->texPaths->currentRow();
+    if(index >=0)
+        ui->texPaths->takeItem(index);
+}
+
+
+void CSettings::on_texPathUp_clicked()
+{
+    int index = ui->texPaths->currentRow();
+    if(index > 0)
     {
-        ui->texPath1->setText(fileName.filePath());
-        option->setValue(fileName.path());
+        auto pItem = ui->texPaths->takeItem(index);
+        ui->texPaths->insertItem(index-1, pItem);
+        ui->texPaths->setCurrentItem(pItem);
     }
 }
 
-void CSettings::on_TexturePath_2_open_clicked()
+
+void CSettings::on_texpathDown_clicked()
 {
-    COptString* option = dynamic_cast<COptString*>(opt(eOptSetGeneral, "lastVisitedFolder"));
-    QFileInfo fileName = QFileDialog::getOpenFileName(this, "Choose path to original Texture", option->value(), tr("RES (*.res)"));
-    if(!fileName.path().isEmpty())
+    int index = ui->texPaths->currentRow();
+    if(index < ui->texPaths->count()-1)
     {
-        ui->texPath2->setText(fileName.filePath());
-        option->setValue(fileName.path());
+        auto pItem = ui->texPaths->takeItem(index);
+        ui->texPaths->insertItem(index+1, pItem);
+        ui->texPaths->setCurrentItem(pItem);
     }
 }
+
+
+void CSettings::on_figPathUp_clicked()
+{
+    int index = ui->figPaths->currentRow();
+    if(index > 0)
+    {
+        auto pItem = ui->figPaths->takeItem(index);
+        ui->figPaths->insertItem(index-1, pItem);
+        ui->figPaths->setCurrentItem(pItem);
+    }
+}
+
+
+void CSettings::on_figPathDown_clicked()
+{
+    int index = ui->figPaths->currentRow();
+    if(index < ui->figPaths->count()-1)
+    {
+        auto pItem = ui->figPaths->takeItem(index);
+        ui->figPaths->insertItem(index+1, pItem);
+        ui->figPaths->setCurrentItem(pItem);
+    }
+}
+

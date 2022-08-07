@@ -6,10 +6,8 @@ mouseSenseY
 dipEditSymmetric
 detailedLog
 Option set name:Resource
-figPath1
-figPath2
-texPath1
-texPath2
+figPaths
+texPaths
 Option set name:Render
 drawLogic
 freeCamera

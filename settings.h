@@ -46,10 +46,16 @@ public Q_SLOTS:
 private slots:
     void on_buttonApply_clicked();
     void on_buttonCancel_clicked();
-    void on_FigurePath_1_open_clicked();
-    void on_FigurePath_2_open_clicked();
-    void on_TexturePath_1_open_clicked();
-    void on_TexturePath_2_open_clicked();
+    void on_figPathAdd_clicked();
+    void on_texPathAdd_clicked();
+    void on_figPathRemove_clicked();
+    void on_texPathRemove_clicked();
+    void on_texPathUp_clicked();
+    void on_texpathDown_clicked();
+
+    void on_figPathUp_clicked();
+
+    void on_figPathDown_clicked();
 
 private:
     void initOptions();
@@ -64,8 +70,8 @@ private:
     MainWindow* m_mainWindow;
 
     QFile m_fileOpt;
-    QVector<QVector<QSharedPointer<COpt>>> m_aOptCategory;
-
+    QMap<EOptSet, QVector<QSharedPointer<COpt>>> m_aOptCategory;
+    double m_version; //todo: decrease to float
 };
 
 #endif // SETTINGS_H

@@ -12,6 +12,7 @@ public:
     COpt(QString name);
     virtual ~COpt();
     const QString& name();
+    void value() {Q_ASSERT(false);}
 
 private:
     QString m_name;
@@ -30,8 +31,10 @@ private:
     T m_val;
 };
 
+
 typedef CTOpt<bool> COptBool;
 typedef CTOpt<QString> COptString;
+typedef CTOpt<QVector<QString>> COptStringList;
 typedef CTOpt<int> COptInt;
 typedef CTOpt<double> COptDouble;
 

@@ -111,7 +111,7 @@ public:
     void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser);
     bool isUse() {return m_use;}
-    void updatePos(QVector3D& dir);
+    void updatePos(QVector3D& offset);
     void collectPatrolNodes(QList<CNode*>& arrNode);
     void clearPatrolSelect();
     void collectlogicParams(QMap<EObjParam, QString>& aParam);
@@ -128,9 +128,10 @@ public:
     void createViewByIndex(int pointId, int viewId);
     void undo_createViewByIndex(int pointId, int viewId);
     CPatrolPoint* patrolByIndex(int index);
+    void setGuardPlacement(QVector3D pos) {m_guardPlacement = pos;}
 
 public slots:
-    void update();
+    void updateLogicLines();
     void recalcPatrolPath();
     void addNewPatrolPoint(CPatrolPoint* base, CPatrolPoint* created);
     void undo_addNewPatrolPoint(CPatrolPoint* pCreated);

@@ -1173,17 +1173,15 @@ void CView::operationApply(EOperationAxisType operationType)
 void CView::moveTo(QVector3D &dir)
 {
     QVector3D pos;
-    //for(const auto& mob : m_aMob)
+    for (auto& node : CScene::getInstance()->getMode() == eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
     {
-        for (auto& node : CScene::getInstance()->getMode() == eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
-        {
-            if (node->nodeState() == ENodeState::eSelect)
-            {
-                pos = node->position() + dir;
-                node->updatePos(pos);
-            }
-        }
+        if (node->nodeState() != ENodeState::eSelect)
+            continue;
+
+        pos = node->position() + dir;
+        node->updatePos(pos);
     }
+
     updateParameter(EObjParam::eObjParam_POSITION);
 }
 

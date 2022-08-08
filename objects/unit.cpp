@@ -530,8 +530,9 @@ CPatrolPoint *CUnit::patrolByIndex(int index)
 
 CLogic::CLogic(CUnit* unit, bool bUse):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
+  ,m_helpIndexBuf(QOpenGLBuffer::IndexBuffer)
     ,m_bCyclic(false)
-    ,m_model(eRadius)
+    ,m_behaviour(eRadius)
     ,m_guardRadius(10.0f)
     ,m_use(bUse)
     ,m_wait(0.0f)
@@ -544,7 +545,7 @@ CLogic::CLogic(CUnit* unit, const CLogic &logic):
     m_parent(unit)
 {
     m_bCyclic = logic.m_bCyclic;
-    m_model = logic.m_model;
+    m_behaviour = logic.m_behaviour;
     m_guardRadius = logic.m_guardRadius;
     m_guardPlacement = logic.m_guardPlacement;
     m_numAlarm = logic.m_numAlarm;
@@ -566,6 +567,8 @@ CLogic::~CLogic()
 {
     m_vertexBuf.destroy();
     m_indexBuf.destroy();
+    m_helpVertexBuf.destroy();
+    m_helpIndexBuf.destroy();
     for(auto& pp: m_aPatrolPt)
         delete pp;
 }
@@ -583,12 +586,14 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     if (!pOpt->value() && m_parent->nodeState() != ENodeState::eSelect && CScene::getInstance()->getMode() != eEditModeLogic)
         return;
 
+    drawHelp(program);
+
     glDisable(GL_DEPTH_TEST);
     //todo: draw help radius
     QMatrix4x4 matrix;
     matrix.setToIdentity();
     program->setUniformValue("u_modelMmatrix", matrix);
-    if (m_model == EBehaviourType::eRadius)
+    if (m_behaviour == EBehaviourType::eRadius)
         program->setUniformValue("customColor", QVector4D(0.9f, 0.4f, 0.1f, 1.0f));
     else
         program->setUniformValue("customColor", QVector4D(0.8f, 0.8f, 0.2f, 1.0f));
@@ -627,7 +632,7 @@ void CLogic::draw(QOpenGLShaderProgram* program)
 
     program->setUniformValue("customColor", QVector4D(0.0, 0.0, 0.0, 0.0));
 
-    if(m_model == EBehaviourType::ePath)
+    if(m_behaviour == EBehaviourType::ePath)
         for(auto& pp : m_aPatrolPt)
             pp->draw(program);
 
@@ -654,13 +659,15 @@ void CLogic::drawSelect(QOpenGLShaderProgram* program)
 void CLogic::createLogicLines()
 {
     m_aDrawPoint.clear();
-    switch (m_model) {
+    m_aHelpPoint.clear();
+    switch (m_behaviour) {
     case EBehaviourType::eRadius:
     {
         QVector3D centr(m_guardPlacement);
         centr.setZ(.0f);
         util::getCirclePoint(m_aDrawPoint, centr, double(m_guardRadius), 40);
         CLandscape::getInstance()->projectPt(m_aDrawPoint);
+        generateVisibleLogicVBO();
         break;
     }
     case EBehaviourType::ePath:
@@ -692,19 +699,16 @@ void CLogic::createLogicLines()
             pt->update();
         }
         util::splitByLen(m_aDrawPoint, 2.0f);
+        generateVisibleLogicVBO();
         break;
     }
     case EBehaviourType::ePlace:
     {
-//        m_guardPlacement = m_parent->position();
-//        m_guardPlacement.setZ(0.0f);
-//        CLandscape::getInstance()->projectPt(m_guardPlacement);
-        return; // no need to update draw elements. just exit func
+        break;
     }
     case EBehaviourType::eBriffing:
     {
-        return;// todo
-        //break;
+        break;
     }
     case EBehaviourType::eGuardAlaram:
     {
@@ -714,36 +718,42 @@ void CLogic::createLogicLines()
     }
     default:
         //Q_ASSERT("unknown behaviour type" && false);
-        return; //break;
+        break;
     }
-    // todo: draw lines over the landscape
 
-    // Generate VBOs and transfer data
-    m_vertexBuf.create();
-    m_vertexBuf.bind();
-    m_vertexBuf.allocate(m_aDrawPoint.data(), m_aDrawPoint.count() * int(sizeof(QVector3D)));
-    m_vertexBuf.release();
+    //get circle for help radius
+    QVector3D centr(m_guardPlacement);
+    centr.setZ(.0f);
+    util::getCirclePoint(m_aHelpPoint, centr, double(m_help), 40);
+    CLandscape::getInstance()->projectPt(m_aHelpPoint);
+    // Generate VBOs for help radius
+    m_helpVertexBuf.create();
+    m_helpVertexBuf.bind();
+    m_helpVertexBuf.allocate(m_aHelpPoint.data(), m_aHelpPoint.count() * int(sizeof(QVector3D)));
+    m_helpVertexBuf.release();
 
     QVector<ushort> aInd;
-    for (ushort i(0); i<m_aDrawPoint.size(); ++i)
+    for (ushort i(0); i<m_aHelpPoint.size(); ++i)
         aInd.append(i);
 
-    m_indexBuf.create();
-    m_indexBuf.bind();
-    m_indexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
-    m_indexBuf.release();
+    m_helpIndexBuf.create();
+    m_helpIndexBuf.bind();
+    m_helpIndexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
+    m_helpIndexBuf.release();
 }
 
 void CLogic::updateLogicLines()
 {
     m_aDrawPoint.clear();
-    switch (m_model) {
+    m_aHelpPoint.clear();
+    switch (m_behaviour) {
     case EBehaviourType::eRadius:
     {
         QVector3D centr(m_guardPlacement);
         centr.setZ(.0f);
         util::getCirclePoint(m_aDrawPoint, centr, double(m_guardRadius), 40);
         CLandscape::getInstance()->projectPt(m_aDrawPoint);
+        generateVisibleLogicVBO();
         break;
     }
     case EBehaviourType::ePath:
@@ -762,17 +772,18 @@ void CLogic::updateLogicLines()
             m_aDrawPoint.append(pos);
         }
         util::splitByLen(m_aDrawPoint, 2.0f);
+        generateVisibleLogicVBO();
         break;
     }
     case EBehaviourType::ePlace:
     {
         //todo: draw custom symbol? star may be
-        return; // no need to update draw elements. just exit func
+        break; // no need to update draw elements. just exit func
     }
     case EBehaviourType::eBriffing:
     {
         //todo: draw custom symbol for briffing? face may be
-        return;
+        break;
     }
     case EBehaviourType::eIdle:
     case EBehaviourType::eGuardAlaram:
@@ -780,32 +791,37 @@ void CLogic::updateLogicLines()
         //idk what does is mean
         //Q_ASSERT("We found it, master" && false);
         ei::log(eLogDebug, "We found it, master");
-        return;
+        break;
     }
     default:
         Q_ASSERT("unknown behaviour type" && false);
-        return;
+        break;
     }
 
-    // Generate VBOs and transfer data
-    m_vertexBuf.create();
-    m_vertexBuf.bind();
-    m_vertexBuf.allocate(m_aDrawPoint.data(), m_aDrawPoint.count() * int(sizeof(QVector3D)));
-    m_vertexBuf.release();
+    //get circle for help radius
+    QVector3D centr(m_guardPlacement);
+    centr.setZ(.0f);
+    util::getCirclePoint(m_aHelpPoint, centr, double(m_help), 40);
+    CLandscape::getInstance()->projectPt(m_aHelpPoint);
+    // Generate VBOs for help radius
+    m_helpVertexBuf.create();
+    m_helpVertexBuf.bind();
+    m_helpVertexBuf.allocate(m_aHelpPoint.data(), m_aHelpPoint.count() * int(sizeof(QVector3D)));
+    m_helpVertexBuf.release();
 
     QVector<ushort> aInd;
-    for (ushort i(0); i<m_aDrawPoint.size(); ++i)
+    for (ushort i(0); i<m_aHelpPoint.size(); ++i)
         aInd.append(i);
 
-    m_indexBuf.create();
-    m_indexBuf.bind();
-    m_indexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
-    m_indexBuf.release();
+    m_helpIndexBuf.create();
+    m_helpIndexBuf.bind();
+    m_helpIndexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
+    m_helpIndexBuf.release();
 }
 
 void CLogic::recalcPatrolPath()
 {
-    Q_ASSERT(m_model == EBehaviourType::ePath);
+    Q_ASSERT(m_behaviour == EBehaviourType::ePath);
     Q_ASSERT(m_parent);
     m_aDrawPoint.clear();
 
@@ -860,6 +876,63 @@ void CLogic::undo_addNewPatrolPoint(CPatrolPoint *pCreated)
     createLogicLines();
 }
 
+void CLogic::generateVisibleLogicVBO()
+{
+    // Generate VBOs and transfer data
+    m_vertexBuf.create();
+    m_vertexBuf.bind();
+    m_vertexBuf.allocate(m_aDrawPoint.data(), m_aDrawPoint.count() * int(sizeof(QVector3D)));
+    m_vertexBuf.release();
+
+    QVector<ushort> aInd;
+    for (ushort i(0); i<m_aDrawPoint.size(); ++i)
+        aInd.append(i);
+
+    m_indexBuf.create();
+    m_indexBuf.bind();
+    m_indexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
+    m_indexBuf.release();
+}
+
+void CLogic::drawHelp(QOpenGLShaderProgram *program)
+{
+    if(!m_use || m_aHelpPoint.empty())
+        return;
+
+    //todo: for selected objects ALWAYS draw logic
+    COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawHelp"));
+    if (nullptr == pOpt)
+        return;
+
+    if(CScene::getInstance()->getMode() == eEditModeObjects)
+        return; //dont draw in object mode
+
+    if (!pOpt->value() && m_parent->nodeState() != ENodeState::eSelect)
+        return;
+
+    glDisable(GL_DEPTH_TEST);
+    //todo: draw help radius
+    QMatrix4x4 matrix;
+    matrix.setToIdentity();
+    program->setUniformValue("u_modelMmatrix", matrix);
+    program->setUniformValue("customColor", QVector4D(0.8f, 0.0f, 1.0f, 1.0f));
+
+    int offset(0);
+    // Tell OpenGL which VBOs to use
+    m_helpVertexBuf.bind();
+    // Tell OpenGL programmable pipeline how to locate vertex position data
+    int vertexLocation = program->attributeLocation("a_position");
+    program->enableAttributeArray(vertexLocation);
+    program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, int(sizeof(QVector3D)));
+
+    m_helpIndexBuf.bind();
+    glLineWidth(2);
+    glDrawElements(GL_LINE_STRIP, m_aHelpPoint.count(), GL_UNSIGNED_SHORT, nullptr);
+    program->setUniformValue("customColor", QVector4D(0.0, 0.0, 0.0, 0.0));
+
+    glEnable(GL_DEPTH_TEST);
+}
+
 void CLogic::updatePos(QVector3D& offset)
 {
     m_guardPlacement += offset;
@@ -895,7 +968,7 @@ void CLogic::clearPatrolSelect()
 
 void CLogic::collectlogicParams(QMap<EObjParam, QString> &aParam)
 {
-    util::addParam(aParam, eObjParam_LOGIC_BEHAVIOUR, QString::number(m_model));
+    util::addParam(aParam, eObjParam_LOGIC_BEHAVIOUR, QString::number(m_behaviour));
     util::addParam(aParam, eObjParam_GUARD_ALARM, QString::number(m_help));
     //if behaviour is radius
     util::addParam(aParam, eObjParam_GUARD_RADIUS, QString::number(m_guardRadius));
@@ -909,7 +982,7 @@ QString CLogic::getLogicParam(EObjParam param)
     switch (param){
     case eObjParam_LOGIC_BEHAVIOUR:
     {
-        value = QString::number(m_model);
+        value = QString::number(m_behaviour);
         break;
     }
     case eObjParam_GUARD_ALARM:
@@ -943,7 +1016,7 @@ void CLogic::applyLogicParam(EObjParam param, const QString &value)
     switch (param){
     case eObjParam_LOGIC_BEHAVIOUR:
     {
-        m_model = (EBehaviourType)value.toUInt();
+        m_behaviour = (EBehaviourType)value.toUInt();
         createLogicLines();
         break;
     }
@@ -1085,7 +1158,7 @@ uint CLogic::deserialize(util::CMobParser& parser)
         else if(parser.isNextTag("UNIT_LOGIC_MODEL"))
         {
             readByte += parser.skipHeader();
-            readByte += parser.readDword(m_model);
+            readByte += parser.readDword(m_behaviour);
         }
         else if(parser.isNextTag("UNIT_LOGIC_GUARD_R"))
         {
@@ -1157,7 +1230,7 @@ uint CLogic::deserialize(util::CMobParser& parser)
 void CLogic::serializeJson(QJsonObject& obj)
 {
     obj.insert("Is cyclyc?", m_bCyclic);
-    obj.insert("Model", QJsonValue::fromVariant(m_model));
+    obj.insert("Model", QJsonValue::fromVariant(m_behaviour));
     obj.insert("Guard raidus", QJsonValue::fromVariant(m_guardRadius));
 
     QJsonArray aPlacement;
@@ -1187,7 +1260,7 @@ void CLogic::serializeJson(QJsonObject& obj)
 void CLogic::deSerializeJson(QJsonObject data)
 {
     m_bCyclic = data["Is cyclyc?"].toBool();
-    m_model = (EBehaviourType)data["Model"].toVariant().toUInt();
+    m_behaviour = (EBehaviourType)data["Model"].toVariant().toUInt();
     m_guardRadius = data["Guard raidus"].toVariant().toFloat();
 
     QJsonArray aPlacement = data["Guard placement"].toArray();
@@ -1241,7 +1314,7 @@ uint CLogic::serialize(util::CMobParser& parser)
     parser.endSection(); //"UNIT_LOGIC_ALWAYS_ACTIVE"
 
     writeByte += parser.startSection("UNIT_LOGIC_MODEL");
-    writeByte += parser.writeDword(m_model);
+    writeByte += parser.writeDword(m_behaviour);
     parser.endSection(); //parser.skipHeader();
 
     writeByte += parser.startSection("UNIT_LOGIC_GUARD_R");

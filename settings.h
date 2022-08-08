@@ -52,9 +52,7 @@ private slots:
     void on_texPathRemove_clicked();
     void on_texPathUp_clicked();
     void on_texpathDown_clicked();
-
     void on_figPathUp_clicked();
-
     void on_figPathDown_clicked();
 
 private:

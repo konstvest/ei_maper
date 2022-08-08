@@ -231,6 +231,7 @@ void CSettings::initOptions()
     aOpt.append(QSharedPointer<COpt>(new COptBool("saveSelectedOnly", false)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("dipEditSymmetric", true)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("detailedLog", false)));
+    aOpt.append(QSharedPointer<COpt>(new COptBool("drawHelp", false)));
 
 
     //init default options for digits

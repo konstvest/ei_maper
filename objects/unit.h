@@ -120,7 +120,7 @@ public:
     bool isChild(CPatrolPoint* pPointIn);
     void addFirstPoint(QVector3D& pos);
     void undo_addFirstPoint();
-    bool isBehaviourPath() {return m_model == EBehaviourType::ePath;}
+    bool isBehaviourPath() {return m_behaviour == EBehaviourType::ePath;}
     int getPatrolId(CPatrolPoint* pPoint);
     void getViewId(int& parentPatrol, int& parentView, CLookPoint* pPoint);
     void createPatrolByIndex(int index);
@@ -138,11 +138,17 @@ public slots:
     void undo_addNewPatrolPoint(CPatrolPoint* pCreated);
 
 private:
+    void generateVisibleLogicVBO();
+    void drawHelp(QOpenGLShaderProgram* program);
+
+private:
     QOpenGLBuffer m_vertexBuf;
     QOpenGLBuffer m_indexBuf;
+    QOpenGLBuffer m_helpVertexBuf;
+    QOpenGLBuffer m_helpIndexBuf;
     bool m_bCyclic; // true/false
     //uint m_model;//behaviour type (see enum EBehaviourType)
-    EBehaviourType m_model;
+    EBehaviourType m_behaviour;
 
     //guard point + radius in case of "random" bahavior
     float m_guardRadius; // guard radius
@@ -158,6 +164,7 @@ private:
     QVector<CPatrolPoint*> m_aPatrolPt;
 
     QVector<QVector3D> m_aDrawPoint; //opengl path lines
+    QVector<QVector3D> m_aHelpPoint; //opengl path lines
     CUnit* m_parent;
 };
 

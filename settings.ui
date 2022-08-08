@@ -23,7 +23,7 @@
       <enum>Qt::LeftToRight</enum>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabGeneral">
       <attribute name="title">
@@ -201,6 +201,13 @@
             <widget class="QCheckBox" name="drawWater">
              <property name="text">
               <string>Draw water</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="drawHelp">
+             <property name="text">
+              <string>Draw help radius in logic mode</string>
              </property>
             </widget>
            </item>

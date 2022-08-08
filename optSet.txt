@@ -13,3 +13,4 @@ drawLogic
 freeCamera
 saveSelectedOnly
 drawWater
+drawHelp

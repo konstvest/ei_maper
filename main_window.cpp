@@ -161,8 +161,10 @@ void MainWindow::on_actionOpen_triggered()
             return;
         }
 
-        QUndoCommand* loadMob = new COpenCommand(m_pView, fileName, this);
-        m_undoStack->push(loadMob);
+        COpenCommand* pLoadCommand = new COpenCommand(m_pView, fileName, this);
+        m_undoStack->push(pLoadCommand);
+        CRoundMobCommand* pRound = new CRoundMobCommand(m_pView);
+        m_undoStack->push(pRound);
     }
 }
 

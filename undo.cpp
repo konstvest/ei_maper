@@ -31,7 +31,9 @@ void COpenCommand::redo()
     if(m_filePath.fileName().toLower().endsWith(".mpr"))
         m_pView->loadLandscape(m_filePath);
     else
+    {
         m_pView->loadMob(m_filePath);
+    }
 
 }
 
@@ -365,4 +367,26 @@ void CRoundMobCommand::redo()
 {
     m_pView->roundActiveMob();
     setText("Switch Mob to " + m_pView->currentMob()->mobName());
+}
+
+CCloseActiveMobCommand::CCloseActiveMobCommand(CView *pView, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+{
+    m_filePath = m_pView->currentMob()->filePath();
+}
+
+void CCloseActiveMobCommand::undo()
+{
+    m_pView->loadMob(m_filePath);
+    m_pView->changeCurrentMob(m_pView->mob(m_filePath.fileName()));
+}
+
+void CCloseActiveMobCommand::redo()
+{
+    CMob* pMob = m_pView->currentMob();
+    setText("unloaded " + pMob->mobName());
+    m_pView->unloadActiveMob();
+//    m_pView->undo_roundActiveMob();
+//    m_pView->unloadMob(pMob->mobName());
 }

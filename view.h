@@ -45,6 +45,7 @@ public:
     void saveMobAs();
     void saveActiveMob();
     void saveAllMob();
+    void unloadActiveMob();
     void unloadMob(QString mobName);
     void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, QTreeWidget* pTree);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
@@ -73,9 +74,10 @@ public:
     void resetCamPosition();
     void addLogicPoint(bool bLookPoint = false);
     void copySelectedIDsToClipboard();
-    void execMobSwitch();
+    void changeCurrentMob(CMob* pMob);
     void roundActiveMob();
     void undo_roundActiveMob();
+    void execUnloadCommand();
 
 protected:
     void initializeGL() override;
@@ -95,7 +97,6 @@ private:
     int cauntSelectedNodes();
     void applyParam(SParam& param);
     void getColorFromRect(const QRect& rect, QVector<SColor>& aColor);
-    void changeCurrentMob(CMob* pMob);
 
     void onParamChangeLogic(CNode* pNode, SParam& sParam);
 
@@ -106,6 +107,7 @@ public slots:
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(SParam& sParam);
     void updateTreeLogic();
+    void execMobSwitch();
 
 signals:
     void updateMsg(QString msg);

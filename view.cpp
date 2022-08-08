@@ -573,7 +573,10 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
     //TODO: use different buffer => save picking in image
     // Bind shader pipeline for use
     if(nullptr == m_activeMob)
+    {
+        m_selectFrame->reset();
         return;
+    }
 
     if (!m_selectProgram.bind())
         close();
@@ -634,8 +637,8 @@ void CView::loadMob(QFileInfo &filePath)
     pMob->attach(this, m_pProgress);
     pMob->readMob(filePath);
     m_aMob.append(pMob);
-    changeCurrentMob(pMob);
-    emit mobLoad(false);
+//    changeCurrentMob(pMob);
+//    emit mobLoad(false);
 }
 
 void CView::saveMobAs()
@@ -675,6 +678,33 @@ void CView::saveAllMob()
         pMob->save();
     }
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
+}
+
+void CView::unloadActiveMob()
+{
+    if(nullptr == m_activeMob)
+        return;
+
+    ei::log(eLogInfo, "unloading mob " + m_activeMob->mobName());
+    CMob* pMob = nullptr;
+    foreach(pMob, m_aMob)
+    {
+        if(m_activeMob != pMob)
+            continue;
+
+        m_aMob.removeOne(pMob);
+        delete pMob;
+        break;
+    }
+
+    emit mobLoad(true);
+    if(!m_aMob.isEmpty())
+        changeCurrentMob(m_aMob.back());
+    else
+        changeCurrentMob(nullptr);
+
+    ei::log(eLogInfo, "Mob unloaded");
+    viewParameters();
 }
 
 void CView::unloadMob(QString mobName)
@@ -1574,14 +1604,26 @@ void CView::copySelectedIDsToClipboard()
 
 void CView::execMobSwitch()
 {
+    if(nullptr != m_activeMob && m_aMob.size() == 1) //dont switch beetwen 1 mob
+        return;
+
     CRoundMobCommand* pUndo = new CRoundMobCommand(this);
     m_pUndoStack->push(pUndo);
 }
 
 void CView::roundActiveMob()
 {
-    if(m_aMob.size() <=1)
+    if(m_aMob.isEmpty())
         return;
+
+    if(m_aMob.size() == 1)
+    {
+        if(nullptr == m_activeMob)
+            changeCurrentMob(m_aMob.front());
+
+        return;
+    }
+
 
     m_activeMob->clearSelect();
     int actIndex = m_aMob.indexOf(m_activeMob);
@@ -1595,8 +1637,16 @@ void CView::roundActiveMob()
 
 void CView::undo_roundActiveMob()
 {
-    if(m_aMob.size() <=1)
+    if(m_aMob.size() <1)
         return;
+
+    if(m_aMob.size() == 1)
+    {
+        if(nullptr != m_activeMob)
+            changeCurrentMob(nullptr);
+
+        return;
+    }
 
     m_activeMob->clearSelect();
     int actIndex = m_aMob.indexOf(m_activeMob);
@@ -1606,4 +1656,10 @@ void CView::undo_roundActiveMob()
         --actIndex;
 
     changeCurrentMob(m_aMob[actIndex]);
+}
+
+void CView::execUnloadCommand()
+{
+    CCloseActiveMobCommand* pCommand = new CCloseActiveMobCommand(this);
+    m_pUndoStack->push(pCommand);
 }

@@ -30,9 +30,9 @@ void CView::keyPressEvent(QKeyEvent* event)
     case Qt::Key_M:
         unloadLand();
         break;
-    case Qt::Key_U:
-        unloadMob("");
-        break;
+//    case Qt::Key_U:
+//        unloadMob("");
+//        break;
     case Qt::Key_I:
     {
         updateTreeLogic();

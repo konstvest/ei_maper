@@ -9,7 +9,7 @@ class CPatrolPoint;
 class CLookPoint;
 class CUnit;
 
-class COpenCommand: public QUndoCommand
+class COpenCommand: public QUndoCommand, public QObject
 {
 public:
     enum { Id = 100 };
@@ -20,6 +20,7 @@ public:
     void redo() override;
     //bool mergeWith(const QUndoCommand *command) override;
     int id() const override { return Id; }
+
 
 private:
     CView *m_pView;
@@ -204,6 +205,25 @@ public:
 
 private:
     CView* m_pView;
+};
+
+class CCloseActiveMobCommand: public QUndoCommand
+{
+public:
+    enum { Id = 110 };
+
+    CCloseActiveMobCommand(CView* pView, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CView *m_pView;
+    QFileInfo m_filePath;
+    MainWindow* m_pMain;
+
 };
 
 #endif // UNDO_H

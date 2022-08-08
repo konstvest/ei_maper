@@ -120,6 +120,11 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
             m_pView->addLogicPoint(true);
         break;
     }
+    case  Qt::Key_U:
+    {
+        m_pView->execUnloadCommand();
+        break;
+    }
     default:
         pOp->keyManager()->press(Qt::Key(pEvent->key()));
         break;

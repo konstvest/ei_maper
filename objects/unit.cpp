@@ -558,7 +558,7 @@ CLogic::CLogic(CUnit* unit, const CLogic &logic):
         m_aPatrolPt.append(new CPatrolPoint(*pP));
 
     m_aDrawPoint = logic.m_aDrawPoint;
-    updateLogicLines();
+    createLogicLines();
     Q_ASSERT(m_parent);
 }
 
@@ -651,7 +651,7 @@ void CLogic::drawSelect(QOpenGLShaderProgram* program)
     glEnable(GL_DEPTH_TEST);
 }
 
-void CLogic::updateLogicLines()
+void CLogic::createLogicLines()
 {
     m_aDrawPoint.clear();
     switch (m_model) {
@@ -734,6 +734,75 @@ void CLogic::updateLogicLines()
     m_indexBuf.release();
 }
 
+void CLogic::updateLogicLines()
+{
+    m_aDrawPoint.clear();
+    switch (m_model) {
+    case EBehaviourType::eRadius:
+    {
+        QVector3D centr(m_guardPlacement);
+        centr.setZ(.0f);
+        util::getCirclePoint(m_aDrawPoint, centr, double(m_guardRadius), 40);
+        CLandscape::getInstance()->projectPt(m_aDrawPoint);
+        break;
+    }
+    case EBehaviourType::ePath:
+    {
+        Q_ASSERT(m_parent);
+        QVector3D pos(m_parent->position());
+        pos.setZ(0.0f);
+        CLandscape::getInstance()->projectPt(pos);
+        m_aDrawPoint.append(pos);
+        for (auto& pt: m_aPatrolPt)
+        {
+            if(pt->isMarkDeleted())
+                continue;
+
+            pos = pt->position();
+            m_aDrawPoint.append(pos);
+        }
+        util::splitByLen(m_aDrawPoint, 2.0f);
+        break;
+    }
+    case EBehaviourType::ePlace:
+    {
+        //todo: draw custom symbol? star may be
+        return; // no need to update draw elements. just exit func
+    }
+    case EBehaviourType::eBriffing:
+    {
+        //todo: draw custom symbol for briffing? face may be
+        return;
+    }
+    case EBehaviourType::eIdle:
+    case EBehaviourType::eGuardAlaram:
+    {
+        //idk what does is mean
+        //Q_ASSERT("We found it, master" && false);
+        ei::log(eLogDebug, "We found it, master");
+        return;
+    }
+    default:
+        Q_ASSERT("unknown behaviour type" && false);
+        return;
+    }
+
+    // Generate VBOs and transfer data
+    m_vertexBuf.create();
+    m_vertexBuf.bind();
+    m_vertexBuf.allocate(m_aDrawPoint.data(), m_aDrawPoint.count() * int(sizeof(QVector3D)));
+    m_vertexBuf.release();
+
+    QVector<ushort> aInd;
+    for (ushort i(0); i<m_aDrawPoint.size(); ++i)
+        aInd.append(i);
+
+    m_indexBuf.create();
+    m_indexBuf.bind();
+    m_indexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
+    m_indexBuf.release();
+}
+
 void CLogic::recalcPatrolPath()
 {
     Q_ASSERT(m_model == EBehaviourType::ePath);
@@ -777,10 +846,10 @@ void CLogic::addNewPatrolPoint(CPatrolPoint *base, CPatrolPoint *created)
 {
     int i = m_aPatrolPt.indexOf(base);
     m_aPatrolPt.insert(i+1, created);
-    QObject::connect(created, SIGNAL(patrolChanges()), this, SLOT(updateLogicLines()));
+    QObject::connect(created, SIGNAL(patrolChanges()), this, SLOT(createLogicLines()));
     QObject::connect(created, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
     QObject::connect(created, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
-    updateLogicLines();
+    createLogicLines();
 }
 
 void CLogic::undo_addNewPatrolPoint(CPatrolPoint *pCreated)
@@ -788,7 +857,7 @@ void CLogic::undo_addNewPatrolPoint(CPatrolPoint *pCreated)
     int index = m_aPatrolPt.indexOf(pCreated);
     m_aPatrolPt.removeAt(index);
     delete pCreated;
-    updateLogicLines();
+    createLogicLines();
 }
 
 void CLogic::updatePos(QVector3D& offset)
@@ -802,7 +871,7 @@ void CLogic::updatePos(QVector3D& offset)
 
         patrol->position() += offset;
     }
-    updateLogicLines();
+    createLogicLines();
 }
 
 void CLogic::collectPatrolNodes(QList<CNode *> &arrNode)
@@ -875,19 +944,19 @@ void CLogic::applyLogicParam(EObjParam param, const QString &value)
     case eObjParam_LOGIC_BEHAVIOUR:
     {
         m_model = (EBehaviourType)value.toUInt();
-        updateLogicLines();
+        createLogicLines();
         break;
     }
     case eObjParam_GUARD_ALARM:
     {
         m_help = value.toFloat();
-        updateLogicLines();
+        createLogicLines();
         break;
     }
     case eObjParam_GUARD_RADIUS:
     {
         m_guardRadius = char(value.toInt());
-        updateLogicLines();
+        createLogicLines();
         break;
     }
     case eObjParam_GUARD_PLACE:
@@ -922,10 +991,10 @@ void CLogic::addFirstPoint(QVector3D& pos)
     pPoint->updatePos(pos);
     m_aPatrolPt.push_front(pPoint);
     pPoint->setState(ENodeState::eSelect);
-    QObject::connect(pPoint, SIGNAL(patrolChanges()), this, SLOT(updateLogicLines()));
+    QObject::connect(pPoint, SIGNAL(patrolChanges()), this, SLOT(createLogicLines()));
     QObject::connect(pPoint, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
     QObject::connect(pPoint, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
-    updateLogicLines();
+    createLogicLines();
 }
 
 void CLogic::undo_addFirstPoint()
@@ -974,7 +1043,7 @@ void CLogic::createPatrolByIndex(int index)
     QObject::connect(pPoint, SIGNAL(patrolChanges()), this, SLOT(recalcPatrolPath()));
     //QObject::connect(pPoint, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
     //QObject::connect(pPoint, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
-    updateLogicLines();
+    createLogicLines();
 }
 
 void CLogic::undo_createPatrolByIndex(int index)
@@ -982,7 +1051,7 @@ void CLogic::undo_createPatrolByIndex(int index)
     CPatrolPoint* pPoint = m_aPatrolPt.at(index+1);
     m_aPatrolPt.remove(index+1);
     delete pPoint;
-    updateLogicLines();
+    createLogicLines();
 }
 
 void CLogic::createViewByIndex(int pointId, int viewId)
@@ -1081,7 +1150,7 @@ uint CLogic::deserialize(util::CMobParser& parser)
             break;
         }
     }
-    updateLogicLines();
+    createLogicLines();
     return readByte;
 }
 
@@ -1143,7 +1212,7 @@ void CLogic::deSerializeJson(QJsonObject data)
         QObject::connect(place, SIGNAL(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)), this, SLOT(addNewPatrolPoint(CPatrolPoint*,CPatrolPoint*)));
         QObject::connect(place, SIGNAL(undo_addNewPatrolPoint(CPatrolPoint*)), this, SLOT(undo_addNewPatrolPoint(CPatrolPoint*)));
     }
-    updateLogicLines();
+    createLogicLines();
 }
 
 uint CLogic::serialize(util::CMobParser& parser)

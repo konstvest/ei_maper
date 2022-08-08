@@ -150,7 +150,7 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
     }
     case eObjParam_LOGIC_BEHAVIOUR:
     {
-        aStr[0] = "BZ?!";
+        aStr[0] = "Idle";
         aStr[1] = "Guard radius";
         aStr[2] = "Path";
         aStr[3] = "Place";

@@ -362,7 +362,7 @@ enum EBehaviourType //todo: move to logic m_model
 //player - briffing
 //guard alarm
 {
-    eBZ = 0 // ?!
+    eIdle = 0 // ?!
     , eRadius
     , ePath
     , ePlace

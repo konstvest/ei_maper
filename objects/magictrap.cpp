@@ -157,7 +157,6 @@ uint CMagicTrap::deserialize(util::CMobParser& parser)
         else if(parser.isNextTag("MT_TARGETS"))
         {
             readByte += parser.readHeader();
-            auto len = parser.nodeLen();
             uint num;
             readByte += parser.readDword(num);
             for(uint i(0); i<num; ++i)

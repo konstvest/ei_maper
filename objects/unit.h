@@ -131,6 +131,7 @@ public:
     void setGuardPlacement(QVector3D pos) {m_guardPlacement = pos;}
 
 public slots:
+    void createLogicLines();
     void updateLogicLines();
     void recalcPatrolPath();
     void addNewPatrolPoint(CPatrolPoint* base, CPatrolPoint* created);

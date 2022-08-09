@@ -14,8 +14,11 @@ class CStringItem : public QTableWidgetItem
 public:
     CStringItem(QString value, EObjParam param);
     EObjParam& param(){return m_parameter;}
+    const QString& origValue() {return stored_value;}
+    void setNewValue(QString value) {stored_value = value;}
 
 private:
+    QString stored_value;
     EObjParam m_parameter;
 };
 
@@ -54,6 +57,7 @@ public:
 
 private:
     void initRowName();
+    bool isValidValue(const EObjParam param, const QString& value);
 
 signals:
     void changeParamSignal(SParam&);

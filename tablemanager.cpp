@@ -4,10 +4,11 @@
 
 CStringItem::CStringItem(QString value, EObjParam param):
     QTableWidgetItem(value)
+  ,stored_value(value)
     ,m_parameter(param)
 {
-
 }
+
 
 void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
 {
@@ -169,6 +170,7 @@ void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
     default:
         break;
     }
+
 }
 
 
@@ -393,6 +395,91 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_VIEW_TURN_SPEED] = "Turn speed";
 }
 
+bool CTableManager::isValidValue(const EObjParam param, const QString &value)
+{
+    bool bRes = false;
+    switch (param) {
+    case eObjParam_NID:
+    case eObjParam_RANGE:
+    case eObjParam_SOUND_RANGE:
+    case eObjParam_SOUND_MIN:
+    case eObjParam_SOUND_MAX:
+    case eObjParam_LEVER_SCIENCE_STATS_Key_ID:
+    case eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight:
+    case eObjParam_LEVER_TOTAL_STATE:
+    case eObjParam_LEVER_CUR_STATE:
+    case eObjParam_VIEW_WAIT:
+    case eObjParam_VIEW_TURN_SPEED:
+    case eObjParam_TRAP_CAST_INTERVAL:
+    { // uint
+        QRegExp rx("[0-9]+");
+        bRes = rx.exactMatch(value);
+        break;
+    }
+    case eObjParam_PARENT_ID:
+    case eObjParam_TRAP_DIPLOMACY:
+    { // int
+        QRegExp rx("-?[0-9]+");
+        bRes = rx.exactMatch(value);
+        break;
+    }
+    case eObjParam_GUARD_RADIUS:
+    case eObjParam_GUARD_ALARM:
+    case eObjParam_TORCH_STRENGHT:
+    case eObjParam_PARTICL_SCALE:
+    case eObjParam_TRAP_AREA_RADIUS:
+    { // float
+        QRegExp rx("^\\s*-?\\d+(\\.\\d+)?");
+        bRes = rx.exactMatch(value);
+        break;
+    }
+    case eObjParam_GUARD_PLACE:
+    case eObjParam_TORCH_PTLINK:
+    case eObjParam_LIGHT_COLOR: //todo: use custom palette choose
+    case eObjParam_COMPLECTION:
+    case eObjParam_POSITION:
+    case eObjParam_ROTATION:
+    {// vector3d. checked value: (111.66,94.46,-0.25) ( 0.21, 0.13, 1.20)
+        QRegExp rx("\\((\\s*-?\\d+(\\.\\d+)?\\,){2}(\\s*-?\\d+(\\.\\d+)?)\\)");
+        bRes = rx.exactMatch(value);
+        break;
+    }
+    case eObjParam_UNIT_PROTOTYPE:
+    { // allow any not-empty string
+        bRes = !value.isEmpty();
+        break;
+    }
+    case eObjParam_BODYPARTS: //todo: use custom popup instead string value
+    case eObjParam_SEC_TXTR:
+    case eObjParam_NAME:
+    case eObjParam_QUEST_INFO:
+    case eObjParam_TORCH_SOUND:
+    case eObjParam_PARENT_TEMPLATE:
+    case eObjParam_SOUND_RESNAME:
+    case eObjParam_COMMENTS:
+    { // allow any string
+        bRes = true;
+        break;
+    }
+    default:
+    {
+        bRes = true;
+        break;
+    }
+
+    //case eObjParam_TRAP_SPELL
+//    case eObjParam_UNIT_STATS
+//    case eObjParam_UNIT_WEAPONS
+//    case eObjParam_UNIT_ARMORS
+//    case eObjParam_UNIT_SPELLS
+//    case eObjParam_UNIT_QUICK_ITEMS
+//    case eObjParam_UNIT_QUEST_ITEMS
+
+    }
+
+    return bRes;
+}
+
 void CTableManager::onParamChange(CComboBoxItem *pItem)
 {
     Q_ASSERT(pItem);
@@ -418,6 +505,20 @@ void CTableManager::onParamChange(CComboBoxItem *pItem)
 void CTableManager::onParamChange(QTableWidgetItem *pItem)
 {
     const auto pParamItem  = dynamic_cast<CStringItem*>(pItem);
+    //validate cell value
+    auto backup = pParamItem->origValue();
+    auto text = pItem->text();
+    if(!isValidValue(pParamItem->param(), text))
+    {
+        m_pTable->blockSignals(true);
+        //show warn message
+        qDebug() << "value check failed, return old value";
+        pItem->setText(backup);
+        m_pTable->blockSignals(false);
+        return;
+    }
+
+    pParamItem->setNewValue(pItem->text());
     Q_ASSERT(pParamItem);
     SParam param{pParamItem->param(), pItem->text()};
     emit changeParamSignal(param);

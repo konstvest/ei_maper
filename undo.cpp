@@ -57,6 +57,10 @@ void CChangeStringParam::undo()
 {
     auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
     pNode->applyParam(m_objParam, m_oldValue);
+    if(m_objParam == eObjParam_NID)
+    {
+        m_nodeId = m_oldValue.toUInt();
+    }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
     m_pView->setDurty();
@@ -68,6 +72,11 @@ void CChangeStringParam::redo()
     auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
     m_oldValue = pNode->getParam(m_objParam);
     pNode->applyParam(m_objParam, m_newValue);
+    if(m_objParam == eObjParam_NID)
+    {
+        //todo: check if changes allowed
+        m_nodeId = m_newValue.toUInt();
+    }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
     m_pView->setDurty();

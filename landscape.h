@@ -130,6 +130,7 @@ public:
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
 
+
 private:
     CLandscape();
     ~CLandscape();

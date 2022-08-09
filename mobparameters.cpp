@@ -168,12 +168,11 @@ void CMobParameters::onChooseMob(const QString &name)
 
 void CMobParameters::on_diplomacyButton_clicked()
 {
-
     if(!m_pCurMob)
     {
-        Q_ASSERT(m_pCurMob);
         return;
     }
+
     QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
     QVector<QVector<uint>> dipTable = m_pCurMob->diplomacyField();
     if(dipName.isEmpty() || dipTable.isEmpty())
@@ -228,6 +227,9 @@ void CMobParameters::on_pushCancel_clicked()
 
 void CMobParameters::on_pushApply_clicked()
 {
+    if(nullptr == m_pCurMob)
+        return;
+
     QString nd("not defined");
     auto isValidText =[&nd](QLineEdit* pEdit)
     {

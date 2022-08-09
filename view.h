@@ -108,6 +108,7 @@ public slots:
     void onParamChange(SParam& sParam);
     void updateTreeLogic();
     void execMobSwitch();
+    void clearHistory();
 
 signals:
     void updateMsg(QString msg);

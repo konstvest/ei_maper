@@ -110,7 +110,7 @@ void MainWindow::initShortcuts()
     m_ui->actionCreate_new_object->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
     m_ui->actionReset_cam_position->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_R));
     m_ui->actionChange_mod_e->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Tab));
-
+    m_ui->actionSwitch_active_MOB->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_T));
 }
 
 void MainWindow::connectUiButtons()
@@ -170,8 +170,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionSettings_triggered()
 {
-    m_settings->onShow(eOptSetResource);
-    setEnabled(false);
+
 }
 
 void MainWindow::on_actionSave_as_triggered()
@@ -339,5 +338,18 @@ void MainWindow::on_actionChange_mod_e_triggered()
 void MainWindow::on_actionCopy_IDs_to_clipboard_triggered()
 {
     m_pView->copySelectedIDsToClipboard();
+}
+
+
+void MainWindow::on_actionSwitch_active_MOB_triggered()
+{
+    m_pView->roundActiveMob();
+}
+
+
+void MainWindow::on_actionOpen_2_triggered()
+{
+    m_settings->onShow(eOptSetResource);
+    setEnabled(false);
 }
 

@@ -309,7 +309,7 @@
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
@@ -329,9 +329,8 @@
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
-     <string>Tools</string>
+     <string>&amp;Tools</string>
     </property>
-    <addaction name="actionSettings"/>
     <addaction name="actionShow_undo_redo"/>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
@@ -343,7 +342,7 @@
      <bool>true</bool>
     </property>
     <property name="title">
-     <string>Edit</string>
+     <string>&amp;Edit</string>
     </property>
     <widget class="QMenu" name="menuSelect">
      <property name="title">
@@ -356,10 +355,21 @@
     <addaction name="menuSelect"/>
     <addaction name="actionCreate_new_object"/>
     <addaction name="actionChange_mod_e"/>
+    <addaction name="actionSwitch_active_MOB"/>
+   </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionOpen_2"/>
+    <addaction name="actionImport"/>
+    <addaction name="actionExport"/>
+    <addaction name="actionReset"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuTools"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuAbout"/>
   </widget>
   <action name="actionOpen">
@@ -372,7 +382,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Save</string>
+    <string>Save active MOB</string>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
@@ -463,6 +473,40 @@
   <action name="actionCopy_IDs_to_clipboard">
    <property name="text">
     <string>Copy &amp;IDs to clipboard</string>
+   </property>
+  </action>
+  <action name="actionSwitch_active_MOB">
+   <property name="text">
+    <string>Switch active MOB</string>
+   </property>
+  </action>
+  <action name="actionOpen_2">
+   <property name="text">
+    <string>Open</string>
+   </property>
+  </action>
+  <action name="actionImport">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Import...</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Export...</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Reset</string>
    </property>
   </action>
  </widget>

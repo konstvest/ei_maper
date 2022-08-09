@@ -373,7 +373,9 @@ CCloseActiveMobCommand::CCloseActiveMobCommand(CView *pView, QUndoCommand *paren
     QUndoCommand(parent)
   ,m_pView(pView)
 {
-    m_filePath = m_pView->currentMob()->filePath();
+    CMob* pMob = m_pView->currentMob();
+    if(nullptr != pMob)
+        m_filePath = pMob->filePath();
 }
 
 void CCloseActiveMobCommand::undo()
@@ -385,8 +387,9 @@ void CCloseActiveMobCommand::undo()
 void CCloseActiveMobCommand::redo()
 {
     CMob* pMob = m_pView->currentMob();
-    setText("unloaded " + pMob->mobName());
-    m_pView->unloadActiveMob();
-//    m_pView->undo_roundActiveMob();
-//    m_pView->unloadMob(pMob->mobName());
+    if(nullptr != pMob)
+    {
+        setText("unloaded " + pMob->mobName());
+        m_pView->unloadActiveMob();
+    }
 }

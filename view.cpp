@@ -265,10 +265,14 @@ void CView::unloadLand()
     CLandscape::getInstance()->unloadMpr();
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, "");
     ei::log(eLogInfo, "Landscape unloaded");
+    clearHistory();
 }
 
 int CView::select(const SSelect &selectParam, bool bAddToSelect)
 {
+    if(nullptr == m_activeMob)
+        return 0;
+
     //const QString mobName = mob->mobName().toLower();
     for (auto& node : m_activeMob->nodes())
     {
@@ -1245,36 +1249,32 @@ void CView::rotateTo(QVector3D &rot)
         return;
     };
 
-    for(const auto& mob : m_aMob)
+
+    for (auto& node : m_activeMob->nodes())
     {
-        for (auto& node : mob->nodes())
-        {
-            if (node->nodeState() == ENodeState::eSelect)
-            {
-                rotation = node->getEulerRotation() + rot;
-                setNotNan(rotation);
-                node->setRot(quat);
-            }
-        }
+        if (node->nodeState() != ENodeState::eSelect)
+            continue;
+
+        rotation = node->getEulerRotation() + rot;
+        setNotNan(rotation);
+        node->setRot(quat);
     }
+
     updateParameter(EObjParam::eObjParam_ROTATION);
 }
 
 void CView::scaleTo(QVector3D &scale)
 {
     QVector3D constitution;
-    CMob* pMob = nullptr;
-    foreach(pMob, m_aMob)
+    for (auto& node : m_activeMob->nodes())
     {
-        for (auto& node : pMob->nodes())
-        {
-            if (node->nodeState() == ENodeState::eSelect)
-            {
-                constitution = node->constitution() + scale;
-                node->setConstitution(constitution);
-            }
-        }
+        if (node->nodeState() != ENodeState::eSelect)
+            continue;
+
+        constitution = node->constitution() + scale;
+        node->setConstitution(constitution);
     }
+
     updateParameter(EObjParam::eObjParam_COMPLECTION);
 }
 
@@ -1611,6 +1611,11 @@ void CView::execMobSwitch()
     m_pUndoStack->push(pUndo);
 }
 
+void CView::clearHistory()
+{
+    m_pUndoStack->clear();
+}
+
 void CView::roundActiveMob()
 {
     if(m_aMob.isEmpty())
@@ -1660,6 +1665,13 @@ void CView::undo_roundActiveMob()
 
 void CView::execUnloadCommand()
 {
+    if(m_activeMob == nullptr && CLandscape::getInstance()->isMprLoad())
+    {
+        unloadLand();
+        return;
+    }
+
     CCloseActiveMobCommand* pCommand = new CCloseActiveMobCommand(this);
     m_pUndoStack->push(pCommand);
+
 }

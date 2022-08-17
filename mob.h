@@ -77,6 +77,8 @@ public:
     void setScript(const QString& script) {m_script = script;}
     void setPrimaryMob(bool bPrimary = true) {m_order = bPrimary ? eEMobOrderPrimary : eEMobOrderSecondary;}
     bool isPrimaryMob() {return m_order == EMobOrder::eEMobOrderPrimary;}
+    void setDurty(bool bDurty = true) {m_bDurty = bDurty;}
+    bool isDurty() {return m_bDurty;}
 
     //functions for logic processing
     QList<CNode*>& logicNodes();
@@ -127,6 +129,7 @@ private:
     QList<CNode*> m_aDeletedNode;
     QList<CNode*> m_aLogicNode;
     EMobOrder m_order;
+    bool m_bDurty;
 };
 
 #endif // MOB_H

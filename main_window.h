@@ -38,6 +38,7 @@ private:
     void createUndoView();
     void initShortcuts();
     void connectUiButtons();
+    bool isExitAllowed();
 
 private slots:
     void on_actionExit_triggered();
@@ -64,10 +65,11 @@ private slots:
     void on_actionReset_cam_position_triggered();
     void on_actionChange_mod_e_triggered();
     void on_actionCopy_IDs_to_clipboard_triggered();
-
     void on_actionSwitch_active_MOB_triggered();
-
     void on_actionOpen_2_triggered();
+
+protected:
+    void closeEvent(QCloseEvent* e);
 
 private:
     Ui::MainWindow* m_ui;

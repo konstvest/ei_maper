@@ -127,9 +127,32 @@ void MainWindow::connectUiButtons()
     m_ui->scaleButton->setEnabled(false);
 }
 
+bool MainWindow::isExitAllowed()
+{
+    CMob* pMob = nullptr;
+    bool bCloseAllowed = true;
+    foreach(pMob, m_pView->mobs())
+    {
+        if(!pMob->isDurty())
+            continue;
+
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Exit", pMob->mobName() + " has unsaved changes.\nDo you want to save changes?", QMessageBox::Save|QMessageBox::No|QMessageBox::Cancel);
+        if(reply == QMessageBox::Save)
+            pMob->save();
+        else if(reply == QMessageBox::Cancel)
+        {
+            bCloseAllowed = false;
+            break;
+        }
+    }
+    return bCloseAllowed;
+}
+
 void MainWindow::on_actionExit_triggered()
 {
-    close();
+    if(isExitAllowed())
+        close();
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -225,6 +248,7 @@ void MainWindow::on_actionUndo_triggered()
 
 void MainWindow::on_toolButton_2_clicked()
 {
+
     ei::log(eLogDebug, "btn test start");
     auto pTree = m_ui->treeWidget;
     pTree->clear();
@@ -352,4 +376,14 @@ void MainWindow::on_actionOpen_2_triggered()
     m_settings->onShow(eOptSetResource);
     setEnabled(false);
 }
+
+void MainWindow::closeEvent(QCloseEvent *e)
+{
+    if(isExitAllowed())
+        close();
+    else
+        e->ignore();
+}
+
+
 

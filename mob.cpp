@@ -29,6 +29,7 @@
 CMob::CMob():
     m_view(nullptr)
     ,m_pProgress(nullptr)
+  ,m_bDurty(false)
 {
     m_aNode.clear();
     m_worldSet.bInit = false;

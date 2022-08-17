@@ -476,7 +476,7 @@ void CView::changeCurrentMob(CMob *pMob)
 {
     m_activeMob = pMob;
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
-
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, (nullptr == pMob || !pMob->isDurty()) ? "" : "*");
 }
 
 void CView::onParamChangeLogic(CNode *pNode, SParam& param)
@@ -669,6 +669,7 @@ void CView::saveActiveMob()
     QSet<uint> aId;
     m_activeMob->checkUniqueId(aId);
     m_activeMob->save();
+    m_activeMob->setDurty(false);
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
 }
 
@@ -680,6 +681,7 @@ void CView::saveAllMob()
     {
         pMob->checkUniqueId(aId);
         pMob->save();
+        pMob->setDurty(false);
     }
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
 }
@@ -1474,6 +1476,7 @@ void CView::unHideAll()
 
 void CView::setDurty()
 {
+    m_activeMob->setDurty(true);
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "*");
 }
 

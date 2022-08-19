@@ -27,6 +27,7 @@
 #include "operationmanager.h"
 #include "ogl_utils.h"
 #include "scene.h"
+#include "mobparameters.h"
 
 class CLogic;
 
@@ -711,6 +712,15 @@ void CView::unloadActiveMob()
 
     ei::log(eLogInfo, "Mob unloaded");
     viewParameters();
+}
+
+void CView::openActiveMobEditParams()
+{
+    if(nullptr == m_activeMob)
+        return;
+
+    auto pParam = new CMobParameters(nullptr, m_activeMob);
+    pParam->show();
 }
 
 void CView::unloadMob(QString mobName)

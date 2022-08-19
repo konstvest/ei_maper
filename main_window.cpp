@@ -36,7 +36,6 @@ MainWindow::MainWindow(QWidget* parent) :
 
     m_settings.reset(new CSettings());
     m_selector.reset(new CSelector());
-    m_mobParams.reset(new CMobParameters());
     m_createDialog.reset(new CCreateObjectForm());
     m_settings->attachMainWindow(this);
     m_ui->setupUi(this); //init CView core also
@@ -230,16 +229,9 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_action_Mob_parameters_triggered()
 {
-    updateMobListInParam(false);
-    m_mobParams->show();
+    m_pView->openActiveMobEditParams();
 }
 
-void MainWindow::updateMobListInParam(bool bReset)
-{
-    if(bReset)
-        m_mobParams->reset();
-    m_mobParams->initMobList(m_pView->mobs());
-}
 
 void MainWindow::on_actionUndo_triggered()
 {

@@ -22,7 +22,6 @@ class CStringItem;
 class QUndoStack;
 struct SParam;
 class CComboBoxItem;
-class CMobParameters;
 class CProgressView;
 class CTableManager;
 class COperation;
@@ -46,6 +45,7 @@ public:
     void saveActiveMob();
     void saveAllMob();
     void unloadActiveMob();
+    void openActiveMobEditParams();
     void unloadMob(QString mobName);
     void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, QTreeWidget* pTree);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}

@@ -8,33 +8,33 @@
 #include "view.h"
 #include "settings.h"
 
-CMobParameters::CMobParameters(QWidget* parent):
+CMobParameters::CMobParameters(QWidget* parent, CMob* pMob):
     QWidget(parent)
-    ,ui(new Ui::CMobParameters)
-    ,m_pCurMob(nullptr)
-  ,highlighter(nullptr)
+  ,ui(new Ui::CMobParameters)
+  ,m_pCurMob(pMob)
+  ,m_pHighlighter(nullptr)
 {
     ui->setupUi(this);
-    ui->mainRangesList->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    //ui->secRangesList->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    QObject::connect(ui->chooseMob, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(onChooseMob(const QString&)));
+    setWindowTitle("Mob Parameters: " + m_pCurMob->filePath().absoluteFilePath());
+    ui->listRanges->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     m_pTable.reset(new QTableWidget(32, 32));
     QObject::connect(m_pTable.get(), SIGNAL(cellDoubleClicked(int,int)), this, SLOT(tableItemClicked(int,int)));
-    QObject::connect(ui->mainRangesList, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(onListItemChanges(QListWidgetItem*)));
-    QObject::connect(ui->mainRangesList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(onListItemChanges(QListWidgetItem*)));
-    m_aCell.clear();
+    QObject::connect(ui->listRanges, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(onListItemChanges(QListWidgetItem*)));
+    QObject::connect(ui->listRanges, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(onListItemChanges(QListWidgetItem*)));
+    //m_aCell.clear();
     m_aCell.resize(32*32);
     for (int i(0); i < 32; ++i)
     {
         for (int j(0); j < 32; ++j)
         {
-            m_aCell[i*32+j].reset(new QTableWidgetItem);
-            //auto pCell = new QTableWidgetItem; //memory leaks here, again. and low performance
+            m_aCell[i*32+j].reset(new QTableWidgetItem());
+            // low performance
             m_pTable->setItem(i, j, m_aCell[i*32+j].get());
         }
     }
     //connect(m_pTable.get(), SIGNAL(cellClicked(int, int)), this, SLOT(tableItemClicked(int, int)));
-    highlighter = new Highlighter(ui->plainTextEdit->document());
+    m_pHighlighter = new Highlighter(ui->plainTextEdit->document());
+    updateWindow();
 }
 
 CMobParameters::~CMobParameters()
@@ -43,26 +43,14 @@ CMobParameters::~CMobParameters()
     m_pTable.clear();
 }
 
-void CMobParameters::initMobList(const QVector<CMob*> &mob)
-{
-    m_aMob = mob;
-    ui->chooseMob->clear();
-    for(const auto& mob : m_aMob)
-    {
-        ui->chooseMob->insertItem(ui->chooseMob->count(), mob->mobName());
-    }
-}
-
 void CMobParameters::reset()
 {
-    setWindowTitle(mainFormName());
     ui->windDirEdit->clear();
     ui->windStrEdit->clear();
     ui->ambientEdit->clear();
     ui->timeEdit->clear();
     ui->sunLightEdit->clear();
-    ui->mainRangesList->clear();
-    //ui->secRangesList->clear();
+    ui->listRanges->clear();
     ui->plainTextEdit->clear();
     ui->isPrimaryBox->setChecked(false);
     m_pCurMob = nullptr;
@@ -74,17 +62,11 @@ void CMobParameters::test()
     show();
 }
 
-QString CMobParameters::mainFormName()
-{
-    return "Mob Parameters";
-}
 
 void CMobParameters::updateWindow()
 {
-    if(!m_pCurMob)
-        return;
+    Q_ASSERT(m_pCurMob);
 
-    setWindowTitle(mainFormName() + " (" + m_pCurMob->filePath().absoluteFilePath() + ")");
     QString nd("not defined");
     auto setUndefined = [&nd](QLineEdit* pEdit)
     {
@@ -127,12 +109,12 @@ void CMobParameters::updateWindow()
     }
 
     QString rangeText;
-    ui->mainRangesList->clear();
+    ui->listRanges->clear();
     for (const auto& r : range)
     {
         rangeText = QString::number(r.minRange) + "-" + QString::number(r.maxRange);
-        ui->mainRangesList->addItem(rangeText);
-//            auto pItem = ui->mainRangesList->item(ui->mainRangesList->count()-1);
+        ui->listRanges->addItem(rangeText);
+//            auto pItem = ui->listRanges->item(ui->listRanges->count()-1);
 //            pItem->setFlags(pItem->flags() | Qt::ItemIsEditable);
     }
 
@@ -279,9 +261,9 @@ void CMobParameters::on_pushApply_clicked()
     }
     //main, sec ranges
     QVector<SRange> aRange;
-    for(int i(0); i < ui->mainRangesList->count(); ++i)
+    for(int i(0); i < ui->listRanges->count(); ++i)
     {
-        auto a = util::vec2FromString(ui->mainRangesList->item(i)->text());
+        auto a = util::vec2FromString(ui->listRanges->item(i)->text());
         SRange r(a[0], a[1]);
         aRange.append(r);
     }
@@ -413,7 +395,8 @@ void CMobParameters::on_isPrimaryBox_clicked()
     if(nullptr == m_pCurMob)
         return;
 
-    m_pCurMob->setPrimaryMob(ui->isPrimaryBox->isChecked());
+    //todo: ask user to move data between mobs (world set, ranges, etc)
+    m_pCurMob->setQuestMob(ui->isPrimaryBox->isChecked());
 }
 
 void CMobParameters::onListItemChanges(QListWidgetItem *pItem)

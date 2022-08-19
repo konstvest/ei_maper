@@ -15,7 +15,6 @@ class MainWindow;
 
 class CSettings;
 class CSelector;
-class CMobParameters;
 class CCreateObjectForm;
 class CView;
 
@@ -51,7 +50,6 @@ private slots:
     void on_actionClose_all_triggered();
     void on_actionSave_triggered();
     void on_action_Mob_parameters_triggered();
-    void updateMobListInParam(bool bReset);
     void on_actionUndo_triggered();
     void on_toolButton_2_clicked();
     void on_selectButton_clicked();
@@ -75,7 +73,6 @@ private:
     Ui::MainWindow* m_ui;
     QSharedPointer<CSettings> m_settings;
     QSharedPointer<CSelector> m_selector;
-    QSharedPointer<CMobParameters> m_mobParams;
     QSharedPointer<CCreateObjectForm> m_createDialog;
     QUndoStack* m_undoStack;
     QUndoView* m_undoView;

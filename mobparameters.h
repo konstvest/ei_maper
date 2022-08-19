@@ -50,14 +50,12 @@ class CMobParameters : public QWidget
 {
     Q_OBJECT
 public:
-    explicit CMobParameters(QWidget* parent = nullptr);
+    explicit CMobParameters(QWidget* parent = nullptr, CMob* pMob = nullptr);
     ~CMobParameters();
-    void initMobList(const QVector<CMob*>& mob);
     void reset();
     void test();
 
 private:
-    QString mainFormName();
     void updateWindow();
 
 private slots:
@@ -79,7 +77,7 @@ private:
     CMob* m_pCurMob;
     QVector<QSharedPointer<QTableWidgetItem>> m_aCell;
     QSharedPointer<QTableWidget> m_pTable;
-    Highlighter* highlighter;
+    Highlighter* m_pHighlighter;
     QString m_lastItemText;
 };
 

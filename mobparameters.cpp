@@ -16,10 +16,12 @@ CMobParameters::CMobParameters(QWidget* parent):
 {
     ui->setupUi(this);
     ui->mainRangesList->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    ui->secRangesList->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    //ui->secRangesList->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     QObject::connect(ui->chooseMob, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(onChooseMob(const QString&)));
     m_pTable.reset(new QTableWidget(32, 32));
     QObject::connect(m_pTable.get(), SIGNAL(cellDoubleClicked(int,int)), this, SLOT(tableItemClicked(int,int)));
+    QObject::connect(ui->mainRangesList, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(onListItemChanges(QListWidgetItem*)));
+    QObject::connect(ui->mainRangesList, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(onListItemChanges(QListWidgetItem*)));
     m_aCell.clear();
     m_aCell.resize(32*32);
     for (int i(0); i < 32; ++i)
@@ -60,7 +62,7 @@ void CMobParameters::reset()
     ui->timeEdit->clear();
     ui->sunLightEdit->clear();
     ui->mainRangesList->clear();
-    ui->secRangesList->clear();
+    //ui->secRangesList->clear();
     ui->plainTextEdit->clear();
     ui->isPrimaryBox->setChecked(false);
     m_pCurMob = nullptr;
@@ -89,39 +91,51 @@ void CMobParameters::updateWindow()
         pEdit->setText(nd);
     };
 
-    SWorldSet worldSet = m_pCurMob->worldSet();
-    if (worldSet.bInit)
-    {
-        ui->windDirEdit->setText(util::makeString(worldSet.m_windDirection));
-        ui->windStrEdit->setText(QString::number(worldSet.m_windStrength));
-        ui->ambientEdit->setText(QString::number(worldSet.m_ambient));
-        ui->timeEdit->setText(QString::number(worldSet.m_time));
-        ui->sunLightEdit->setText(QString::number(worldSet.m_sunLight));
+
+    QVector<SRange> range;
+    if(m_pCurMob->isQuestMob())
+    { // collect only sec rangers for quest mob
+        range = m_pCurMob->secRanges();
+
+        ui->baseMobParamWidget->hide();
     }
     else
-    {
-        setUndefined(ui->windDirEdit);
-        setUndefined(ui->windStrEdit);
-        setUndefined(ui->timeEdit);
-        setUndefined(ui->ambientEdit);
-        setUndefined(ui->sunLightEdit);
+    { // collect data for base mob
+        //world set
+        SWorldSet worldSet = m_pCurMob->worldSet();
+        if (worldSet.bInit)
+        {
+            ui->windDirEdit->setText(util::makeString(worldSet.m_windDirection));
+            ui->windStrEdit->setText(QString::number(worldSet.m_windStrength));
+            ui->ambientEdit->setText(QString::number(worldSet.m_ambient));
+            ui->timeEdit->setText(QString::number(worldSet.m_time));
+            ui->sunLightEdit->setText(QString::number(worldSet.m_sunLight));
+        }
+        else
+        {
+            setUndefined(ui->windDirEdit);
+            setUndefined(ui->windStrEdit);
+            setUndefined(ui->timeEdit);
+            setUndefined(ui->ambientEdit);
+            setUndefined(ui->sunLightEdit);
+        }
+
+        //ranges
+        range = m_pCurMob->mainRanges();
+
+        ui->baseMobParamWidget->show();
     }
 
-    QVector<SRange> range = m_pCurMob->mainRanges();
     QString rangeText;
     ui->mainRangesList->clear();
     for (const auto& r : range)
     {
         rangeText = QString::number(r.minRange) + "-" + QString::number(r.maxRange);
         ui->mainRangesList->addItem(rangeText);
+//            auto pItem = ui->mainRangesList->item(ui->mainRangesList->count()-1);
+//            pItem->setFlags(pItem->flags() | Qt::ItemIsEditable);
     }
-    range = m_pCurMob->secRanges();
-    ui->secRangesList->clear();
-    for (const auto& r : range)
-    {
-        rangeText = QString::number(r.minRange) + "-" + QString::number(r.maxRange);
-        ui->secRangesList->addItem(rangeText);
-    }
+
     ui->plainTextEdit->clear();
     ui->plainTextEdit->setPlainText(m_pCurMob->script());
 
@@ -141,7 +155,7 @@ void CMobParameters::updateWindow()
             }
         }
     }
-    ui->isPrimaryBox->setChecked(m_pCurMob->isPrimaryMob());
+    ui->isPrimaryBox->setChecked(m_pCurMob->isQuestMob());
 }
 
 void CMobParameters::onChooseMob(const QString &name)
@@ -273,12 +287,12 @@ void CMobParameters::on_pushApply_clicked()
     }
     m_pCurMob->setMainRanges(aRange);
     aRange.clear();
-    for(int i(0); i < ui->secRangesList->count(); ++i)
-    {
-        auto a = util::vec2FromString(ui->secRangesList->item(i)->text());
-        SRange r(a[0], a[1]);
-        aRange.append(r);
-    }
+//    for(int i(0); i < ui->secRangesList->count(); ++i)
+//    {
+//        auto a = util::vec2FromString(ui->secRangesList->item(i)->text());
+//        SRange r(a[0], a[1]);
+//        aRange.append(r);
+//    }
     m_pCurMob->setSecRanges(aRange);
     m_pCurMob->setScript(ui->plainTextEdit-> toPlainText());
     close();
@@ -400,5 +414,28 @@ void CMobParameters::on_isPrimaryBox_clicked()
         return;
 
     m_pCurMob->setPrimaryMob(ui->isPrimaryBox->isChecked());
+}
+
+void CMobParameters::onListItemChanges(QListWidgetItem *pItem)
+{
+    qDebug() << pItem->text();
+    qDebug() << m_lastItemText;
+}
+
+void CMobParameters::backupItemString(QListWidgetItem *pItem)
+{
+    m_lastItemText = pItem->text();
+}
+
+
+void CMobParameters::on_button_minusRanges_clicked()
+{
+
+}
+
+
+void CMobParameters::on_button_plusRanges_clicked()
+{
+
 }
 

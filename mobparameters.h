@@ -6,6 +6,7 @@
 #include <QTableWidgetItem>
 #include <QPlainTextEdit>
 #include <QSyntaxHighlighter>
+#include <QListWidgetItem>
 
 #include "mob.h"
 
@@ -63,12 +64,14 @@ private slots:
     void onChooseMob(const QString& name);
     void on_diplomacyButton_clicked();
     void tableItemClicked(int r, int c);
-
     void on_pushCancel_clicked();
-
     void on_pushApply_clicked();
-
     void on_isPrimaryBox_clicked();
+    void onListItemChanges(QListWidgetItem* pItem);
+    void backupItemString(QListWidgetItem* pItem);
+
+    void on_button_minusRanges_clicked();
+    void on_button_plusRanges_clicked();
 
 private:
     Ui::CMobParameters *ui;
@@ -77,6 +80,7 @@ private:
     QVector<QSharedPointer<QTableWidgetItem>> m_aCell;
     QSharedPointer<QTableWidget> m_pTable;
     Highlighter* highlighter;
+    QString m_lastItemText;
 };
 
 //a header view that renders text vertically

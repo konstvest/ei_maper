@@ -21,13 +21,13 @@
 #include "objects/worldobj.h"
 #include "objects/unit.h"
 #include "objects/magictrap.h"
-#include "mobparameters.h"
+#include "mob_parameters.h"
 #include "progressview.h"
 #include "tablemanager.h"
 #include "operationmanager.h"
 #include "ogl_utils.h"
 #include "scene.h"
-#include "mobparameters.h"
+#include "mob_parameters.h"
 
 class CLogic;
 

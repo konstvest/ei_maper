@@ -2,7 +2,7 @@
 #include <QMessageBox>
 #include <QTextBlock>
 
-#include "mobparameters.h"
+#include "mob_parameters.h"
 #include "ui_mobParameters.h"
 #include "utils.h"
 #include "view.h"

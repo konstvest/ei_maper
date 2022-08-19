@@ -17,7 +17,7 @@
 #include "createobjectform.h"
 #include "mob.h"
 #include "undo.h"
-#include "mobparameters.h"
+#include "mob_parameters.h"
 #include "ui_connectors.h"
 #include "preview.h"
 #include "log.h"

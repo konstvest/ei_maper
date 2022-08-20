@@ -48,11 +48,24 @@ void CMob::attach(CView *view, CProgressView *pProgress)
     m_pProgress = pProgress;
 }
 
-void CMob::init()
+void CMob::generateDiplomacyTable()
 {
-    m_diplomacyFoF.resize(32);
+    const int fieldNum(32);
+    m_diplomacyFoF.resize(fieldNum);
     for(int i(0); i<m_diplomacyFoF.size(); ++i)
-        m_diplomacyFoF[i].resize(32);
+        m_diplomacyFoF[i].resize(fieldNum);
+
+    m_aDiplomacyFieldName.clear();
+    for(int i(0); i<fieldNum; ++i)
+    {
+        m_aDiplomacyFieldName.append("Player-"+QString::number(i));
+    }
+}
+
+void CMob::clearDiplomacyTable()
+{
+    m_aDiplomacyFieldName.clear();
+    m_diplomacyFoF.clear();
 }
 
 bool CMob::deserialize(QByteArray data)
@@ -357,6 +370,30 @@ CNode *CMob::nodeByMapId(uint id)
 QString CMob::mobName()
 {
     return m_filePath.fileName();
+}
+
+const QVector<SRange> &CMob::ranges(bool bMain)
+{
+    if(bMain)
+        return m_aMainRange;
+    else
+        return m_aSecRange;
+}
+
+void CMob::setRanges(bool bMain, const QVector<SRange> &range)
+{
+    if(bMain)
+        m_aMainRange = range;
+    else
+        m_aSecRange = range;
+}
+
+void CMob::clearRanges(bool bMain)
+{
+    if(bMain)
+        m_aMainRange.clear();
+    else
+        m_aSecRange.clear();
 }
 
 void CMob::getPatrolHash(int &unitMapIdOut, int &pointIdOut, CPatrolPoint *pPoint)

@@ -77,7 +77,7 @@ void CMobParameters::updateWindow()
     QVector<SRange> range;
     if(m_pCurMob->isQuestMob())
     { // collect only sec rangers for quest mob
-        range = m_pCurMob->secRanges();
+        range = m_pCurMob->ranges(false);
 
         ui->baseMobParamWidget->hide();
     }
@@ -103,7 +103,7 @@ void CMobParameters::updateWindow()
         }
 
         //ranges
-        range = m_pCurMob->mainRanges();
+        range = m_pCurMob->ranges(true);
 
         ui->baseMobParamWidget->show();
     }
@@ -138,6 +138,27 @@ void CMobParameters::updateWindow()
         }
     }
     ui->isPrimaryBox->setChecked(m_pCurMob->isQuestMob());
+}
+
+void CMobParameters::convertIdRange()
+{
+    bool bQuest = m_pCurMob->isQuestMob();
+    auto arrRange = m_pCurMob->ranges(!bQuest);
+    if(!arrRange.isEmpty())
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Switching MOB Type", "Do you want to move Id ranges?", QMessageBox::Yes|QMessageBox::No);
+        if(reply == QMessageBox::Yes)
+            m_pCurMob->setRanges(bQuest, arrRange);
+    }
+
+    SWorldSet ws{QVector3D (0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f,0.0f, true};
+    m_pCurMob->setWorldSet(ws);
+    m_pCurMob->clearRanges(!bQuest);
+    if(bQuest)
+        m_pCurMob->generateDiplomacyTable();
+    else
+        m_pCurMob->clearDiplomacyTable();
 }
 
 void CMobParameters::onChooseMob(const QString &name)
@@ -267,7 +288,7 @@ void CMobParameters::on_pushApply_clicked()
         SRange r(a[0], a[1]);
         aRange.append(r);
     }
-    m_pCurMob->setMainRanges(aRange);
+    m_pCurMob->setRanges(true, aRange);
     aRange.clear();
 //    for(int i(0); i < ui->secRangesList->count(); ++i)
 //    {
@@ -275,7 +296,7 @@ void CMobParameters::on_pushApply_clicked()
 //        SRange r(a[0], a[1]);
 //        aRange.append(r);
 //    }
-    m_pCurMob->setSecRanges(aRange);
+    m_pCurMob->setRanges(false, aRange);
     m_pCurMob->setScript(ui->plainTextEdit-> toPlainText());
     close();
 }
@@ -395,8 +416,9 @@ void CMobParameters::on_isPrimaryBox_clicked()
     if(nullptr == m_pCurMob)
         return;
 
-    //todo: ask user to move data between mobs (world set, ranges, etc)
+    convertIdRange();
     m_pCurMob->setQuestMob(ui->isPrimaryBox->isChecked());
+    updateWindow();
 }
 
 void CMobParameters::onListItemChanges(QListWidgetItem *pItem)

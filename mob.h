@@ -15,6 +15,8 @@ class CView;
 
 struct SWorldSet
 {
+//    SWorldSet():bInit(false){}
+
     QVector3D m_windDirection;
     float m_windStrength;
     float m_time;
@@ -65,10 +67,9 @@ public:
     void setFileName(const QFileInfo& fileInfo) {m_filePath = fileInfo;}
     const SWorldSet& worldSet() {return m_worldSet;}
     void setWorldSet(const SWorldSet& ws){m_worldSet = ws;}
-    const QVector<SRange>& mainRanges() {return m_aMainRange;}
-    void setMainRanges(const QVector<SRange>& range) {m_aMainRange = range;}
-    const QVector<SRange>& secRanges() {return m_aSecRange;}
-    void setSecRanges(const QVector<SRange>& range) {m_aSecRange = range;}
+    const QVector<SRange>& ranges(bool bMain);
+    void setRanges(bool bMain, const QVector<SRange>& range);
+    void clearRanges(bool bMain);
     const QVector<QString>& diplomacyNames() {return m_aDiplomacyFieldName;}
     QVector<QVector<uint>>& diplomacyField() {return m_diplomacyFoF;}
     //void getDiplomacyField(QVector<QVector<uint>>& df) {df = m_diplomacyFoF;}
@@ -79,6 +80,8 @@ public:
     bool isQuestMob() {return m_order == EMobOrder::eEMobOrderPrimary;}
     void setDurty(bool bDurty = true) {m_bDurty = bDurty;}
     bool isDurty() {return m_bDurty;}
+    void generateDiplomacyTable();
+    void clearDiplomacyTable();
 
     //functions for logic processing
     QList<CNode*>& logicNodes();
@@ -96,9 +99,9 @@ public:
     CTrapCastPoint* trapCastById(int trapId, int pointId);
     uint trapIdByPoint(CActivationZone* pZone);
     uint trapIdByPoint(CTrapCastPoint* pPoint);
+    // <== end functions of logic
 
 private:
-    void init();
     QString getAuxDirName();
     bool deserialize(QByteArray data);
     void updateObjects();

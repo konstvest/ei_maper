@@ -57,6 +57,7 @@ public:
 
 private:
     void updateWindow();
+    void convertIdRange();
 
 private slots:
     void onChooseMob(const QString& name);

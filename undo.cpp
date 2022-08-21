@@ -413,6 +413,8 @@ CSwitchToQuestMobCommand::CSwitchToQuestMobCommand(CMob* pMob, QUndoCommand *par
     m_oldWS = m_pMob->worldSet();
     m_arrOldMnR = m_pMob->ranges(true);
     m_arrOldScR = m_pMob->ranges(false);
+    m_oldDiplomacyFoF = m_pMob->diplomacyField();
+    m_arrOldDiplomacyFieldName = m_pMob->diplomacyNames();
 }
 
 void CSwitchToQuestMobCommand::undo()
@@ -421,6 +423,8 @@ void CSwitchToQuestMobCommand::undo()
     m_pMob->setWorldSet(m_oldWS);
     m_pMob->setRanges(true, m_arrOldMnR);
     m_pMob->setRanges(false, m_arrOldScR);
+    m_pMob->setDiplomacyField(m_oldDiplomacyFoF);
+    m_pMob->setDiplomacyNames(m_arrOldDiplomacyFieldName);
     emit switchQuestMobSignal();
 }
 

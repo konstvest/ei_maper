@@ -277,7 +277,7 @@
      <item>
       <widget class="QLabel" name="historyLabel">
        <property name="text">
-        <string>MOB changes history</string>
+        <string>MOB changes history:</string>
        </property>
       </widget>
      </item>

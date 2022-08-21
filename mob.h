@@ -53,8 +53,8 @@ public:
     void setRanges(bool bMain, const QVector<SRange>& range);
     void clearRanges(bool bMain);
     const QVector<QString>& diplomacyNames() {return m_aDiplomacyFieldName;}
+    void setDiplomacyNames(QVector<QString>& arrName) {m_aDiplomacyFieldName = arrName;}
     QVector<QVector<uint>>& diplomacyField() {return m_diplomacyFoF;}
-    //void getDiplomacyField(QVector<QVector<uint>>& df) {df = m_diplomacyFoF;}
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}

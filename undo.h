@@ -252,6 +252,8 @@ private:
     SWorldSet m_oldWS;
     QVector<SRange> m_arrOldMnR;
     QVector<SRange> m_arrOldScR;
+    QVector<QVector<uint>> m_oldDiplomacyFoF;
+    QVector<QString> m_arrOldDiplomacyFieldName; // can be deleted if use only 'default names from player-0 to player-31
 };
 
 #endif // UNDO_H

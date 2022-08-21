@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>773</width>
-    <height>598</height>
+    <width>771</width>
+    <height>650</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,7 +48,7 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>180</width>
+         <width>190</width>
          <height>0</height>
         </size>
        </property>
@@ -273,6 +273,23 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="historyLabel">
+       <property name="text">
+        <string>MOB changes history</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QUndoView" name="undoViewMob">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>100</height>
+        </size>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

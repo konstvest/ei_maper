@@ -5,6 +5,7 @@
 #include "objects/unit.h"
 #include "objects/magictrap.h"
 
+
 COpenCommand::COpenCommand(CView* pView, QFileInfo& path, MainWindow* pMain, QUndoCommand *parent):
     QUndoCommand(parent)
     ,m_pView(pView)
@@ -401,4 +402,49 @@ void CCloseActiveMobCommand::redo()
         setText("unloaded " + pMob->mobName());
         m_pView->unloadActiveMob();
     }
+}
+
+CSwitchToQuestMobCommand::CSwitchToQuestMobCommand(CMob* pMob, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pMob(pMob)
+  ,m_userAnswer(QMessageBox::NoButton)
+{
+    m_bQuestMob = m_pMob->isQuestMob();
+    m_oldWS = m_pMob->worldSet();
+    m_arrOldMnR = m_pMob->ranges(true);
+    m_arrOldScR = m_pMob->ranges(false);
+}
+
+void CSwitchToQuestMobCommand::undo()
+{
+    m_pMob->setQuestMob(m_bQuestMob);
+    m_pMob->setWorldSet(m_oldWS);
+    m_pMob->setRanges(true, m_arrOldMnR);
+    m_pMob->setRanges(false, m_arrOldScR);
+    emit switchQuestMobSignal();
+}
+
+void CSwitchToQuestMobCommand::redo()
+{
+    auto arrRange = m_pMob->ranges(!m_bQuestMob);
+    if(!arrRange.isEmpty())
+    {
+        if(m_userAnswer == QMessageBox::NoButton)
+            m_userAnswer = QMessageBox::question(nullptr, "Switching MOB Type", "Do you want to switch Id ranges as well?", QMessageBox::Yes|QMessageBox::No);
+
+        if(m_userAnswer == QMessageBox::Yes)
+            m_pMob->setRanges(m_bQuestMob, arrRange);
+    }
+
+    SWorldSet ws{QVector3D (0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f,0.0f, true};
+    m_pMob->setWorldSet(ws);
+    m_pMob->clearRanges(!m_bQuestMob);
+    if(m_bQuestMob)
+        m_pMob->generateDiplomacyTable();
+    else
+        m_pMob->clearDiplomacyTable();
+
+    m_pMob->setQuestMob(!m_bQuestMob);
+    setText(m_bQuestMob ? "Quest MOB to Base" : "Base MOB to Quest");
+    emit switchQuestMobSignal();
 }

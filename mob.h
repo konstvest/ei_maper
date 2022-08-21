@@ -13,24 +13,6 @@
 
 class CView;
 
-struct SWorldSet
-{
-//    SWorldSet():bInit(false){}
-
-    QVector3D m_windDirection;
-    float m_windStrength;
-    float m_time;
-    float m_ambient;
-    float m_sunLight; //power of sunlight ?!
-    bool bInit;
-};
-
-enum EMobOrder
-{
-    eEMobOrderPrimary
-    ,eEMobOrderSecondary
-};
-
 class CProgressView;
 class CPatrolPoint;
 class CLookPoint;

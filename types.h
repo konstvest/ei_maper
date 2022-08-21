@@ -140,6 +140,24 @@ enum EObjParam
 
 };
 
+enum EMobOrder
+{
+    eEMobOrderPrimary
+    ,eEMobOrderSecondary
+};
+
+struct SWorldSet
+{
+//    SWorldSet():bInit(false){}
+
+    QVector3D m_windDirection;
+    float m_windStrength;
+    float m_time;
+    float m_ambient;
+    float m_sunLight; //power of sunlight ?!
+    bool bInit;
+};
+
 class CBox
 {
 public:

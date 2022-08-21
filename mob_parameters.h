@@ -5,6 +5,8 @@
 #include <QHeaderView>
 #include <QTableWidgetItem>
 #include <QPlainTextEdit>
+#include <QUndoStack>
+#include <QUndoView>
 #include <QSyntaxHighlighter>
 #include <QListWidgetItem>
 
@@ -50,17 +52,16 @@ class CMobParameters : public QWidget
 {
     Q_OBJECT
 public:
-    explicit CMobParameters(QWidget* parent = nullptr, CMob* pMob = nullptr);
+    explicit CMobParameters(QWidget* parent = nullptr, CMob* pMob = nullptr, CView* pView = nullptr);
     ~CMobParameters();
     void reset();
     void test();
 
 private:
-    void updateWindow();
     void convertIdRange();
 
 private slots:
-    void onChooseMob(const QString& name);
+    void updateWindow();
     void on_diplomacyButton_clicked();
     void tableItemClicked(int r, int c);
     void on_pushCancel_clicked();
@@ -74,12 +75,16 @@ private slots:
 
 private:
     Ui::CMobParameters *ui;
-    QVector<CMob*> m_aMob;
+    //QVector<CMob*> m_aMob;
     CMob* m_pCurMob;
     QVector<QSharedPointer<QTableWidgetItem>> m_aCell;
     QSharedPointer<QTableWidget> m_pTable;
     Highlighter* m_pHighlighter;
     QString m_lastItemText;
+    CView* m_pView;
+    //QSharedPointer<QUndoStack> m_pUndoStack;
+    QUndoStack* m_pUndoStack;
+    //QUndoView* m_pUndoView;
 };
 
 //a header view that renders text vertically

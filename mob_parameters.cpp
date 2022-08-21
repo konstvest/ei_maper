@@ -3,18 +3,30 @@
 #include <QTextBlock>
 
 #include "mob_parameters.h"
-#include "ui_mobParameters.h"
+#include "ui_mob_parameters.h"
 #include "utils.h"
 #include "view.h"
 #include "settings.h"
+#include "undo.h"
 
-CMobParameters::CMobParameters(QWidget* parent, CMob* pMob):
+CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     QWidget(parent)
   ,ui(new Ui::CMobParameters)
   ,m_pCurMob(pMob)
   ,m_pHighlighter(nullptr)
+  ,m_pView(pView)
 {
     ui->setupUi(this);
+    //m_pUndoStack.reset(new QUndoStack(this));
+    m_pUndoStack = new QUndoStack(this);
+    //m_pUndoView = new QUndoView();
+            //m_pUndoView->setStack(m_pUndoStack);
+            ui->undoViewMob->setStack(m_pUndoStack);
+
+    //m_pUndoView->setStack(m_pUndoStack);
+    //m_pUndoView->setWindowTitle(tr("History"));
+    //m_pUndoView->setAttribute(Qt::WA_QuitOnClose, false);
+
     setWindowTitle("Mob Parameters: " + m_pCurMob->filePath().absoluteFilePath());
     ui->listRanges->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     m_pTable.reset(new QTableWidget(32, 32));
@@ -159,27 +171,6 @@ void CMobParameters::convertIdRange()
         m_pCurMob->generateDiplomacyTable();
     else
         m_pCurMob->clearDiplomacyTable();
-}
-
-void CMobParameters::onChooseMob(const QString &name)
-{
-    if(name.isEmpty())
-        return;
-
-    CMob* pMob = nullptr;
-    foreach(pMob, m_aMob)
-        if (pMob->mobName().contains(name))
-        {
-            m_pCurMob = pMob;
-            break;
-        }
-
-    if (!m_pCurMob)
-    {
-        Q_ASSERT(m_pCurMob);
-        return;
-    }
-    updateWindow();
 }
 
 
@@ -416,9 +407,14 @@ void CMobParameters::on_isPrimaryBox_clicked()
     if(nullptr == m_pCurMob)
         return;
 
-    convertIdRange();
-    m_pCurMob->setQuestMob(ui->isPrimaryBox->isChecked());
-    updateWindow();
+    //m_pView->switchToQuestMob(m_pCurMob, !ui->isPrimaryBox->isChecked());
+    auto pCommand = new CSwitchToQuestMobCommand(m_pCurMob);
+    QObject::connect(pCommand, SIGNAL(switchQuestMobSignal()), this, SLOT(updateWindow()));
+    m_pUndoStack->push(pCommand);
+    //auto iii = m_pUndoStack->count();
+    //convertIdRange();
+    //m_pCurMob->setQuestMob(ui->isPrimaryBox->isChecked());
+    //updateWindow();
 }
 
 void CMobParameters::onListItemChanges(QListWidgetItem *pItem)
@@ -441,6 +437,6 @@ void CMobParameters::on_button_minusRanges_clicked()
 
 void CMobParameters::on_button_plusRanges_clicked()
 {
-
+    //m_pUndoView->show();
 }
 

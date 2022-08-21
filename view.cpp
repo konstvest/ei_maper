@@ -425,8 +425,13 @@ CMob *CView::mob(QString mobName)
 {
     CMob* pMob = nullptr;
     foreach(pMob, m_aMob)
+    {
+        if(pMob->filePath().absoluteFilePath().toLower() == mobName) //try to find fullpath name first
+            break;
+
         if (pMob->mobName().toLower() == mobName.toLower())
             break;
+    }
 
     return pMob;
 }

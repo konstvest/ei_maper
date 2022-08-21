@@ -2,6 +2,7 @@
 #define UNDO_H
 #include <QUndoCommand>
 #include <QJsonObject>
+#include <QMessageBox>
 #include "view.h"
 
 class MainWindow;
@@ -224,6 +225,33 @@ private:
     QFileInfo m_filePath;
     MainWindow* m_pMain;
 
+};
+
+
+class CSwitchToQuestMobCommand: public QObject, public QUndoCommand
+{
+    Q_OBJECT
+
+public:
+    enum { Id = 111 };
+
+    CSwitchToQuestMobCommand(CMob* pMob, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void switchQuestMobSignal();
+
+private:
+    CMob* m_pMob;
+    bool m_bQuestMob;
+    QMessageBox::StandardButton m_userAnswer;
+    SWorldSet m_oldWS;
+    QVector<SRange> m_arrOldMnR;
+    QVector<SRange> m_arrOldScR;
 };
 
 #endif // UNDO_H

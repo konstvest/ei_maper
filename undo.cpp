@@ -440,7 +440,7 @@ void CSwitchToQuestMobCommand::redo()
             m_pMob->setRanges(m_bQuestMob, arrRange);
     }
 
-    SWorldSet ws{QVector3D (0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f,0.0f, true};
+    CWorldSet ws;
     m_pMob->setWorldSet(ws);
     m_pMob->clearRanges(!m_bQuestMob);
     if(m_bQuestMob)

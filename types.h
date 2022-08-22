@@ -140,22 +140,36 @@ enum EObjParam
 
 };
 
-enum EMobOrder
+enum EMobType
 {
-    eEMobOrderPrimary
-    ,eEMobOrderSecondary
+    eEMobTypeQuest
+    ,eEMobTypeBase
 };
 
-struct SWorldSet
+enum EWsType
 {
-//    SWorldSet():bInit(false){}
+    eWsTypeWindDir = 0
+    ,eWsTypeWindStr
+    ,eWsTypeSunLight
+    ,eWsTypeTime
+    ,eWsTypeAmbient
+    ,eWsTypeCount
+};
 
-    QVector3D m_windDirection;
-    float m_windStrength;
-    float m_time;
-    float m_ambient;
-    float m_sunLight; //power of sunlight ?!
-    bool bInit;
+class CWorldSet
+{
+public:
+    CWorldSet();
+    CWorldSet(const CWorldSet& ws);
+    void serializeJson(QJsonObject& obj);
+    void setData(EWsType type, QString data) {m_arrData[type] = data;}
+    const QString& data(EWsType type) {return m_arrData[type];}
+
+private:
+    void reset();
+
+private:
+    QMap<EWsType, QString> m_arrData;
 };
 
 class CBox

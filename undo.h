@@ -249,7 +249,7 @@ private:
     CMob* m_pMob;
     bool m_bQuestMob;
     QMessageBox::StandardButton m_userAnswer;
-    SWorldSet m_oldWS;
+    CWorldSet m_oldWS;
     QVector<SRange> m_arrOldMnR;
     QVector<SRange> m_arrOldScR;
     QVector<QVector<uint>> m_oldDiplomacyFoF;

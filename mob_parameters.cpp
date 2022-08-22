@@ -17,15 +17,10 @@ CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
   ,m_pView(pView)
 {
     ui->setupUi(this);
-    //m_pUndoStack.reset(new QUndoStack(this));
-    m_pUndoStack = new QUndoStack(this);
-    //m_pUndoView = new QUndoView();
-            //m_pUndoView->setStack(m_pUndoStack);
-            ui->undoViewMob->setStack(m_pUndoStack);
+    initLineEdit();
 
-    //m_pUndoView->setStack(m_pUndoStack);
-    //m_pUndoView->setWindowTitle(tr("History"));
-    //m_pUndoView->setAttribute(Qt::WA_QuitOnClose, false);
+    m_pUndoStack.reset(new QUndoStack(this));
+    ui->undoViewMob->setStack(m_pUndoStack.get());
 
     setWindowTitle("Mob Parameters: " + m_pCurMob->filePath().absoluteFilePath());
     ui->listRanges->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
@@ -57,11 +52,11 @@ CMobParameters::~CMobParameters()
 
 void CMobParameters::reset()
 {
-    ui->windDirEdit->clear();
-    ui->windStrEdit->clear();
-    ui->ambientEdit->clear();
-    ui->timeEdit->clear();
-    ui->sunLightEdit->clear();
+    paramLine(eWsTypeWindDir)->clear();
+    paramLine(eWsTypeWindStr)->clear();
+    paramLine(eWsTypeAmbient)->clear();
+    paramLine(eWsTypeTime)->clear();
+    paramLine(eWsTypeSunLight)->clear();
     ui->listRanges->clear();
     ui->plainTextEdit->clear();
     ui->isPrimaryBox->setChecked(false);
@@ -74,47 +69,48 @@ void CMobParameters::test()
     show();
 }
 
+void CMobParameters::initLineEdit()
+{
+    for(int i(0); i<eWsTypeCount; ++i)
+    {
+        auto pParam = new CParamLineEdit(this, (EWsType)i);
+        pParam->setMinimumSize(QSize(0, 0));
+        ui->formLayout_2->setWidget(1+i, QFormLayout::FieldRole, pParam); // 0 row - label environment
+        m_arrMobParam.append(pParam);
+    }
+}
+
+CParamLineEdit *CMobParameters::paramLine(EWsType param)
+{
+    CParamLineEdit* pEdit = nullptr;
+    foreach(pEdit, m_arrMobParam)
+    {
+        if(pEdit->isParam(param))
+            return pEdit;
+    }
+    Q_ASSERT("cant find suitable line edit" && false);
+    return pEdit;
+}
+
 
 void CMobParameters::updateWindow()
 {
     Q_ASSERT(m_pCurMob);
-
-    QString nd("not defined");
-    auto setUndefined = [&nd](QLineEdit* pEdit)
-    {
-        pEdit->setText(nd);
-    };
 
 
     QVector<SRange> range;
     if(m_pCurMob->isQuestMob())
     { // collect only sec rangers for quest mob
         range = m_pCurMob->ranges(false);
-
         ui->baseMobParamWidget->hide();
     }
     else
     { // collect data for base mob
-        //world set
-        SWorldSet worldSet = m_pCurMob->worldSet();
-        if (worldSet.bInit)
-        {
-            ui->windDirEdit->setText(util::makeString(worldSet.m_windDirection));
-            ui->windStrEdit->setText(QString::number(worldSet.m_windStrength));
-            ui->ambientEdit->setText(QString::number(worldSet.m_ambient));
-            ui->timeEdit->setText(QString::number(worldSet.m_time));
-            ui->sunLightEdit->setText(QString::number(worldSet.m_sunLight));
-        }
-        else
-        {
-            setUndefined(ui->windDirEdit);
-            setUndefined(ui->windStrEdit);
-            setUndefined(ui->timeEdit);
-            setUndefined(ui->ambientEdit);
-            setUndefined(ui->sunLightEdit);
-        }
 
-        //ranges
+        CWorldSet worldSet = m_pCurMob->worldSet();
+        for(int i(0); i<eWsTypeCount; ++i)
+            paramLine((EWsType)i)->setText(worldSet.data((EWsType)i));
+
         range = m_pCurMob->ranges(true);
 
         ui->baseMobParamWidget->show();
@@ -150,27 +146,6 @@ void CMobParameters::updateWindow()
         }
     }
     ui->isPrimaryBox->setChecked(m_pCurMob->isQuestMob());
-}
-
-void CMobParameters::convertIdRange()
-{
-    bool bQuest = m_pCurMob->isQuestMob();
-    auto arrRange = m_pCurMob->ranges(!bQuest);
-    if(!arrRange.isEmpty())
-    {
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Switching MOB Type", "Do you want to move Id ranges?", QMessageBox::Yes|QMessageBox::No);
-        if(reply == QMessageBox::Yes)
-            m_pCurMob->setRanges(bQuest, arrRange);
-    }
-
-    SWorldSet ws{QVector3D (0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f,0.0f, true};
-    m_pCurMob->setWorldSet(ws);
-    m_pCurMob->clearRanges(!bQuest);
-    if(bQuest)
-        m_pCurMob->generateDiplomacyTable();
-    else
-        m_pCurMob->clearDiplomacyTable();
 }
 
 
@@ -238,32 +213,7 @@ void CMobParameters::on_pushApply_clicked()
     if(nullptr == m_pCurMob)
         return;
 
-    QString nd("not defined");
-    auto isValidText =[&nd](QLineEdit* pEdit)
-    {
-        if (pEdit->text().isEmpty() || pEdit->text().contains(nd))
-            return false;
-        return true;
-    };
 
-    if(isValidText(ui->windDirEdit)
-        && isValidText(ui->windStrEdit)
-        && isValidText(ui->timeEdit)
-        && isValidText(ui->ambientEdit)
-        && isValidText(ui->sunLightEdit)
-        )
-    {
-        SWorldSet ws
-        {
-             util::vec3FromString(ui->windDirEdit->text()),
-             ui->windStrEdit->text().toFloat(),
-             ui->timeEdit->text().toFloat(),
-             ui->ambientEdit->text().toFloat(),
-             ui->sunLightEdit->text().toFloat(),
-            true
-        };
-        m_pCurMob->setWorldSet(ws);
-    }
     if(!m_pCurMob->diplomacyField().isEmpty())
     {
         auto& df = m_pCurMob->diplomacyField();
@@ -440,3 +390,10 @@ void CMobParameters::on_button_plusRanges_clicked()
     //m_pUndoView->show();
 }
 
+
+CParamLineEdit::CParamLineEdit(QWidget *pParent, EWsType param):
+    QLineEdit(pParent)
+  ,m_mobParam(param)
+{
+
+}

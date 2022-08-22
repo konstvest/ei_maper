@@ -9,6 +9,7 @@
 #include <QUndoView>
 #include <QSyntaxHighlighter>
 #include <QListWidgetItem>
+#include <QLineEdit>
 
 #include "mob.h"
 
@@ -44,6 +45,20 @@ class Highlighter : public QSyntaxHighlighter
      QTextCharFormat numberFormat;
  };
 
+
+
+class CParamLineEdit : public QLineEdit
+{
+    Q_OBJECT
+public:
+    CParamLineEdit(QWidget* pParent, EWsType param);
+    virtual ~CParamLineEdit() {}
+    bool isParam(EWsType param) {return param == m_mobParam;}
+
+private:
+    EWsType m_mobParam;
+};
+
 namespace Ui {
 class CMobParameters;
 }
@@ -58,7 +73,8 @@ public:
     void test();
 
 private:
-    void convertIdRange();
+    void initLineEdit();
+    CParamLineEdit* paramLine(EWsType param);
 
 private slots:
     void updateWindow();
@@ -82,9 +98,8 @@ private:
     Highlighter* m_pHighlighter;
     QString m_lastItemText;
     CView* m_pView;
-    //QSharedPointer<QUndoStack> m_pUndoStack;
-    QUndoStack* m_pUndoStack;
-    //QUndoView* m_pUndoView;
+    QSharedPointer<QUndoStack> m_pUndoStack;
+    QVector<CParamLineEdit*> m_arrMobParam;
 };
 
 //a header view that renders text vertically

@@ -47,8 +47,8 @@ public:
     QString mobName();
     const QFileInfo& filePath() {return m_filePath;}
     void setFileName(const QFileInfo& fileInfo) {m_filePath = fileInfo;}
-    const SWorldSet& worldSet() {return m_worldSet;}
-    void setWorldSet(const SWorldSet& ws){m_worldSet = ws;}
+    const CWorldSet& worldSet() {return m_worldSet;}
+    void setWorldSet(const CWorldSet& ws){m_worldSet = ws;}
     const QVector<SRange>& ranges(bool bMain);
     void setRanges(bool bMain, const QVector<SRange>& range);
     void clearRanges(bool bMain);
@@ -58,8 +58,8 @@ public:
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
-    void setQuestMob(bool bPrimary = true) {m_order = bPrimary ? eEMobOrderPrimary : eEMobOrderSecondary;}
-    bool isQuestMob() {return m_order == EMobOrder::eEMobOrderPrimary;}
+    void setQuestMob(bool bQuest = true) {m_mobType = bQuest ? eEMobTypeQuest : eEMobTypeBase;}
+    bool isQuestMob() {return m_mobType == EMobType::eEMobTypeQuest;}
     void setDurty(bool bDurty = true) {m_bDurty = bDurty;}
     bool isDurty() {return m_bDurty;}
     void generateDiplomacyTable();
@@ -103,7 +103,7 @@ private:
     QVector<SRange> m_aSecRange;
     QVector<QVector<uint>> m_diplomacyFoF;
     QVector<QString> m_aDiplomacyFieldName;
-    SWorldSet m_worldSet;
+    CWorldSet m_worldSet;
     QByteArray m_vss_section;
     QByteArray m_directory;
     QByteArray m_directoryElements;
@@ -113,7 +113,7 @@ private:
     QList<CNode*> m_aNode;
     QList<CNode*> m_aDeletedNode;
     QList<CNode*> m_aLogicNode;
-    EMobOrder m_order;
+    EMobType m_mobType;
     bool m_bDurty;
 };
 

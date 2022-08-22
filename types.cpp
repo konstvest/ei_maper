@@ -3,6 +3,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QVariant>
+#include "utils.h"
 
 SUnitStat::SUnitStat():
     HP(0)
@@ -259,4 +260,44 @@ SRange::SRange():
     ,maxRange(0)
 {
 
+}
+
+CWorldSet::CWorldSet()
+{
+    reset();
+}
+
+CWorldSet::CWorldSet(const CWorldSet &ws)
+{
+    for(int i(0); i<eWsTypeCount; ++i)
+    {
+        m_arrData[(EWsType)i] = ws.m_arrData[(EWsType)i];
+    }
+}
+
+void CWorldSet::serializeJson(QJsonObject &obj)
+{
+    obj.insert("Wind Direction", m_arrData[eWsTypeWindDir]);
+    obj.insert("Wind Strength", m_arrData[eWsTypeWindStr]);
+    obj.insert("Time", m_arrData[eWsTypeTime]);
+    obj.insert("Sun Light", m_arrData[eWsTypeSunLight]);
+    obj.insert("Ambient", m_arrData[eWsTypeAmbient]);
+}
+
+void CWorldSet::reset()
+{
+    float value(0.0f);
+    for(int i(0); i<eWsTypeCount; ++i)
+    {
+        auto type = (EWsType)i;
+        if(type == eWsTypeWindDir)
+        {
+            QVector3D vec(0.0f, 0.0f, 0.0f);
+            m_arrData[type] = util::makeString(vec);
+        }
+        else
+        {
+            m_arrData[type] = QString::number(value);
+        }
+    }
 }

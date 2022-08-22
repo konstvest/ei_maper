@@ -32,8 +32,7 @@ CMob::CMob():
   ,m_bDurty(false)
 {
     m_aNode.clear();
-    m_worldSet.bInit = false;
-    m_order = eEMobOrderSecondary;
+    m_mobType = eEMobTypeBase;
 }
 
 CMob::~CMob()
@@ -84,12 +83,12 @@ bool CMob::deserialize(QByteArray data)
     {
         readByte += parser.skipHeader();
         //readByte += parser.readHeader();
-        m_order = eEMobOrderSecondary;
+        m_mobType = eEMobTypeBase;
     }
     else if (parser.isNextTag("PR_OBJECT_DB_FILE"))
     {
         readByte += parser.skipHeader();
-        m_order = eEMobOrderPrimary;
+        m_mobType = eEMobTypeQuest;
     }
 
     while(true)
@@ -172,33 +171,42 @@ bool CMob::deserialize(QByteArray data)
                 if(parser.isNextTag("WS_WIND_DIR"))
                 {
                     readByte += parser.skipHeader();
-                    readByte += parser.readPlot(m_worldSet.m_windDirection);
+                    QVector3D dir;
+                    readByte += parser.readPlot(dir);
+                    m_worldSet.setData(eWsTypeWindDir, util::makeString(dir));
                 }
                 else if(parser.isNextTag("WS_WIND_STR"))
                 {
                     readByte += parser.skipHeader();
-                    readByte += parser.readFloat(m_worldSet.m_windStrength);
+                    float str;
+                    readByte += parser.readFloat(str);
+                    m_worldSet.setData(eWsTypeWindStr, QString::number(str));
                 }
                 else if(parser.isNextTag("WS_TIME"))
                 {
                     readByte += parser.skipHeader();
-                    readByte += parser.readFloat(m_worldSet.m_time);
+                    float time;
+                    readByte += parser.readFloat(time);
+                    m_worldSet.setData(eWsTypeTime, QString::number(time));
                 }
                 else if(parser.isNextTag("WS_AMBIENT"))
                 {
                     readByte += parser.skipHeader();
-                    readByte += parser.readFloat(m_worldSet.m_ambient);
+                    float ambient;
+                    readByte += parser.readFloat(ambient);
+                    m_worldSet.setData(eWsTypeAmbient, QString::number(ambient));
                 }
                 else if(parser.isNextTag("WS_SUN_LIGHT"))
                 {
                     readByte += parser.skipHeader();
-                    readByte += parser.readFloat(m_worldSet.m_sunLight);
+                    float sunLight;
+                    readByte += parser.readFloat(sunLight);
+                    m_worldSet.setData(eWsTypeSunLight, QString::number(sunLight));
                 }
                 else {
                     break;
                 }
             }
-            m_worldSet.bInit = true;
         }
 
         //vss section
@@ -1011,6 +1019,19 @@ void CMob::serializeJson(const QFileInfo& file)
     rangeObj.insert("Main ranges", aRange);
     prepareRange(m_aSecRange);
     rangeObj.insert("Sec ranges", aRange);
+    QJsonObject mob;
+    mob.insert("Ranges", rangeObj);
+
+    //scripts
+    writeData(mob, file, "Script", m_script);
+    writeData(mob, file, "Old_script", m_textOld);
+
+    QJsonArray aDiplomacyName;
+    for(auto& name : m_aDiplomacyFieldName)
+    {
+        aDiplomacyName.append(name);
+    }
+    mob.insert("Diplomacy Names", aDiplomacyName);
 
     QJsonArray diplomacyTable;
     for(auto& line: m_diplomacyFoF)
@@ -1021,33 +1042,10 @@ void CMob::serializeJson(const QFileInfo& file)
         diplomacyTable.append(rowStr);
 
     }
-
-    QJsonArray aDiplomacyName;
-    for(auto& name : m_aDiplomacyFieldName)
-    {
-        aDiplomacyName.append(name);
-    }
+    mob.insert("Diplomacy table", diplomacyTable);
 
     QJsonObject worldSetObj;
-    QJsonArray windDir;
-    windDir.append(QJsonValue::fromVariant(m_worldSet.m_windDirection.x()));
-    windDir.append(QJsonValue::fromVariant(m_worldSet.m_windDirection.y()));
-    windDir.append(QJsonValue::fromVariant(m_worldSet.m_windDirection.z()));
-    worldSetObj.insert("Wind direction", windDir);
-    worldSetObj.insert("Wind strength", QJsonValue::fromVariant(m_worldSet.m_windStrength));
-    worldSetObj.insert("Time", QJsonValue::fromVariant(m_worldSet.m_time));
-    worldSetObj.insert("Ambient", QJsonValue::fromVariant(m_worldSet.m_ambient));
-    worldSetObj.insert("Sun Light", QJsonValue::fromVariant(m_worldSet.m_sunLight));
-
-    QJsonObject mob;
-    mob.insert("Ranges", rangeObj);
-
-    //scripts
-    writeData(mob, file, "Script", m_script);
-    writeData(mob, file, "Old_script", m_textOld);
-
-    mob.insert("Diplomacy Names", aDiplomacyName);
-    mob.insert("Diplomacy table", diplomacyTable);
+    m_worldSet.serializeJson(worldSetObj);
     mob.insert("World set", worldSetObj);
 
     //binary aux data
@@ -1085,11 +1083,11 @@ void CMob::serializeMob(QByteArray& data)
     //header "OBJECT_DB_FILE"
     writeByte += parser.startSection("OBJECT_DB_FILE");
 
-    switch (m_order) {
-    case eEMobOrderPrimary:
+    switch (m_mobType) {
+    case eEMobTypeQuest:
         writeByte += parser.startSection("PR_OBJECT_DB_FILE");
         break;
-    case eEMobOrderSecondary:
+    case eEMobTypeBase:
         writeByte += parser.startSection("SC_OBJECT_DB_FILE");
         break;
     }
@@ -1172,27 +1170,27 @@ void CMob::serializeMob(QByteArray& data)
         parser.endSection();
     }
 
-    if(m_worldSet.bInit)
+    if(m_mobType == eEMobTypeBase)
     {
         writeByte += parser.startSection("WORLD_SET");
         writeByte += parser.startSection("WS_WIND_DIR");
-        writeByte += parser.writePlot(m_worldSet.m_windDirection);
+        writeByte += parser.writePlot(util::vec3FromString(m_worldSet.data(eWsTypeWindDir)));
         parser.endSection(); //"WS_WIND_DIR"
 
         writeByte += parser.startSection("WS_WIND_STR");
-        writeByte += parser.writeFloat(m_worldSet.m_windStrength);
+        writeByte += parser.writeFloat(m_worldSet.data(eWsTypeWindStr).toFloat());
         parser.endSection(); //"WS_WIND_STR"
 
         writeByte += parser.startSection("WS_TIME");
-        writeByte += parser.writeFloat(m_worldSet.m_time);
+        writeByte += parser.writeFloat(m_worldSet.data(eWsTypeTime).toFloat());
         parser.endSection(); //"WS_TIME"
 
         writeByte += parser.startSection("WS_AMBIENT");
-        writeByte += parser.writeFloat(m_worldSet.m_ambient);
+        writeByte += parser.writeFloat(m_worldSet.data(eWsTypeAmbient).toFloat());
         parser.endSection(); //"WS_AMBIENT"
 
         writeByte += parser.startSection("WS_SUN_LIGHT");
-        writeByte += parser.writeFloat(m_worldSet.m_sunLight);
+        writeByte += parser.writeFloat(m_worldSet.data(eWsTypeAmbient).toFloat());
         parser.endSection(); //Sun Light
         parser.endSection();//"WORLD_SET"
     }

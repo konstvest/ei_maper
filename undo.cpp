@@ -452,3 +452,30 @@ void CSwitchToQuestMobCommand::redo()
     setText(m_bQuestMob ? "Quest MOB to Base" : "Base MOB to Quest");
     emit switchQuestMobSignal();
 }
+
+CChangeWorldSetCommand::CChangeWorldSetCommand(CMob *pMob, EWsType paramType, QString &value, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pMob(pMob)
+  ,m_paramType(paramType)
+  ,m_newValue(value)
+{
+    CWorldSet ws = m_pMob->worldSet();
+    m_oldValue = ws.data(paramType);
+}
+
+void CChangeWorldSetCommand::undo()
+{
+    CWorldSet ws = m_pMob->worldSet();
+    ws.setData(m_paramType, m_oldValue);
+    m_pMob->setWorldSet(ws);
+    emit changeWsSignal();
+}
+
+void CChangeWorldSetCommand::redo()
+{
+    CWorldSet ws = m_pMob->worldSet();
+    ws.setData(m_paramType, m_newValue);
+    m_pMob->setWorldSet(ws);
+    setText("Changes value to" + m_newValue);
+    emit changeWsSignal();
+}

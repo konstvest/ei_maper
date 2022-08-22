@@ -69,6 +69,13 @@ void CMobParameters::test()
     show();
 }
 
+void CMobParameters::execWsChanges(EWsType paramType, QString &value)
+{
+    auto pCommand = new CChangeWorldSetCommand(m_pCurMob, paramType, value);
+    QObject::connect(pCommand, SIGNAL(changeWsSignal()), this, SLOT(updateWindow()));
+    m_pUndoStack->push(pCommand);
+}
+
 void CMobParameters::initLineEdit()
 {
     for(int i(0); i<eWsTypeCount; ++i)
@@ -109,7 +116,10 @@ void CMobParameters::updateWindow()
 
         CWorldSet worldSet = m_pCurMob->worldSet();
         for(int i(0); i<eWsTypeCount; ++i)
+        {
             paramLine((EWsType)i)->setText(worldSet.data((EWsType)i));
+            paramLine((EWsType)i)->saveBackupValue();
+        }
 
         range = m_pCurMob->ranges(true);
 
@@ -395,5 +405,49 @@ CParamLineEdit::CParamLineEdit(QWidget *pParent, EWsType param):
     QLineEdit(pParent)
   ,m_mobParam(param)
 {
+    m_pParent = dynamic_cast<CMobParameters*>(pParent);
+    QObject::connect(this, SIGNAL(editingFinished()), this, SLOT(editingFinishedOverried()));
+}
 
+void CParamLineEdit::saveBackupValue()
+{
+    m_storedValue = text();
+}
+
+void CParamLineEdit::editingFinishedOverried()
+{
+    auto enteredText = text();
+    if(enteredText == m_storedValue)
+        return;
+
+    if(isValidValue(m_mobParam, enteredText))
+    {
+        m_storedValue = enteredText;
+        m_pParent->execWsChanges(m_mobParam, enteredText);
+    }
+    else
+    { // return old value
+        //todo: show user warn message
+        this->blockSignals(true);
+        setText(m_storedValue);
+        this->blockSignals(false);
+    }
+
+}
+
+bool CParamLineEdit::isValidValue(EWsType paramType, const QString& str)
+{
+    bool bRes = false;
+    if(paramType == eWsTypeWindDir)
+    {// vector3d. checked value: (111.66,94.46,-0.25) ( 0.21, 0.13, 1.20)
+        QRegExp rx("\\((\\s*-?\\d+(\\.\\d+)?\\,){2}(\\s*-?\\d+(\\.\\d+)?)\\)");
+        bRes = rx.exactMatch(str);
+    }
+    else
+    { //float;
+        QRegExp rx("^\\s*-?\\d+(\\.\\d+)?");
+        bRes = rx.exactMatch(str);
+    }
+
+    return bRes;
 }

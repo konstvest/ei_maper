@@ -46,16 +46,25 @@ class Highlighter : public QSyntaxHighlighter
  };
 
 
-
+class CMobParameters;
 class CParamLineEdit : public QLineEdit
 {
     Q_OBJECT
 public:
     CParamLineEdit(QWidget* pParent, EWsType param);
     virtual ~CParamLineEdit() {}
+    void saveBackupValue();
     bool isParam(EWsType param) {return param == m_mobParam;}
 
+private slots:
+    void editingFinishedOverried();
+
 private:
+    bool isValidValue(EWsType paramType, const QString& str);
+
+private:
+    CMobParameters* m_pParent;
+    QString m_storedValue;
     EWsType m_mobParam;
 };
 
@@ -69,10 +78,11 @@ class CMobParameters : public QWidget
 public:
     explicit CMobParameters(QWidget* parent = nullptr, CMob* pMob = nullptr, CView* pView = nullptr);
     ~CMobParameters();
-    void reset();
     void test();
+    void execWsChanges(EWsType paramType, QString& value);
 
 private:
+    void reset();
     void initLineEdit();
     CParamLineEdit* paramLine(EWsType param);
 

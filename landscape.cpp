@@ -101,18 +101,22 @@ void CLandscape::readMap(QFileInfo& path)
     if (!path.exists())
         return;
 
-    QString filePath = path.filePath();
-    QString texname = path.baseName();
-    int texCount;
-    m_texture = CTextureList::getInstance()->buildLandTex(texname, texCount);
-
-    ResFile map(filePath);
+    ResFile map(path.filePath());
     QMap<QString, QByteArray> aTmp =  map.bufferOfFiles();  // map contains DIfferentCaseName
     QMap<QString, QByteArray> aComponent;
+    QString innerMapName;
     for (auto& file: aTmp.toStdMap())
-        aComponent.insert(file.first.toLower(), file.second);
+    {
+        QString fName = file.first.toLower();
+        aComponent.insert(fName, file.second);
+        if(fName.endsWith(".mp"))
+            innerMapName = fName.split(".").front(); //todo: dont split multiple dot names (zone.1.gipath.mp)
+    }
 
-    QDataStream mpStream(aComponent[path.baseName().toLower() + ".mp"]);
+    int texCount;
+    m_texture = CTextureList::getInstance()->buildLandTex(innerMapName, texCount);
+
+    QDataStream mpStream(aComponent[innerMapName + ".mp"]);
     util::formatStream(mpStream);
     if (!readHeader(mpStream))
         return;
@@ -125,7 +129,7 @@ void CLandscape::readMap(QFileInfo& path)
         for (uint x(0); x<m_header.nXSector; ++x)
         {
             secIndex.reset(x, y);
-            QDataStream secStream(aComponent.take(path.baseName().toLower() + genSectorSuffix(int(x), int(y)) + ".sec"));
+            QDataStream secStream(aComponent.take(innerMapName + genSectorSuffix(int(x), int(y)) + ".sec"));
             util::formatStream(secStream);
             CSector* sector = new CSector(secStream, m_header.maxZ, texCount);
             sector->setIndex(secIndex);

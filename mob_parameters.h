@@ -80,6 +80,7 @@ public:
     ~CMobParameters();
     void test();
     void execWsChanges(EWsType paramType, QString& value);
+    void setNewRange(SRange& arrRanges, int index);
 
 private:
     void reset();
@@ -99,7 +100,11 @@ private slots:
 
     void on_button_minusRanges_clicked();
     void on_button_plusRanges_clicked();
-    void rangeDone(int res);
+    //void rangeDone(int res);
+
+    void on_listRanges_itemDoubleClicked(QListWidgetItem *item);
+
+    void on_pushButtonOpenExtEditor_clicked();
 
 private:
     Ui::CMobParameters *ui;

@@ -479,3 +479,61 @@ void CChangeWorldSetCommand::redo()
     setText("Changes value to" + m_newValue);
     emit changeWsSignal();
 }
+
+CChangeRangeCommand::CChangeRangeCommand(CMob *pMob, int index, SRange range, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pMob(pMob)
+  ,m_index(index)
+  ,m_newRange(range)
+{
+    auto arrRanges = m_pMob->ranges(!m_pMob->isQuestMob());
+    if(m_index < arrRanges.count())
+    {
+        m_oldRange = arrRanges[index];
+    }
+}
+
+void CChangeRangeCommand::undo()
+{
+    auto arrRanges(m_pMob->ranges(!m_pMob->isQuestMob()));
+    if(m_newRange.isEmpty()) //undo deleting
+    {
+        arrRanges.insert(m_index, m_oldRange);
+    }
+    else
+    {
+        if(m_index + 1 == arrRanges.count()) //undo appending
+            arrRanges.pop_back();
+        else //undo changing
+            arrRanges[m_index] = m_oldRange;
+    }
+
+
+    m_pMob->setRanges(!m_pMob->isQuestMob(), arrRanges);
+    emit changeRangeSignal();
+}
+
+void CChangeRangeCommand::redo()
+{
+    auto arrRanges(m_pMob->ranges(!m_pMob->isQuestMob()));
+    if(m_index < arrRanges.count())
+    {
+        if(m_newRange.isEmpty())
+        {
+            setText("Deleted range " + QString::number(m_oldRange.minRange) + " - " + QString::number(m_oldRange.maxRange));
+            arrRanges.takeAt(m_index);
+        }
+        else
+        {
+            setText("Changed range to " + QString::number(m_newRange.minRange) + " - " + QString::number(m_newRange.maxRange));
+            arrRanges[m_index] = m_newRange;
+        }
+    }
+    else
+    {
+        arrRanges.append(m_newRange);
+        setText("Added range " + QString::number(m_newRange.minRange) + " - " + QString::number(m_newRange.maxRange));
+    }
+    m_pMob->setRanges(!m_pMob->isQuestMob(), arrRanges);
+    emit changeRangeSignal();
+}

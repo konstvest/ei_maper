@@ -275,16 +275,9 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="pushImport">
+        <widget class="QPushButton" name="pushButtonOpenExtEditor">
          <property name="text">
-          <string>Import...</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushExport">
-         <property name="text">
-          <string>Export...</string>
+          <string>Open with external editor...</string>
          </property>
         </widget>
        </item>
@@ -318,14 +311,14 @@
        <item>
         <widget class="QPushButton" name="pushApply">
          <property name="text">
-          <string>Apply</string>
+          <string>Save script</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushCancel">
          <property name="text">
-          <string>Cancel</string>
+          <string>Close</string>
          </property>
         </widget>
        </item>

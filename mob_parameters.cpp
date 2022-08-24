@@ -77,6 +77,13 @@ void CMobParameters::execWsChanges(EWsType paramType, QString &value)
     m_pUndoStack->push(pCommand);
 }
 
+void CMobParameters::setNewRange(SRange& arrRanges, int index)
+{
+    auto pRangeCommand = new CChangeRangeCommand(m_pCurMob, index, arrRanges);
+    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateWindow()));
+    m_pUndoStack->push(pRangeCommand);
+}
+
 void CMobParameters::initLineEdit()
 {
     for(int i(0); i<eWsTypeCount; ++i)
@@ -226,36 +233,7 @@ void CMobParameters::on_pushCancel_clicked()
 
 void CMobParameters::on_pushApply_clicked()
 {
-    if(nullptr == m_pCurMob)
-        return;
-
-
-    if(!m_pCurMob->diplomacyField().isEmpty())
-    {
-        auto& df = m_pCurMob->diplomacyField();
-        for(int i(0); i < 32; ++i)
-            for(int j(0); j < 32;++j)
-                df[i][j] = m_aCell[i*32+j]->text().toUInt();
-    }
-    //main, sec ranges
-    QVector<SRange> aRange;
-    for(int i(0); i < ui->listRanges->count(); ++i)
-    {
-        auto a = util::vec2FromString(ui->listRanges->item(i)->text());
-        SRange r(a[0], a[1]);
-        aRange.append(r);
-    }
-    m_pCurMob->setRanges(true, aRange);
-    aRange.clear();
-//    for(int i(0); i < ui->secRangesList->count(); ++i)
-//    {
-//        auto a = util::vec2FromString(ui->secRangesList->item(i)->text());
-//        SRange r(a[0], a[1]);
-//        aRange.append(r);
-//    }
-    m_pCurMob->setRanges(false, aRange);
     m_pCurMob->setScript(ui->plainTextEdit-> toPlainText());
-    close();
 }
 
 Highlighter::Highlighter(QTextDocument *parent)
@@ -397,33 +375,20 @@ void CMobParameters::backupItemString(QListWidgetItem *pItem)
 
 void CMobParameters::on_button_minusRanges_clicked()
 {
-
+    int index = ui->listRanges->currentRow();
+    SRange range;
+    auto pRangeCommand = new CChangeRangeCommand(m_pCurMob, index, range);
+    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateWindow()));
+    m_pUndoStack->push(pRangeCommand);
 }
 
 
 void CMobParameters::on_button_plusRanges_clicked()
 {
     auto rangeD = new CRangeDialog(this);
-    QObject::connect(rangeD, SIGNAL(finished(int)), this, SLOT(rangeDone(int)));
     rangeD->setAttribute(Qt::WA_DeleteOnClose);
-    uint max = 1;
-    SRange range;
-    foreach(range, activeRanges())
-    {
-        if(range.maxRange > max)
-            max = range.maxRange+1;
-    }
-    rangeD->setRanges(max, max+1000);
-
-
+    rangeD->initRanges(activeRanges(), ui->listRanges->count());
     rangeD->exec();
-    //rangeD->show();
-    //setEnabled(false);
-}
-
-void CMobParameters::rangeDone(int res)
-{
-    //setEnabled(true);
 }
 
 
@@ -477,3 +442,18 @@ bool CParamLineEdit::isValidValue(EWsType paramType, const QString& str)
 
     return bRes;
 }
+
+void CMobParameters::on_listRanges_itemDoubleClicked(QListWidgetItem *item)
+{
+    Q_UNUSED(item);
+    auto rangeD = new CRangeDialog(this);
+    rangeD->setAttribute(Qt::WA_DeleteOnClose);
+    rangeD->initRanges(activeRanges(), ui->listRanges->currentRow());
+    rangeD->exec();
+}
+
+void CMobParameters::on_pushButtonOpenExtEditor_clicked()
+{
+
+}
+

@@ -279,4 +279,28 @@ private:
     QString m_newValue;
 };
 
+class CChangeRangeCommand: public QObject, public QUndoCommand
+{
+    Q_OBJECT
+public:
+    enum { Id = 113 };
+
+    CChangeRangeCommand(CMob* pMob, int index, SRange range, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void changeRangeSignal();
+
+private:
+    CMob *m_pMob;
+    int m_index;
+    SRange m_oldRange;
+    SRange m_newRange;
+};
+
+
 #endif // UNDO_H

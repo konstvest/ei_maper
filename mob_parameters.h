@@ -81,6 +81,7 @@ public:
     void test();
     void execWsChanges(EWsType paramType, QString& value);
     void setNewRange(SRange& arrRanges, int index);
+    const CMob* mob() {return m_pCurMob;}
 
 private:
     void reset();
@@ -100,7 +101,7 @@ private slots:
 
     void on_button_minusRanges_clicked();
     void on_button_plusRanges_clicked();
-    //void rangeDone(int res);
+    void onMobUnload(CMob* pMob);
 
     void on_listRanges_itemDoubleClicked(QListWidgetItem *item);
 
@@ -108,7 +109,6 @@ private slots:
 
 private:
     Ui::CMobParameters *ui;
-    //QVector<CMob*> m_aMob;
     CMob* m_pCurMob;
     QVector<QSharedPointer<QTableWidgetItem>> m_aCell;
     QSharedPointer<QTableWidget> m_pTable;

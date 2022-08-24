@@ -28,6 +28,7 @@ class COperation;
 struct SColor;
 class CSelectFrame;
 class QTreeWidget;
+class CMobParameters;
 
 class CView : public QGLWidget
 {
@@ -112,7 +113,7 @@ public slots:
 
 signals:
     void updateMsg(QString msg);
-    void mobLoad(bool bReset);
+    void unloadMob(CMob*);
     void updateMainWindowTitle(eTitleTypeData, QString);
 
 private:
@@ -137,6 +138,7 @@ private:
     QFile m_clipboard_buffer_file;
     CMob* m_activeMob;
     QTreeWidget* m_pTree;
+    QList<CMobParameters*> m_arrParamWindow;
 };
 
 #endif // MYGLWIDGET_H

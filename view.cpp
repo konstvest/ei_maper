@@ -647,8 +647,6 @@ void CView::loadMob(QFileInfo &filePath)
     pMob->attach(this, m_pProgress);
     pMob->readMob(filePath);
     m_aMob.append(pMob);
-//    changeCurrentMob(pMob);
-//    emit mobLoad(false);
 }
 
 void CView::saveMobAs()
@@ -704,12 +702,22 @@ void CView::unloadActiveMob()
         if(m_activeMob != pMob)
             continue;
 
+        if(pMob->isDurty())
+        {
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(this, "Unload MOB", pMob->mobName() + " has unsaved changes.\nDo you want to save changes?", QMessageBox::Save|QMessageBox::No|QMessageBox::Cancel);
+            if(reply == QMessageBox::Save)
+                pMob->save();
+            else if(reply == QMessageBox::Cancel)
+                return;
+
+        }
         m_aMob.removeOne(pMob);
+        emit unloadMob(pMob);
         delete pMob;
         break;
     }
 
-    emit mobLoad(true);
     if(!m_aMob.isEmpty())
         changeCurrentMob(m_aMob.back());
     else
@@ -724,7 +732,20 @@ void CView::openActiveMobEditParams()
     if(nullptr == m_activeMob)
         return;
 
+    CMobParameters* pParamWindow = nullptr;
+
+    foreach(pParamWindow, m_arrParamWindow)
+    {
+        if(m_activeMob == pParamWindow->mob())
+        {
+            qDebug() << "mob already opened";
+            return;
+        }
+    }
+
     auto pParam = new CMobParameters(nullptr, m_activeMob);
+    QObject::connect(this, SIGNAL(unloadMob(CMob*)), pParam, SLOT(onMobUnload(CMob*)));
+    m_arrParamWindow.append(pParam);
     pParam->show();
 }
 
@@ -735,7 +756,10 @@ void CView::unloadMob(QString mobName)
     if(mobName.isEmpty())
     {
         foreach(pMob, m_aMob)
+        {
+            emit unloadMob(pMob);
             delete pMob;
+        }
         m_aMob.clear();
     }
     else
@@ -744,13 +768,14 @@ void CView::unloadMob(QString mobName)
         {
             if (pMob->mobName().toLower() == mobName.toLower())
             {
+                emit unloadMob(pMob);
                 delete pMob;
                 m_aMob.removeOne(pMob);
                 break;
             }
         }
     }
-    emit mobLoad(true);
+
     if(!m_aMob.isEmpty())
         changeCurrentMob(m_aMob.back());
     else

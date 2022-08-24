@@ -228,12 +228,14 @@ void CMobParameters::tableItemClicked(int r, int c)
 
 void CMobParameters::on_pushCancel_clicked()
 {
+    //todo: ask user, revert history and script string if answer == No(dont save)
     close();
 }
 
 void CMobParameters::on_pushApply_clicked()
 {
     m_pCurMob->setScript(ui->plainTextEdit-> toPlainText());
+    m_pUndoStack->clear();
 }
 
 Highlighter::Highlighter(QTextDocument *parent)
@@ -389,6 +391,12 @@ void CMobParameters::on_button_plusRanges_clicked()
     rangeD->setAttribute(Qt::WA_DeleteOnClose);
     rangeD->initRanges(activeRanges(), ui->listRanges->count());
     rangeD->exec();
+}
+
+void CMobParameters::onMobUnload(CMob *pMob)
+{
+    if(pMob == m_pCurMob)
+        close();
 }
 
 

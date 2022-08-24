@@ -85,6 +85,7 @@ private:
     void reset();
     void initLineEdit();
     CParamLineEdit* paramLine(EWsType param);
+    const QVector<SRange>& activeRanges();
 
 private slots:
     void updateWindow();
@@ -98,6 +99,7 @@ private slots:
 
     void on_button_minusRanges_clicked();
     void on_button_plusRanges_clicked();
+    void rangeDone(int res);
 
 private:
     Ui::CMobParameters *ui;

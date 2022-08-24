@@ -8,6 +8,7 @@
 #include "view.h"
 #include "settings.h"
 #include "undo.h"
+#include "range_dialog.h"
 
 CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     QWidget(parent)
@@ -97,6 +98,11 @@ CParamLineEdit *CMobParameters::paramLine(EWsType param)
     }
     Q_ASSERT("cant find suitable line edit" && false);
     return pEdit;
+}
+
+const QVector<SRange> &CMobParameters::activeRanges()
+{
+    return m_pCurMob->ranges(!m_pCurMob->isQuestMob());
 }
 
 
@@ -397,7 +403,27 @@ void CMobParameters::on_button_minusRanges_clicked()
 
 void CMobParameters::on_button_plusRanges_clicked()
 {
-    //m_pUndoView->show();
+    auto rangeD = new CRangeDialog(this);
+    QObject::connect(rangeD, SIGNAL(finished(int)), this, SLOT(rangeDone(int)));
+    rangeD->setAttribute(Qt::WA_DeleteOnClose);
+    uint max = 1;
+    SRange range;
+    foreach(range, activeRanges())
+    {
+        if(range.maxRange > max)
+            max = range.maxRange+1;
+    }
+    rangeD->setRanges(max, max+1000);
+
+
+    rangeD->exec();
+    //rangeD->show();
+    //setEnabled(false);
+}
+
+void CMobParameters::rangeDone(int res)
+{
+    //setEnabled(true);
 }
 
 

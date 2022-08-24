@@ -44,6 +44,7 @@ SOURCES += \
     objects/particle.cpp \
     preview.cpp \
     progressview.cpp \
+    range_dialog.cpp \
     resourcemanager.cpp \
     scene.cpp \
     sector.cpp \
@@ -86,6 +87,7 @@ HEADERS += \
     objects/particle.h \
     preview.h \
     progressview.h \
+    range_dialog.h \
     resourcemanager.h \
     scene.h \
     sector.h \
@@ -113,6 +115,7 @@ FORMS += \
         createobjectform.ui \
         main_window.ui \
         mob_parameters.ui \
+        range_dialog.ui \
         select_window.ui \
         settings.ui
 

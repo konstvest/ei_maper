@@ -745,6 +745,7 @@ void CView::openActiveMobEditParams()
 
     auto pParam = new CMobParameters(nullptr, m_activeMob);
     QObject::connect(this, SIGNAL(unloadMob(CMob*)), pParam, SLOT(onMobUnload(CMob*)));
+    QObject::connect(pParam, SIGNAL(editFinishedSignal(CMobParameters*)), this, SLOT(onMobParamEditFinished(CMobParameters*)));
     m_arrParamWindow.append(pParam);
     pParam->show();
 }

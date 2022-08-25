@@ -27,8 +27,6 @@ CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     ui->listRanges->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     m_pTable.reset(new QTableWidget(32, 32));
     QObject::connect(m_pTable.get(), SIGNAL(cellDoubleClicked(int,int)), this, SLOT(tableItemClicked(int,int)));
-    QObject::connect(ui->listRanges, SIGNAL(itemChanged(QListWidgetItem*)), this, SLOT(onListItemChanges(QListWidgetItem*)));
-    QObject::connect(ui->listRanges, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(onListItemChanges(QListWidgetItem*)));
     //m_aCell.clear();
     m_aCell.resize(32*32);
     for (int i(0); i < 32; ++i)
@@ -229,6 +227,20 @@ void CMobParameters::tableItemClicked(int r, int c)
 void CMobParameters::on_pushCancel_clicked()
 {
     //todo: ask user, revert history and script string if answer == No(dont save)
+    if(m_pUndoStack->count() != 0)
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Close", "Parameters has local changes.\nDo you want to Apply them?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+        if(reply == QMessageBox::No)
+        {
+            for(int i(0); i<m_pUndoStack->count(); ++i)
+                m_pUndoStack->undo();
+        }
+        else if(reply == QMessageBox::Cancel)
+        {
+            return;
+        }
+    }
     emit editFinishedSignal(this);
     close();
 }
@@ -237,7 +249,7 @@ void CMobParameters::on_pushApply_clicked()
 {
     m_pCurMob->setScript(ui->plainTextEdit-> toPlainText());
     m_pUndoStack->clear();
-    emit editFinishedSignal(this);
+    //emit editFinishedSignal(this);
 }
 
 Highlighter::Highlighter(QTextDocument *parent)
@@ -368,6 +380,9 @@ void CMobParameters::on_isPrimaryBox_clicked()
 void CMobParameters::on_button_minusRanges_clicked()
 {
     int index = ui->listRanges->currentRow();
+    if(index < 0)
+        return;
+
     SRange range;
     auto pRangeCommand = new CChangeRangeCommand(m_pCurMob, index, range);
     QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateWindow()));

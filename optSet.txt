@@ -4,6 +4,7 @@ version
 mouseSenseX
 mouseSenseY
 dipEditSymmetric
+rangeIncrement
 detailedLog
 Option set name:Resource
 figPaths

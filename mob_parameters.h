@@ -83,6 +83,9 @@ public:
     void setNewRange(SRange& arrRanges, int index);
     const CMob* mob() {return m_pCurMob;}
 
+signals:
+    void editFinishedSignal(CMobParameters*); //todo: add signal for pressing 'X'
+
 private:
     void reset();
     void initLineEdit();
@@ -96,15 +99,10 @@ private slots:
     void on_pushCancel_clicked();
     void on_pushApply_clicked();
     void on_isPrimaryBox_clicked();
-    void onListItemChanges(QListWidgetItem* pItem);
-    void backupItemString(QListWidgetItem* pItem);
-
     void on_button_minusRanges_clicked();
     void on_button_plusRanges_clicked();
     void onMobUnload(CMob* pMob);
-
     void on_listRanges_itemDoubleClicked(QListWidgetItem *item);
-
     void on_pushButtonOpenExtEditor_clicked();
 
 private:

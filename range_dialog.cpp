@@ -4,6 +4,8 @@
 #include <QCloseEvent>
 #include <QIntValidator>
 #include <QMessageBox>
+#include "resourcemanager.h"
+#include "settings.h"
 
 CRangeDialog::CRangeDialog(QWidget *parent) :
     QDialog(parent),
@@ -40,8 +42,10 @@ void CRangeDialog::initRanges(const QVector<SRange> &ranges, int currentIndex)
             if(range.maxRange > max)
                 max = range.maxRange+1;
         }
+        auto pSettings = CObjectList::getInstance()->settings();
+        COptInt* pOpt = dynamic_cast<COptInt*>(pSettings->opt("rangeIncrement"));
         ui->lineEditFrom->setText(QString::number(max));
-        ui->lineEditTo->setText(QString::number(max+1000));
+        ui->lineEditTo->setText(QString::number(max+ (pOpt? pOpt->value() : 1000)));
     }
     else
     {

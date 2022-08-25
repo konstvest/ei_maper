@@ -110,6 +110,7 @@ public slots:
     void updateTreeLogic();
     void execMobSwitch();
     void clearHistory();
+    void onMobParamEditFinished(CMobParameters* pMob);
 
 signals:
     void updateMsg(QString msg);

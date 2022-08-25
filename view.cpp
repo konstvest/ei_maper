@@ -1659,6 +1659,11 @@ void CView::clearHistory()
     m_pUndoStack->clear();
 }
 
+void CView::onMobParamEditFinished(CMobParameters *pMob)
+{
+    m_arrParamWindow.removeOne(pMob);
+}
+
 void CView::roundActiveMob()
 {
     if(m_aMob.isEmpty())

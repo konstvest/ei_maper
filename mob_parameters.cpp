@@ -229,6 +229,7 @@ void CMobParameters::tableItemClicked(int r, int c)
 void CMobParameters::on_pushCancel_clicked()
 {
     //todo: ask user, revert history and script string if answer == No(dont save)
+    emit editFinishedSignal(this);
     close();
 }
 
@@ -236,6 +237,7 @@ void CMobParameters::on_pushApply_clicked()
 {
     m_pCurMob->setScript(ui->plainTextEdit-> toPlainText());
     m_pUndoStack->clear();
+    emit editFinishedSignal(this);
 }
 
 Highlighter::Highlighter(QTextDocument *parent)
@@ -362,18 +364,6 @@ void CMobParameters::on_isPrimaryBox_clicked()
     //m_pCurMob->setQuestMob(ui->isPrimaryBox->isChecked());
     //updateWindow();
 }
-
-void CMobParameters::onListItemChanges(QListWidgetItem *pItem)
-{
-    qDebug() << pItem->text();
-    qDebug() << m_lastItemText;
-}
-
-void CMobParameters::backupItemString(QListWidgetItem *pItem)
-{
-    m_lastItemText = pItem->text();
-}
-
 
 void CMobParameters::on_button_minusRanges_clicked()
 {

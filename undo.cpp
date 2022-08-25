@@ -497,17 +497,11 @@ void CChangeRangeCommand::undo()
 {
     auto arrRanges(m_pMob->ranges(!m_pMob->isQuestMob()));
     if(m_newRange.isEmpty()) //undo deleting
-    {
         arrRanges.insert(m_index, m_oldRange);
-    }
-    else
-    {
-        if(m_index + 1 == arrRanges.count()) //undo appending
-            arrRanges.pop_back();
-        else //undo changing
-            arrRanges[m_index] = m_oldRange;
-    }
-
+    else if(m_oldRange.isEmpty()) // undo appending
+        arrRanges.pop_back();
+    else //undo changing
+        arrRanges[m_index] = m_oldRange;
 
     m_pMob->setRanges(!m_pMob->isQuestMob(), arrRanges);
     emit changeRangeSignal();

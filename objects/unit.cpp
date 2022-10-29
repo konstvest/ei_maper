@@ -173,7 +173,8 @@ uint CUnit::deserialize(util::CMobParser& parser)
         //"UNIT_R", eNull};
         //"UNIT_ITEMS", eNull};
     }
-    ei::log(eLogWarning, "Logic has incorrect data. Unit name:" + m_name + ". Logic count: " + QString::number(logicNum));
+    if(logicNum != 5)
+        ei::log(eLogWarning, "Logic has incorrect data. Unit name:" + m_name + ", Id:" + QString::number(m_mapID) + ". Logic count: " + QString::number(logicNum));
     //Q_ASSERT(logicNum == 5);
     Q_ASSERT((m_type==50)||(m_type==51)||(m_type==52));
     return readByte;

@@ -18,6 +18,7 @@ CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
   ,m_pView(pView)
 {
     ui->setupUi(this);
+    setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
     initLineEdit();
 
     m_pUndoStack.reset(new QUndoStack(this));
@@ -226,7 +227,6 @@ void CMobParameters::tableItemClicked(int r, int c)
 
 void CMobParameters::on_pushCancel_clicked()
 {
-    //todo: ask user, revert history and script string if answer == No(dont save)
     if(m_pUndoStack->count() != 0)
     {
         QMessageBox::StandardButton reply;

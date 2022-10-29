@@ -104,6 +104,7 @@ private slots:
     void onMobUnload(CMob* pMob);
     void on_listRanges_itemDoubleClicked(QListWidgetItem *item);
     void on_pushButtonOpenExtEditor_clicked();
+    void updateMobParamsOnly();
 
 private:
     Ui::CMobParameters *ui;

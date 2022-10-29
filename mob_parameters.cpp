@@ -71,14 +71,14 @@ void CMobParameters::test()
 void CMobParameters::execWsChanges(EWsType paramType, QString &value)
 {
     auto pCommand = new CChangeWorldSetCommand(m_pCurMob, paramType, value);
-    QObject::connect(pCommand, SIGNAL(changeWsSignal()), this, SLOT(updateWindow()));
+    QObject::connect(pCommand, SIGNAL(changeWsSignal()), this, SLOT(updateMobParamsOnly()));
     m_pUndoStack->push(pCommand);
 }
 
 void CMobParameters::setNewRange(SRange& arrRanges, int index)
 {
     auto pRangeCommand = new CChangeRangeCommand(m_pCurMob, index, arrRanges);
-    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateWindow()));
+    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateMobParamsOnly()));
     m_pUndoStack->push(pRangeCommand);
 }
 
@@ -374,7 +374,7 @@ void CMobParameters::on_isPrimaryBox_clicked()
 
     //m_pView->switchToQuestMob(m_pCurMob, !ui->isPrimaryBox->isChecked());
     auto pCommand = new CSwitchToQuestMobCommand(m_pCurMob);
-    QObject::connect(pCommand, SIGNAL(switchQuestMobSignal()), this, SLOT(updateWindow()));
+    QObject::connect(pCommand, SIGNAL(switchQuestMobSignal()), this, SLOT(updateMobParamsOnly()));
     m_pUndoStack->push(pCommand);
     //auto iii = m_pUndoStack->count();
     //convertIdRange();
@@ -390,7 +390,7 @@ void CMobParameters::on_button_minusRanges_clicked()
 
     SRange range;
     auto pRangeCommand = new CChangeRangeCommand(m_pCurMob, index, range);
-    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateWindow()));
+    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateMobParamsOnly()));
     m_pUndoStack->push(pRangeCommand);
 }
 
@@ -473,5 +473,40 @@ void CMobParameters::on_listRanges_itemDoubleClicked(QListWidgetItem *item)
 void CMobParameters::on_pushButtonOpenExtEditor_clicked()
 {
 
+}
+
+void CMobParameters::updateMobParamsOnly()
+{
+    Q_ASSERT(m_pCurMob);
+
+    QVector<SRange> range;
+    if(m_pCurMob->isQuestMob())
+    { // collect only sec rangers for quest mob
+        range = m_pCurMob->ranges(false);
+        ui->baseMobParamWidget->hide();
+    }
+    else
+    { // collect data for base mob
+        CWorldSet worldSet = m_pCurMob->worldSet();
+        for(int i(0); i<eWsTypeCount; ++i)
+        {
+            paramLine((EWsType)i)->setText(worldSet.data((EWsType)i));
+            paramLine((EWsType)i)->saveBackupValue();
+        }
+
+        range = m_pCurMob->ranges(true);
+
+        ui->baseMobParamWidget->show();
+    }
+
+    QString rangeText;
+    ui->listRanges->clear();
+    for (const auto& r : range)
+    {
+        rangeText = QString::number(r.minRange) + "-" + QString::number(r.maxRange);
+        ui->listRanges->addItem(rangeText);
+    }
+
+    ui->isPrimaryBox->setChecked(m_pCurMob->isQuestMob());
 }
 

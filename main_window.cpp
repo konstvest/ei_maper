@@ -31,7 +31,6 @@ MainWindow::MainWindow(QWidget* parent) :
     m_ui(new Ui::MainWindow)
 {
 
-
     CIconManager::getInstance()->init();
 
     m_settings.reset(new CSettings());

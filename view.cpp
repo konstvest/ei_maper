@@ -140,6 +140,8 @@ void CView::initShaders()
 
 void CView::initializeGL()
 {
+    logOpenGlData();
+    //qDebug() << QOpenGLContext::openGLModuleType();
     makeCurrent();
     qglClearColor(Qt::black);
     //glEnable(GL_EXT_texture_filter_anisotropic);
@@ -150,9 +152,10 @@ void CView::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     initShaders();
+    checkOpenGlError();
+
     CTextureList::getInstance()->initResource();
     CObjectList::getInstance()->initResource();
-    //loadResource();
     //doneCurrent();
 }
 
@@ -563,6 +566,44 @@ void CView::onParamChangeLogic(CNode *pNode, SParam& param)
         Q_ASSERT(false && "not implemented");
         break;
     }
+    }
+}
+
+QString stringFromUnsignedChar(const unsigned char *str ){
+    QString result = "";
+    int lengthOfString = strlen( reinterpret_cast<const char*>(str) );
+
+    // print string in reverse order
+    QString s;
+    for( int i = 0; i < lengthOfString; i++ ){
+        s = QString( "%1" ).arg( str[i], 0, 16 );
+
+        // account for single-digit hex values (always must serialize as two digits)
+        if( s.length() == 1 )
+            result.append( "0" );
+
+        result.append( s );
+    }
+
+    return result;
+}
+
+void CView::logOpenGlData()
+{
+    const GLubyte * version = glGetString(GL_VERSION);
+    ei::log(eLogInfo, (char*)version);
+    const GLubyte * funcs = glGetString(GL_EXTENSIONS);
+    ei::log(eLogInfo, (char*)funcs);
+}
+
+void CView::checkOpenGlError()
+{
+    GLenum errCode;
+    errCode = glGetError();
+    if (errCode != GL_NO_ERROR)
+    {
+        ei::log(eLogError, "OpenGL error: " + QString::number(errCode));
+
     }
 }
 
@@ -1515,10 +1556,15 @@ void CView::unHideAll()
 
 }
 
-void CView::setDurty()
+void CView::setDurty(CMob* pMob)
 {
-    m_activeMob->setDurty(true);
-    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "*");
+    if(pMob && pMob != m_activeMob)
+        pMob->setDurty();
+    else
+    {
+        m_activeMob->setDurty(true);
+        emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "*");
+    }
 }
 
 void CView::resetCamPosition()

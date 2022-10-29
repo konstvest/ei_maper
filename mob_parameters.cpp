@@ -230,7 +230,7 @@ void CMobParameters::on_pushCancel_clicked()
     if(m_pUndoStack->count() != 0)
     {
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Close", "Parameters has local changes.\nDo you want to Apply them?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+        reply = QMessageBox::question(this, "Closing", "Parameters has local changes.\nDo you want to Apply them?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
         if(reply == QMessageBox::No)
         {
             for(int i(0); i<m_pUndoStack->count(); ++i)
@@ -240,6 +240,7 @@ void CMobParameters::on_pushCancel_clicked()
         {
             return;
         }
+        m_pView->setDurty(m_pCurMob);
     }
     emit editFinishedSignal(this);
     close();
@@ -247,9 +248,13 @@ void CMobParameters::on_pushCancel_clicked()
 
 void CMobParameters::on_pushApply_clicked()
 {
-    m_pCurMob->setScript(ui->plainTextEdit-> toPlainText());
-    m_pUndoStack->clear();
-    //emit editFinishedSignal(this);
+    m_pCurMob->setScript(ui->plainTextEdit-> toPlainText()); //todo: check changes for plain text (script)
+    if(m_pUndoStack->count() > 0)
+    {
+        m_pUndoStack->clear();
+        m_pView->setDurty(m_pCurMob);
+    }
+
 }
 
 Highlighter::Highlighter(QTextDocument *parent)

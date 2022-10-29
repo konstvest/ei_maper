@@ -71,7 +71,7 @@ public:
     void unHideAll();
     CMob* currentMob() {return m_activeMob;}
     QOpenGLShaderProgram& shaderObject() {return m_program;}
-    void setDurty();
+    void setDurty(CMob* pMob = nullptr);
     void resetCamPosition();
     void addLogicPoint(bool bLookPoint = false);
     void copySelectedIDsToClipboard();
@@ -98,8 +98,9 @@ private:
     int cauntSelectedNodes();
     void applyParam(SParam& param);
     void getColorFromRect(const QRect& rect, QVector<SColor>& aColor);
-
     void onParamChangeLogic(CNode* pNode, SParam& sParam);
+    void logOpenGlData();
+    void checkOpenGlError();
 
 public slots:
     void updateWindow();

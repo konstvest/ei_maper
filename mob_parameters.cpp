@@ -131,6 +131,21 @@ void CMobParameters::generateTitle()
     setWindowTitle(title);
 }
 
+void colorizeCell(QTableWidgetItem* pCell, int value)
+{
+    switch (value)
+    {
+    case 0:
+        pCell->setBackground(Qt::yellow);
+        break;
+    case 1:
+        pCell->setBackground(Qt::green);
+        break;
+    case 2:
+        pCell->setBackground(Qt::red);
+        break;
+    }
+}
 
 void CMobParameters::updateWindow()
 {
@@ -174,6 +189,7 @@ void CMobParameters::updateWindow()
     //diplomacy
     QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
     QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
+    int val;
     if(!dipName.isEmpty() && !dipTable.isEmpty())
     {
         Q_ASSERT(dipName.size() == 32);
@@ -182,7 +198,15 @@ void CMobParameters::updateWindow()
             for (int j(0); j < dipTable[i].size(); ++j)
             {
                 auto pCell = m_aCell[i*32 + j];
-                pCell->setText(QString::number(dipTable[i][j]));
+                val = dipTable[i][j];
+                pCell->setText(QString::number(val));
+                if(i == j)
+                    pCell->setBackground(QBrush(Qt::gray));
+                else
+                {
+                    colorizeCell(pCell.get(), val);
+                }
+                pCell->setTextColor(Qt::black);
                 pCell->setFlags(pCell->flags() & ~Qt::ItemIsEditable);
             }
         }
@@ -559,7 +583,9 @@ void CMobParameters::updateDiplomacyTable(int row, int column)
     {
         Q_ASSERT(dipName.size() == 32);
         auto pCell = m_aCell[row*32 + column];
-        pCell->setText(QString::number(dipTable[row][column]));
+        int value = dipTable[row][column];
+        pCell->setText(QString::number(value));
+        colorizeCell(pCell.get(), value);
     }
 }
 

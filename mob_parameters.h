@@ -108,6 +108,8 @@ private slots:
     void on_listRanges_itemDoubleClicked(QListWidgetItem *item);
     void on_pushButtonOpenExtEditor_clicked();
     void updateMobParamsOnly();
+    void updateDiplomacyTable();
+    void updateDiplomacyTable(int row, int column);
     void on_pushCheck_clicked();
     void onSaveShortcut();
 

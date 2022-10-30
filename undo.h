@@ -302,5 +302,30 @@ private:
     SRange m_newRange;
 };
 
+class CChangeDiplomacyTableItem: public QObject, public QUndoCommand
+{
+    Q_OBJECT
+public:
+    enum { Id = 114 };
+
+    CChangeDiplomacyTableItem(CMob* pMob, int row, int column, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void changeDipGroup(int,int);
+
+private:
+    CMob *m_pMob;
+    int m_row;
+    int m_column;
+    int m_oldValue;
+    int m_oldValueSymetric;
+    bool m_bSymmetric;
+};
+
 
 #endif // UNDO_H

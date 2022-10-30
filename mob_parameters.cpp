@@ -173,7 +173,7 @@ void CMobParameters::updateWindow()
 
     //diplomacy
     QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
-    QVector<QVector<uint>> dipTable = m_pCurMob->diplomacyField();
+    QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
     if(!dipName.isEmpty() && !dipTable.isEmpty())
     {
         Q_ASSERT(dipName.size() == 32);
@@ -232,17 +232,9 @@ void CMobParameters::tableItemClicked(int r, int c)
     if (r==c)
         return;
 
-    QTableWidgetItem* item = m_pTable->item(r, c);
-    int i = item->text().toInt();
-    ++i;
-    i = i%3;
-    item->setText(QString::number(i));
-    COptBool* pOpt = dynamic_cast<COptBool*>(m_pCurMob->view()->settings()->opt("dipEditSymmetric"));
-    if(pOpt && pOpt->value())
-    {
-        item = m_pTable->item(c, r);
-        item->setText(QString::number(i));
-    }
+    auto pCommand = new CChangeDiplomacyTableItem(m_pCurMob, r, c);
+    QObject::connect(pCommand, SIGNAL(changeDipGroup(int,int)), this, SLOT(updateDiplomacyTable(int,int)));
+    m_pUndoStack->push(pCommand);
 }
 
 void CMobParameters::on_pushCancel_clicked()
@@ -278,7 +270,8 @@ void CMobParameters::on_pushApply_clicked()
         m_pUndoStack->clear();
         m_pView->setDurty(m_pCurMob);
     }
-
+    emit editFinishedSignal(this);
+    close();
 }
 
 Highlighter::Highlighter(QTextDocument *parent)
@@ -535,6 +528,39 @@ void CMobParameters::updateMobParamsOnly()
 
     ui->isPrimaryBox->setChecked(m_pCurMob->isQuestMob());
     setDurty(true);
+}
+
+void CMobParameters::updateDiplomacyTable()
+{
+    //diplomacy
+    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    const QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
+    if(!dipName.isEmpty() && !dipTable.isEmpty())
+    {
+        Q_ASSERT(dipName.size() == 32);
+        for (int i(0); i < dipTable.size(); ++i)
+        {
+            for (int j(0); j < dipTable[i].size(); ++j)
+            {
+                auto pCell = m_aCell[i*32 + j];
+                pCell->setText(QString::number(dipTable[i][j]));
+                //pCell->setFlags(pCell->flags() & ~Qt::ItemIsEditable);
+            }
+        }
+    }
+}
+
+void CMobParameters::updateDiplomacyTable(int row, int column)
+{
+    //diplomacy
+    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    const QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
+    if(!dipName.isEmpty() && !dipTable.isEmpty())
+    {
+        Q_ASSERT(dipName.size() == 32);
+        auto pCell = m_aCell[row*32 + column];
+        pCell->setText(QString::number(dipTable[row][column]));
+    }
 }
 
 

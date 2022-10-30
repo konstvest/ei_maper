@@ -4,6 +4,8 @@
 #include "mob.h"
 #include "objects/unit.h"
 #include "objects/magictrap.h"
+#include "options.h"
+#include "settings.h"
 
 
 COpenCommand::COpenCommand(CView* pView, QFileInfo& path, MainWindow* pMain, QUndoCommand *parent):
@@ -530,4 +532,56 @@ void CChangeRangeCommand::redo()
     }
     m_pMob->setRanges(!m_pMob->isQuestMob(), arrRanges);
     emit changeRangeSignal();
+}
+
+CChangeDiplomacyTableItem::CChangeDiplomacyTableItem(CMob *pMob, int row, int column, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pMob(pMob)
+  ,m_row(row)
+  ,m_column(column)
+  ,m_bSymmetric(true)
+{
+    COptBool* pOpt = dynamic_cast<COptBool*>(pMob->view()->settings()->opt("dipEditSymmetric"));
+    if (pOpt)
+        m_bSymmetric = pOpt->value();
+}
+
+void CChangeDiplomacyTableItem::undo()
+{
+    if (m_oldValue < 0)
+        return;
+
+    QVector<QVector<uint>>& dipTable = m_pMob->diplomacyField();
+    if(dipTable.isEmpty())
+    {
+        m_oldValue = -1;
+        return;
+    }
+    dipTable[m_row][m_column] = m_oldValue;
+    dipTable[m_column][m_row] = m_oldValueSymetric;
+    emit changeDipGroup(m_row, m_column);
+    emit changeDipGroup(m_column, m_row);
+}
+
+void CChangeDiplomacyTableItem::redo()
+{
+    QVector<QVector<uint>>& dipTable = m_pMob->diplomacyField();
+    if(dipTable.isEmpty())
+    {
+        m_oldValue = -1;
+        return;
+    }
+    m_oldValue = dipTable[m_row][m_column];
+    m_oldValueSymetric = dipTable[m_column][m_row];
+    int value = m_oldValue;
+    ++ value;
+    value = value % 3;
+    dipTable[m_row][m_column] = value;
+    emit changeDipGroup(m_row, m_column);
+    if(m_bSymmetric)
+    {
+        dipTable[m_column][m_row] = value;
+        emit changeDipGroup(m_column, m_row);
+    }
+    setText("Dip group (" + QString::number(m_row) + ", " + QString::number(m_column) + ") changed to " + QString::number(value));
 }

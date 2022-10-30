@@ -140,7 +140,7 @@ void CView::initShaders()
 
 void CView::initializeGL()
 {
-    logOpenGlData();
+    //logOpenGlData();
     //qDebug() << QOpenGLContext::openGLModuleType();
     makeCurrent();
     qglClearColor(Qt::black);
@@ -784,7 +784,7 @@ void CView::openActiveMobEditParams()
         }
     }
 
-    auto pParam = new CMobParameters(nullptr, m_activeMob);
+    auto pParam = new CMobParameters(nullptr, m_activeMob, this);
     QObject::connect(this, SIGNAL(unloadMob(CMob*)), pParam, SLOT(onMobUnload(CMob*)));
     QObject::connect(pParam, SIGNAL(editFinishedSignal(CMobParameters*)), this, SLOT(onMobParamEditFinished(CMobParameters*)));
     m_arrParamWindow.append(pParam);

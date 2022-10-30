@@ -10,6 +10,7 @@
 #include <QSyntaxHighlighter>
 #include <QListWidgetItem>
 #include <QLineEdit>
+#include <QShortcut>
 
 #include "mob.h"
 
@@ -91,6 +92,8 @@ private:
     void initLineEdit();
     CParamLineEdit* paramLine(EWsType param);
     const QVector<SRange>& activeRanges();
+    void setDurty(bool isDurty);
+    void generateTitle();
 
 private slots:
     void updateWindow();
@@ -105,6 +108,8 @@ private slots:
     void on_listRanges_itemDoubleClicked(QListWidgetItem *item);
     void on_pushButtonOpenExtEditor_clicked();
     void updateMobParamsOnly();
+    void on_pushCheck_clicked();
+    void onSaveShortcut();
 
 private:
     Ui::CMobParameters *ui;
@@ -116,6 +121,8 @@ private:
     CView* m_pView;
     QSharedPointer<QUndoStack> m_pUndoStack;
     QVector<CParamLineEdit*> m_arrMobParam;
+    bool m_isDurty;
+    QShortcut* m_pShortcut;
 };
 
 //a header view that renders text vertically

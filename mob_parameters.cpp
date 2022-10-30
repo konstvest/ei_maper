@@ -2,6 +2,7 @@
 #include <QMessageBox>
 #include <QTextBlock>
 
+
 #include "mob_parameters.h"
 #include "ui_mob_parameters.h"
 #include "utils.h"
@@ -16,6 +17,8 @@ CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
   ,m_pCurMob(pMob)
   ,m_pHighlighter(nullptr)
   ,m_pView(pView)
+  ,m_isDurty(false)
+  ,m_pShortcut(nullptr)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
@@ -24,10 +27,11 @@ CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     m_pUndoStack.reset(new QUndoStack(this));
     ui->undoViewMob->setStack(m_pUndoStack.get());
 
-    setWindowTitle("Mob Parameters: " + m_pCurMob->filePath().absoluteFilePath());
+    generateTitle();
     ui->listRanges->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     m_pTable.reset(new QTableWidget(32, 32));
     QObject::connect(m_pTable.get(), SIGNAL(cellDoubleClicked(int,int)), this, SLOT(tableItemClicked(int,int)));
+    m_pShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(onSaveShortcut()));
     //m_aCell.clear();
     m_aCell.resize(32*32);
     for (int i(0); i < 32; ++i)
@@ -48,6 +52,7 @@ CMobParameters::~CMobParameters()
 {
     m_aCell.clear();
     m_pTable.clear();
+    delete m_pShortcut;
 }
 
 void CMobParameters::reset()
@@ -109,6 +114,21 @@ CParamLineEdit *CMobParameters::paramLine(EWsType param)
 const QVector<SRange> &CMobParameters::activeRanges()
 {
     return m_pCurMob->ranges(!m_pCurMob->isQuestMob());
+}
+
+void CMobParameters::setDurty(bool isDurty)
+{
+    m_isDurty = isDurty;
+    generateTitle();
+}
+
+void CMobParameters::generateTitle()
+{
+    QString title("Mob Parameters: " + m_pCurMob->filePath().absoluteFilePath());
+    if (m_isDurty)
+        title += " *";
+
+    setWindowTitle(title);
 }
 
 
@@ -231,7 +251,11 @@ void CMobParameters::on_pushCancel_clicked()
     {
         QMessageBox::StandardButton reply;
         reply = QMessageBox::question(this, "Closing", "Parameters has local changes.\nDo you want to Apply them?", QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
-        if(reply == QMessageBox::No)
+        if(reply == QMessageBox::Yes)
+        {
+            m_pView->setDurty(m_pCurMob);
+        }
+        else if(reply == QMessageBox::No)
         {
             for(int i(0); i<m_pUndoStack->count(); ++i)
                 m_pUndoStack->undo();
@@ -240,7 +264,7 @@ void CMobParameters::on_pushCancel_clicked()
         {
             return;
         }
-        m_pView->setDurty(m_pCurMob);
+
     }
     emit editFinishedSignal(this);
     close();
@@ -376,6 +400,7 @@ void CMobParameters::on_isPrimaryBox_clicked()
     auto pCommand = new CSwitchToQuestMobCommand(m_pCurMob);
     QObject::connect(pCommand, SIGNAL(switchQuestMobSignal()), this, SLOT(updateMobParamsOnly()));
     m_pUndoStack->push(pCommand);
+
     //auto iii = m_pUndoStack->count();
     //convertIdRange();
     //m_pCurMob->setQuestMob(ui->isPrimaryBox->isChecked());
@@ -479,10 +504,10 @@ void CMobParameters::updateMobParamsOnly()
 {
     Q_ASSERT(m_pCurMob);
 
-    QVector<SRange> range;
+    QVector<SRange> arrRange;
     if(m_pCurMob->isQuestMob())
     { // collect only sec rangers for quest mob
-        range = m_pCurMob->ranges(false);
+        arrRange = m_pCurMob->ranges(false);
         ui->baseMobParamWidget->hide();
     }
     else
@@ -494,19 +519,34 @@ void CMobParameters::updateMobParamsOnly()
             paramLine((EWsType)i)->saveBackupValue();
         }
 
-        range = m_pCurMob->ranges(true);
+        arrRange = m_pCurMob->ranges(true);
 
         ui->baseMobParamWidget->show();
     }
 
     QString rangeText;
     ui->listRanges->clear();
-    for (const auto& r : range)
+    SRange range;
+    foreach(range, arrRange)
     {
-        rangeText = QString::number(r.minRange) + "-" + QString::number(r.maxRange);
+        rangeText = QString::number(range.minRange) + "-" + QString::number(range.maxRange);
         ui->listRanges->addItem(rangeText);
     }
 
     ui->isPrimaryBox->setChecked(m_pCurMob->isQuestMob());
+    setDurty(true);
+}
+
+
+void CMobParameters::on_pushCheck_clicked()
+{
+
+}
+
+void CMobParameters::onSaveShortcut()
+{
+    ui->plainTextEdit->document()->clearUndoRedoStacks();
+    m_pUndoStack->clear();
+    setDurty(false);
 }
 

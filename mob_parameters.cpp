@@ -136,13 +136,13 @@ void colorizeCell(QTableWidgetItem* pCell, int value)
     switch (value)
     {
     case 0:
-        pCell->setBackground(Qt::yellow);
+        pCell->setBackground(Qt::darkYellow);
         break;
     case 1:
-        pCell->setBackground(Qt::green);
+        pCell->setBackground(Qt::darkGreen);
         break;
     case 2:
-        pCell->setBackground(Qt::red);
+        pCell->setBackground(Qt::darkRed);
         break;
     }
 }
@@ -206,7 +206,7 @@ void CMobParameters::updateWindow()
                 {
                     colorizeCell(pCell.get(), val);
                 }
-                pCell->setTextColor(Qt::black);
+                pCell->setTextColor(Qt::white);
                 pCell->setFlags(pCell->flags() & ~Qt::ItemIsEditable);
             }
         }

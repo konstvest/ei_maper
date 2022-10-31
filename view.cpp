@@ -61,6 +61,12 @@ void CView::updateReadState(EReadState state)
 
 CView::~CView()
 {
+//    for(auto& param : m_arrParamWindow)
+//    {
+//        param->close();
+//        delete param;
+//    }
+
     for(auto& mob: m_aMob)
         delete mob;
 }

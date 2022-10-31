@@ -370,7 +370,10 @@ void MainWindow::on_actionOpen_2_triggered()
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     if(isExitAllowed())
+    {
+        //m_pView->~CView();
         close();
+    }
     else
         e->ignore();
 }

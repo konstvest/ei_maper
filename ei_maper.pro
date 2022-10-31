@@ -29,7 +29,7 @@ SOURCES += \
     dynamiccombobox.cpp \
     key_manager.cpp \
     main_window.cpp \
-    mobparameters.cpp \
+    mob_parameters.cpp \
     objects/lever.cpp \
     objects/light.cpp \
     log.cpp \
@@ -44,6 +44,7 @@ SOURCES += \
     objects/particle.cpp \
     preview.cpp \
     progressview.cpp \
+    range_dialog.cpp \
     resourcemanager.cpp \
     scene.cpp \
     sector.cpp \
@@ -72,7 +73,7 @@ HEADERS += \
     dynamiccombobox.h \
     key_manager.h \
     main_window.h \
-    mobparameters.h \
+    mob_parameters.h \
     objects/lever.h \
     objects/light.h \
     log.h \
@@ -86,6 +87,7 @@ HEADERS += \
     objects/particle.h \
     preview.h \
     progressview.h \
+    range_dialog.h \
     resourcemanager.h \
     scene.h \
     sector.h \
@@ -112,7 +114,8 @@ HEADERS += \
 FORMS += \
         createobjectform.ui \
         main_window.ui \
-        mobParameters.ui \
+        mob_parameters.ui \
+        range_dialog.ui \
         select_window.ui \
         settings.ui
 

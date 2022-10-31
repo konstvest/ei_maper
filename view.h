@@ -22,13 +22,13 @@ class CStringItem;
 class QUndoStack;
 struct SParam;
 class CComboBoxItem;
-class CMobParameters;
 class CProgressView;
 class CTableManager;
 class COperation;
 struct SColor;
 class CSelectFrame;
 class QTreeWidget;
+class CMobParameters;
 
 class CView : public QGLWidget
 {
@@ -46,6 +46,7 @@ public:
     void saveActiveMob();
     void saveAllMob();
     void unloadActiveMob();
+    void openActiveMobEditParams();
     void unloadMob(QString mobName);
     void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, QTreeWidget* pTree);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
@@ -70,7 +71,7 @@ public:
     void unHideAll();
     CMob* currentMob() {return m_activeMob;}
     QOpenGLShaderProgram& shaderObject() {return m_program;}
-    void setDurty();
+    void setDurty(CMob* pMob = nullptr);
     void resetCamPosition();
     void addLogicPoint(bool bLookPoint = false);
     void copySelectedIDsToClipboard();
@@ -97,8 +98,9 @@ private:
     int cauntSelectedNodes();
     void applyParam(SParam& param);
     void getColorFromRect(const QRect& rect, QVector<SColor>& aColor);
-
     void onParamChangeLogic(CNode* pNode, SParam& sParam);
+    void logOpenGlData();
+    void checkOpenGlError();
 
 public slots:
     void updateWindow();
@@ -109,10 +111,11 @@ public slots:
     void updateTreeLogic();
     void execMobSwitch();
     void clearHistory();
+    void onMobParamEditFinished(CMobParameters* pMob);
 
 signals:
     void updateMsg(QString msg);
-    void mobLoad(bool bReset);
+    void unloadMob(CMob*);
     void updateMainWindowTitle(eTitleTypeData, QString);
 
 private:
@@ -137,6 +140,7 @@ private:
     QFile m_clipboard_buffer_file;
     CMob* m_activeMob;
     QTreeWidget* m_pTree;
+    QList<CMobParameters*> m_arrParamWindow;
 };
 
 #endif // MYGLWIDGET_H

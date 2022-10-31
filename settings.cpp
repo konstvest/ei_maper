@@ -19,6 +19,7 @@ CSettings::CSettings(QWidget *parent) :
   ,m_version(2.0)
 {
     ui->setupUi(this);
+    ui->rangeIncrement->setValidator(new QIntValidator(1, 1000000, this));
     initOptions();
     readOptions();
 }
@@ -65,7 +66,13 @@ void CSettings::onShow(EOptSet optSet)
             QLineEdit* le = ui->tabWidget->findChild<QLineEdit*>(option->name());
             if(le != nullptr)
             {
-                le->setText(dynamic_cast<COptString*>(option.get())->value());
+                COptString* pOpt = dynamic_cast<COptString*>(option.get());
+                if(pOpt)
+                    le->setText(pOpt->value());
+
+                COptInt* pOptInt = dynamic_cast<COptInt*>(option.get());
+                if(pOptInt)
+                    le->setText(QString::number(pOptInt->value()));
             }
         }
     }
@@ -151,6 +158,10 @@ void CSettings::updateOptUi()
                 QSlider* pSlider = ui->tabWidget->findChild<QSlider*>(pOpt->name());
                 if (pSlider)
                     pSlider->setValue(pOpt->value());
+
+                QLineEdit* pLine = ui->tabWidget->findChild<QLineEdit*>(pOpt->name());
+                if (pLine)
+                    pLine->setText(QString::number(pOpt->value()));
             }
             else if(COptStringList* pOpt = dynamic_cast<COptStringList*>(opt.get()))
             {
@@ -198,6 +209,10 @@ void CSettings::updateOptFromUi()
                 QSlider* pSlider = ui->tabWidget->findChild<QSlider*>(pOpt->name());
                 if (pSlider)
                     pOpt->setValue(pSlider->value());
+
+                QLineEdit* pLine = ui->tabWidget->findChild<QLineEdit*>(pOpt->name());
+                if (pLine)
+                    pOpt->setValue(pLine->text().toInt());
             }
             else if (COptStringList* pOpt = dynamic_cast<COptStringList*>(opt.get()))
             {
@@ -238,6 +253,7 @@ void CSettings::initOptions()
     aOpt.append(QSharedPointer<COpt>(new COptDouble("version", m_version)));
     aOpt.append(QSharedPointer<COpt>(new COptInt("mouseSenseX", 25)));
     aOpt.append(QSharedPointer<COpt>(new COptInt("mouseSenseY", 25)));
+    aOpt.append(QSharedPointer<COpt>(new COptInt("rangeIncrement", 999)));
 
     //split options into different category
     QFile inputFile(":/optSet.txt");

@@ -140,6 +140,38 @@ enum EObjParam
 
 };
 
+enum EMobType
+{
+    eEMobTypeQuest
+    ,eEMobTypeBase
+};
+
+enum EWsType
+{
+    eWsTypeWindDir = 0
+    ,eWsTypeWindStr
+    ,eWsTypeSunLight
+    ,eWsTypeTime
+    ,eWsTypeAmbient
+    ,eWsTypeCount
+};
+
+class CWorldSet
+{
+public:
+    CWorldSet();
+    CWorldSet(const CWorldSet& ws);
+    void serializeJson(QJsonObject& obj);
+    void setData(EWsType type, QString data) {m_arrData[type] = data;}
+    const QString& data(EWsType type) {return m_arrData[type];}
+
+private:
+    void reset();
+
+private:
+    QMap<EWsType, QString> m_arrData;
+};
+
 class CBox
 {
 public:
@@ -194,7 +226,9 @@ struct SRange
 {
     SRange();
     SRange(const SRange& range) {minRange = range.minRange; maxRange = range.maxRange;}
+    SRange& operator= (const SRange& range) {minRange = range.minRange; maxRange = range.maxRange; return *this;}
     SRange(uint min, uint max) {minRange = min; maxRange = max;}
+    bool isEmpty() {return minRange == 0 && maxRange == 0;}
     uint minRange;
     uint maxRange;
 };

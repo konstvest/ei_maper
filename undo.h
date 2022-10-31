@@ -2,6 +2,7 @@
 #define UNDO_H
 #include <QUndoCommand>
 #include <QJsonObject>
+#include <QMessageBox>
 #include "view.h"
 
 class MainWindow;
@@ -225,5 +226,106 @@ private:
     MainWindow* m_pMain;
 
 };
+
+
+class CSwitchToQuestMobCommand: public QObject, public QUndoCommand
+{
+    Q_OBJECT
+
+public:
+    enum { Id = 111 };
+
+    CSwitchToQuestMobCommand(CMob* pMob, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void switchQuestMobSignal();
+
+private:
+    CMob* m_pMob;
+    bool m_bQuestMob;
+    QMessageBox::StandardButton m_userAnswer;
+    CWorldSet m_oldWS;
+    QVector<SRange> m_arrOldMnR;
+    QVector<SRange> m_arrOldScR;
+    QVector<QVector<uint>> m_oldDiplomacyFoF;
+    QVector<QString> m_arrOldDiplomacyFieldName; // can be deleted if use only 'default names from player-0 to player-31
+};
+
+class CChangeWorldSetCommand : public QObject, public QUndoCommand
+{
+    Q_OBJECT
+public:
+    enum { Id = 112 };
+
+    CChangeWorldSetCommand(CMob* pMob, EWsType paramType, QString& value, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void changeWsSignal();
+
+private:
+    CMob* m_pMob;
+    EWsType m_paramType;
+    QString m_oldValue;
+    QString m_newValue;
+};
+
+class CChangeRangeCommand: public QObject, public QUndoCommand
+{
+    Q_OBJECT
+public:
+    enum { Id = 113 };
+
+    CChangeRangeCommand(CMob* pMob, int index, SRange range, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void changeRangeSignal();
+
+private:
+    CMob *m_pMob;
+    int m_index;
+    SRange m_oldRange;
+    SRange m_newRange;
+};
+
+class CChangeDiplomacyTableItem: public QObject, public QUndoCommand
+{
+    Q_OBJECT
+public:
+    enum { Id = 114 };
+
+    CChangeDiplomacyTableItem(CMob* pMob, int row, int column, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void changeDipGroup(int,int);
+
+private:
+    CMob *m_pMob;
+    int m_row;
+    int m_column;
+    int m_oldValue;
+    int m_oldValueSymetric;
+    bool m_bSymmetric;
+};
+
 
 #endif // UNDO_H

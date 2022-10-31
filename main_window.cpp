@@ -17,7 +17,7 @@
 #include "createobjectform.h"
 #include "mob.h"
 #include "undo.h"
-#include "mobparameters.h"
+#include "mob_parameters.h"
 #include "ui_connectors.h"
 #include "preview.h"
 #include "log.h"
@@ -31,12 +31,10 @@ MainWindow::MainWindow(QWidget* parent) :
     m_ui(new Ui::MainWindow)
 {
 
-
     CIconManager::getInstance()->init();
 
     m_settings.reset(new CSettings());
     m_selector.reset(new CSelector());
-    m_mobParams.reset(new CMobParameters());
     m_createDialog.reset(new CCreateObjectForm());
     m_settings->attachMainWindow(this);
     m_ui->setupUi(this); //init CView core also
@@ -66,7 +64,6 @@ MainWindow::MainWindow(QWidget* parent) :
     connectUiButtons();
     m_pView->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText, m_ui->treeWidget);
     initShortcuts();
-    QObject::connect(m_pView, SIGNAL(mobLoad(bool)), this, SLOT(updateMobListInParam(bool)));
     QObject::connect(m_pView, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
     QObject::connect(CScene::getInstance(), SIGNAL(modeChanged()), m_pView, SLOT(viewParameters()));
 
@@ -230,16 +227,9 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_action_Mob_parameters_triggered()
 {
-    updateMobListInParam(false);
-    m_mobParams->show();
+    m_pView->openActiveMobEditParams();
 }
 
-void MainWindow::updateMobListInParam(bool bReset)
-{
-    if(bReset)
-        m_mobParams->reset();
-    m_mobParams->initMobList(m_pView->mobs());
-}
 
 void MainWindow::on_actionUndo_triggered()
 {
@@ -380,7 +370,10 @@ void MainWindow::on_actionOpen_2_triggered()
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     if(isExitAllowed())
+    {
+        //m_pView->~CView();
         close();
+    }
     else
         e->ignore();
 }

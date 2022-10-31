@@ -13,22 +13,6 @@
 
 class CView;
 
-struct SWorldSet
-{
-    QVector3D m_windDirection;
-    float m_windStrength;
-    float m_time;
-    float m_ambient;
-    float m_sunLight; //power of sunlight ?!
-    bool bInit;
-};
-
-enum EMobOrder
-{
-    eEMobOrderPrimary
-    ,eEMobOrderSecondary
-};
-
 class CProgressView;
 class CPatrolPoint;
 class CLookPoint;
@@ -63,22 +47,23 @@ public:
     QString mobName();
     const QFileInfo& filePath() {return m_filePath;}
     void setFileName(const QFileInfo& fileInfo) {m_filePath = fileInfo;}
-    const SWorldSet& worldSet() {return m_worldSet;}
-    void setWorldSet(const SWorldSet& ws){m_worldSet = ws;}
-    const QVector<SRange>& mainRanges() {return m_aMainRange;}
-    void setMainRanges(const QVector<SRange>& range) {m_aMainRange = range;}
-    const QVector<SRange>& secRanges() {return m_aSecRange;}
-    void setSecRanges(const QVector<SRange>& range) {m_aSecRange = range;}
+    const CWorldSet& worldSet() {return m_worldSet;}
+    void setWorldSet(const CWorldSet& ws){m_worldSet = ws;}
+    const QVector<SRange>& ranges(bool bMain);
+    void setRanges(bool bMain, const QVector<SRange>& range);
+    void clearRanges(bool bMain);
     const QVector<QString>& diplomacyNames() {return m_aDiplomacyFieldName;}
+    void setDiplomacyNames(QVector<QString>& arrName) {m_aDiplomacyFieldName = arrName;}
     QVector<QVector<uint>>& diplomacyField() {return m_diplomacyFoF;}
-    //void getDiplomacyField(QVector<QVector<uint>>& df) {df = m_diplomacyFoF;}
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
     void setScript(const QString& script) {m_script = script;}
-    void setPrimaryMob(bool bPrimary = true) {m_order = bPrimary ? eEMobOrderPrimary : eEMobOrderSecondary;}
-    bool isPrimaryMob() {return m_order == EMobOrder::eEMobOrderPrimary;}
+    void setQuestMob(bool bQuest = true) {m_mobType = bQuest ? eEMobTypeQuest : eEMobTypeBase;}
+    bool isQuestMob() {return m_mobType == EMobType::eEMobTypeQuest;}
     void setDurty(bool bDurty = true) {m_bDurty = bDurty;}
     bool isDurty() {return m_bDurty;}
+    void generateDiplomacyTable();
+    void clearDiplomacyTable();
 
     //functions for logic processing
     QList<CNode*>& logicNodes();
@@ -96,9 +81,9 @@ public:
     CTrapCastPoint* trapCastById(int trapId, int pointId);
     uint trapIdByPoint(CActivationZone* pZone);
     uint trapIdByPoint(CTrapCastPoint* pPoint);
+    // <== end functions of logic
 
 private:
-    void init();
     QString getAuxDirName();
     bool deserialize(QByteArray data);
     void updateObjects();
@@ -118,7 +103,7 @@ private:
     QVector<SRange> m_aSecRange;
     QVector<QVector<uint>> m_diplomacyFoF;
     QVector<QString> m_aDiplomacyFieldName;
-    SWorldSet m_worldSet;
+    CWorldSet m_worldSet;
     QByteArray m_vss_section;
     QByteArray m_directory;
     QByteArray m_directoryElements;
@@ -128,7 +113,7 @@ private:
     QList<CNode*> m_aNode;
     QList<CNode*> m_aDeletedNode;
     QList<CNode*> m_aLogicNode;
-    EMobOrder m_order;
+    EMobType m_mobType;
     bool m_bDurty;
 };
 

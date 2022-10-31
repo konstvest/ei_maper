@@ -4,6 +4,9 @@
 #include "mob.h"
 #include "objects/unit.h"
 #include "objects/magictrap.h"
+#include "options.h"
+#include "settings.h"
+
 
 COpenCommand::COpenCommand(CView* pView, QFileInfo& path, MainWindow* pMain, QUndoCommand *parent):
     QUndoCommand(parent)
@@ -401,4 +404,184 @@ void CCloseActiveMobCommand::redo()
         setText("unloaded " + pMob->mobName());
         m_pView->unloadActiveMob();
     }
+}
+
+CSwitchToQuestMobCommand::CSwitchToQuestMobCommand(CMob* pMob, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pMob(pMob)
+  ,m_userAnswer(QMessageBox::NoButton)
+{
+    m_bQuestMob = m_pMob->isQuestMob();
+    m_oldWS = m_pMob->worldSet();
+    m_arrOldMnR = m_pMob->ranges(true);
+    m_arrOldScR = m_pMob->ranges(false);
+    m_oldDiplomacyFoF = m_pMob->diplomacyField();
+    m_arrOldDiplomacyFieldName = m_pMob->diplomacyNames();
+}
+
+void CSwitchToQuestMobCommand::undo()
+{
+    m_pMob->setQuestMob(m_bQuestMob);
+    m_pMob->setWorldSet(m_oldWS);
+    m_pMob->setRanges(true, m_arrOldMnR);
+    m_pMob->setRanges(false, m_arrOldScR);
+    m_pMob->setDiplomacyField(m_oldDiplomacyFoF);
+    m_pMob->setDiplomacyNames(m_arrOldDiplomacyFieldName);
+    emit switchQuestMobSignal();
+}
+
+void CSwitchToQuestMobCommand::redo()
+{
+    auto arrRange = m_pMob->ranges(!m_bQuestMob);
+    if(!arrRange.isEmpty())
+    {
+        if(m_userAnswer == QMessageBox::NoButton)
+            m_userAnswer = QMessageBox::question(nullptr, "Switching MOB Type", "Do you want to switch Id ranges as well?", QMessageBox::Yes|QMessageBox::No);
+
+        if(m_userAnswer == QMessageBox::Yes)
+            m_pMob->setRanges(m_bQuestMob, arrRange);
+    }
+
+    CWorldSet ws;
+    m_pMob->setWorldSet(ws);
+    m_pMob->clearRanges(!m_bQuestMob);
+    if(m_bQuestMob)
+        m_pMob->generateDiplomacyTable();
+    else
+        m_pMob->clearDiplomacyTable();
+
+    m_pMob->setQuestMob(!m_bQuestMob);
+    setText(m_bQuestMob ? "Quest MOB to Base" : "Base MOB to Quest");
+    emit switchQuestMobSignal();
+}
+
+CChangeWorldSetCommand::CChangeWorldSetCommand(CMob *pMob, EWsType paramType, QString &value, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pMob(pMob)
+  ,m_paramType(paramType)
+  ,m_newValue(value)
+{
+    CWorldSet ws = m_pMob->worldSet();
+    m_oldValue = ws.data(paramType);
+}
+
+void CChangeWorldSetCommand::undo()
+{
+    CWorldSet ws = m_pMob->worldSet();
+    ws.setData(m_paramType, m_oldValue);
+    m_pMob->setWorldSet(ws);
+    emit changeWsSignal();
+}
+
+void CChangeWorldSetCommand::redo()
+{
+    CWorldSet ws = m_pMob->worldSet();
+    ws.setData(m_paramType, m_newValue);
+    m_pMob->setWorldSet(ws);
+    setText("Changes value to" + m_newValue);
+    emit changeWsSignal();
+}
+
+CChangeRangeCommand::CChangeRangeCommand(CMob *pMob, int index, SRange range, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pMob(pMob)
+  ,m_index(index)
+  ,m_newRange(range)
+{
+    auto arrRanges = m_pMob->ranges(!m_pMob->isQuestMob());
+    if(m_index < arrRanges.count())
+    {
+        m_oldRange = arrRanges[index];
+    }
+}
+
+void CChangeRangeCommand::undo()
+{
+    auto arrRanges(m_pMob->ranges(!m_pMob->isQuestMob()));
+    if(m_newRange.isEmpty()) //undo deleting
+        arrRanges.insert(m_index, m_oldRange);
+    else if(m_oldRange.isEmpty()) // undo appending
+        arrRanges.pop_back();
+    else //undo changing
+        arrRanges[m_index] = m_oldRange;
+
+    m_pMob->setRanges(!m_pMob->isQuestMob(), arrRanges);
+    emit changeRangeSignal();
+}
+
+void CChangeRangeCommand::redo()
+{
+    auto arrRanges(m_pMob->ranges(!m_pMob->isQuestMob()));
+    if(m_index < arrRanges.count())
+    {
+        if(m_newRange.isEmpty())
+        {
+            setText("Deleted range " + QString::number(m_oldRange.minRange) + " - " + QString::number(m_oldRange.maxRange));
+            arrRanges.takeAt(m_index);
+        }
+        else
+        {
+            setText("Changed range to " + QString::number(m_newRange.minRange) + " - " + QString::number(m_newRange.maxRange));
+            arrRanges[m_index] = m_newRange;
+        }
+    }
+    else
+    {
+        arrRanges.append(m_newRange);
+        setText("Added range " + QString::number(m_newRange.minRange) + " - " + QString::number(m_newRange.maxRange));
+    }
+    m_pMob->setRanges(!m_pMob->isQuestMob(), arrRanges);
+    emit changeRangeSignal();
+}
+
+CChangeDiplomacyTableItem::CChangeDiplomacyTableItem(CMob *pMob, int row, int column, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pMob(pMob)
+  ,m_row(row)
+  ,m_column(column)
+  ,m_bSymmetric(true)
+{
+    COptBool* pOpt = dynamic_cast<COptBool*>(pMob->view()->settings()->opt("dipEditSymmetric"));
+    if (pOpt)
+        m_bSymmetric = pOpt->value();
+}
+
+void CChangeDiplomacyTableItem::undo()
+{
+    if (m_oldValue < 0)
+        return;
+
+    QVector<QVector<uint>>& dipTable = m_pMob->diplomacyField();
+    if(dipTable.isEmpty())
+    {
+        m_oldValue = -1;
+        return;
+    }
+    dipTable[m_row][m_column] = m_oldValue;
+    dipTable[m_column][m_row] = m_oldValueSymetric;
+    emit changeDipGroup(m_row, m_column);
+    emit changeDipGroup(m_column, m_row);
+}
+
+void CChangeDiplomacyTableItem::redo()
+{
+    QVector<QVector<uint>>& dipTable = m_pMob->diplomacyField();
+    if(dipTable.isEmpty())
+    {
+        m_oldValue = -1;
+        return;
+    }
+    m_oldValue = dipTable[m_row][m_column];
+    m_oldValueSymetric = dipTable[m_column][m_row];
+    int value = m_oldValue;
+    ++ value;
+    value = value % 3;
+    dipTable[m_row][m_column] = value;
+    emit changeDipGroup(m_row, m_column);
+    if(m_bSymmetric)
+    {
+        dipTable[m_column][m_row] = value;
+        emit changeDipGroup(m_column, m_row);
+    }
+    setText("Dip group (" + QString::number(m_row) + ", " + QString::number(m_column) + ") changed to " + QString::number(value));
 }

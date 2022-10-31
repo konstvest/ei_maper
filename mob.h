@@ -64,6 +64,8 @@ public:
     bool isDurty() {return m_bDurty;}
     void generateDiplomacyTable();
     void clearDiplomacyTable();
+    const SRange& activeRange() {return m_activeRange;}
+    void setActiveRange(const SRange& range);
 
     //functions for logic processing
     QList<CNode*>& logicNodes();
@@ -90,6 +92,7 @@ private:
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, const QString value);
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value);
     bool isFreeMapId(uint id);
+    void generateMapId(CNode* pNode);
 
 private:
     //todo: global text data, script
@@ -115,6 +118,7 @@ private:
     QList<CNode*> m_aLogicNode;
     EMobType m_mobType;
     bool m_bDurty;
+    SRange m_activeRange;
 };
 
 #endif // MOB_H

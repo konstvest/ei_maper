@@ -289,6 +289,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="pushButtonOpenExtEditor">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Open with external editor...</string>
          </property>
@@ -303,6 +306,9 @@
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
         <widget class="QPushButton" name="pushCheck">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Check Ids</string>
          </property>

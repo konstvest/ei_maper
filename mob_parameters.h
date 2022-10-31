@@ -112,6 +112,9 @@ private slots:
     void updateDiplomacyTable(int row, int column);
     void on_pushCheck_clicked();
     void onSaveShortcut();
+    void showContextMenu(QPoint pos); //context menu for ranges
+    void markRange();
+    void updateRangeList();
 
 private:
     Ui::CMobParameters *ui;

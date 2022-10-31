@@ -227,6 +227,7 @@ struct SRange
     SRange();
     SRange(const SRange& range) {minRange = range.minRange; maxRange = range.maxRange;}
     SRange& operator= (const SRange& range) {minRange = range.minRange; maxRange = range.maxRange; return *this;}
+    bool operator==(const SRange& range) const {return minRange==range.minRange && maxRange==range.maxRange;}
     SRange(uint min, uint max) {minRange = min; maxRange = max;}
     bool isEmpty() {return minRange == 0 && maxRange == 0;}
     uint minRange;

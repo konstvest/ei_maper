@@ -140,6 +140,7 @@ QIcon *CIconManager::icon(QString name)
 CIconManager::CIconManager()
 {
     m_aIcon[QString("_emptyIco")] = new QIcon(":/_emptyIco.ico");
+    m_aIcon[QString("arrow_right")] = new QIcon(":/arrow_right.ico");
 }
 
 QIcon *ei::icon(QString name)

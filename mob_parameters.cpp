@@ -1,6 +1,7 @@
 #include <QTableWidget>
 #include <QMessageBox>
 #include <QTextBlock>
+#include <QMenu>
 
 
 #include "mob_parameters.h"
@@ -10,6 +11,7 @@
 #include "settings.h"
 #include "undo.h"
 #include "range_dialog.h"
+#include "ui_connectors.h"
 
 CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     QWidget(parent)
@@ -45,6 +47,8 @@ CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     }
     //connect(m_pTable.get(), SIGNAL(cellClicked(int, int)), this, SLOT(tableItemClicked(int, int)));
     m_pHighlighter = new Highlighter(ui->plainTextEdit->document());
+    ui->listRanges->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->listRanges, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
     updateWindow();
 }
 
@@ -175,10 +179,16 @@ void CMobParameters::updateWindow()
 
     QString rangeText;
     ui->listRanges->clear();
+    const SRange& activeRange = m_pCurMob->activeRange();
     for (const auto& r : range)
     {
         rangeText = QString::number(r.minRange) + "-" + QString::number(r.maxRange);
-        ui->listRanges->addItem(rangeText);
+        if(r == activeRange)
+        {
+            ui->listRanges->addItem(new QListWidgetItem(*CIconManager::getInstance()->icon("arrow_right"), rangeText));
+        }
+        else
+            ui->listRanges->addItem(rangeText);
 //            auto pItem = ui->listRanges->item(ui->listRanges->count()-1);
 //            pItem->setFlags(pItem->flags() | Qt::ItemIsEditable);
     }
@@ -600,5 +610,52 @@ void CMobParameters::onSaveShortcut()
     ui->plainTextEdit->document()->clearUndoRedoStacks();
     m_pUndoStack->clear();
     setDurty(false);
+}
+
+void CMobParameters::showContextMenu(QPoint pos)
+{
+    // Handle global position
+        QPoint globalPos = ui->listRanges->mapToGlobal(pos);
+
+        // Create menu and insert some actions
+        QMenu myMenu;
+        myMenu.addAction("mark as range for auto-generate IDs", this, SLOT(markRange()));
+        //myMenu.addAction("Erase",  this, SLOT(eraseItem()));
+
+        // Show context menu at handling position
+        myMenu.exec(globalPos);
+}
+
+void CMobParameters::markRange()
+{
+    const QVector<SRange>& arrRange = m_pCurMob->ranges(!m_pCurMob->isQuestMob());
+    m_pCurMob->setActiveRange(arrRange[ui->listRanges->currentRow()]);
+    // If multiple selection is on, we need to erase all selected items
+        for (int i = 0; i < ui->listRanges->selectedItems().size(); ++i)
+        {
+            qDebug() << ui->listRanges->item(ui->listRanges->currentRow())->text();
+            // Get curent item on selected row
+            //QListWidgetItem *item = ui->listRanges->takeItem(ui->listRanges->currentRow());
+            // And remove it
+            //delete item;
+        }
+        updateRangeList();
+}
+
+void CMobParameters::updateRangeList()
+{
+    ui->listRanges->clear();
+    QVector<SRange> arrRange = m_pCurMob->ranges(!m_pCurMob->isQuestMob());
+    QString rangeText;
+    ui->listRanges->clear();
+    const SRange& activeRange = m_pCurMob->activeRange();
+    for (const auto& r : arrRange)
+    {
+        rangeText = QString::number(r.minRange) + "-" + QString::number(r.maxRange);
+        if(r == activeRange)
+            ui->listRanges->addItem(new QListWidgetItem(*CIconManager::getInstance()->icon("arrow_right"), rangeText));
+        else
+            ui->listRanges->addItem(rangeText);
+    }
 }
 

@@ -3,5 +3,6 @@
         <file>optSet.txt</file>
         <file>_emptyIco.ico</file>
         <file>auxData.res</file>
+        <file>arrow_right.ico</file>
     </qresource>
 </RCC>

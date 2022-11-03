@@ -101,7 +101,7 @@ void CObjectBase::setTexture(QOpenGLTexture* texture)
     m_texture = texture;
 }
 
-void CObjectBase::draw(QOpenGLShaderProgram* program)
+void CObjectBase::draw(bool isActive, QOpenGLShaderProgram* program)
 {
     if(isMarkDeleted())
         return;

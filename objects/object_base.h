@@ -21,7 +21,7 @@ public:
     CObjectBase(CNode* node);
     ~CObjectBase() override;
 
-    void draw(QOpenGLShaderProgram* program) override;
+    void draw(bool isActive, QOpenGLShaderProgram* program) override;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override;
     ENodeType nodeType() override {return ENodeType::eBaseType; }    //todo: delete, use this class as abstract type
     QString& modelName() override {return m_modelName; }

@@ -23,7 +23,7 @@
       <enum>Qt::LeftToRight</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabGeneral">
       <attribute name="title">
@@ -44,7 +44,7 @@
             <height>444</height>
            </rect>
           </property>
-          <widget class="QWidget" name="">
+          <widget class="QWidget" name="layoutWidget">
            <property name="geometry">
             <rect>
              <x>9</x>
@@ -199,7 +199,7 @@
            <item>
             <widget class="QCheckBox" name="drawLogic">
              <property name="text">
-              <string>Draw logic (even if object not selected)</string>
+              <string>Always draw units logic</string>
              </property>
             </widget>
            </item>

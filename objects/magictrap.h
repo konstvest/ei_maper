@@ -23,7 +23,7 @@ public:
     void deSerializeJson(QJsonObject data);
     void serializeJsonArray(QJsonArray& obj);
     //SArea getArea();
-    void draw(QOpenGLShaderProgram* program) override;
+    void draw(bool isActive, QOpenGLShaderProgram* program) override;
     void update();
     bool updatePos(QVector3D& pos) override;
     void markAsDeleted(bool bDeleted = true) override;
@@ -57,7 +57,7 @@ public:
     uint serialize(util::CMobParser& parser) override;
     void deSerializeJsonArray(QJsonArray data);
     void serializeJsonArray(QJsonArray& obj);
-    void draw(QOpenGLShaderProgram* program) override;
+    void draw(bool isActive, QOpenGLShaderProgram* program) override;
     bool updatePos(QVector3D& pos) override;
     void markAsDeleted(bool bDeleted = true) override;
 
@@ -78,7 +78,7 @@ public:
     ~CMagicTrap();
     ENodeType nodeType() override {return ENodeType::eMagicTrap; }
 
-    void draw(QOpenGLShaderProgram* program) override;
+    void draw(bool isActive, QOpenGLShaderProgram* program) override;
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;

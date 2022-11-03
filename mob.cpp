@@ -766,7 +766,6 @@ QList<CNode *> &CMob::logicNodes()
     if(m_aLogicNode.isEmpty()) //can be optimized but need to control add\delete nodes/patrol points\view
         logicNodesUpdate();
 
-
     return m_aLogicNode;
 }
 

@@ -50,7 +50,7 @@ public:
     CNode(const CNode& node);
     static uint s_freeId;
     virtual ~CNode();
-    virtual void draw(QOpenGLShaderProgram* program = nullptr) = 0;
+    virtual void draw(bool isActive, QOpenGLShaderProgram* program = nullptr) = 0;
     virtual void drawSelect(QOpenGLShaderProgram* program = nullptr) = 0;
     virtual ENodeType nodeType() = 0;
     virtual uint deserialize(util::CMobParser& parser) {Q_UNUSED(parser); Q_ASSERT("pure virtual" && false); return 0;} //todo: define this method in CObjectBase

@@ -77,13 +77,13 @@ CUnit::~CUnit()
         delete logic;
 }
 
-void CUnit::draw(QOpenGLShaderProgram* program)
+void CUnit::draw(bool isActive, QOpenGLShaderProgram* program)
 {
-    CObjectBase::draw(program);
+    CObjectBase::draw(isActive, program);
     if (m_aLogic.empty() || m_state == ENodeState::eHidden)
         return;
 
-    m_aLogic.front()->draw(program);
+    m_aLogic.front()->draw(isActive, program);
 }
 
 void CUnit::drawSelect(QOpenGLShaderProgram* program)
@@ -575,7 +575,7 @@ CLogic::~CLogic()
         delete pp;
 }
 
-void CLogic::draw(QOpenGLShaderProgram* program)
+void CLogic::draw(bool isActive, QOpenGLShaderProgram* program)
 {
     if(!m_use || m_aDrawPoint.empty())
         return;
@@ -585,8 +585,25 @@ void CLogic::draw(QOpenGLShaderProgram* program)
     if (nullptr == pOpt)
         return;
 
-    if (!pOpt->value() && m_parent->nodeState() != ENodeState::eSelect && CScene::getInstance()->getMode() != eEditModeLogic)
-        return;
+    // 1) unit draw, not selected
+    // 1.1) option on? => draw logic
+    // 1.2) option of? => return
+    // 2) unit draw, unit selected => draw logic
+    // 3) logic mode
+
+    if(!pOpt->value())
+    {
+        if (CScene::getInstance()->getMode() == eEditModeLogic)
+        {
+            if (!isActive)
+                return;
+        }
+        else
+        {
+         if (m_parent->nodeState() != ENodeState::eSelect)
+             return;
+        }
+    }
 
     drawHelp(program);
 
@@ -636,7 +653,7 @@ void CLogic::draw(QOpenGLShaderProgram* program)
 
     if(m_behaviour == EBehaviourType::ePath)
         for(auto& pp : m_aPatrolPt)
-            pp->draw(program);
+            pp->draw(isActive, program);
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -1381,12 +1398,12 @@ CPatrolPoint::~CPatrolPoint()
         delete lp;
 }
 
-void CPatrolPoint::draw(QOpenGLShaderProgram* program)
+void CPatrolPoint::draw(bool isActive, QOpenGLShaderProgram* program)
 {
     if(isMarkDeleted())
         return;
 
-    CObjectBase::draw(program);
+    CObjectBase::draw(isActive, program);
 
     if(m_aDrawingLine.size() == 0) // do not draw looking point if absent
         return;
@@ -1421,7 +1438,7 @@ void CPatrolPoint::draw(QOpenGLShaderProgram* program)
     program->setUniformValue("customColor", QVector4D(0.0, 0.0, 0.0, 0.0));
     for(auto& look: m_aLookPt)
     {
-        look->draw(program);
+        look->draw(isActive, program);
     }
 }
 

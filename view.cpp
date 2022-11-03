@@ -220,9 +220,20 @@ void CView::draw()
     m_program.setUniformValue("u_projMmatrix", m_projection);
     m_program.setUniformValue("u_viewMmatrix", camMatrix);
 
-    for(auto& mob: m_aMob) //TODO: draw inactive mobs with custom color|alfa or something
-        for (auto& node: mob->nodes())
-            node->draw(&m_program);
+    if(m_activeMob != nullptr)
+    {
+        for(auto& mob: m_aMob) //TODO: draw inactive mobs with custom color|alfa or something
+        {
+            if(mob->mobName() == m_activeMob->mobName())
+                continue; //skip drawing active mob
+
+            for (auto& node: mob->nodes())
+                node->draw(false, &m_program);
+        }
+
+        for (auto& node: m_activeMob->nodes())
+            node->draw(true, &m_program);
+    }
 
     if (pLand && pLand->isMprLoad())
     {

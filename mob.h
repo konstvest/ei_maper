@@ -40,7 +40,7 @@ public:
     void deleteNode(uint mapId);
     void undo_deleteNode(uint mapId);
     void deleteNode(CNode* pNode);
-    void clearSelect(bool bClearLogic = false);
+    void clearSelect(bool bClearLogic = true);
     void delNodes();
     CNode* nodeByMapId(uint id);
     CView* view() {Q_ASSERT(m_view); return m_view;}

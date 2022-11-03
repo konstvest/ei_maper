@@ -82,11 +82,11 @@ CMagicTrap::~CMagicTrap()
     m_aActZone.clear();
 }
 
-void CMagicTrap::draw(QOpenGLShaderProgram* program)
+void CMagicTrap::draw(bool isActive, QOpenGLShaderProgram* program)
 {
-    CObjectBase::draw(program);
+    CObjectBase::draw(isActive, program);
     for(auto& pCast : m_aCastPoint)
-        pCast->draw(program);
+        pCast->draw(isActive, program);
 
     if(m_aDrawingLine.size() == 0) // do not draw looking point if absent
         return;
@@ -120,7 +120,7 @@ void CMagicTrap::draw(QOpenGLShaderProgram* program)
 
     for(auto& actZone : m_aActZone)
     {
-        actZone->draw(program);
+        actZone->draw(isActive, program);
     }
     glEnable(GL_DEPTH_TEST);
 }
@@ -707,7 +707,7 @@ void CActivationZone::serializeJsonArray(QJsonArray& array)
 //    return area;
 //}
 
-void CActivationZone::draw(QOpenGLShaderProgram *program)
+void CActivationZone::draw(bool isActive, QOpenGLShaderProgram *program)
 {
     //draw act point here
     if(m_aDrawPoint.empty())
@@ -724,7 +724,7 @@ void CActivationZone::draw(QOpenGLShaderProgram *program)
     if (!pOpt->value() && m_pParent->nodeState() != ENodeState::eSelect && CScene::getInstance()->getMode() != eEditModeLogic)
         return;
 
-    CObjectBase::draw(program);
+    CObjectBase::draw(isActive, program);
     glDisable(GL_DEPTH_TEST);
     //todo: draw help radius
     QMatrix4x4 matrix;
@@ -888,7 +888,7 @@ void CTrapCastPoint::serializeJsonArray(QJsonArray &obj)
     obj.append(QJsonValue::fromVariant(m_position.y()));
 }
 
-void CTrapCastPoint::draw(QOpenGLShaderProgram *program)
+void CTrapCastPoint::draw(bool isActive, QOpenGLShaderProgram *program)
 {
     COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawLogic"));
     if (nullptr == pOpt)
@@ -897,7 +897,7 @@ void CTrapCastPoint::draw(QOpenGLShaderProgram *program)
     if (!pOpt->value() && m_pParent->nodeState() != ENodeState::eSelect && CScene::getInstance()->getMode() != eEditModeLogic)
         return;
 
-    CObjectBase::draw(program);
+    CObjectBase::draw(isActive, program);
 }
 
 bool CTrapCastPoint::updatePos(QVector3D &pos)

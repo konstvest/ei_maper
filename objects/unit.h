@@ -47,7 +47,7 @@ public:
     CPatrolPoint(const CPatrolPoint& patrol);
     ~CPatrolPoint();
     ENodeType nodeType() override {return ENodeType::ePatrolPoint;}
-    void draw(QOpenGLShaderProgram* program) override final;
+    void draw(bool isActive, QOpenGLShaderProgram* program) override final;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override final;
     uint deserialize(util::CMobParser& parser) override final;
     //QString getParam(EObjParam param) override;
@@ -104,7 +104,7 @@ public:
     CLogic(CUnit* unit, bool bUse=false);
     CLogic(CUnit* unit, const CLogic& logic);
     ~CLogic();
-    void draw(QOpenGLShaderProgram* program);
+    void draw(bool isActive, QOpenGLShaderProgram* program);
     void drawSelect(QOpenGLShaderProgram* program = nullptr);
     uint deserialize(util::CMobParser& parser);
     void serializeJson(QJsonObject& obj);
@@ -177,7 +177,7 @@ public:
     ~CUnit() override;
     ENodeType nodeType() override {return ENodeType::eUnit; }
     uint deserialize(util::CMobParser& parser) override;
-    void draw(QOpenGLShaderProgram* program) override;
+    void draw(bool isActive, QOpenGLShaderProgram* program) override;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;

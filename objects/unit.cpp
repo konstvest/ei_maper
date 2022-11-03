@@ -415,13 +415,11 @@ bool CUnit::updatePos(QVector3D &pos)
 
     if(CScene::getInstance()->getMode() == eEditModeLogic)
     {
-        if (!pLogic->isBehaviourPath())
-        { // update guard placement for non-path behaviour type
-            QVector3D pos = m_position;
-            pos.setZ(0.0f);
-            CLandscape::getInstance()->projectPt(pos);
-            pLogic->setGuardPlacement(pos);
-        }
+        // logic placement can be change separately from unit position, but by default it changes sinchroniously
+        QVector3D pos = m_position;
+        pos.setZ(0.0f);
+        CLandscape::getInstance()->projectPt(pos);
+        pLogic->setGuardPlacement(pos);
         m_aLogic.front()->updateLogicLines();
     }
     else
@@ -577,10 +575,12 @@ CLogic::~CLogic()
 
 void CLogic::draw(bool isActive, QOpenGLShaderProgram* program)
 {
-    if(!m_use || m_aDrawPoint.empty())
+    if(!m_use)
         return;
 
-    //todo: for selected objects ALWAYS draw logic
+    drawHelp(program);
+    if(m_aDrawPoint.empty())
+            return;
     COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawLogic"));
     if (nullptr == pOpt)
         return;
@@ -605,7 +605,7 @@ void CLogic::draw(bool isActive, QOpenGLShaderProgram* program)
         }
     }
 
-    drawHelp(program);
+
 
     glDisable(GL_DEPTH_TEST);
     //todo: draw help radius

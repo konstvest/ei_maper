@@ -108,6 +108,7 @@ void MainWindow::initShortcuts()
     m_ui->actionReset_cam_position->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_R));
     m_ui->actionChange_mod_e->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Tab));
     m_ui->actionSwitch_active_MOB->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_T));
+    m_ui->action_Mob_parameters->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
 }
 
 void MainWindow::connectUiButtons()

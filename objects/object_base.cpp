@@ -103,6 +103,7 @@ void CObjectBase::setTexture(QOpenGLTexture* texture)
 
 void CObjectBase::draw(bool isActive, QOpenGLShaderProgram* program)
 {
+    Q_UNUSED(isActive);
     if(isMarkDeleted())
         return;
 

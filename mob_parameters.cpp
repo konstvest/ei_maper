@@ -139,11 +139,11 @@ void colorizeCell(QTableWidgetItem* pCell, int value)
 {
     switch (value)
     {
-    case 0:
-        pCell->setBackground(Qt::darkYellow);
-        break;
-    case 1:
+    case 0: // if diplomacy table - friend. if scripts - neutral
         pCell->setBackground(Qt::darkGreen);
+        break;
+    case 1: // if diplomacy table - neutral. if scripts - friend
+        pCell->setBackground(Qt::darkYellow);
         break;
     case 2:
         pCell->setBackground(Qt::darkRed);

@@ -87,7 +87,7 @@ void CPreview::draw()
     pProgram->setUniformValue("u_projMmatrix", m_projection);
     pProgram->setUniformValue("u_viewMmatrix", camMatrix);
 
-    m_pNode->draw(pProgram);
+    m_pNode->draw(true, pProgram);
 
 }
 

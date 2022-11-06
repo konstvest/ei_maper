@@ -6,6 +6,7 @@
 #include "objects/magictrap.h"
 #include "options.h"
 #include "settings.h"
+#include "log.h"
 
 
 COpenCommand::COpenCommand(CView* pView, QFileInfo& path, MainWindow* pMain, QUndoCommand *parent):
@@ -139,6 +140,7 @@ void CDeleteNodeCommand::redo()
 {
     auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
     setText(QString("Delete node ID: %1").arg(pNode->mapId()));
+    ei::log(eLogInfo, "Delete node ID: " + QString::number(pNode->mapId()));
     m_pView->currentMob()->deleteNode(m_nodeId);
     m_pView->setDurty();
 }

@@ -367,6 +367,7 @@ void CMob::delNodes()
         delete m_aNode[*i];
         m_aNode.removeAt(*i);
     }
+    logicNodesUpdate();
 }
 
 CNode *CMob::nodeByMapId(uint id)
@@ -811,6 +812,8 @@ void CMob::deleteNode(uint mapId)
             m_aDeletedNode.append(pNode);
             m_aNode.removeOne(pNode);
             ei::log(eLogDebug, QString("delete node with %1").arg(pNode->mapId()));
+            logicNodesUpdate();
+            break;
         }
     }
 }
@@ -825,6 +828,7 @@ void CMob::undo_deleteNode(uint mapId)
             m_aNode.append(pNode);
             m_aDeletedNode.removeOne(pNode);
             ei::log(eLogDebug, QString("node with %1 restored").arg(pNode->mapId()));
+            logicNodesUpdate();
             break;
         }
     }
@@ -1365,6 +1369,7 @@ void CMob::deleteNode(CNode *pNode)
         //m_aNode.at(ind)->setState(ENodeState::eDraw);
         m_aNode.removeAt(ind);
         ei::log(eLogDebug, QString("delete node with %1").arg(pNode->mapId()));
+        logicNodesUpdate();
     }
 }
 

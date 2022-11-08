@@ -1061,6 +1061,12 @@ void CView::wheelEvent(QWheelEvent* event)
     m_cam->enlarge(event->delta() > 0);
 }
 
+void CView::focusOutEvent(QFocusEvent *event)
+{
+    Q_UNUSED(event);
+    m_pOp->keyManager()->releaseAllButtons();
+}
+
 // draw objects without light and textures, only colored triangles; find suitable object
 // x,y - mouse position
 CNode* CView::pickObject(QList<CNode*>& aNode, int x, int y)

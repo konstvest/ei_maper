@@ -12,6 +12,7 @@ public:
     void press(Qt::Key key);
     void release(Qt::Key key);
     bool isPressed(Qt::Key key) {return m_aKeyPressed.contains(key);}
+    void releaseAllButtons();
 
 private:
     QSet<Qt::Key> m_aKeyPressed; //needs to use something more suitable without allocating memory.

@@ -1,6 +1,10 @@
 #include <QHeaderView>
+#include <QToolButton>
+#include <QColorDialog>
+
 #include "tablemanager.h"
 #include "resourcemanager.h"
+#include "utils.h"
 
 CStringItem::CStringItem(QString value, EObjParam param):
     QTableWidgetItem(value)
@@ -524,6 +528,15 @@ void CTableManager::onParamChange(QTableWidgetItem *pItem)
     emit changeParamSignal(param);
 }
 
+void CTableManager::onParamChange(CColorButtonItem *pItem)
+{
+    QPalette pal = pItem->palette();
+    QColor color = pal.color(QPalette::Button);
+
+    SParam param{pItem->param(), util::colorToString(color)};
+    emit changeParamSignal(param);
+}
+
 void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
 {
     reset();
@@ -531,7 +544,9 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
     m_pTable->blockSignals(true); //block sending signals
     for (const auto& item : aParam.toStdMap())
     {
-        switch (item.first) {
+        switch (item.first)
+        {
+        //dropdown list next
         case eObjParam_PLAYER:
         case eObjParam_IS_SHADOW:
         case eObjParam_LEVER_IS_CYCLED:
@@ -700,6 +715,17 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
             }
             break;
         }
+        case eObjParam_LIGHT_COLOR:
+        {// for color create tool button with color
+            m_pTable->insertRow(i);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
+            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+            auto pColorButton = new CColorButtonItem(item.second, item.first);
+            QObject::connect(pColorButton, SIGNAL(onColorChange(CColorButtonItem*)), this, SLOT(onParamChange(CColorButtonItem*)));
+            m_pTable->setCellWidget(i, 1, pColorButton);
+            ++i;
+            break;
+        }
         default:
         {
             m_pTable->insertRow(i);
@@ -713,4 +739,42 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         } //switch
     }
     m_pTable->blockSignals(false);
+}
+
+void CColorButtonItem::colorFromDialog()
+{
+    //Q_UNUSED(pAct);
+    QColor color = QColorDialog::getColor(m_color);
+    if(color.isValid())
+    {
+        updateColor(color);
+        QString str = util::colorToString(color);
+        SParam param {m_parameter, str};
+        emit onColorChange(this);
+    }
+
+}
+
+CColorButtonItem::CColorButtonItem(const QString &colorValue, const EObjParam param):
+  m_parameter(param)
+{
+    QColor color = util::stringToColor(colorValue);
+    if(!color.isValid())
+    {
+        Q_ASSERT(false&&"invalid color");
+        m_color = QColor(Qt::black);
+    }
+    else
+        m_color = color;
+    updateColor(m_color);
+    QObject::connect(this, SIGNAL(clicked()), this, SLOT(colorFromDialog()));
+}
+
+void CColorButtonItem::updateColor(const QColor &color)
+{
+    QPalette pal = palette();
+    pal.setColor(QPalette::Button, color);
+    setAutoFillBackground(true);
+    setPalette(pal);
+    update();
 }

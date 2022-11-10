@@ -5,6 +5,7 @@
 #include <QTableWidgetItem>
 #include <QComboBox>
 #include <QList>
+#include <QToolButton>
 
 #include "types.h"
 #include "undo.h"
@@ -44,6 +45,22 @@ private:
     QMap<uint, QString> m_aComboString;
 };
 
+class CColorButtonItem : public QToolButton
+{
+    Q_OBJECT
+public:
+    CColorButtonItem(const QString& colorValue, const EObjParam param);
+    void updateColor(const QColor& color);
+    EObjParam& param() {return m_parameter;}
+signals:
+    void onColorChange(CColorButtonItem*);
+private:
+    QColor m_color;
+    EObjParam m_parameter;
+public slots:
+    void colorFromDialog();
+};
+
 class CTableManager : public QObject
 {
     Q_OBJECT
@@ -65,6 +82,7 @@ signals:
 public slots:
     void onParamChange(CComboBoxItem* pItem);
     void onParamChange(QTableWidgetItem* pItem);
+    void onParamChange(CColorButtonItem* pItem);
 
 
 private:

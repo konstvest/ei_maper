@@ -35,6 +35,8 @@ QString makeString(const QVector<uint>& vec);
 QString appPath();
 QString makeString(const SUnitStat& stat);
 SUnitStat unitStatFromString(const QString& str);
+QColor stringToColor(const QString& string);
+QString colorToString(const QColor& color);
 
 void addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str);
 

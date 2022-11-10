@@ -1047,3 +1047,22 @@ void util::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString s
     else
         aParam.insert(param, str);
 }
+
+QColor util::stringToColor(const QString &string)
+{
+    QVector3D vec = vec3FromString(string);
+    QColor color;
+    color.setRedF(vec.x());
+    color.setGreenF(vec.y());
+    color.setBlueF(vec.z());
+    return color;
+}
+
+QString util::colorToString(const QColor &color)
+{
+    QVector3D vec;
+    vec.setX(color.redF());
+    vec.setY(color.greenF());
+    vec.setZ(color.blueF());
+    return makeString(vec);
+}

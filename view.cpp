@@ -1097,15 +1097,16 @@ void CView::updateTreeObjects()
     m_pTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     m_pTree->resizeColumnToContents(1);
     //generate common object types
-    QMap<ENodeType, QMap<QString, QList<uint>>> aObjList; //base group -> inner object group -> object string array (todo: item class with node map ID)
+    QMap<QString, QMap<QString, QList<uint>>> aObjList; //base group -> inner object group -> object string array (todo: item class with node map ID)
     CNode* pNode = nullptr;
     ENodeType type = ENodeType::eBaseType;
     QString groupName;
     auto fillObjectByType=[&aObjList, &type, &groupName](uint objId) -> void
     {
-        if(aObjList.contains(type))
+        QString typeString = objectNameByType(type);
+        if(aObjList.contains(typeString))
         {
-            auto& group = aObjList[type];
+            auto& group = aObjList[typeString];
             group[groupName].append(objId);
 
         }
@@ -1113,7 +1114,7 @@ void CView::updateTreeObjects()
         {
             QMap<QString, QList<uint>> map;
             map[groupName].append(objId);
-            aObjList[type] = map;
+            aObjList[typeString] = map;
         }
     };
     foreach(pNode, m_activeMob->nodes())
@@ -1183,7 +1184,7 @@ void CView::updateTreeObjects()
     for(auto& item : aObjList.toStdMap())
     {
         auto pTopItem = new QTreeWidgetItem(m_pTree);
-        pTopItem->setText(0, objectNameByType(item.first));
+        pTopItem->setText(0, item.first);
         m_pTree->addTopLevelItem(pTopItem);
         for(auto& group : item.second.toStdMap())
         {

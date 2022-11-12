@@ -102,6 +102,8 @@ private:
     void onParamChangeLogic(CNode* pNode, SParam& sParam);
     void logOpenGlData();
     void checkOpenGlError();
+    void updateTreeLogic();
+    void updateTreeObjects();
 
 public slots:
     void updateWindow();
@@ -109,7 +111,8 @@ public slots:
     void viewParameters();
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(SParam& sParam);
-    void updateTreeLogic();
+    void updateViewTree();
+
     void execMobSwitch();
     void clearHistory();
     void onMobParamEditFinished(CMobParameters* pMob);

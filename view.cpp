@@ -89,11 +89,6 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     CLogger::getInstance()->attachSettings(pSettings);
 
     m_pTree = pTree;
-    pTree->setColumnCount(1);
-    pTree->setHeaderLabel("Object list");
-    auto pTodoItem = new QTreeWidgetItem(pTree);
-    pTree->addTopLevelItem(pTodoItem);
-    pTodoItem->setText(0, "Здесь могла быть ваша реклама");
 }
 
 void CView::updateWindow()
@@ -322,7 +317,7 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
             if (!pObj)
                 break;
             if (!selectParam.param1.isEmpty()
-                    && (node->prototypeName().toLower().contains(selectParam.param1.toLower())))
+                    && (node->mapName().toLower().contains(selectParam.param1.toLower())))
             {
                 node->setState(eSelect);
             }
@@ -503,6 +498,7 @@ void CView::changeCurrentMob(CMob *pMob)
     m_activeMob = pMob;
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, (nullptr == pMob || !pMob->isDurty()) ? "" : "*");
+    updateViewTree();
 }
 
 void CView::onParamChangeLogic(CNode *pNode, SParam& param)
@@ -887,7 +883,10 @@ void CView::updateParameter(EObjParam param)
 void CView::viewParameters()
 {
     if(nullptr == m_activeMob)
+    {
+        m_tableManager->reset(); //clear table data if empty current mob
         return;
+    }
 
     QSet<ENodeType> aType;
     //find unique selected node types
@@ -978,6 +977,18 @@ void CView::onParamChange(SParam &param)
 
 }
 
+void CView::updateViewTree()
+{
+    m_pTree->clear();
+    if(nullptr == m_activeMob)
+        return;
+
+    if(CScene::getInstance()->getMode() == eEditModeLogic)
+        updateTreeLogic();
+    else
+        updateTreeObjects();
+}
+
 void CView::updateTreeLogic()
 {
     if(nullptr == m_activeMob)
@@ -1039,6 +1050,159 @@ void CView::updateTreeLogic()
 
     m_pTree->resizeColumnToContents(1);
     m_pTree->setColumnWidth(1, m_pTree->columnWidth(1)+10); // set intend for displaying
+}
+
+QString objectNameByType(ENodeType type)
+{
+    QString name;
+    switch (type)
+    {
+    case ENodeType::eWorldObject:
+        name = "World objects";
+        break;
+    case ENodeType::eUnit:
+        name = "Units";
+        break;
+    case ENodeType::eTorch:
+        name = "Torches";
+        break;
+    case ENodeType::eLever:
+        name = "Levers";
+        break;
+    case ENodeType::eMagicTrap:
+        name = "Magic traps";
+        break;
+    case ENodeType::eLight:
+        name = "Light sources";
+        break;
+    case ENodeType::eSound:
+        name = "Sound sources";
+        break;
+    case ENodeType::eParticle:
+        name = "Particle sources";
+        break;
+    default:
+        break;
+    }
+    return name;
+}
+
+void CView::updateTreeObjects()
+{
+    m_pTree->setColumnCount(2);
+    QStringList labels;
+    labels << "Objects" << "Count";
+    m_pTree->setHeaderLabels(labels);
+    m_pTree->header()->setStretchLastSection(false);
+    m_pTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    m_pTree->resizeColumnToContents(1);
+    //generate common object types
+    QMap<ENodeType, QMap<QString, QList<uint>>> aObjList; //base group -> inner object group -> object string array (todo: item class with node map ID)
+    CNode* pNode = nullptr;
+    ENodeType type = ENodeType::eBaseType;
+    QString groupName;
+    auto fillObjectByType=[&aObjList, &type, &groupName](uint objId) -> void
+    {
+        if(aObjList.contains(type))
+        {
+            auto& group = aObjList[type];
+            group[groupName].append(objId);
+
+        }
+        else
+        {
+            QMap<QString, QList<uint>> map;
+            map[groupName].append(objId);
+            aObjList[type] = map;
+        }
+    };
+    foreach(pNode, m_activeMob->nodes())
+    {
+        type = pNode->nodeType();
+        //can be optimized via class overriding
+        switch (type)
+        {
+        case ENodeType::eWorldObject:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eUnit:
+        {
+            auto pUnitItem = dynamic_cast<CUnit*>(pNode);
+            groupName = pUnitItem->databaseName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eTorch:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eLever:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eMagicTrap:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eLight:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eSound:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eParticle:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        default:
+        {
+            //do not collect nothing for Tree View
+            break;
+        }
+
+        }
+    }
+
+    for(auto& item : aObjList.toStdMap())
+    {
+        auto pTopItem = new QTreeWidgetItem(m_pTree);
+        pTopItem->setText(0, objectNameByType(item.first));
+        m_pTree->addTopLevelItem(pTopItem);
+        for(auto& group : item.second.toStdMap())
+        {
+            auto pGroupItem = new QTreeWidgetItem(pTopItem);
+            if(group.second.size() == 1)
+            {
+                // +"(id:"+QString::number(group.second.first())+")"
+                pGroupItem->setText(0, group.first);
+                continue;
+            }
+            pGroupItem->setText(0, group.first);
+            pGroupItem->setText(1, QString::number(group.second.size()));
+            for(auto& object : group.second)
+            {
+                auto pObjectItem = new QTreeWidgetItem(pGroupItem);
+                pObjectItem->setText(0, QString::number(object));
+            }
+        }
+    }
 }
 
 void CView::mousePressEvent(QMouseEvent* event)

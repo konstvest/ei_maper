@@ -82,7 +82,7 @@ public:
     const uint& innerId() {return m_id; }
     const uint& mapId(){return m_mapID;}
     void setMapId(uint id) {m_mapID = id;}
-    const QString& prototypeName(){return m_name;}
+    const QString& mapName(){return m_name;}
     void addChild(CNode* child) {m_aChild.append(child); child->setParent(this); }
     void setParent(CNode* parent) {m_parent = parent;}
     uchar* color() {return m_pickingColor.rgb; }

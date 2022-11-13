@@ -146,6 +146,33 @@ enum EMobType
     ,eEMobTypeBase
 };
 
+enum ENodeType
+{
+    eUnknown = 0x0
+    ,eBaseType        =0x1    //0000 0001
+    ,eWorldObject   =0x3    //0000 0011
+    ,eUnit          =0x7    //0000 0111
+    ,eTorch         =0xB    //0000 1011
+    ,eMagicTrap     =0x13   //0001 0011
+    ,eLever         =0x23   //0010 0011
+    ,eLight         =0x5    //0000 0101
+    ,eSound         =0x9    //0000 1001
+    ,eParticle      =0x11   //0001 0001
+
+    ,ePatrolPoint   =0x31   //0011 0001
+    ,eLookPoint     =0x51   //0101 0001
+
+    ,eTrapActZone   =0x91 //1001 0001
+    ,eTrapCastPoint =0xC1 //1100 0001
+};
+
+enum ENodeState
+{
+    eDraw = 1
+    ,eSelect
+    ,eHidden
+};
+
 enum EWsType
 {
     eWsTypeWindDir = 0

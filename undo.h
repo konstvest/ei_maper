@@ -87,6 +87,7 @@ public:
 signals:
     void updateParam();
     void updatePosOnLand(CNode* pNode);
+    void updateTreeViewSignal();
 
 protected:
     CView* m_pView;

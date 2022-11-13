@@ -89,6 +89,8 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     CLogger::getInstance()->attachSettings(pSettings);
 
     m_pTree = pTree;
+    QObject::connect(m_pTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(onItemTreeClickSlot(QTreeWidgetItem*,int)));
+    QObject::connect(m_pTree, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(onItemDoubleClickSlot(QTreeWidgetItem*,int)));
 }
 
 void CView::updateWindow()
@@ -968,6 +970,7 @@ void CView::onParamChange(SParam &param)
             {
                 CChangeStringParam* pChanger = new CChangeStringParam(this, pNode->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
+                QObject::connect(pChanger, SIGNAL(updateTreeViewSignal()), this, SLOT(updateViewTree()));
                 m_pUndoStack->push(pChanger);
             }
             break;
@@ -1054,37 +1057,31 @@ void CView::updateTreeLogic()
 
 QString objectNameByType(ENodeType type)
 {
-    QString name;
-    switch (type)
-    {
-    case ENodeType::eWorldObject:
-        name = "World objects";
-        break;
-    case ENodeType::eUnit:
-        name = "Units";
-        break;
-    case ENodeType::eTorch:
-        name = "Torches";
-        break;
-    case ENodeType::eLever:
-        name = "Levers";
-        break;
-    case ENodeType::eMagicTrap:
-        name = "Magic traps";
-        break;
-    case ENodeType::eLight:
-        name = "Light sources";
-        break;
-    case ENodeType::eSound:
-        name = "Sound sources";
-        break;
-    case ENodeType::eParticle:
-        name = "Particle sources";
-        break;
-    default:
-        break;
-    }
-    return name;
+    QMap<ENodeType, QString> type2str;
+    type2str.insert(ENodeType::eWorldObject, "World objects");
+    type2str.insert(ENodeType::eUnit, "Units");
+    type2str.insert(ENodeType::eTorch, "Torches");
+    type2str.insert(ENodeType::eLever, "Levers");
+    type2str.insert(ENodeType::eMagicTrap, "Magic traps");
+    type2str.insert(ENodeType::eLight, "Light source");
+    type2str.insert(ENodeType::eSound, "Sound sources");
+    type2str.insert(ENodeType::eParticle, "Particle sources");
+
+    return type2str[type];
+}
+
+ENodeType objectTypeByString(QString str)
+{
+    QMap<ENodeType, QString> type2str;
+    type2str.insert(ENodeType::eWorldObject, "World objects");
+    type2str.insert(ENodeType::eUnit, "Units");
+    type2str.insert(ENodeType::eTorch, "Torches");
+    type2str.insert(ENodeType::eLever, "Levers");
+    type2str.insert(ENodeType::eMagicTrap, "Magic traps");
+    type2str.insert(ENodeType::eLight, "Light source");
+    type2str.insert(ENodeType::eSound, "Sound sources");
+    type2str.insert(ENodeType::eParticle, "Particle sources");
+    return type2str.key(str);
 }
 
 void CView::updateTreeObjects()
@@ -1189,6 +1186,7 @@ void CView::updateTreeObjects()
         for(auto& group : item.second.toStdMap())
         {
             auto pGroupItem = new QTreeWidgetItem(pTopItem);
+            pGroupItem->setText(1, QString::number(group.second.size()));
             if(group.second.size() == 1)
             {
                 // +"(id:"+QString::number(group.second.first())+")"
@@ -1196,13 +1194,27 @@ void CView::updateTreeObjects()
                 continue;
             }
             pGroupItem->setText(0, group.first);
-            pGroupItem->setText(1, QString::number(group.second.size()));
             for(auto& object : group.second)
             {
                 auto pObjectItem = new QTreeWidgetItem(pGroupItem);
                 pObjectItem->setText(0, QString::number(object));
             }
         }
+    }
+}
+
+void CView::moveCamToSelectedObject()
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, CScene::getInstance()->getMode() == eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
+    {
+        if (pNode->nodeState() != ENodeState::eSelect)
+            continue;
+
+        CBox box = pNode->getBBox();
+        m_cam->moveTo(pNode->drawPosition() + box.center());
+        m_cam->moveAwayOn(box.radius()*2.5f);
+        break;
     }
 }
 
@@ -1627,6 +1639,7 @@ void CView::deleteSelectedNodes()
     }
 
     viewParameters();
+    updateViewTree();
 }
 
 void CView::selectedObjectToClipboardBuffer()
@@ -1897,6 +1910,57 @@ void CView::clearHistory()
 void CView::onMobParamEditFinished(CMobParameters *pMob)
 {
     m_arrParamWindow.removeOne(pMob);
+}
+
+void CView::onItemTreeClickSlot(QTreeWidgetItem *pItem, int column)
+{
+    if(column != 0) // clicked on count field. ignore it
+        return;
+
+    int parentCount=0;
+    auto pParent = pItem->parent();
+    while(nullptr != pParent)
+    {
+        pParent = pParent->parent();
+        ++parentCount;
+    }
+    SSelect sel;
+    switch (parentCount)
+    {
+    case 0:
+        return; // for now skip clicking root items
+    case 1:
+    { // first child
+        ENodeType baseType = objectTypeByString(pItem->parent()->text(0));
+        sel.type = baseType == ENodeType::eUnit ? eSelectType_Database_name : eSelectType_Map_name;
+        sel.param1 = pItem->text(0);
+        select(sel, false);
+        if(pItem->text(1).toInt() == 1)
+            moveCamToSelectedObject();
+        break;
+    }
+    case 2:
+    { // second child
+        //ENodeType baseType = objectTypeByString(pItem->parent()->parent()->text(0));
+        sel.type = eSelectType_Id_range;
+        sel.param1 = pItem->text(0);
+        sel.param2 = pItem->text(0);
+        select(sel, false);
+        moveCamToSelectedObject();
+        break;
+    }
+
+    }
+
+}
+
+void CView::onItemDoubleClickSlot(QTreeWidgetItem *pItem, int column)
+{
+    return;
+    if(column !=0)
+        return;
+
+    moveCamToSelectedObject();
 }
 
 void CView::roundActiveMob()

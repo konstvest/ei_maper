@@ -32,6 +32,7 @@ enum ESelectType
 struct SSelect
 {
     ESelectType type;
+    //todo: param0 - object filters for find in ENodeType types
     QString param1;
     QString param2;
 };

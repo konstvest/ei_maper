@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QSharedPointer>
 #include <QTableWidget>
+#include <QTreeWidgetItem>
 
 #include "types.h"
 #include "select_window.h"
@@ -104,6 +105,7 @@ private:
     void checkOpenGlError();
     void updateTreeLogic();
     void updateTreeObjects();
+    void moveCamToSelectedObject();
 
 public slots:
     void updateWindow();
@@ -116,6 +118,8 @@ public slots:
     void execMobSwitch();
     void clearHistory();
     void onMobParamEditFinished(CMobParameters* pMob);
+    void onItemTreeClickSlot(QTreeWidgetItem* pItem, int column);
+    void onItemDoubleClickSlot(QTreeWidgetItem* pItem, int column);
 
 signals:
     void updateMsg(QString msg);

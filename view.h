@@ -103,8 +103,6 @@ private:
     void onParamChangeLogic(CNode* pNode, SParam& sParam);
     void logOpenGlData();
     void checkOpenGlError();
-    void updateTreeLogic();
-    void updateTreeObjects();
     void moveCamToSelectedObject();
 
 public slots:

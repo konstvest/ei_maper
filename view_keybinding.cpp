@@ -28,14 +28,13 @@ void CView::keyPressEvent(QKeyEvent* event)
 
     switch (event->key()) {
     case Qt::Key_M:
-        unloadLand();
+//        unloadLand();
         break;
 //    case Qt::Key_U:
 //        unloadMob("");
 //        break;
     case Qt::Key_I:
     {
-        updateTreeLogic();
         break;
     }
     default:

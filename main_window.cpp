@@ -67,6 +67,7 @@ MainWindow::MainWindow(QWidget* parent) :
     QObject::connect(m_pView, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
     QObject::connect(CScene::getInstance(), SIGNAL(modeChanged()), m_pView, SLOT(viewParameters()));
 
+
 //    m_ui->progressBar->setValue(0);
     m_ui->progressBar->reset();
 //    m_ui->progressBar->setVisible(false);

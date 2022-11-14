@@ -980,81 +980,6 @@ void CView::onParamChange(SParam &param)
 
 }
 
-void CView::updateViewTree()
-{
-    m_pTree->clear();
-    if(nullptr == m_activeMob)
-        return;
-
-    if(CScene::getInstance()->getMode() == eEditModeLogic)
-        updateTreeLogic();
-    else
-        updateTreeObjects();
-}
-
-void CView::updateTreeLogic()
-{
-    if(nullptr == m_activeMob)
-        return;
-
-    m_pTree->clear();
-    m_pTree->setColumnCount(2);
-    QStringList labels;
-    labels << "Point" << "Value";
-    m_pTree->setHeaderLabels(labels);
-    m_pTree->header()->setStretchLastSection(false);
-    m_pTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-    //m_pTree->resizeColumnToContents();
-    CNode* pNode = nullptr;
-
-    foreach(pNode, m_activeMob->nodes())
-    {
-        if(pNode->nodeState() != ENodeState::eSelect)
-            continue;
-        if(pNode->nodeType() != ENodeType::eUnit)
-            continue;
-
-        QJsonObject obj = pNode->toJson();
-        QJsonObject logic = obj["Logics"].toArray()[0].toObject();
-        EBehaviourType behaviour = (EBehaviourType)logic["Model"].toVariant().toInt();
-        if(behaviour != EBehaviourType::ePath)
-        {
-            qDebug() << "behaviour: " << behaviour;
-            continue;
-        }
-        //guard placement can be shown in table
-        //QJsonArray arrPoint = logic["Guard placement"].toArray();
-        //QVector3D pos(arrPoint[0].toVariant().toFloat(), arrPoint[1].toVariant().toFloat(), arrPoint[2].toVariant().toFloat());
-
-        QJsonArray arrPatrol = logic["Patrol Points"].toArray();
-        for(int i(0); i<arrPatrol.size(); ++i)
-        {
-            auto pPoint = new QTreeWidgetItem(m_pTree);
-            QJsonArray arrPos = arrPatrol[i].toObject()["Position"].toArray();
-            QVector3D pos(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat(), arrPos[2].toVariant().toFloat());
-
-            pPoint->setText(0, util::makeString(pos));
-            m_pTree->addTopLevelItem(pPoint);
-            //look point
-            QJsonArray arrLook = arrPatrol[i].toObject()["Looking points"].toArray();
-            pPoint->setText(1, "views: " + QString::number(arrLook.size()));
-            for(auto look = arrLook.begin(); look != arrLook.end(); ++look)
-            {
-                auto pView = new QTreeWidgetItem;
-                QJsonArray arrPos = look->toObject()["Position"].toArray();
-                QVector3D pos(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat(), arrPos[2].toVariant().toFloat());
-                pView->setText(0, util::makeString(pos));
-                uint wait = look->toObject()["Wait"].toVariant().toUInt();
-                pView->setText(1, "time:" + QString::number(wait));
-                pPoint->addChild(pView);
-            }
-        }
-    }
-
-    m_pTree->resizeColumnToContents(1);
-    m_pTree->setColumnWidth(1, m_pTree->columnWidth(1)+10); // set intend for displaying
-}
-
 QString objectNameByType(ENodeType type)
 {
     QMap<ENodeType, QString> type2str;
@@ -1084,8 +1009,12 @@ ENodeType objectTypeByString(QString str)
     return type2str.key(str);
 }
 
-void CView::updateTreeObjects()
+void CView::updateViewTree()
 {
+    m_pTree->clear();
+    if(nullptr == m_activeMob)
+        return;
+
     m_pTree->setColumnCount(2);
     QStringList labels;
     labels << "Objects" << "Count";

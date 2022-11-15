@@ -597,3 +597,22 @@ void CChangeDiplomacyTableItem::redo()
     }
     setText("Dip group (" + QString::number(m_row) + ", " + QString::number(m_column) + ") changed to " + QString::number(value));
 }
+
+CChangeActiveMobCommand::CChangeActiveMobCommand(CView *pView, QString mobName, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_mobName(mobName)
+{
+    m_oldMobName = m_pView->currentMob()->mobName();
+}
+
+void CChangeActiveMobCommand::undo()
+{
+    m_pView->changeCurrentMob(m_oldMobName);
+}
+
+void CChangeActiveMobCommand::redo()
+{
+    m_pView->changeCurrentMob(m_mobName);
+    setText("Change MOB to:" + m_mobName);
+}

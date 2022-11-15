@@ -46,6 +46,7 @@ SOURCES += \
     progressview.cpp \
     range_dialog.cpp \
     resourcemanager.cpp \
+    round_mob_form.cpp \
     scene.cpp \
     sector.cpp \
     select_window.cpp \
@@ -89,6 +90,7 @@ HEADERS += \
     progressview.h \
     range_dialog.h \
     resourcemanager.h \
+    round_mob_form.h \
     scene.h \
     sector.h \
     select_window.h \
@@ -116,6 +118,7 @@ FORMS += \
         main_window.ui \
         mob_parameters.ui \
         range_dialog.ui \
+        round_mob_form.ui \
         select_window.ui \
         settings.ui
 

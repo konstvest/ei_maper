@@ -28,16 +28,18 @@
 #include "ogl_utils.h"
 #include "scene.h"
 #include "mob_parameters.h"
+#include "round_mob_form.h"
 
 class CLogic;
 
 CView::CView(QWidget *parent, const QGLWidget *pShareWidget):
     QGLWidget(parent, pShareWidget)
-    , m_pSettings(nullptr)
-    , m_pProgress(nullptr)
-    , m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
-    , m_activeMob(nullptr)
-    ,m_pTree(nullptr)
+  , m_pSettings(nullptr)
+  , m_pProgress(nullptr)
+  , m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
+  , m_activeMob(nullptr)
+  ,m_pTree(nullptr)
+  ,m_pRoundForm(nullptr)
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -501,6 +503,19 @@ void CView::changeCurrentMob(CMob *pMob)
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, (nullptr == pMob || !pMob->isDurty()) ? "" : "*");
     updateViewTree();
+}
+
+void CView::changeCurrentMob(QString mobName)
+{
+    for(auto& mob : m_aMob)
+    {
+        if(mob->mobName() == mobName)
+        {
+            changeCurrentMob(mob);
+            break;
+        }
+
+    }
 }
 
 void CView::onParamChangeLogic(CNode *pNode, SParam& param)
@@ -1170,7 +1185,12 @@ void CView::wheelEvent(QWheelEvent* event)
 void CView::focusOutEvent(QFocusEvent *event)
 {
     Q_UNUSED(event);
-    m_pOp->keyManager()->releaseAllButtons();
+    QSet<Qt::Key> aKey(m_pOp->keyManager()->keys());
+    for(auto& key : aKey)
+    {
+        QKeyEvent keyEvent(QEvent::KeyRelease, key, Qt::NoModifier);
+        m_pOp->keyRelease(&keyEvent);
+    }
 }
 
 // draw objects without light and textures, only colored triangles; find suitable object
@@ -1950,4 +1970,42 @@ void CView::execUnloadCommand()
     CCloseActiveMobCommand* pCommand = new CCloseActiveMobCommand(this);
     m_pUndoStack->push(pCommand);
 
+}
+
+void CView::iterateRoundMob()
+{
+    if(nullptr == m_activeMob)
+        return;
+
+    if(nullptr == m_pRoundForm)
+    {
+        QList<QString> arrMob;
+        arrMob.append(m_activeMob->mobName());
+        for(auto& mob: m_aMob)
+        {
+            if(mob == m_activeMob)
+                continue;
+            arrMob.append(mob->mobName());
+        }
+        m_pRoundForm = new CRoundMobForm();
+        m_pRoundForm->initMobList(arrMob);
+        m_pRoundForm->show();
+        return;
+    }
+    m_pRoundForm->round();
+}
+
+void CView::applyRoundMob()
+{
+    if(nullptr == m_pRoundForm)
+        return;
+
+    QString newMobName = m_pRoundForm->selectedMob();
+    delete m_pRoundForm;
+    m_pRoundForm = nullptr;
+    if (newMobName == m_activeMob->mobName())
+        return;
+
+    auto pChangeMobCommand = new CChangeActiveMobCommand(this, newMobName);
+    m_pUndoStack->push(pChangeMobCommand);
 }

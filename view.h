@@ -30,6 +30,7 @@ struct SColor;
 class CSelectFrame;
 class QTreeWidget;
 class CMobParameters;
+class CRoundMobForm;
 
 class CView : public QGLWidget
 {
@@ -77,9 +78,12 @@ public:
     void addLogicPoint(bool bLookPoint = false);
     void copySelectedIDsToClipboard();
     void changeCurrentMob(CMob* pMob);
+    void changeCurrentMob(QString mobName);
     void roundActiveMob();
     void undo_roundActiveMob();
     void execUnloadCommand();
+    void iterateRoundMob();
+    void applyRoundMob();
 
 protected:
     void initializeGL() override;
@@ -147,6 +151,7 @@ private:
     CMob* m_activeMob;
     QTreeWidget* m_pTree;
     QList<CMobParameters*> m_arrParamWindow;
+    CRoundMobForm* m_pRoundForm;
 };
 
 #endif // MYGLWIDGET_H

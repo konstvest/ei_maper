@@ -300,7 +300,7 @@
       </layout>
      </item>
      <item>
-      <widget class="QPlainTextEdit" name="plainTextEdit"/>
+      <widget class="CScriptEditor" name="plainTextEdit"/>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -347,6 +347,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CScriptEditor</class>
+   <extends>QPlainTextEdit</extends>
+   <header>script_editor.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

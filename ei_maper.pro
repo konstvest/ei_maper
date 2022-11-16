@@ -48,6 +48,7 @@ SOURCES += \
     resourcemanager.cpp \
     round_mob_form.cpp \
     scene.cpp \
+    script_editor.cpp \
     sector.cpp \
     select_window.cpp \
     settings.cpp \
@@ -92,6 +93,7 @@ HEADERS += \
     resourcemanager.h \
     round_mob_form.h \
     scene.h \
+    script_editor.h \
     sector.h \
     select_window.h \
     settings.h \

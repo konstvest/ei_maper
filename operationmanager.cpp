@@ -11,6 +11,7 @@
 #include "log.h"
 #include "scene.h"
 #include "undo.h"
+#include "round_mob_form.h"
 
 void strToOperValue(QVector3D& vec, const EOperateAxis axis, const QString& value)
 {
@@ -71,8 +72,7 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
     {
         if (pOp->keyManager()->isPressed(Qt::Key_Control))
         {
-            qDebug() << "execute switching mob";
-            m_pView->execMobSwitch();
+            m_pView->iterateRoundMob();
         }
         else
         {
@@ -134,21 +134,15 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
 void CSelect::keyRelease(COperation *pOp, QKeyEvent *pEvent)
 {
     pOp->keyManager()->release(Qt::Key(pEvent->key()));
-//    switch (event->key()) {
-//    case Qt::Key_Shift:
-//    case Qt::Key_W:
-//    case Qt::Key_Up:
-//    case Qt::Key_S:
-//    case Qt::Key_Down:
-//    case Qt::Key_D:
-//    case Qt::Key_Right:
-//    case Qt::Key_A:
-//    case Qt::Key_Left:
-//    case Qt::Key_E:
-//    case Qt::Key_Q:
-//        pOp->keyManager()->release(Qt::Key(event->key()));
-//        break;
-//    }
+    switch (pEvent->key()) {
+    case Qt::Key_Control:
+    { //todo: optimize logic for applying active mob selection
+        m_pView->applyRoundMob();
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 void CSelect::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)

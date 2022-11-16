@@ -67,6 +67,7 @@ MainWindow::MainWindow(QWidget* parent) :
     QObject::connect(m_pView, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
     QObject::connect(CScene::getInstance(), SIGNAL(modeChanged()), m_pView, SLOT(viewParameters()));
 
+
 //    m_ui->progressBar->setValue(0);
     m_ui->progressBar->reset();
 //    m_ui->progressBar->setVisible(false);
@@ -241,21 +242,6 @@ void MainWindow::on_toolButton_2_clicked()
 {
 
     ei::log(eLogDebug, "btn test start");
-    auto pTree = m_ui->treeWidget;
-    pTree->clear();
-    pTree->setColumnCount(2);
-    QStringList header;
-    header << "Point" << "Parameter";
-    pTree->setHeaderLabels(header);
-    auto pPoint = new QTreeWidgetItem(pTree);
-    pTree->addTopLevelItem(pPoint);
-    pPoint->setText(0, "pos(x,y,z)");
-    pPoint->setText(1, "view count: 3");
-
-    auto pView = new QTreeWidgetItem();
-    pView->setText(0, "pos(X,Y,Z)");
-    pView->setText(1, "look time: 150");
-    pPoint->addChild(pView);
     ei::log(eLogDebug, "btn test end");
 }
 

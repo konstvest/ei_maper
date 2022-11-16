@@ -64,6 +64,11 @@ void CChangeStringParam::undo()
     if(m_objParam == eObjParam_NID)
     {
         m_nodeId = m_oldValue.toUInt();
+        emit updateTreeViewSignal();
+    }
+    else if(m_objParam == eObjParam_NAME)
+    {
+        emit updateTreeViewSignal();
     }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
@@ -80,6 +85,11 @@ void CChangeStringParam::redo()
     {
         //todo: check if changes allowed
         m_nodeId = m_newValue.toUInt();
+        emit updateTreeViewSignal();
+    }
+    else if(m_objParam == eObjParam_NAME)
+    {
+        emit updateTreeViewSignal();
     }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
@@ -586,4 +596,23 @@ void CChangeDiplomacyTableItem::redo()
         emit changeDipGroup(m_column, m_row);
     }
     setText("Dip group (" + QString::number(m_row) + ", " + QString::number(m_column) + ") changed to " + QString::number(value));
+}
+
+CChangeActiveMobCommand::CChangeActiveMobCommand(CView *pView, QString mobName, QUndoCommand *parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_mobName(mobName)
+{
+    m_oldMobName = m_pView->currentMob()->mobName();
+}
+
+void CChangeActiveMobCommand::undo()
+{
+    m_pView->changeCurrentMob(m_oldMobName);
+}
+
+void CChangeActiveMobCommand::redo()
+{
+    m_pView->changeCurrentMob(m_mobName);
+    setText("Change MOB to:" + m_mobName);
 }

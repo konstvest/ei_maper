@@ -2,7 +2,7 @@
 #include <QMessageBox>
 #include <QTextBlock>
 #include <QMenu>
-
+#include <QTextCodec>
 
 #include "mob_parameters.h"
 #include "ui_mob_parameters.h"
@@ -194,7 +194,10 @@ void CMobParameters::updateWindow()
     }
 
     ui->plainTextEdit->clear();
-    ui->plainTextEdit->setPlainText(m_pCurMob->script());
+    QTextCodec* pDefaultTextCodec = QTextCodec::codecForName("Windows-1251");
+    QTextDecoder* pDecoder = new QTextDecoder(pDefaultTextCodec);
+    QString str = pDecoder->toUnicode(m_pCurMob->script().toLatin1());
+    ui->plainTextEdit->setPlainText(str);
 
     //diplomacy
     QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
@@ -298,7 +301,11 @@ void CMobParameters::on_pushCancel_clicked()
 
 void CMobParameters::on_pushApply_clicked()
 {
-    m_pCurMob->setScript(ui->plainTextEdit-> toPlainText()); //todo: check changes for plain text (script)
+    QTextCodec* pDefaultTextCodec = QTextCodec::codecForName("Windows-1251");
+    auto strArr = pDefaultTextCodec->fromUnicode(ui->plainTextEdit->toPlainText()); //convert from script unicode to win1251 byte array
+    QString str = QString::fromLatin1(strArr); //convert byte array to qstring
+
+    m_pCurMob->setScript(str);
     if(m_pUndoStack->count() > 0)
     {
         m_pUndoStack->clear();

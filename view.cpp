@@ -28,16 +28,18 @@
 #include "ogl_utils.h"
 #include "scene.h"
 #include "mob_parameters.h"
+#include "round_mob_form.h"
 
 class CLogic;
 
 CView::CView(QWidget *parent, const QGLWidget *pShareWidget):
     QGLWidget(parent, pShareWidget)
-    , m_pSettings(nullptr)
-    , m_pProgress(nullptr)
-    , m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
-    , m_activeMob(nullptr)
-    ,m_pTree(nullptr)
+  , m_pSettings(nullptr)
+  , m_pProgress(nullptr)
+  , m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
+  , m_activeMob(nullptr)
+  ,m_pTree(nullptr)
+  ,m_pRoundForm(nullptr)
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -89,11 +91,8 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     CLogger::getInstance()->attachSettings(pSettings);
 
     m_pTree = pTree;
-    pTree->setColumnCount(1);
-    pTree->setHeaderLabel("Object list");
-    auto pTodoItem = new QTreeWidgetItem(pTree);
-    pTree->addTopLevelItem(pTodoItem);
-    pTodoItem->setText(0, "Здесь могла быть ваша реклама");
+    QObject::connect(m_pTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(onItemTreeClickSlot(QTreeWidgetItem*,int)));
+    QObject::connect(m_pTree, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(onItemDoubleClickSlot(QTreeWidgetItem*,int)));
 }
 
 void CView::updateWindow()
@@ -322,7 +321,7 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
             if (!pObj)
                 break;
             if (!selectParam.param1.isEmpty()
-                    && (node->prototypeName().toLower().contains(selectParam.param1.toLower())))
+                    && (node->mapName().toLower().contains(selectParam.param1.toLower())))
             {
                 node->setState(eSelect);
             }
@@ -503,6 +502,20 @@ void CView::changeCurrentMob(CMob *pMob)
     m_activeMob = pMob;
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, (nullptr == pMob || !pMob->isDurty()) ? "" : "*");
+    updateViewTree();
+}
+
+void CView::changeCurrentMob(QString mobName)
+{
+    for(auto& mob : m_aMob)
+    {
+        if(mob->mobName() == mobName)
+        {
+            changeCurrentMob(mob);
+            break;
+        }
+
+    }
 }
 
 void CView::onParamChangeLogic(CNode *pNode, SParam& param)
@@ -887,7 +900,10 @@ void CView::updateParameter(EObjParam param)
 void CView::viewParameters()
 {
     if(nullptr == m_activeMob)
+    {
+        m_tableManager->reset(); //clear table data if empty current mob
         return;
+    }
 
     QSet<ENodeType> aType;
     //find unique selected node types
@@ -969,6 +985,7 @@ void CView::onParamChange(SParam &param)
             {
                 CChangeStringParam* pChanger = new CChangeStringParam(this, pNode->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
+                QObject::connect(pChanger, SIGNAL(updateTreeViewSignal()), this, SLOT(updateViewTree()));
                 m_pUndoStack->push(pChanger);
             }
             break;
@@ -978,67 +995,171 @@ void CView::onParamChange(SParam &param)
 
 }
 
-void CView::updateTreeLogic()
+QString objectNameByType(ENodeType type)
 {
+    QMap<ENodeType, QString> type2str;
+    type2str.insert(ENodeType::eWorldObject, "World objects");
+    type2str.insert(ENodeType::eUnit, "Units");
+    type2str.insert(ENodeType::eTorch, "Torches");
+    type2str.insert(ENodeType::eLever, "Levers");
+    type2str.insert(ENodeType::eMagicTrap, "Magic traps");
+    type2str.insert(ENodeType::eLight, "Light source");
+    type2str.insert(ENodeType::eSound, "Sound sources");
+    type2str.insert(ENodeType::eParticle, "Particle sources");
+
+    return type2str[type];
+}
+
+ENodeType objectTypeByString(QString str)
+{
+    QMap<ENodeType, QString> type2str;
+    type2str.insert(ENodeType::eWorldObject, "World objects");
+    type2str.insert(ENodeType::eUnit, "Units");
+    type2str.insert(ENodeType::eTorch, "Torches");
+    type2str.insert(ENodeType::eLever, "Levers");
+    type2str.insert(ENodeType::eMagicTrap, "Magic traps");
+    type2str.insert(ENodeType::eLight, "Light source");
+    type2str.insert(ENodeType::eSound, "Sound sources");
+    type2str.insert(ENodeType::eParticle, "Particle sources");
+    return type2str.key(str);
+}
+
+void CView::updateViewTree()
+{
+    m_pTree->clear();
     if(nullptr == m_activeMob)
         return;
 
-    m_pTree->clear();
     m_pTree->setColumnCount(2);
     QStringList labels;
-    labels << "Point" << "Value";
+    labels << "Objects" << "Count";
     m_pTree->setHeaderLabels(labels);
     m_pTree->header()->setStretchLastSection(false);
     m_pTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-    //m_pTree->resizeColumnToContents();
+    m_pTree->resizeColumnToContents(1);
+    //generate common object types
+    QMap<QString, QMap<QString, QList<uint>>> aObjList; //base group -> inner object group -> object string array (todo: item class with node map ID)
     CNode* pNode = nullptr;
+    ENodeType type = ENodeType::eBaseType;
+    QString groupName;
+    auto fillObjectByType=[&aObjList, &type, &groupName](uint objId) -> void
+    {
+        QString typeString = objectNameByType(type);
+        if(aObjList.contains(typeString))
+        {
+            auto& group = aObjList[typeString];
+            group[groupName].append(objId);
 
+        }
+        else
+        {
+            QMap<QString, QList<uint>> map;
+            map[groupName].append(objId);
+            aObjList[typeString] = map;
+        }
+    };
     foreach(pNode, m_activeMob->nodes())
     {
-        if(pNode->nodeState() != ENodeState::eSelect)
-            continue;
-        if(pNode->nodeType() != ENodeType::eUnit)
-            continue;
-
-        QJsonObject obj = pNode->toJson();
-        QJsonObject logic = obj["Logics"].toArray()[0].toObject();
-        EBehaviourType behaviour = (EBehaviourType)logic["Model"].toVariant().toInt();
-        if(behaviour != EBehaviourType::ePath)
+        type = pNode->nodeType();
+        //can be optimized via class overriding
+        switch (type)
         {
-            qDebug() << "behaviour: " << behaviour;
-            continue;
+        case ENodeType::eWorldObject:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
         }
-        //guard placement can be shown in table
-        //QJsonArray arrPoint = logic["Guard placement"].toArray();
-        //QVector3D pos(arrPoint[0].toVariant().toFloat(), arrPoint[1].toVariant().toFloat(), arrPoint[2].toVariant().toFloat());
-
-        QJsonArray arrPatrol = logic["Patrol Points"].toArray();
-        for(int i(0); i<arrPatrol.size(); ++i)
+        case ENodeType::eUnit:
         {
-            auto pPoint = new QTreeWidgetItem(m_pTree);
-            QJsonArray arrPos = arrPatrol[i].toObject()["Position"].toArray();
-            QVector3D pos(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat(), arrPos[2].toVariant().toFloat());
+            auto pUnitItem = dynamic_cast<CUnit*>(pNode);
+            groupName = pUnitItem->databaseName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eTorch:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eLever:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eMagicTrap:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eLight:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eSound:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        case ENodeType::eParticle:
+        {
+            groupName = pNode->mapName();
+            fillObjectByType(pNode->mapId());
+            break;
+        }
+        default:
+        {
+            //do not collect nothing for Tree View
+            break;
+        }
 
-            pPoint->setText(0, util::makeString(pos));
-            m_pTree->addTopLevelItem(pPoint);
-            //look point
-            QJsonArray arrLook = arrPatrol[i].toObject()["Looking points"].toArray();
-            pPoint->setText(1, "views: " + QString::number(arrLook.size()));
-            for(auto look = arrLook.begin(); look != arrLook.end(); ++look)
-            {
-                auto pView = new QTreeWidgetItem;
-                QJsonArray arrPos = look->toObject()["Position"].toArray();
-                QVector3D pos(arrPos[0].toVariant().toFloat(), arrPos[1].toVariant().toFloat(), arrPos[2].toVariant().toFloat());
-                pView->setText(0, util::makeString(pos));
-                uint wait = look->toObject()["Wait"].toVariant().toUInt();
-                pView->setText(1, "time:" + QString::number(wait));
-                pPoint->addChild(pView);
-            }
         }
     }
 
-    m_pTree->resizeColumnToContents(1);
-    m_pTree->setColumnWidth(1, m_pTree->columnWidth(1)+10); // set intend for displaying
+    for(auto& item : aObjList.toStdMap())
+    {
+        auto pTopItem = new QTreeWidgetItem(m_pTree);
+        pTopItem->setText(0, item.first);
+        m_pTree->addTopLevelItem(pTopItem);
+        for(auto& group : item.second.toStdMap())
+        {
+            auto pGroupItem = new QTreeWidgetItem(pTopItem);
+            pGroupItem->setText(1, QString::number(group.second.size()));
+            if(group.second.size() == 1)
+            {
+                // +"(id:"+QString::number(group.second.first())+")"
+                pGroupItem->setText(0, group.first);
+                continue;
+            }
+            pGroupItem->setText(0, group.first);
+            for(auto& object : group.second)
+            {
+                auto pObjectItem = new QTreeWidgetItem(pGroupItem);
+                pObjectItem->setText(0, QString::number(object));
+            }
+        }
+    }
+}
+
+void CView::moveCamToSelectedObject()
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, CScene::getInstance()->getMode() == eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
+    {
+        if (pNode->nodeState() != ENodeState::eSelect)
+            continue;
+
+        CBox box = pNode->getBBox();
+        m_cam->moveTo(pNode->drawPosition() + box.center());
+        m_cam->moveAwayOn(box.radius()*2.5f);
+        break;
+    }
 }
 
 void CView::mousePressEvent(QMouseEvent* event)
@@ -1064,7 +1185,12 @@ void CView::wheelEvent(QWheelEvent* event)
 void CView::focusOutEvent(QFocusEvent *event)
 {
     Q_UNUSED(event);
-    m_pOp->keyManager()->releaseAllButtons();
+    QSet<Qt::Key> aKey(m_pOp->keyManager()->keys());
+    for(auto& key : aKey)
+    {
+        QKeyEvent keyEvent(QEvent::KeyRelease, key, Qt::NoModifier);
+        m_pOp->keyRelease(&keyEvent);
+    }
 }
 
 // draw objects without light and textures, only colored triangles; find suitable object
@@ -1462,6 +1588,7 @@ void CView::deleteSelectedNodes()
     }
 
     viewParameters();
+    updateViewTree();
 }
 
 void CView::selectedObjectToClipboardBuffer()
@@ -1734,6 +1861,57 @@ void CView::onMobParamEditFinished(CMobParameters *pMob)
     m_arrParamWindow.removeOne(pMob);
 }
 
+void CView::onItemTreeClickSlot(QTreeWidgetItem *pItem, int column)
+{
+    if(column != 0) // clicked on count field. ignore it
+        return;
+
+    int parentCount=0;
+    auto pParent = pItem->parent();
+    while(nullptr != pParent)
+    {
+        pParent = pParent->parent();
+        ++parentCount;
+    }
+    SSelect sel;
+    switch (parentCount)
+    {
+    case 0:
+        return; // for now skip clicking root items
+    case 1:
+    { // first child
+        ENodeType baseType = objectTypeByString(pItem->parent()->text(0));
+        sel.type = baseType == ENodeType::eUnit ? eSelectType_Database_name : eSelectType_Map_name;
+        sel.param1 = pItem->text(0);
+        select(sel, false);
+        if(pItem->text(1).toInt() == 1)
+            moveCamToSelectedObject();
+        break;
+    }
+    case 2:
+    { // second child
+        //ENodeType baseType = objectTypeByString(pItem->parent()->parent()->text(0));
+        sel.type = eSelectType_Id_range;
+        sel.param1 = pItem->text(0);
+        sel.param2 = pItem->text(0);
+        select(sel, false);
+        moveCamToSelectedObject();
+        break;
+    }
+
+    }
+
+}
+
+void CView::onItemDoubleClickSlot(QTreeWidgetItem *pItem, int column)
+{
+    return;
+    if(column !=0)
+        return;
+
+    moveCamToSelectedObject();
+}
+
 void CView::roundActiveMob()
 {
     if(m_aMob.isEmpty())
@@ -1792,4 +1970,42 @@ void CView::execUnloadCommand()
     CCloseActiveMobCommand* pCommand = new CCloseActiveMobCommand(this);
     m_pUndoStack->push(pCommand);
 
+}
+
+void CView::iterateRoundMob()
+{
+    if(nullptr == m_activeMob)
+        return;
+
+    if(nullptr == m_pRoundForm)
+    {
+        QList<QString> arrMob;
+        arrMob.append(m_activeMob->mobName());
+        for(auto& mob: m_aMob)
+        {
+            if(mob == m_activeMob)
+                continue;
+            arrMob.append(mob->mobName());
+        }
+        m_pRoundForm = new CRoundMobForm();
+        m_pRoundForm->initMobList(arrMob);
+        m_pRoundForm->show();
+        return;
+    }
+    m_pRoundForm->round();
+}
+
+void CView::applyRoundMob()
+{
+    if(nullptr == m_pRoundForm)
+        return;
+
+    QString newMobName = m_pRoundForm->selectedMob();
+    delete m_pRoundForm;
+    m_pRoundForm = nullptr;
+    if (newMobName == m_activeMob->mobName())
+        return;
+
+    auto pChangeMobCommand = new CChangeActiveMobCommand(this, newMobName);
+    m_pUndoStack->push(pChangeMobCommand);
 }

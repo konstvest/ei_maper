@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QSharedPointer>
 #include <QTableWidget>
+#include <QTreeWidgetItem>
 
 #include "types.h"
 #include "select_window.h"
@@ -29,6 +30,7 @@ struct SColor;
 class CSelectFrame;
 class QTreeWidget;
 class CMobParameters;
+class CRoundMobForm;
 
 class CView : public QGLWidget
 {
@@ -76,9 +78,12 @@ public:
     void addLogicPoint(bool bLookPoint = false);
     void copySelectedIDsToClipboard();
     void changeCurrentMob(CMob* pMob);
+    void changeCurrentMob(QString mobName);
     void roundActiveMob();
     void undo_roundActiveMob();
     void execUnloadCommand();
+    void iterateRoundMob();
+    void applyRoundMob();
 
 protected:
     void initializeGL() override;
@@ -102,6 +107,7 @@ private:
     void onParamChangeLogic(CNode* pNode, SParam& sParam);
     void logOpenGlData();
     void checkOpenGlError();
+    void moveCamToSelectedObject();
 
 public slots:
     void updateWindow();
@@ -109,10 +115,13 @@ public slots:
     void viewParameters();
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(SParam& sParam);
-    void updateTreeLogic();
+    void updateViewTree();
+
     void execMobSwitch();
     void clearHistory();
     void onMobParamEditFinished(CMobParameters* pMob);
+    void onItemTreeClickSlot(QTreeWidgetItem* pItem, int column);
+    void onItemDoubleClickSlot(QTreeWidgetItem* pItem, int column);
 
 signals:
     void updateMsg(QString msg);
@@ -142,6 +151,7 @@ private:
     CMob* m_activeMob;
     QTreeWidget* m_pTree;
     QList<CMobParameters*> m_arrParamWindow;
+    CRoundMobForm* m_pRoundForm;
 };
 
 #endif // MYGLWIDGET_H

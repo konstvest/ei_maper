@@ -337,7 +337,7 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_PLAYER] = "Player (group)";
     m_aRowName[eObjParam_NID] = "Map ID";
     m_aRowName[eObjParam_TYPE] = "Unit subtype";
-    m_aRowName[eObjParam_NAME] = "Map(script) name";
+    m_aRowName[eObjParam_NAME] = "Inner(map) name";
     m_aRowName[eObjParam_TEMPLATE] = "Model name";
     m_aRowName[eObjParam_PARENT_TEMPLATE] = "Template";
     m_aRowName[eObjParam_PRIM_TXTR] = "Texture";

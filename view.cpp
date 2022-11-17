@@ -1907,11 +1907,9 @@ void CView::roundActiveMob()
     if(m_aMob.isEmpty())
         return;
 
-    if(m_aMob.size() == 1)
+    if(nullptr == m_activeMob)
     {
-        if(nullptr == m_activeMob)
-            changeCurrentMob(m_aMob.front());
-
+        changeCurrentMob(m_aMob.front());
         return;
     }
 

@@ -477,6 +477,9 @@
    </property>
   </action>
   <action name="actionSwitch_active_MOB">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Switch active MOB</string>
    </property>

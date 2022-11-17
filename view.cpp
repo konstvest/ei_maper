@@ -505,6 +505,9 @@ void CView::changeCurrentMob(CMob *pMob)
 
 void CView::changeCurrentMob(QString mobName)
 {
+    if(nullptr != m_activeMob)
+        m_activeMob->clearSelect();
+
     for(auto& mob : m_aMob)
     {
         if(mob->mobName() == mobName)

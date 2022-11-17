@@ -284,7 +284,6 @@ void CView::unloadLand()
     CLandscape::getInstance()->unloadMpr();
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, "");
     ei::log(eLogInfo, "Landscape unloaded");
-    clearHistory();
 }
 
 int CView::select(const SSelect &selectParam, bool bAddToSelect)
@@ -1996,6 +1995,8 @@ void CView::applyRoundMob()
     if (newMobName == m_activeMob->mobName())
         return;
 
+    auto pChangeMobCommand = new CChangeActiveMobCommand(this, newMobName);
+    m_pUndoStack->push(pChangeMobCommand);
 }
 
 void CView::saveRecent()
@@ -2068,7 +2069,15 @@ void CView::openRecent()
         m_pUndoStack->push(pLoadCommand);
         if(mobObj["isActive"].toBool(false))
         {
-            changeCurrentMob(filePath.fileName()); //dont use undo for changing mob bcs have no 'current mob'
+            CRoundMobCommand* pRound = new CRoundMobCommand(this);
+            m_pUndoStack->push(pRound);
+            if(m_activeMob->mobName() != filePath.fileName())
+            {
+                auto pChangeMobCommand = new CChangeActiveMobCommand(this, filePath.fileName());
+                m_pUndoStack->push(pChangeMobCommand);
+            }
+
+            //changeCurrentMob(filePath.fileName()); //dont use undo for changing mob bcs have no 'current mob'
         }
     }
 }

@@ -220,6 +220,7 @@ void MainWindow::on_actionClose_all_triggered()
 {
     m_pView->unloadMob("");
     m_pView->unloadLand();
+    m_undoStack->clear();
 }
 
 void MainWindow::on_actionSave_triggered()

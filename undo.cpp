@@ -371,6 +371,7 @@ void CDeleteLogicPoint::redo()
         CTrapCastPoint* pCast = m_pView->currentMob()->trapCastById(list[0].toInt(), list[4].toInt());
         pCast->markAsDeleted(true);
     }
+    setText("Point deleted");
 }
 
 CRoundMobCommand::CRoundMobCommand(CView *pView, QUndoCommand *parent):

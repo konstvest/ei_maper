@@ -312,11 +312,12 @@
      <string>&amp;File</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="actionOpen_recent"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_all_MOB_s"/>
     <addaction name="actionSave_as"/>
-    <addaction name="actionClose_all"/>
     <addaction name="separator"/>
+    <addaction name="actionClose_all"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -507,6 +508,14 @@
    </property>
    <property name="text">
     <string>Reset</string>
+   </property>
+  </action>
+  <action name="actionOpen_recent">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Open &amp;recent</string>
    </property>
   </action>
  </widget>

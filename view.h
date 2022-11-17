@@ -86,6 +86,7 @@ public:
     void applyRoundMob();
     void saveRecent();
     void openRecent();
+    bool isRecentAvailable();
 
 protected:
     void initializeGL() override;

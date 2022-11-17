@@ -831,6 +831,7 @@ void CView::unloadMob(QString mobName)
             delete pMob;
         }
         m_aMob.clear();
+        m_activeMob = nullptr;
     }
     else
     {
@@ -2080,4 +2081,9 @@ void CView::openRecent()
             //changeCurrentMob(filePath.fileName()); //dont use undo for changing mob bcs have no 'current mob'
         }
     }
+}
+
+bool CView::isRecentAvailable()
+{
+    return m_recentOpenedFile_file.exists();
 }

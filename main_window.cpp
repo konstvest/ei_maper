@@ -76,6 +76,8 @@ MainWindow::MainWindow(QWidget* parent) :
     CTextureList::getInstance()->attachSettings(m_settings.get());
     CObjectList::getInstance()->attachSettings(m_settings.get());
     m_createDialog.get()->attach(m_pView, m_undoStack);
+    if(m_pView->isRecentAvailable())
+        m_ui->actionOpen_recent->setEnabled(true);
 }
 
 MainWindow::~MainWindow()
@@ -148,6 +150,13 @@ bool MainWindow::isExitAllowed()
     return bCloseAllowed;
 }
 
+void MainWindow::closeAll()
+{
+    m_pView->unloadMob("");
+    m_pView->unloadLand();
+    m_undoStack->clear();
+}
+
 void MainWindow::on_actionExit_triggered()
 {
     if(isExitAllowed())
@@ -174,6 +183,7 @@ void MainWindow::on_actionOpen_triggered()
     {
         QUndoCommand* loadMpr = new COpenCommand(m_pView, fileName);
         m_undoStack->push(loadMpr);
+        m_pView->saveRecent();
     }
     else if(fileName.fileName().toLower().endsWith(".mob"))
     {
@@ -187,6 +197,7 @@ void MainWindow::on_actionOpen_triggered()
         m_undoStack->push(pLoadCommand);
         CRoundMobCommand* pRound = new CRoundMobCommand(m_pView);
         m_undoStack->push(pRound);
+        m_pView->saveRecent();
     }
 }
 
@@ -218,9 +229,7 @@ void MainWindow::on_actionShow_undo_redo_triggered()
 
 void MainWindow::on_actionClose_all_triggered()
 {
-    m_pView->unloadMob("");
-    m_pView->unloadLand();
-    m_undoStack->clear();
+    closeAll();
 }
 
 void MainWindow::on_actionSave_triggered()
@@ -369,4 +378,11 @@ void MainWindow::closeEvent(QCloseEvent *e)
 }
 
 
+
+
+void MainWindow::on_actionOpen_recent_triggered()
+{
+    closeAll();
+    m_pView->openRecent();
+}
 

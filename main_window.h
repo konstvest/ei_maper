@@ -38,6 +38,7 @@ private:
     void initShortcuts();
     void connectUiButtons();
     bool isExitAllowed();
+    void closeAll();
 
 private slots:
     void on_actionExit_triggered();
@@ -65,6 +66,7 @@ private slots:
     void on_actionCopy_IDs_to_clipboard_triggered();
     void on_actionSwitch_active_MOB_triggered();
     void on_actionOpen_2_triggered();
+    void on_actionOpen_recent_triggered();
 
 protected:
     void closeEvent(QCloseEvent* e);

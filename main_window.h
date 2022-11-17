@@ -68,6 +68,8 @@ private slots:
     void on_actionOpen_2_triggered();
     void on_actionOpen_recent_triggered();
 
+    void on_actionReset_logic_paths_triggered();
+
 protected:
     void closeEvent(QCloseEvent* e);
 

@@ -66,6 +66,7 @@ public:
     void moveTo(QVector3D& dir);
     void rotateTo(QVector3D& rot);
     void scaleTo(QVector3D& scale);
+    void resetUnitLogicPaths();
     void deleteSelectedNodes();
     void selectedObjectToClipboardBuffer();
     void clipboradObjectsToScene();

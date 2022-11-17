@@ -386,3 +386,9 @@ void MainWindow::on_actionOpen_recent_triggered()
     m_pView->openRecent();
 }
 
+
+void MainWindow::on_actionReset_logic_paths_triggered()
+{
+    m_pView->resetUnitLogicPaths();
+}
+

@@ -1510,6 +1510,45 @@ void CView::scaleTo(QVector3D &scale)
     updateParameter(EObjParam::eObjParam_COMPLECTION);
 }
 
+void CView::resetUnitLogicPaths()
+{
+    // save selected objects
+    // select patrol points of selected units
+    // delete selected nodes
+    // restore selection
+    QVector<CUnit*> arrSelectedNode;
+    CNode* pNode = nullptr;
+    foreach(pNode, m_activeMob->logicNodes())
+    {
+        if(pNode->nodeState() != ENodeState::eSelect)
+            continue;
+
+        if(pNode->nodeType() != ENodeType::eUnit)
+            continue;
+
+        arrSelectedNode.append(dynamic_cast<CUnit*>(pNode));
+    }
+    m_activeMob->clearSelect(true);
+    for(auto& pUnit : arrSelectedNode)
+    {
+        QList<CNode*> arrPathPoint;
+        pUnit->collectLogicNodes(arrPathPoint);
+        for(auto& pPoint : arrPathPoint)
+        {
+            if(pPoint->nodeType() == ENodeType::ePatrolPoint)
+                pPoint->setState(ENodeState::eSelect);
+        }
+    }
+    auto lastState = CScene::getInstance()->getMode();
+    CScene::getInstance()->changeMode(EEditMode::eEditModeLogic);
+    deleteSelectedNodes();
+    CScene::getInstance()->changeMode(lastState);
+    for(auto& pUnit : arrSelectedNode)
+    {
+        pUnit->setState(ENodeState::eSelect);
+    }
+}
+
 void CView::deleteSelectedNodes()
 {
     QVector<uint> arrMapId;

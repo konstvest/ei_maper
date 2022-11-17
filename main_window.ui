@@ -352,11 +352,18 @@
      <addaction name="actionSelect_All"/>
      <addaction name="actionSelect_by"/>
     </widget>
+    <widget class="QMenu" name="menuUnit">
+     <property name="title">
+      <string>&amp;Unit</string>
+     </property>
+     <addaction name="actionReset_logic_paths"/>
+    </widget>
     <addaction name="action_Mob_parameters"/>
     <addaction name="menuSelect"/>
     <addaction name="actionCreate_new_object"/>
     <addaction name="actionChange_mod_e"/>
     <addaction name="actionSwitch_active_MOB"/>
+    <addaction name="menuUnit"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -519,6 +526,11 @@
    </property>
    <property name="text">
     <string>Open &amp;recent</string>
+   </property>
+  </action>
+  <action name="actionReset_logic_paths">
+   <property name="text">
+    <string>Reset &amp;logic paths</string>
    </property>
   </action>
  </widget>

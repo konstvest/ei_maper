@@ -101,6 +101,8 @@ void CLandscape::readMap(QFileInfo& path)
     if (!path.exists())
         return;
 
+    m_filePath = path;
+
     ResFile map(path.filePath());
     QMap<QString, QByteArray> aTmp =  map.bufferOfFiles();  // map contains DIfferentCaseName
     QMap<QString, QByteArray> aComponent;

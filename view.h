@@ -84,6 +84,8 @@ public:
     void execUnloadCommand();
     void iterateRoundMob();
     void applyRoundMob();
+    void saveRecent();
+    void openRecent();
 
 protected:
     void initializeGL() override;
@@ -121,7 +123,6 @@ public slots:
     void clearHistory();
     void onMobParamEditFinished(CMobParameters* pMob);
     void onItemTreeClickSlot(QTreeWidgetItem* pItem, int column);
-    void onItemDoubleClickSlot(QTreeWidgetItem* pItem, int column);
 
 signals:
     void updateMsg(QString msg);
@@ -148,6 +149,7 @@ private:
     //EOperationType m_operationType;
     QSharedPointer<CSelectFrame> m_selectFrame;
     QFile m_clipboard_buffer_file;
+    QFile m_recentOpenedFile_file;
     CMob* m_activeMob;
     QTreeWidget* m_pTree;
     QList<CMobParameters*> m_arrParamWindow;

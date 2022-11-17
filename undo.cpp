@@ -9,13 +9,11 @@
 #include "log.h"
 
 
-COpenCommand::COpenCommand(CView* pView, QFileInfo& path, MainWindow* pMain, QUndoCommand *parent):
-    QUndoCommand(parent)
+COpenCommand::COpenCommand(CView* pView, QFileInfo& path, QUndoCommand *parent) : QUndoCommand(parent)
     ,m_pView(pView)
     ,m_filePath(path)
-    ,m_pMain(pMain)
 {
-    setText("load " + path.fileName());
+    setText("Load: " + path.fileName());
 }
 
 void COpenCommand::undo()
@@ -23,7 +21,6 @@ void COpenCommand::undo()
     if(m_filePath.fileName().toLower().endsWith(".mpr"))
     {
         m_pView->unloadLand();
-        m_pMain->setWindowTitle("ei_maper");
     }
     else
     {

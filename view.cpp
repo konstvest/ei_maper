@@ -32,12 +32,12 @@
 
 class CLogic;
 
-CView::CView(QWidget *parent, const QGLWidget *pShareWidget):
-    QGLWidget(parent, pShareWidget)
-  , m_pSettings(nullptr)
-  , m_pProgress(nullptr)
-  , m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
-  , m_activeMob(nullptr)
+CView::CView(QWidget *parent, const QGLWidget *pShareWidget) : QGLWidget(parent, pShareWidget)
+  ,m_pSettings(nullptr)
+  ,m_pProgress(nullptr)
+  ,m_clipboard_buffer_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json"))
+  ,m_recentOpenedFile_file(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("recent_opened.json"))
+  ,m_activeMob(nullptr)
   ,m_pTree(nullptr)
   ,m_pRoundForm(nullptr)
 {
@@ -92,7 +92,6 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
 
     m_pTree = pTree;
     QObject::connect(m_pTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(onItemTreeClickSlot(QTreeWidgetItem*,int)));
-    QObject::connect(m_pTree, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(onItemDoubleClickSlot(QTreeWidgetItem*,int)));
 }
 
 void CView::updateWindow()
@@ -1903,15 +1902,6 @@ void CView::onItemTreeClickSlot(QTreeWidgetItem *pItem, int column)
 
 }
 
-void CView::onItemDoubleClickSlot(QTreeWidgetItem *pItem, int column)
-{
-    return;
-    if(column !=0)
-        return;
-
-    moveCamToSelectedObject();
-}
-
 void CView::roundActiveMob()
 {
     if(m_aMob.isEmpty())
@@ -2006,6 +1996,79 @@ void CView::applyRoundMob()
     if (newMobName == m_activeMob->mobName())
         return;
 
-    auto pChangeMobCommand = new CChangeActiveMobCommand(this, newMobName);
-    m_pUndoStack->push(pChangeMobCommand);
+}
+
+void CView::saveRecent()
+{
+    QJsonObject recentFilesObj;
+    if(CLandscape::getInstance()->isMprLoad())
+    {
+        recentFilesObj.insert("MPR", CLandscape::getInstance()->filePath().absoluteFilePath());
+    }
+    QJsonArray arrMob;
+    for(auto& mob: m_aMob)
+    {
+        QJsonObject mobObj;
+        mobObj.insert("MOB", mob->filePath().absoluteFilePath());
+        mobObj.insert("isActive", mob == m_activeMob);
+        arrMob.append(mobObj);
+    }
+    recentFilesObj.insert("arrMOB", arrMob);
+
+    QJsonDocument doc(recentFilesObj);
+
+    if (!m_recentOpenedFile_file.open(QIODevice::WriteOnly))
+    {
+        Q_ASSERT("Couldn't open option file." && false);
+    }
+    else
+    {
+        m_recentOpenedFile_file.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
+        m_recentOpenedFile_file.close();
+    }
+}
+
+void CView::openRecent()
+{
+    if (!m_recentOpenedFile_file.open(QIODevice::ReadOnly))
+    {
+        Q_ASSERT("Couldn't open recent file." && false);
+        return;
+    }
+
+    if (m_recentOpenedFile_file.size() == 0)
+    {
+        qDebug() << "empty recent file";
+        return;
+    }
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(m_recentOpenedFile_file.readAll(), &parseError);
+    m_recentOpenedFile_file.close();
+    //todo: check if has no error
+    QJsonObject obj = doc.object();
+    QString keyExist("MPR");
+    bool isMpr = obj.contains(keyExist);
+    if(!isMpr)
+        return; //dont load mobs if mpr doesnt exists;
+
+    QFileInfo filePath(obj["MPR"].toString());
+    QUndoCommand* loadMpr = new COpenCommand(this, filePath);
+    m_pUndoStack->push(loadMpr);
+
+    if(!obj.contains("arrMOB"))
+        return;
+
+    QJsonArray arrMob = obj["arrMOB"].toArray();
+    for(auto it = arrMob.begin(); it < arrMob.end(); ++it)
+    {
+        QJsonObject mobObj = it->toObject();
+        QFileInfo filePath(mobObj["MOB"].toString());
+        COpenCommand* pLoadCommand = new COpenCommand(this, filePath);
+        m_pUndoStack->push(pLoadCommand);
+        if(mobObj["isActive"].toBool(false))
+        {
+            changeCurrentMob(filePath.fileName()); //dont use undo for changing mob bcs have no 'current mob'
+        }
+    }
 }

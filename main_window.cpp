@@ -172,7 +172,7 @@ void MainWindow::on_actionOpen_triggered()
 
     if(fileName.fileName().toLower().endsWith(".mpr"))
     {
-        QUndoCommand* loadMpr = new COpenCommand(m_pView, fileName, this);
+        QUndoCommand* loadMpr = new COpenCommand(m_pView, fileName);
         m_undoStack->push(loadMpr);
     }
     else if(fileName.fileName().toLower().endsWith(".mob"))
@@ -183,7 +183,7 @@ void MainWindow::on_actionOpen_triggered()
             return;
         }
 
-        COpenCommand* pLoadCommand = new COpenCommand(m_pView, fileName, this);
+        COpenCommand* pLoadCommand = new COpenCommand(m_pView, fileName);
         m_undoStack->push(pLoadCommand);
         CRoundMobCommand* pRound = new CRoundMobCommand(m_pView);
         m_undoStack->push(pRound);
@@ -242,6 +242,8 @@ void MainWindow::on_toolButton_2_clicked()
 {
 
     ei::log(eLogDebug, "btn test start");
+
+    m_pView->openRecent();
     ei::log(eLogDebug, "btn test end");
 }
 

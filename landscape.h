@@ -129,6 +129,7 @@ public:
     bool projectPt(QVector<QVector3D>& aPoint);
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
+    const QFileInfo& filePath() {return m_filePath;}
 
 
 private:
@@ -144,6 +145,7 @@ private:
     QVector<SAnimTile> m_aAnimTile;
     QVector<QVector<CSector*>> m_aSector;
     QOpenGLTexture* m_texture;
+    QFileInfo m_filePath;
 };
 
 #endif // LANDSCAPE_H

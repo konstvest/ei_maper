@@ -88,6 +88,7 @@ public:
     void saveRecent();
     void openRecent();
     bool isRecentAvailable();
+    int renameActiveMobUnits(QMap<QString, QString>& mapName);
 
 protected:
     void initializeGL() override;

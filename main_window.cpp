@@ -87,6 +87,42 @@ MainWindow::~MainWindow()
     CIconManager::getInstance()->~CIconManager();
 }
 
+void MainWindow::testFunc1()
+{
+    ei::log(eLogDebug, "test func 1 started");
+    QMap<QString, QString> mapName;
+    QFile inputFile("c:\\konst\\unit_rename.txt");
+    if (inputFile.open(QIODevice::ReadOnly))
+    {
+       QTextStream in(&inputFile);
+       while (!in.atEnd())
+       {
+          QString line = in.readLine();
+          QStringList list = line.split(";");
+          mapName.insert(list[0], list[1]);
+       }
+       inputFile.close();
+    }
+
+
+    QDir mobFolder("c:\\konst\\Проклятые Земли (Дополнение)\\Mods\\ferneo_mod\\Maps");
+    QFileInfo land(mobFolder.absolutePath() + "\\zone1g.mpr");
+    m_pView->loadLandscape(land);
+    QStringList mobFilter;
+    mobFilter << "*.mob";
+    QFileInfoList mobFiles = mobFolder.entryInfoList(mobFilter);
+    int n=0;
+    foreach(QFileInfo filename, mobFiles) {
+        m_pView->loadMob(filename);
+        m_pView->roundActiveMob();
+        n+=m_pView->renameActiveMobUnits(mapName);
+        m_pView->saveActiveMob();
+        m_pView->unloadActiveMob();
+    }
+    ei::log(eLogInfo, "renamed:" + QString::number(n) + "units");
+    ei::log(eLogDebug, "test func 1 ended");
+}
+
 void MainWindow::createUndoView()
 {
     m_undoView = new QUndoView(m_undoStack);
@@ -250,10 +286,7 @@ void MainWindow::on_actionUndo_triggered()
 
 void MainWindow::on_toolButton_2_clicked()
 {
-
     ei::log(eLogDebug, "btn test start");
-
-    m_pView->openRecent();
     ei::log(eLogDebug, "btn test end");
 }
 

@@ -33,6 +33,8 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
+    void testFunc1();
+
 private:
     void createUndoView();
     void initShortcuts();

@@ -2127,3 +2127,29 @@ bool CView::isRecentAvailable()
 {
     return m_recentOpenedFile_file.exists();
 }
+
+int CView::renameActiveMobUnits(QMap<QString, QString> &mapName)
+{
+    ei::log(ELogMessageType::eLogInfo, "processing map " + m_activeMob->mobName());
+    int n=0;
+    CUnit* pUnit = nullptr;
+    QString sourceName;
+    for(auto& node:m_activeMob->nodes())
+    {
+        if(node->nodeType() != ENodeType::eUnit)
+            continue;
+        pUnit = dynamic_cast<CUnit*>(node);
+        sourceName = pUnit->databaseName();
+        if(mapName.contains(sourceName))
+        {
+            QString& newName = mapName[sourceName];
+            pUnit->applyParam(EObjParam::eObjParam_UNIT_PROTOTYPE, newName);
+            ++n;
+            ei::log(eLogInfo, "Unit:" + QString::number(pUnit->mapId()) + " last name:" + sourceName + " new name:" + newName);
+        }
+        else
+            ei::log(ELogMessageType::eLogError, "not found:" + sourceName);
+    }
+    ei::log(ELogMessageType::eLogInfo, "processing map finished:" + m_activeMob->mobName());
+    return n;
+}

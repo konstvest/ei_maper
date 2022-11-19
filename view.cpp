@@ -292,7 +292,8 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
         return 0;
 
     //const QString mobName = mob->mobName().toLower();
-    for (auto& node : m_activeMob->nodes())
+    CNode* pNode = nullptr;
+    foreach (pNode, CScene::getInstance()->getMode() == eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
     {
         switch (selectParam.type) {
         case eSelectType_Id_range:
@@ -305,52 +306,52 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
                 id_min = id_max;
                 id_max = temp;
             }
-            if (node->mapId() >= id_min && node->mapId() <=id_max)
+            if (pNode->mapId() >= id_min && pNode->mapId() <=id_max)
             {
-                node->setState(eSelect);
+                pNode->setState(eSelect);
             }
-            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                node->setState(eDraw);
+            else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
+                pNode->setState(eDraw);
             break;
         }
         case eSelectType_Map_name:
         {
-            auto pObj = dynamic_cast<CObjectBase*>(node);
+            auto pObj = dynamic_cast<CObjectBase*>(pNode);
             if (!pObj)
                 break;
             if (!selectParam.param1.isEmpty()
-                    && (node->mapName().toLower().contains(selectParam.param1.toLower())))
+                    && (pNode->mapName().toLower().contains(selectParam.param1.toLower())))
             {
-                node->setState(eSelect);
+                pNode->setState(eSelect);
             }
-            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                node->setState(eDraw);
+            else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
+                pNode->setState(eDraw);
             break;
         }
         case eSelectType_Texture_name:
         {
-            if (!(node->nodeType() & ENodeType::eWorldObject))
+            if (!(pNode->nodeType() & ENodeType::eWorldObject))
                 break;
             if (!selectParam.param1.isEmpty()
-                    && (node->textureName().toLower().contains(selectParam.param1.toLower())))
+                    && (pNode->textureName().toLower().contains(selectParam.param1.toLower())))
             {
-                node->setState(eSelect);
+                pNode->setState(eSelect);
             }
-            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                node->setState(eDraw);
+            else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
+                pNode->setState(eDraw);
             break;
         }
         case eSelectType_Model_name:
         {
-            if (!(node->nodeType() & ENodeType::eWorldObject))
+            if (!(pNode->nodeType() & ENodeType::eWorldObject))
                 break;
             if (!selectParam.param1.isEmpty()
-                    && (node->modelName().toLower().contains(selectParam.param1.toLower())))
+                    && (pNode->modelName().toLower().contains(selectParam.param1.toLower())))
             {
-                node->setState(eSelect);
+                pNode->setState(eSelect);
             }
-            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-                node->setState(eDraw);
+            else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
+                pNode->setState(eDraw);
             break;
         }
             //            case eSelectType_Mob_file:
@@ -375,7 +376,7 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
         }
         case eSelectType_Diplomacy_group:
         {
-            auto pObj = dynamic_cast<CWorldObj*>(node);
+            auto pObj = dynamic_cast<CWorldObj*>(pNode);
             if (!pObj)
                 break;
 
@@ -389,45 +390,59 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
             }
             if (pObj->dipGroup() >= group_min && pObj->dipGroup() <= group_max )
             {
-                node->setState(eSelect);
+                pNode->setState(eSelect);
             }
-            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
+            else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
             {
-                node->setState(eDraw);
+                pNode->setState(eDraw);
             }
             break;
         }
         case eSelectType_Database_name:
         {
-            auto pObj = dynamic_cast<CUnit*>(node);
+            auto pObj = dynamic_cast<CUnit*>(pNode);
             if (!pObj)
                 break;
 
-            if (pObj->databaseName().toLower().contains(selectParam.param1.toLower()))
-            {
-                node->setState(eSelect);
+            if (selectParam.param2 == selectParam.param1)
+            {// hard comparison
+                if (pObj->databaseName() == selectParam.param1)
+                {
+                    pNode->setState(eSelect);
+                }
+                else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
+                {
+                    pNode->setState(eDraw);
+                }
             }
-            else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
+            else
             {
-                node->setState(eDraw);
+                if (pObj->databaseName().toLower().contains(selectParam.param1.toLower()))
+                {
+                    pNode->setState(eSelect);
+                }
+                else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
+                {
+                    pNode->setState(eDraw);
+                }
             }
             break;
         }
         case eSelectType_Template:
         {
-            auto pWo = dynamic_cast<CWorldObj*>(node);
+            auto pWo = dynamic_cast<CWorldObj*>(pNode);
             if(nullptr == pWo)
                 break;
 
             QString templ = pWo->getParam(eObjParam_PARENT_TEMPLATE);
             if(templ.toLower().contains(selectParam.param1.toLower()))
-                node->setState(ENodeState::eSelect);
+                pNode->setState(ENodeState::eSelect);
 
             break;
         }
         case eSelectType_all:
         {
-            node->setState(eSelect);
+            pNode->setState(eSelect);
             break;
         }
         default:
@@ -1907,6 +1922,7 @@ void CView::onItemTreeClickSlot(QTreeWidgetItem *pItem, int column)
     if(column != 0) // clicked on count field. ignore it
         return;
 
+    m_activeMob->clearSelect(true);
     int parentCount=0;
     auto pParent = pItem->parent();
     while(nullptr != pParent)
@@ -1924,6 +1940,7 @@ void CView::onItemTreeClickSlot(QTreeWidgetItem *pItem, int column)
         ENodeType baseType = objectTypeByString(pItem->parent()->text(0));
         sel.type = baseType == ENodeType::eUnit ? eSelectType_Database_name : eSelectType_Map_name;
         sel.param1 = pItem->text(0);
+        sel.param2 = sel.param1; //for hard comparison
         select(sel, false);
         if(pItem->text(1).toInt() == 1)
             moveCamToSelectedObject();

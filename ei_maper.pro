@@ -56,6 +56,7 @@ SOURCES += \
     tablemanager.cpp \
     objects/torch.cpp \
     objects/unit.cpp \
+    tree_view.cpp \
     types.cpp \
     ui_connectors.cpp \
     undo.cpp \
@@ -101,6 +102,7 @@ HEADERS += \
     tablemanager.h \
     objects/torch.h \
     objects/unit.h \
+    tree_view.h \
     ui_connectors.h \
     undo.h \
     view.h \

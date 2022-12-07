@@ -61,11 +61,12 @@ void CChangeStringParam::undo()
     if(m_objParam == eObjParam_NID)
     {
         m_nodeId = m_oldValue.toUInt();
-        emit updateTreeViewSignal();
+        emit changeIdSignal(m_newValue.toUInt(), m_oldValue.toUInt());
     }
     else if(m_objParam == eObjParam_NAME)
     {
-        emit updateTreeViewSignal();
+        //todo
+        //emit updateTreeViewSignal();
     }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
@@ -82,11 +83,12 @@ void CChangeStringParam::redo()
     {
         //todo: check if changes allowed
         m_nodeId = m_newValue.toUInt();
-        emit updateTreeViewSignal();
+        emit changeIdSignal(m_oldValue.toUInt(), m_newValue.toUInt());
     }
     else if(m_objParam == eObjParam_NAME)
     {
-        emit updateTreeViewSignal();
+        //todo
+        //emit changeIdSignal();
     }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);

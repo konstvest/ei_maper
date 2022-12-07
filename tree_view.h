@@ -41,6 +41,7 @@ private slots:
     void itemClickedOver(QTreeWidgetItem* pItem, int column);
     void onNodeDelete(uint nodeId);
     void addNodeToTree(CNode* pNode);
+    void onChangeNodeId(uint oldId, uint newId);
 
 private:
     CView* m_pView;

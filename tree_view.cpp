@@ -236,6 +236,24 @@ void CTreeView::addNodeToTree(CNode *pNode)
     }
 }
 
+void CTreeView::onChangeNodeId(uint oldId, uint newId)
+{
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+        auto pNode = dynamic_cast<CTreeObject*>(*it);
+        if (pNode && pNode->nodeId()==oldId)
+        {
+            pNode->setId(newId);
+            if(pNode->text(0) == QString::number(oldId))
+                pNode->setText(0, QString::number(newId));
+            break;
+        }
+        ++it;
+    }
+    sortItems(0, Qt::SortOrder::AscendingOrder);
+}
+
 CTreeObject::CTreeObject(QTreeWidget *pParent): QTreeWidgetItem(pParent)
   ,m_nodeId(0)
 {

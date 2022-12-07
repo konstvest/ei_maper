@@ -1000,7 +1000,7 @@ void CView::onParamChange(SParam &param)
             {
                 CChangeStringParam* pChanger = new CChangeStringParam(this, pNode->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
-                QObject::connect(pChanger, SIGNAL(updateTreeViewSignal()), this, SLOT(collectObjectTreeData()));
+                QObject::connect(pChanger, SIGNAL(changeIdSignal(uint, uint)), m_pTree, SLOT(onChangeNodeId(uint, uint)));
                 m_pUndoStack->push(pChanger);
             }
             break;

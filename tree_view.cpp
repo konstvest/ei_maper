@@ -45,14 +45,33 @@ int CTreeView::parentDeepCount(QTreeWidgetItem *pItem)
 void CTreeView::recalcParent(QTreeWidgetItem *pItem)
 {
     int nChildren = pItem->childCount();
-    if(nChildren > 0 && (pItem->parent() != nullptr))
-        pItem->setText(1, QString::number(nChildren));
-    else if(pItem->parent()) // empty children, not root elem
+    switch (nChildren)
     {
-        auto pTopParent = pItem->parent();
-        pTopParent->removeChild(pItem);
-        removeItemWidget(pItem, 0);
+    case 0:
+        if(pItem->parent()) // empty children, not root elem
+        {
+            auto pTopParent = pItem->parent();
+            pTopParent->removeChild(pItem);
+            removeItemWidget(pItem, 0);
+        }
+        break;
+    case 1:
+        if(pItem->parent()) //not root elem
+        {
+            //move child elem to parent
+            auto pObject = dynamic_cast<CTreeObject*>(pItem);
+            auto pChild = dynamic_cast<CTreeObject*>(pItem->child(0));
+            pObject->setId(pChild->nodeId());
+            pObject->removeChild(pChild);
+            removeItemWidget(pChild, 0);
+            pObject->setText(1, "1");
+        }
+        break;
+    default:
+        pItem->setText(1, QString::number(nChildren));
+        break;
     }
+
 }
 
 QTreeWidgetItem *CTreeView::category(QString &categoryName)

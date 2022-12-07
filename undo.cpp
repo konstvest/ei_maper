@@ -168,6 +168,7 @@ void CCreateNodeCommand::undo()
 {
     m_pView->currentMob()->undo_createNode(m_createdNodeId);
     m_pView->setDurty();
+    emit undo_addNodeSignal(m_createdNodeId);
 }
 
 void CCreateNodeCommand::redo()
@@ -176,6 +177,7 @@ void CCreateNodeCommand::redo()
     m_createdNodeId = pNode->mapId();
     setText("Node created ID: " + QString::number(pNode->mapId()));
     m_pView->setDurty();
+    emit addNodeSignal(pNode);
 }
 
 CChangeLogicParam::CChangeLogicParam(CView* pView, QString pointHash, EObjParam objParam, QString value, QUndoCommand *parent):

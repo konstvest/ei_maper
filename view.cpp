@@ -1663,6 +1663,8 @@ void CView::clipboradObjectsToScene()
     for(auto it = array.begin(); it < array.end(); ++it)
     {
         CCreateNodeCommand* pUndo = new CCreateNodeCommand(this, it->toObject());
+        QObject::connect(pUndo, SIGNAL(addNodeSignal(CNode*)), m_pTree, SLOT(addNodeToTree(CNode*)));
+        QObject::connect(pUndo, SIGNAL(undo_addNodeSignal(uint)), m_pTree, SLOT(onNodeDelete(uint)));
         m_pUndoStack->push(pUndo);
     }
     //move copyed nodes to new mouse position

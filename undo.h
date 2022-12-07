@@ -119,8 +119,9 @@ private:
     QVector<QString> m_oldBodyparts;
 };
 
-class CCreateNodeCommand: public QUndoCommand
+class CCreateNodeCommand: public QObject, public QUndoCommand
 {
+    Q_OBJECT
 public:
     enum { Id = 106 };
     CCreateNodeCommand() = delete;
@@ -130,6 +131,10 @@ public:
     void redo() override;
     //bool mergeWith(const QUndoCommand *command) override;
     int id() const override { return Id; }
+
+signals:
+    void addNodeSignal(CNode*);
+    void undo_addNodeSignal(uint);
 
 private:
     CView* m_pView;

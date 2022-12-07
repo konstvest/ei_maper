@@ -91,6 +91,7 @@ public:
     bool isRecentAvailable();
     int renameActiveMobUnits(QMap<QString, QString>& mapName);
     void moveCamToSelectedObject();
+    CTreeView* objectTree() {return m_pTree;}
 
 protected:
     void initializeGL() override;

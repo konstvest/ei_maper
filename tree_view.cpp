@@ -2,6 +2,9 @@
 #include <QKeyEvent>
 #include <QDebug>
 #include "view.h"
+#include "node.h"
+#include <QHeaderView>
+#include "objects/unit.h"
 
 CTreeView::CTreeView(QWidget *parent) : QTreeWidget(parent)
 {
@@ -14,16 +17,15 @@ void CTreeView::keyPressEvent(QKeyEvent *pEvent)
     if(key == Qt::Key_Delete)
     {
         auto pItem = currentItem();
-        auto column = currentColumn();
-        if(column != 0 || nullptr == pItem) // clicked on count field. ignore it
+        if(currentColumn() != 0 || nullptr == pItem) // clicked on count field. ignore it
             return;
 
         int parentCount = parentDeepCount(pItem);
         if(parentCount > 0)
         {
             m_pView->deleteSelectedNodes();
-            pItem->parent()->removeChild(pItem);
         }
+        clearSelection();
     }
 
 }
@@ -38,6 +40,31 @@ int CTreeView::parentDeepCount(QTreeWidgetItem *pItem)
         ++parentCount;
     }
     return parentCount;
+}
+
+void CTreeView::recalcParent(QTreeWidgetItem *pItem)
+{
+    int nChildren = pItem->childCount();
+    if(nChildren > 0 && (pItem->parent() != nullptr))
+        pItem->setText(1, QString::number(nChildren));
+    else if(pItem->parent()) // empty children, not root elem
+    {
+        auto pTopParent = pItem->parent();
+        pTopParent->removeChild(pItem);
+        removeItemWidget(pItem, 0);
+    }
+}
+
+QTreeWidgetItem *CTreeView::category(QString &categoryName)
+{
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+        if ((*it)->text(0) == categoryName)
+            return (*it);
+        ++it;
+    }
+    return nullptr;
 }
 
 QString CTreeView::objectNameByType(ENodeType type)
@@ -72,7 +99,10 @@ ENodeType CTreeView::objectTypeByString(QString str)
 void CTreeView::itemClickedOver(QTreeWidgetItem *pItem, int column)
 {
     if(column != 0) // clicked on count field. ignore it
+    {
+        clearSelection();
         return;
+    }
 
     int parentCount = parentDeepCount(pItem);
 
@@ -103,5 +133,110 @@ void CTreeView::itemClickedOver(QTreeWidgetItem *pItem, int column)
         break;
     }
 
+    }
+}
+
+void CTreeView::onNodeDelete(uint nodeId)
+{
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+        auto pNode = dynamic_cast<CTreeObject*>(*it);
+        if (pNode && pNode->nodeId()==nodeId)
+        {
+            auto pParent = (*it)->parent();
+            pParent->removeChild(*it);
+            removeItemWidget(*it, 0);
+            recalcParent(pParent);
+            break;
+        }
+        ++it;
+    }
+}
+
+void CTreeView::addNodeToTree(CNode *pNode)
+{
+    QString catName = "";
+    QString groupName = "";
+    ENodeType type = pNode->nodeType();
+
+    switch (type)
+    {
+    case ENodeType::eTorch:
+    case ENodeType::eLever:
+    case ENodeType::eMagicTrap:
+    case ENodeType::eLight:
+    case ENodeType::eSound:
+    case ENodeType::eParticle:
+    case ENodeType::eWorldObject:
+    {
+        groupName = pNode->mapName();
+        catName = objectNameByType(type);
+        break;
+    }
+    case ENodeType::eUnit:
+    {
+        catName = objectNameByType(type);
+        auto pUnitItem = dynamic_cast<CUnit*>(pNode);
+        groupName = pUnitItem->databaseName();
+        break;
+    }
+    default:
+    {
+        //do not collect nothing for Tree View
+        break;
+    }
+    }
+
+    if(!groupName.isEmpty() && !catName.isEmpty())
+    {
+        auto pCatItem = category(catName);
+        if(pCatItem)
+        {
+            bool bFound = false;
+            for(int i(0); i<pCatItem->childCount(); ++i)
+            {
+                auto pChild = pCatItem->child(i);
+                if(pChild->text(0) == groupName)
+                {
+                    bFound = true;
+                    auto pItem = new CTreeObject(dynamic_cast<CTreeObject*>(pChild), pNode->mapId());
+                    pItem->setText(0, QString::number(pNode->mapId()));
+                    recalcParent(pChild);
+                }
+            }
+            if(!bFound)
+            {
+                auto pItem = new CTreeObject(dynamic_cast<CTreeObject*>(pCatItem), pNode->mapId());
+                pItem->setText(0, groupName);
+                pItem->setText(1, "1");
+                recalcParent(pCatItem);
+            }
+        }
+        sortItems(0, Qt::SortOrder::AscendingOrder);
+    }
+}
+
+CTreeObject::CTreeObject(QTreeWidget *pParent): QTreeWidgetItem(pParent)
+  ,m_nodeId(0)
+{
+
+}
+
+CTreeObject::CTreeObject(QTreeWidgetItem *pParent, uint nodeId) : QTreeWidgetItem(pParent)
+  ,m_nodeId(nodeId)
+{
+
+}
+
+CTreeObject::CTreeObject(CTreeObject *pParent, uint id) : QTreeWidgetItem(pParent)
+  ,m_nodeId(id)
+{
+    auto parentId = pParent->nodeId();
+    if(parentId > 0)
+    {
+        pParent->setId(0);
+        auto pItem = new CTreeObject(pParent, parentId);
+        pItem->setText(0, QString::number(parentId));
     }
 }

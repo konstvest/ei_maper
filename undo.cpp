@@ -139,7 +139,9 @@ CDeleteNodeCommand::CDeleteNodeCommand(CView* pView, uint nodeId, QUndoCommand *
 
 void CDeleteNodeCommand::undo()
 {
-    m_pView->currentMob()->undo_deleteNode(m_nodeId);
+    auto pNode = m_pView->currentMob()->undo_deleteNode(m_nodeId);
+    if(nullptr != pNode)
+        emit undo_deleteNodeSignal(pNode);
     m_pView->setDurty();
 }
 
@@ -149,6 +151,7 @@ void CDeleteNodeCommand::redo()
     setText(QString("Delete node ID: %1").arg(pNode->mapId()));
     ei::log(eLogInfo, "Delete node ID: " + QString::number(pNode->mapId()));
     m_pView->currentMob()->deleteNode(m_nodeId);
+    emit deleteNodeSignal(m_nodeId);
     m_pView->setDurty();
 }
 

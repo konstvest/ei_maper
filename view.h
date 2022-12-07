@@ -121,7 +121,7 @@ public slots:
     void viewParameters();
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(SParam& sParam);
-    void updateViewTree();
+    void collectObjectTreeData();
 
     void execMobSwitch();
     void clearHistory();

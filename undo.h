@@ -30,8 +30,9 @@ private:
 
 };
 
-class CDeleteNodeCommand: public QUndoCommand
+class CDeleteNodeCommand: public QObject, public QUndoCommand
 {
+    Q_OBJECT
 public:
     enum { Id = 101 };
     CDeleteNodeCommand() = delete;
@@ -41,6 +42,10 @@ public:
     void redo() override;
     //bool mergeWith(const QUndoCommand *command) override;
     int id() const override { return Id; }
+
+signals:
+    void deleteNodeSignal(uint);
+    void undo_deleteNodeSignal(CNode*);
 
 private:
     CView* m_pView;

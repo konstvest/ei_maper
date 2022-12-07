@@ -513,7 +513,7 @@ void CView::changeCurrentMob(CMob *pMob)
     m_activeMob = pMob;
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, (nullptr == pMob || !pMob->isDurty()) ? "" : "*");
-    updateViewTree();
+    collectObjectTreeData();
 }
 
 void CView::changeCurrentMob(QString mobName)
@@ -1000,7 +1000,7 @@ void CView::onParamChange(SParam &param)
             {
                 CChangeStringParam* pChanger = new CChangeStringParam(this, pNode->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
-                QObject::connect(pChanger, SIGNAL(updateTreeViewSignal()), this, SLOT(updateViewTree()));
+                QObject::connect(pChanger, SIGNAL(updateTreeViewSignal()), this, SLOT(collectObjectTreeData()));
                 m_pUndoStack->push(pChanger);
             }
             break;
@@ -1012,7 +1012,7 @@ void CView::onParamChange(SParam &param)
 
 
 
-void CView::updateViewTree()
+void CView::collectObjectTreeData()
 {
     m_pTree->clear();
     if(nullptr == m_activeMob)
@@ -1052,6 +1052,12 @@ void CView::updateViewTree()
         //can be optimized via class overriding
         switch (type)
         {
+        case ENodeType::eTorch:
+        case ENodeType::eLever:
+        case ENodeType::eMagicTrap:
+        case ENodeType::eLight:
+        case ENodeType::eSound:
+        case ENodeType::eParticle:
         case ENodeType::eWorldObject:
         {
             groupName = pNode->mapName();
@@ -1062,42 +1068,6 @@ void CView::updateViewTree()
         {
             auto pUnitItem = dynamic_cast<CUnit*>(pNode);
             groupName = pUnitItem->databaseName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eTorch:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eLever:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eMagicTrap:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eLight:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eSound:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eParticle:
-        {
-            groupName = pNode->mapName();
             fillObjectByType(pNode->mapId());
             break;
         }
@@ -1112,27 +1082,29 @@ void CView::updateViewTree()
 
     for(auto& item : aObjList.toStdMap())
     {
-        auto pTopItem = new QTreeWidgetItem(m_pTree);
+        auto pTopItem = new CTreeObject(m_pTree);
         pTopItem->setText(0, item.first);
         m_pTree->addTopLevelItem(pTopItem);
         for(auto& group : item.second.toStdMap())
         {
-            auto pGroupItem = new QTreeWidgetItem(pTopItem);
+            auto pGroupItem = new CTreeObject(pTopItem, 0);
             pGroupItem->setText(1, QString::number(group.second.size()));
             if(group.second.size() == 1)
             {
                 // +"(id:"+QString::number(group.second.first())+")"
                 pGroupItem->setText(0, group.first);
+                pGroupItem->setId(group.second.front());
                 continue;
             }
             pGroupItem->setText(0, group.first);
             for(auto& object : group.second)
             {
-                auto pObjectItem = new QTreeWidgetItem(pGroupItem);
+                auto pObjectItem = new CTreeObject(pGroupItem, object);
                 pObjectItem->setText(0, QString::number(object));
             }
         }
     }
+    m_pTree->sortItems(0, Qt::SortOrder::AscendingOrder);
 }
 
 void CView::moveCamToSelectedObject()
@@ -1611,6 +1583,8 @@ void CView::deleteSelectedNodes()
     for(auto& id : arrMapId)
     {
         CDeleteNodeCommand* pUndo = new CDeleteNodeCommand(this, id);
+        QObject::connect(pUndo, SIGNAL(deleteNodeSignal(uint)), m_pTree, SLOT(onNodeDelete(uint)));
+        QObject::connect(pUndo, SIGNAL(undo_deleteNodeSignal(CNode*)), m_pTree, SLOT(addNodeToTree(CNode*)));
         m_pUndoStack->push(pUndo);
     }
 

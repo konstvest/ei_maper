@@ -264,9 +264,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
+            <y>-15</y>
             <width>586</width>
-            <height>459</height>
+            <height>487</height>
            </rect>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout">
@@ -534,28 +534,28 @@
                </property>
               </widget>
              </item>
-             <item row="14" column="0">
+             <item row="15" column="0">
               <widget class="QLabel" name="label_31">
                <property name="text">
                 <string>Hide selected objects</string>
                </property>
               </widget>
              </item>
-             <item row="14" column="1">
+             <item row="15" column="1">
               <widget class="QKeySequenceEdit" name="keySequenceEdit_22">
                <property name="keySequence">
                 <string>H</string>
                </property>
               </widget>
              </item>
-             <item row="15" column="0">
+             <item row="16" column="0">
               <widget class="QLabel" name="label_32">
                <property name="text">
                 <string>Unhide objects</string>
                </property>
               </widget>
              </item>
-             <item row="15" column="1">
+             <item row="16" column="1">
               <widget class="QKeySequenceEdit" name="keySequenceEdit_23">
                <property name="keySequence">
                 <string>Alt+H</string>
@@ -615,6 +615,20 @@
               <widget class="QKeySequenceEdit" name="keySequenceEdit_26">
                <property name="keySequence">
                 <string>Ctrl+P</string>
+               </property>
+              </widget>
+             </item>
+             <item row="14" column="0">
+              <widget class="QLabel" name="label_36">
+               <property name="text">
+                <string>Cut selected objects</string>
+               </property>
+              </widget>
+             </item>
+             <item row="14" column="1">
+              <widget class="QKeySequenceEdit" name="keySequenceEdit_27">
+               <property name="keySequence">
+                <string>Ctrl+X</string>
                </property>
               </widget>
              </item>

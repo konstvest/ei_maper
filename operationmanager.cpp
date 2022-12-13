@@ -125,6 +125,15 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
         m_pView->execUnloadCommand();
         break;
     }
+    case Qt::Key_X:
+    {
+        if (pOp->keyManager()->isPressed(Qt::Key_Control))
+        {
+            m_pView->selectedObjectToClipboardBuffer();
+            m_pView->deleteSelectedNodes();
+        }
+        break;
+    }
     default:
         pOp->keyManager()->press(Qt::Key(pEvent->key()));
         break;

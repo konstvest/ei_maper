@@ -207,7 +207,7 @@ void CTreeView::addNodeToTree(CNode *pNode)
     }
     }
 
-    if(!groupName.isEmpty() && !catName.isEmpty())
+    if(!catName.isEmpty())
     {
         auto pCatItem = category(catName);
         if(pCatItem)
@@ -232,6 +232,7 @@ void CTreeView::addNodeToTree(CNode *pNode)
                 recalcParent(pCatItem);
             }
         }
+        clearSelection();
         sortItems(0, Qt::SortOrder::AscendingOrder);
     }
 }
@@ -252,6 +253,28 @@ void CTreeView::onChangeNodeId(uint oldId, uint newId)
         ++it;
     }
     sortItems(0, Qt::SortOrder::AscendingOrder);
+}
+
+void CTreeView::onChangeObjectName(CNode *pNode)
+{
+    uint nodeId = pNode->mapId();
+    QTreeWidgetItemIterator it(this);
+    while (*it)
+    {
+        auto pItem = dynamic_cast<CTreeObject*>(*it);
+        if (pItem && pItem->nodeId()==nodeId)
+        {
+            auto pParent = (*it)->parent();
+            pParent->removeChild(*it);
+            removeItemWidget(*it, 0);
+            recalcParent(pParent);
+            break;
+        }
+        ++it;
+    }
+    addNodeToTree(pNode);
+
+    //sortItems(0, Qt::SortOrder::AscendingOrder);
 }
 
 CTreeObject::CTreeObject(QTreeWidget *pParent): QTreeWidgetItem(pParent)

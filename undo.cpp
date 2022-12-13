@@ -63,10 +63,9 @@ void CChangeStringParam::undo()
         m_nodeId = m_oldValue.toUInt();
         emit changeIdSignal(m_newValue.toUInt(), m_oldValue.toUInt());
     }
-    else if(m_objParam == eObjParam_NAME)
+    else if(m_objParam == eObjParam_NAME || m_objParam == eObjParam_UNIT_PROTOTYPE)
     {
-        //todo
-        //emit updateTreeViewSignal();
+        emit changeTreeName(pNode);
     }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
@@ -85,10 +84,9 @@ void CChangeStringParam::redo()
         m_nodeId = m_newValue.toUInt();
         emit changeIdSignal(m_oldValue.toUInt(), m_newValue.toUInt());
     }
-    else if(m_objParam == eObjParam_NAME)
+    else if(m_objParam == eObjParam_NAME || m_objParam == eObjParam_UNIT_PROTOTYPE)
     {
-        //todo
-        //emit changeIdSignal();
+        emit changeTreeName(pNode);
     }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);

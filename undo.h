@@ -93,6 +93,7 @@ signals:
     void updateParam();
     void updatePosOnLand(CNode* pNode);
     void changeIdSignal(uint, uint);
+    void changeTreeName(CNode*);
 
 protected:
     CView* m_pView;

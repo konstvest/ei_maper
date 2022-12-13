@@ -42,6 +42,7 @@ private slots:
     void onNodeDelete(uint nodeId);
     void addNodeToTree(CNode* pNode);
     void onChangeNodeId(uint oldId, uint newId);
+    void onChangeObjectName(CNode* pNode);
 
 private:
     CView* m_pView;

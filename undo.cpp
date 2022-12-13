@@ -61,11 +61,11 @@ void CChangeStringParam::undo()
     if(m_objParam == eObjParam_NID)
     {
         m_nodeId = m_oldValue.toUInt();
-        emit updateTreeViewSignal();
+        emit changeIdSignal(m_newValue.toUInt(), m_oldValue.toUInt());
     }
-    else if(m_objParam == eObjParam_NAME)
+    else if(m_objParam == eObjParam_NAME || m_objParam == eObjParam_UNIT_PROTOTYPE)
     {
-        emit updateTreeViewSignal();
+        emit changeTreeName(pNode);
     }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
@@ -82,11 +82,11 @@ void CChangeStringParam::redo()
     {
         //todo: check if changes allowed
         m_nodeId = m_newValue.toUInt();
-        emit updateTreeViewSignal();
+        emit changeIdSignal(m_oldValue.toUInt(), m_newValue.toUInt());
     }
-    else if(m_objParam == eObjParam_NAME)
+    else if(m_objParam == eObjParam_NAME || m_objParam == eObjParam_UNIT_PROTOTYPE)
     {
-        emit updateTreeViewSignal();
+        emit changeTreeName(pNode);
     }
     emit updateParam();
     //emit updatePosOnLand(m_pNode);
@@ -139,7 +139,9 @@ CDeleteNodeCommand::CDeleteNodeCommand(CView* pView, uint nodeId, QUndoCommand *
 
 void CDeleteNodeCommand::undo()
 {
-    m_pView->currentMob()->undo_deleteNode(m_nodeId);
+    auto pNode = m_pView->currentMob()->undo_deleteNode(m_nodeId);
+    if(nullptr != pNode)
+        emit undo_deleteNodeSignal(pNode);
     m_pView->setDurty();
 }
 
@@ -149,6 +151,7 @@ void CDeleteNodeCommand::redo()
     setText(QString("Delete node ID: %1").arg(pNode->mapId()));
     ei::log(eLogInfo, "Delete node ID: " + QString::number(pNode->mapId()));
     m_pView->currentMob()->deleteNode(m_nodeId);
+    emit deleteNodeSignal(m_nodeId);
     m_pView->setDurty();
 }
 
@@ -165,6 +168,7 @@ void CCreateNodeCommand::undo()
 {
     m_pView->currentMob()->undo_createNode(m_createdNodeId);
     m_pView->setDurty();
+    emit undo_addNodeSignal(m_createdNodeId);
 }
 
 void CCreateNodeCommand::redo()
@@ -173,6 +177,7 @@ void CCreateNodeCommand::redo()
     m_createdNodeId = pNode->mapId();
     setText("Node created ID: " + QString::number(pNode->mapId()));
     m_pView->setDurty();
+    emit addNodeSignal(pNode);
 }
 
 CChangeLogicParam::CChangeLogicParam(CView* pView, QString pointHash, EObjParam objParam, QString value, QUndoCommand *parent):

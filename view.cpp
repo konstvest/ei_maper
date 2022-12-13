@@ -29,6 +29,7 @@
 #include "scene.h"
 #include "mob_parameters.h"
 #include "round_mob_form.h"
+#include "tree_view.h"
 
 class CLogic;
 
@@ -74,7 +75,7 @@ CView::~CView()
 }
 
 
-void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, QTreeWidget* pTree) //todo: use signal\slots
+void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, CTreeView *pTree) //todo: use signal\slots
 {
     m_pSettings = pSettings;
     m_cam->attachSettings(pSettings);
@@ -91,7 +92,7 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     CLogger::getInstance()->attachSettings(pSettings);
 
     m_pTree = pTree;
-    QObject::connect(m_pTree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(onItemTreeClickSlot(QTreeWidgetItem*,int)));
+    m_pTree->attachView(this);
 }
 
 void CView::updateWindow()
@@ -291,9 +292,8 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
     if(nullptr == m_activeMob)
         return 0;
 
-    //const QString mobName = mob->mobName().toLower();
     CNode* pNode = nullptr;
-    foreach (pNode, CScene::getInstance()->getMode() == eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
+    foreach (pNode, m_activeMob->nodes())
     {
         switch (selectParam.type) {
         case eSelectType_Id_range:
@@ -354,24 +354,14 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
                 pNode->setState(eDraw);
             break;
         }
-            //            case eSelectType_Mob_file:
-            //            {
-            //                if(mobName.toLower().contains(selectParam.param1.toLower()))
-            //                {
-            //                    node->setState(eSelect);
-            //                }
-            //                else if (!bAddToSelect && (node->nodeState() & eSelect)) //deselect
-            //                    node->setState(eDraw);
-            //                break;
-            //            }
         case eSelectType_Position_circle:
         {
-            //TODO
+            //TODO. create 'brush' for selecti by circle
             break;
         }
         case eSelectType_Position_rectangle:
         {
-            //TODO
+            //TODO. create 'brush' for selecti by circle
             break;
         }
         case eSelectType_Diplomacy_group:
@@ -442,7 +432,15 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
         }
         case eSelectType_all:
         {
-            pNode->setState(eSelect);
+            if(selectParam.param1.toLower()=="logic")
+            {
+                if(m_activeMob->logicNodes().contains(pNode))
+                    pNode->setState(eSelect);
+                else
+                    pNode->setState(eDraw);
+            }
+            else
+                pNode->setState(eSelect);
             break;
         }
         default:
@@ -515,7 +513,7 @@ void CView::changeCurrentMob(CMob *pMob)
     m_activeMob = pMob;
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, (nullptr == pMob || !pMob->isDurty()) ? "" : "*");
-    updateViewTree();
+    collectObjectTreeData();
 }
 
 void CView::changeCurrentMob(QString mobName)
@@ -1002,7 +1000,8 @@ void CView::onParamChange(SParam &param)
             {
                 CChangeStringParam* pChanger = new CChangeStringParam(this, pNode->mapId(), param.param, param.value);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
-                QObject::connect(pChanger, SIGNAL(updateTreeViewSignal()), this, SLOT(updateViewTree()));
+                QObject::connect(pChanger, SIGNAL(changeIdSignal(uint, uint)), m_pTree, SLOT(onChangeNodeId(uint, uint)));
+                QObject::connect(pChanger, SIGNAL(changeTreeName(CNode*)), m_pTree, SLOT(onChangeObjectName(CNode*)));
                 m_pUndoStack->push(pChanger);
             }
             break;
@@ -1012,36 +1011,9 @@ void CView::onParamChange(SParam &param)
 
 }
 
-QString objectNameByType(ENodeType type)
-{
-    QMap<ENodeType, QString> type2str;
-    type2str.insert(ENodeType::eWorldObject, "World objects");
-    type2str.insert(ENodeType::eUnit, "Units");
-    type2str.insert(ENodeType::eTorch, "Torches");
-    type2str.insert(ENodeType::eLever, "Levers");
-    type2str.insert(ENodeType::eMagicTrap, "Magic traps");
-    type2str.insert(ENodeType::eLight, "Light source");
-    type2str.insert(ENodeType::eSound, "Sound sources");
-    type2str.insert(ENodeType::eParticle, "Particle sources");
 
-    return type2str[type];
-}
 
-ENodeType objectTypeByString(QString str)
-{
-    QMap<ENodeType, QString> type2str;
-    type2str.insert(ENodeType::eWorldObject, "World objects");
-    type2str.insert(ENodeType::eUnit, "Units");
-    type2str.insert(ENodeType::eTorch, "Torches");
-    type2str.insert(ENodeType::eLever, "Levers");
-    type2str.insert(ENodeType::eMagicTrap, "Magic traps");
-    type2str.insert(ENodeType::eLight, "Light source");
-    type2str.insert(ENodeType::eSound, "Sound sources");
-    type2str.insert(ENodeType::eParticle, "Particle sources");
-    return type2str.key(str);
-}
-
-void CView::updateViewTree()
+void CView::collectObjectTreeData()
 {
     m_pTree->clear();
     if(nullptr == m_activeMob)
@@ -1059,9 +1031,9 @@ void CView::updateViewTree()
     CNode* pNode = nullptr;
     ENodeType type = ENodeType::eBaseType;
     QString groupName;
-    auto fillObjectByType=[&aObjList, &type, &groupName](uint objId) -> void
+    auto fillObjectByType=[&aObjList, &type, &groupName, this](uint objId) -> void
     {
-        QString typeString = objectNameByType(type);
+        QString typeString = m_pTree->objectNameByType(type);
         if(aObjList.contains(typeString))
         {
             auto& group = aObjList[typeString];
@@ -1081,6 +1053,12 @@ void CView::updateViewTree()
         //can be optimized via class overriding
         switch (type)
         {
+        case ENodeType::eTorch:
+        case ENodeType::eLever:
+        case ENodeType::eMagicTrap:
+        case ENodeType::eLight:
+        case ENodeType::eSound:
+        case ENodeType::eParticle:
         case ENodeType::eWorldObject:
         {
             groupName = pNode->mapName();
@@ -1091,42 +1069,6 @@ void CView::updateViewTree()
         {
             auto pUnitItem = dynamic_cast<CUnit*>(pNode);
             groupName = pUnitItem->databaseName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eTorch:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eLever:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eMagicTrap:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eLight:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eSound:
-        {
-            groupName = pNode->mapName();
-            fillObjectByType(pNode->mapId());
-            break;
-        }
-        case ENodeType::eParticle:
-        {
-            groupName = pNode->mapName();
             fillObjectByType(pNode->mapId());
             break;
         }
@@ -1141,33 +1083,35 @@ void CView::updateViewTree()
 
     for(auto& item : aObjList.toStdMap())
     {
-        auto pTopItem = new QTreeWidgetItem(m_pTree);
+        auto pTopItem = new CTreeObject(m_pTree);
         pTopItem->setText(0, item.first);
         m_pTree->addTopLevelItem(pTopItem);
         for(auto& group : item.second.toStdMap())
         {
-            auto pGroupItem = new QTreeWidgetItem(pTopItem);
+            auto pGroupItem = new CTreeObject(pTopItem, 0);
             pGroupItem->setText(1, QString::number(group.second.size()));
             if(group.second.size() == 1)
             {
                 // +"(id:"+QString::number(group.second.first())+")"
                 pGroupItem->setText(0, group.first);
+                pGroupItem->setId(group.second.front());
                 continue;
             }
             pGroupItem->setText(0, group.first);
             for(auto& object : group.second)
             {
-                auto pObjectItem = new QTreeWidgetItem(pGroupItem);
+                auto pObjectItem = new CTreeObject(pGroupItem, object);
                 pObjectItem->setText(0, QString::number(object));
             }
         }
     }
+    m_pTree->sortItems(0, Qt::SortOrder::AscendingOrder);
 }
 
 void CView::moveCamToSelectedObject()
 {
     CNode* pNode = nullptr;
-    foreach(pNode, CScene::getInstance()->getMode() == eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
+    foreach(pNode, m_activeMob->nodes())
     {
         if (pNode->nodeState() != ENodeState::eSelect)
             continue;
@@ -1640,11 +1584,13 @@ void CView::deleteSelectedNodes()
     for(auto& id : arrMapId)
     {
         CDeleteNodeCommand* pUndo = new CDeleteNodeCommand(this, id);
+        QObject::connect(pUndo, SIGNAL(deleteNodeSignal(uint)), m_pTree, SLOT(onNodeDelete(uint)));
+        QObject::connect(pUndo, SIGNAL(undo_deleteNodeSignal(CNode*)), m_pTree, SLOT(addNodeToTree(CNode*)));
         m_pUndoStack->push(pUndo);
     }
 
     viewParameters();
-    updateViewTree();
+    //updateViewTree();
 }
 
 void CView::selectedObjectToClipboardBuffer()
@@ -1718,6 +1664,8 @@ void CView::clipboradObjectsToScene()
     for(auto it = array.begin(); it < array.end(); ++it)
     {
         CCreateNodeCommand* pUndo = new CCreateNodeCommand(this, it->toObject());
+        QObject::connect(pUndo, SIGNAL(addNodeSignal(CNode*)), m_pTree, SLOT(addNodeToTree(CNode*)));
+        QObject::connect(pUndo, SIGNAL(undo_addNodeSignal(uint)), m_pTree, SLOT(onNodeDelete(uint)));
         m_pUndoStack->push(pUndo);
     }
     //move copyed nodes to new mouse position
@@ -1915,50 +1863,6 @@ void CView::clearHistory()
 void CView::onMobParamEditFinished(CMobParameters *pMob)
 {
     m_arrParamWindow.removeOne(pMob);
-}
-
-void CView::onItemTreeClickSlot(QTreeWidgetItem *pItem, int column)
-{
-    if(column != 0) // clicked on count field. ignore it
-        return;
-
-    m_activeMob->clearSelect(true);
-    int parentCount=0;
-    auto pParent = pItem->parent();
-    while(nullptr != pParent)
-    {
-        pParent = pParent->parent();
-        ++parentCount;
-    }
-    SSelect sel;
-    switch (parentCount)
-    {
-    case 0:
-        return; // for now skip clicking root items
-    case 1:
-    { // first child
-        ENodeType baseType = objectTypeByString(pItem->parent()->text(0));
-        sel.type = baseType == ENodeType::eUnit ? eSelectType_Database_name : eSelectType_Map_name;
-        sel.param1 = pItem->text(0);
-        sel.param2 = sel.param1; //for hard comparison
-        select(sel, false);
-        if(pItem->text(1).toInt() == 1)
-            moveCamToSelectedObject();
-        break;
-    }
-    case 2:
-    { // second child
-        //ENodeType baseType = objectTypeByString(pItem->parent()->parent()->text(0));
-        sel.type = eSelectType_Id_range;
-        sel.param1 = pItem->text(0);
-        sel.param2 = pItem->text(0);
-        select(sel, false);
-        moveCamToSelectedObject();
-        break;
-    }
-
-    }
-
 }
 
 void CView::roundActiveMob()

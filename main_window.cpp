@@ -188,9 +188,12 @@ bool MainWindow::isExitAllowed()
 
 void MainWindow::closeAll()
 {
-    m_pView->unloadMob("");
-    m_pView->unloadLand();
-    m_undoStack->clear();
+    if(isExitAllowed())
+    {
+        m_pView->unloadMob("");
+        m_pView->unloadLand();
+        m_undoStack->clear();
+    }
 }
 
 void MainWindow::on_actionExit_triggered()

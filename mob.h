@@ -12,7 +12,6 @@
 #include "node.h"
 
 class CView;
-
 class CProgressView;
 class CPatrolPoint;
 class CLookPoint;
@@ -38,7 +37,7 @@ public:
     void undo_createNode(uint mapId);
     QList<CNode*>& nodes();
     void deleteNode(uint mapId);
-    void undo_deleteNode(uint mapId);
+    CNode* undo_deleteNode(uint mapId);
     void deleteNode(CNode* pNode);
     void clearSelect(bool bClearLogic = true);
     void delNodes();
@@ -93,6 +92,7 @@ private:
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value);
     bool isFreeMapId(uint id);
     void generateMapId(CNode* pNode);
+    void collectTreeView();
 
 private:
     //todo: global text data, script

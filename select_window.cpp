@@ -6,6 +6,7 @@
 #include "select_window.h"
 #include "ui_selector.h"
 #include "view.h"
+#include "scene.h"
 
 CSelector::CSelector(QWidget *parent) :
     QWidget(parent)
@@ -26,6 +27,8 @@ void CSelector::onShow()
 void CSelector::selectAll()
 {
     SSelect sel{eSelectType_all, "", ""};
+    if(CScene::getInstance()->getMode() == eEditModeLogic)
+        sel.param1="logic";
     m_selected_num = m_pView->select(sel, false);
 }
 

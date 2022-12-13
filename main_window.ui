@@ -157,7 +157,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QTreeWidget" name="treeWidget">
+         <widget class="CTreeView" name="treeWidget">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>0</horstretch>
@@ -540,6 +540,11 @@
    <class>CProgressView</class>
    <extends>QProgressBar</extends>
    <header>progressview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>CTreeView</class>
+   <extends>QTreeWidget</extends>
+   <header>tree_view.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

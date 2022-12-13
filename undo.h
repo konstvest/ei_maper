@@ -30,8 +30,9 @@ private:
 
 };
 
-class CDeleteNodeCommand: public QUndoCommand
+class CDeleteNodeCommand: public QObject, public QUndoCommand
 {
+    Q_OBJECT
 public:
     enum { Id = 101 };
     CDeleteNodeCommand() = delete;
@@ -41,6 +42,10 @@ public:
     void redo() override;
     //bool mergeWith(const QUndoCommand *command) override;
     int id() const override { return Id; }
+
+signals:
+    void deleteNodeSignal(uint);
+    void undo_deleteNodeSignal(CNode*);
 
 private:
     CView* m_pView;
@@ -87,7 +92,8 @@ public:
 signals:
     void updateParam();
     void updatePosOnLand(CNode* pNode);
-    void updateTreeViewSignal();
+    void changeIdSignal(uint, uint);
+    void changeTreeName(CNode*);
 
 protected:
     CView* m_pView;
@@ -114,8 +120,9 @@ private:
     QVector<QString> m_oldBodyparts;
 };
 
-class CCreateNodeCommand: public QUndoCommand
+class CCreateNodeCommand: public QObject, public QUndoCommand
 {
+    Q_OBJECT
 public:
     enum { Id = 106 };
     CCreateNodeCommand() = delete;
@@ -125,6 +132,10 @@ public:
     void redo() override;
     //bool mergeWith(const QUndoCommand *command) override;
     int id() const override { return Id; }
+
+signals:
+    void addNodeSignal(CNode*);
+    void undo_addNodeSignal(uint);
 
 private:
     CView* m_pView;

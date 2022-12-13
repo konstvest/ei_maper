@@ -31,6 +31,7 @@ class CSelectFrame;
 class QTreeWidget;
 class CMobParameters;
 class CRoundMobForm;
+class CTreeView;
 
 class CView : public QGLWidget
 {
@@ -50,7 +51,7 @@ public:
     void unloadActiveMob();
     void openActiveMobEditParams();
     void unloadMob(QString mobName);
-    void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, QTreeWidget* pTree);
+    void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, CTreeView* pTree);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
     int select(const SSelect& selectParam, bool bAddToSelect = false);
     CMob* mob(QString mobName);
@@ -89,6 +90,8 @@ public:
     void openRecent();
     bool isRecentAvailable();
     int renameActiveMobUnits(QMap<QString, QString>& mapName);
+    void moveCamToSelectedObject();
+    CTreeView* objectTree() {return m_pTree;}
 
 protected:
     void initializeGL() override;
@@ -112,7 +115,6 @@ private:
     void onParamChangeLogic(CNode* pNode, SParam& sParam);
     void logOpenGlData();
     void checkOpenGlError();
-    void moveCamToSelectedObject();
 
 public slots:
     void updateWindow();
@@ -120,12 +122,11 @@ public slots:
     void viewParameters();
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(SParam& sParam);
-    void updateViewTree();
+    void collectObjectTreeData();
 
     void execMobSwitch();
     void clearHistory();
     void onMobParamEditFinished(CMobParameters* pMob);
-    void onItemTreeClickSlot(QTreeWidgetItem* pItem, int column);
 
 signals:
     void updateMsg(QString msg);
@@ -154,7 +155,7 @@ private:
     QFile m_clipboard_buffer_file;
     QFile m_recentOpenedFile_file;
     CMob* m_activeMob;
-    QTreeWidget* m_pTree;
+    CTreeView* m_pTree;
     QList<CMobParameters*> m_arrParamWindow;
     CRoundMobForm* m_pRoundForm;
 };

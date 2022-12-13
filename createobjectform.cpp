@@ -13,6 +13,7 @@
 #include "log.h"
 #include "preview.h"
 #include "undo.h"
+#include "tree_view.h"
 #include <QJsonArray>
 
 CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
@@ -224,11 +225,13 @@ void CCreateObjectForm::on_buttonCreate_clicked()
         break;
     }
 
-    QVector3D posBackup(m_pNode->position());
+    QVector3D posBackup(0,0,0);
     m_pNode->updatePos(posOnLand);
     CLandscape::getInstance()->projectPosition(m_pNode);
 
     CCreateNodeCommand* pUndo = new CCreateNodeCommand(m_pView, m_pNode->toJson());
+    QObject::connect(pUndo, SIGNAL(addNodeSignal(CNode*)), m_pView->objectTree(), SLOT(addNodeToTree(CNode*)));
+    QObject::connect(pUndo, SIGNAL(undo_addNodeSignal(uint)), m_pView->objectTree(), SLOT(onNodeDelete(uint)));
     m_pUndoStack->push(pUndo);
     //restore node position after projection. it is temporary solution for correct drawing object in preview window
     m_pNode->setPos(posBackup);

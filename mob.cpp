@@ -7,6 +7,7 @@
 #include <QTextDecoder>
 #include <QDir>
 #include <QMessageBox>
+#include <QHeaderView>
 
 #include "mob.h"
 #include "utils.h"
@@ -25,6 +26,7 @@
 #include "progressview.h"
 #include "log.h"
 #include "scene.h"
+#include "tree_view.h"
 
 CMob::CMob():
     m_view(nullptr)
@@ -818,7 +820,7 @@ void CMob::deleteNode(uint mapId)
     }
 }
 
-void CMob::undo_deleteNode(uint mapId)
+CNode *CMob::undo_deleteNode(uint mapId)
 {
     CNode* pNode = nullptr;
     foreach(pNode, m_aDeletedNode)
@@ -829,9 +831,10 @@ void CMob::undo_deleteNode(uint mapId)
             m_aDeletedNode.removeOne(pNode);
             ei::log(eLogDebug, QString("node with %1 restored").arg(pNode->mapId()));
             logicNodesUpdate();
-            break;
+            return pNode;
         }
     }
+    return nullptr;
 }
 
 void CMob::readMob(QFileInfo &path)

@@ -5,6 +5,7 @@
 #include <QMap>
 #include <QString>
 #include <QStringList>
+#include "types.h"
 
 class CView;
 class MainWindow;
@@ -13,29 +14,7 @@ namespace Ui {
 class CSelector;
 }
 
-enum ESelectType
-{
-    eSelectType_Id_range
-    ,eSelectType_Map_name
-    ,eSelectType_Texture_name
-    ,eSelectType_Model_name
-    //,eSelectType_Mob_file
-    ,eSelectType_Position_circle
-    ,eSelectType_Position_rectangle
-    ,eSelectType_Diplomacy_group
-    ,eSelectType_Database_name
-    ,eSelectType_Template
-    ,eSelectType_ObjectType
-    ,eSelectType_all
-};
 
-struct SSelect
-{
-    ESelectType type;
-    //todo: param0 - object filters for find in ENodeType types
-    QString param1;
-    QString param2;
-};
 
 class CSelector : public QWidget
 {

@@ -130,6 +130,7 @@ public:
     CPatrolPoint* patrolByIndex(int index);
     void setGuardPlacement(QVector3D pos) {m_guardPlacement = pos;}
 
+
 public slots:
     void createLogicLines();
     void updateLogicLines();
@@ -203,6 +204,7 @@ public:
     void createViewByIndex(int pointId, int viewId);
     void undo_createViewByIndex(int pointId, int viewId);
     CPatrolPoint *patrolByIndex(int index);
+    void resetLogic();
 
 private:
     //"UNIT_R", eNull};

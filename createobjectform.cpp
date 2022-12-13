@@ -236,6 +236,10 @@ void CCreateObjectForm::on_buttonCreate_clicked()
     //restore node position after projection. it is temporary solution for correct drawing object in preview window
     m_pNode->setPos(posBackup);
     m_pNode->setDrawPosition(posBackup);
+    if(type == eUnit)
+    {
+        dynamic_cast<CUnit*>(m_pNode)->resetLogic();
+    }
 
     m_pView->changeOperation(EButtonOpMove);
     hide();

@@ -528,6 +528,19 @@ CPatrolPoint *CUnit::patrolByIndex(int index)
     return m_aLogic.front()->patrolByIndex(index);
 }
 
+void CUnit::resetLogic()
+{
+    //todo: realise resetting logic instead deleting
+    for(auto& pLogic : m_aLogic)
+        delete pLogic;
+
+    m_aLogic.clear();
+    for(int i(0); i<5; ++i)
+    {
+        m_aLogic.append(new CLogic(this, i==0));
+    }
+}
+
 CLogic::CLogic(CUnit* unit, bool bUse):
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
   ,m_helpIndexBuf(QOpenGLBuffer::IndexBuffer)
@@ -572,6 +585,7 @@ CLogic::~CLogic()
     for(auto& pp: m_aPatrolPt)
         delete pp;
 }
+
 
 void CLogic::draw(bool isActive, QOpenGLShaderProgram* program)
 {

@@ -90,7 +90,7 @@ public:
     void openRecent();
     bool isRecentAvailable();
     int renameActiveMobUnits(QMap<QString, QString>& mapName);
-    void moveCamToSelectedObject();
+    void moveCamToSelectedObjects();
     CTreeView* objectTree() {return m_pTree;}
 
 protected:

@@ -1066,3 +1066,13 @@ QString util::colorToString(const QColor &color)
     vec.setZ(color.blueF());
     return makeString(vec);
 }
+
+QVector3D util::getMinValue(const QVector3D &vec1, const QVector3D &vec2)
+{
+    return QVector3D(vec1.x() < vec2.x() ? vec1.x() : vec2.x(), vec1.y() < vec2.y() ? vec1.y() : vec2.y(), vec1.z() < vec2.z() ? vec1.z() : vec2.z());
+}
+
+QVector3D util::getMaxValue(const QVector3D &vec1, const QVector3D &vec2)
+{
+    return QVector3D(vec1.x() > vec2.x() ? vec1.x() : vec2.x(), vec1.y() > vec2.y() ? vec1.y() : vec2.y(), vec1.z() > vec2.z() ? vec1.z() : vec2.z());
+}

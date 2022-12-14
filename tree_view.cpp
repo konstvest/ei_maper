@@ -138,7 +138,7 @@ void CTreeView::itemClickedOver(QTreeWidgetItem *pItem, int column)
         sel.param2 = sel.param1; //for hard comparison
         m_pView->select(sel, false);
         if(pItem->text(1).toInt() == 1)
-            m_pView->moveCamToSelectedObject();
+            m_pView->moveCamToSelectedObjects();
         break;
     }
     case 2:
@@ -148,7 +148,7 @@ void CTreeView::itemClickedOver(QTreeWidgetItem *pItem, int column)
         sel.param1 = pItem->text(0);
         sel.param2 = pItem->text(0);
         m_pView->select(sel, false);
-        m_pView->moveCamToSelectedObject();
+        m_pView->moveCamToSelectedObjects();
         break;
     }
 

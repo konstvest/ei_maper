@@ -134,6 +134,11 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
         }
         break;
     }
+    case Qt::Key_Period:
+    {
+        m_pView->moveCamToSelectedObjects();
+        break;
+    }
     default:
         pOp->keyManager()->press(Qt::Key(pEvent->key()));
         break;

@@ -229,19 +229,46 @@ QJsonObject SUnitStat::toJson() const
     return obj;
 }
 
+CBox::CBox():
+    m_bInit(false)
+{
+
+}
+
 CBox::CBox(const CBox &box):
-    m_minPos(box.m_minPos)
+    m_bInit(true)
+  ,m_minPos(box.m_minPos)
   ,m_maxPos(box.m_maxPos)
-  ,m_center(box.m_center)
+  //,m_center(box.m_center)
 {
 
 }
 
 CBox::CBox(QVector3D minPos, QVector3D maxPos):
-    m_minPos(minPos)
+    m_bInit(true)
+  ,m_minPos(minPos)
   ,m_maxPos(maxPos)
 {
 
+}
+
+void CBox::expand(const CBox &box)
+{
+    if(!m_bInit)
+    {
+        m_minPos = box.m_minPos;
+        m_maxPos = box.m_maxPos;
+        m_bInit = true;
+        return;
+    }
+    m_minPos = util::getMinValue(m_minPos, box.m_minPos);
+    m_maxPos = util::getMaxValue(m_maxPos, box.m_maxPos);
+}
+
+void CBox::move(QVector3D offset)
+{
+    m_minPos += offset;
+    m_maxPos += offset;
 }
 
 QVector3D CBox::center()

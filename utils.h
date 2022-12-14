@@ -39,6 +39,8 @@ QColor stringToColor(const QString& string);
 QString colorToString(const QColor& color);
 
 void addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str);
+QVector3D getMinValue(const QVector3D& vec1, const QVector3D& vec2);
+QVector3D getMaxValue(const QVector3D& vec1, const QVector3D& vec2);
 
 enum EType
 {

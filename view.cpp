@@ -1108,18 +1108,24 @@ void CView::collectObjectTreeData()
     m_pTree->sortItems(0, Qt::SortOrder::AscendingOrder);
 }
 
-void CView::moveCamToSelectedObject()
+void CView::moveCamToSelectedObjects()
 {
     CNode* pNode = nullptr;
+    CBox box;
     foreach(pNode, m_activeMob->nodes())
     {
         if (pNode->nodeState() != ENodeState::eSelect)
             continue;
+        // calculate world position
+        CBox nodeBox = pNode->getBBox();
+        nodeBox.move(pNode->drawPosition());
+        box.expand(nodeBox);
+    }
 
-        CBox box = pNode->getBBox();
-        m_cam->moveTo(pNode->drawPosition() + box.center());
-        m_cam->moveAwayOn(box.radius()*2.5f);
-        break;
+    if(box.isInit())
+    {
+        m_cam->moveTo(box.center());
+        m_cam->moveAwayOn(box.radius()*2.5f); // too much for multi large objects
     }
 }
 

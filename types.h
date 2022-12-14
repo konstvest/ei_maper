@@ -226,17 +226,21 @@ private:
 class CBox
 {
 public:
-    CBox() = delete;
+    CBox();
     ~CBox(){}
     CBox(const CBox& box);
     CBox(QVector3D minPos, QVector3D maxPos);
+    void expand(const CBox& box);
+    void move(QVector3D offset);
     QVector3D center();
     float radius();
+    bool isInit() {return m_bInit;}
 
 private:
+    bool m_bInit;
     QVector3D m_minPos;
     QVector3D m_maxPos;
-    QVector3D m_center;
+    //QVector3D m_center;
 };
 
 struct SVertexData

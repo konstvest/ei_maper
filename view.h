@@ -92,6 +92,8 @@ public:
     int renameActiveMobUnits(QMap<QString, QString>& mapName);
     void moveCamToSelectedObjects();
     CTreeView* objectTree() {return m_pTree;}
+    int nSelectedNodes();
+    QList<CNode*> selectedNodes();
 
 protected:
     void initializeGL() override;
@@ -109,7 +111,6 @@ private:
     void initShaders();
     void draw();
     CNode* pickObject(QList<CNode*>& aNode, int x, int y);
-    int cauntSelectedNodes();
     void applyParam(SParam& param);
     void getColorFromRect(const QRect& rect, QVector<SColor>& aColor);
     void onParamChangeLogic(CNode* pNode, SParam& sParam);

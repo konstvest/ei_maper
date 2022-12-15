@@ -21,6 +21,7 @@ CMagicTrap::CMagicTrap(const CMagicTrap &trap):
     CWorldObj(trap)
   ,m_indexBuf(QOpenGLBuffer::IndexBuffer)
 {
+    m_type = 59;
     m_diplomacy = trap.m_diplomacy;
     m_spell = trap.m_spell;
     for(auto& area : trap.m_aActZone)
@@ -46,6 +47,7 @@ CMagicTrap::CMagicTrap(QJsonObject data):
     CWorldObj(data["World object"].toObject())
   ,m_indexBuf(QOpenGLBuffer::IndexBuffer)
 {
+    m_type = 59;
     m_diplomacy = data["Diplomacy group"].toVariant().toUInt();
     m_spell = data["Spell"].toString();
     QJsonArray aArea = data["Area act."].toArray();

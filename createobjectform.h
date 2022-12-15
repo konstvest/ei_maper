@@ -36,6 +36,9 @@ private slots:
     void on_buttonCancel_clicked();
     void on_buttonCreate_clicked();
 
+protected:
+    void showEvent(QShowEvent* pEvent) override;
+
 private:
     void initViewWidget();
     void updateTable();

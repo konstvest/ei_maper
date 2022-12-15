@@ -177,6 +177,32 @@ void CCreateObjectForm::onObjectChoose(QString& object)
     {
         Q_ASSERT("Failed to create new node" && false);
     }
+    QList<CNode*> arrNode = m_pView->selectedNodes();
+    if(arrNode.size() == 1)
+    {
+        //copy data from selected node
+        auto pSourceNode = arrNode.first();
+        QMap<EObjParam, QString> aParam;
+        ENodeType type = pSourceNode->nodeType();
+        pSourceNode->collectParams(aParam, type);
+        for(auto& param: aParam.toStdMap())
+        {
+            if(param.first == eObjParam_POSITION)
+                continue;
+            if(objType == eMagicTrap && param.first == eObjParam_NAME)
+                continue;
+//            switch (param.first) {
+//            case eObjParam_ROTATION:
+//            case eObjParam_POSITION:
+//            {
+//                continue;
+//            }
+//            default:
+//                break;
+//            }
+            m_pNode->applyParam(param.first, param.second);
+        }
+    }
     m_pPreview->attachNode(m_pNode);
     updateTable();
 }
@@ -243,5 +269,15 @@ void CCreateObjectForm::on_buttonCreate_clicked()
 
     m_pView->changeOperation(EButtonOpMove);
     hide();
+}
+
+void CCreateObjectForm::showEvent(QShowEvent *pEvent)
+{
+    QString text = ui->comboObjectType->currentText();
+    if(text != "<choose object type>")
+    {
+        onObjectChoose(text);
+    }
+    QWidget::showEvent(pEvent);
 }
 

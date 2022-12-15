@@ -18,6 +18,7 @@ CLever::CLever():
 CLever::CLever(const CLever &lever):
     CWorldObj(lever)
 {
+    m_type = 60;
     m_curState = lever.m_curState;
     m_totalState = lever.m_totalState;
     m_bCycled = lever.m_bCycled;
@@ -33,6 +34,7 @@ CLever::CLever(QJsonObject data):
     CWorldObj(data["World object"].toObject())
 {
 
+    m_type = 60;
     m_curState = (char)data["State"].toInt();
     m_totalState = (char)data["State numbers"].toInt();
     m_bCycled = data["Is cycled?"].toBool();

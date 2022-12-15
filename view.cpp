@@ -448,7 +448,7 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
         }
     }
     viewParameters();
-    return cauntSelectedNodes();
+    return nSelectedNodes();
 }
 
 CMob *CView::mob(QString mobName)
@@ -872,7 +872,7 @@ void CView::unloadMob(QString mobName)
     viewParameters();
 }
 
-int CView::cauntSelectedNodes()
+int CView::nSelectedNodes()
 {
     int n = 0;
     for(const auto& mob: m_aMob)
@@ -882,6 +882,18 @@ int CView::cauntSelectedNodes()
                 ++n;
     }
     return n;
+}
+
+QList<CNode *> CView::selectedNodes()
+{
+    QList<CNode*> arrNode;
+    for(const auto& mob: m_aMob)
+    {
+        for(const auto& node: mob->nodes())
+            if(node->nodeState() == ENodeState::eSelect)
+                arrNode.append(node);
+    }
+    return arrNode;
 }
 
 void CView::updateParameter(EObjParam param)

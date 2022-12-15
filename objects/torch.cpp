@@ -1,5 +1,6 @@
 #include <QJsonArray>
 #include "torch.h"
+#include "log.h"
 
 CTorch::CTorch():
     m_power(0.0f)
@@ -10,6 +11,7 @@ CTorch::CTorch():
 CTorch::CTorch(const CTorch &torch):
     CWorldObj(torch)
 {
+    m_type = 58;
     m_power = torch.m_power;
     m_pointLink = torch.m_pointLink;
     m_sound = torch.m_sound;
@@ -18,6 +20,7 @@ CTorch::CTorch(const CTorch &torch):
 CTorch::CTorch(QJsonObject data):
     CWorldObj(data["World object"].toObject())
 {
+    m_type = 58;
     m_power = data["Power"].toVariant().toFloat();
     QJsonArray arrPoint = data["Position"].toArray();
     if(arrPoint.size()==3)
@@ -55,7 +58,10 @@ uint CTorch::deserialize(util::CMobParser& parser)
                 break;
         }
     }
-    Q_ASSERT(m_type==58);
+    if(m_type!=58)
+    {
+        ei::log(eLogError, "Incorrect object type("+QString::number(m_type)+"), should be 58");
+    }
     return readByte;
 }
 

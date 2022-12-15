@@ -38,8 +38,9 @@ CWorldObj::CWorldObj(const CWorldObj &wo):
 
 CWorldObj::CWorldObj(QJsonObject data):
     CObjectBase(data["Base object"].toObject())
+  ,m_type(54)
 {
-    m_type = (uint)data["Type"].toVariant().toUInt();
+    //m_type = (uint)data["Type"].toVariant().toUInt();
     m_modelName = data["Model name"].toString();
     m_primaryTexture = data["Primary texture"].toString();
     m_secondaryTexture = data["Secondary texture"].toString();
@@ -547,7 +548,7 @@ QJsonObject CWorldObj::toJson()
     QJsonObject obj;
     QJsonObject base_obj = CObjectBase::toJson();
     obj.insert("Base object", base_obj);
-    obj.insert("Type", QJsonValue::fromVariant(m_type));
+    //obj.insert("Type", QJsonValue::fromVariant(m_type));
     obj.insert("Model name", m_modelName);
     obj.insert("Primary texture", m_primaryTexture);
     obj.insert("Secondary texture", m_secondaryTexture);

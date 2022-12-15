@@ -345,7 +345,8 @@ void CObjectBase::applyParam(EObjParam param, const QString &value)
         break;
     }
     default:
-        Q_ASSERT(false);
+        //Q_ASSERT(false);
+        break;
     }
 
 }

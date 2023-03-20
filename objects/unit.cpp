@@ -41,6 +41,8 @@ CUnit::CUnit(QJsonObject data):
     CWorldObj(data["World object"].toObject())
 {
     //m_pMob = pMob;
+    if(data.contains("Subtype"))
+        m_type = (uint)data["Subtype"].toVariant().toUInt();
     m_prototypeName = data["Prototype name"].toString();
     m_stat.reset(new SUnitStat(data["Unit stats"].toObject()));
     const auto deSerializeStringList = [&data](QVector<QString>& aList, QString name)
@@ -184,6 +186,7 @@ void CUnit::serializeJson(QJsonObject& obj)
 {
     CWorldObj::serializeJson(obj);
     obj.insert("Prototype name", m_prototypeName);
+    obj.insert("Subtype", QJsonValue::fromVariant(m_type));
     //todo: m_stat
     const auto serializeStringList = [&obj](QVector<QString>& aList, QString name)
     {
@@ -355,6 +358,11 @@ QString CUnit::getParam(EObjParam param)
         value = util::makeString(m_bImport);
         break;
     }
+    case eObjParam_TYPE:
+    {
+        value = QString::number(m_type);
+        break;
+    }
     case eObjParam_UNIT_PROTOTYPE:
     {
         value = m_prototypeName;
@@ -433,6 +441,7 @@ QJsonObject CUnit::toJson()
     QJsonObject obj;
     QJsonObject world_obj = CWorldObj::toJson();
     obj.insert("World object", world_obj);
+    obj.insert("Subtype", QJsonValue::fromVariant(m_type));
     obj.insert("Prototype name", m_prototypeName);
     obj.insert("Unit stats", m_stat->toJson());
     const auto serializeStringList = [&obj](QVector<QString>& aList, QString name)
@@ -550,6 +559,7 @@ CLogic::CLogic(CUnit* unit, bool bUse):
     ,m_use(bUse)
     ,m_wait(0.0f)
     ,m_help(10.0f)
+    ,m_agressionMode(0)
     ,m_parent(unit)
 {
 }

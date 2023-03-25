@@ -6,7 +6,8 @@ CLever::CLever():
     ,m_totalState(2)
     ,m_bCycled(false)
     ,m_bCastOnce(false)
-    ,m_typeOpen(0)
+    //,m_typeOpen(0)
+    ,m_typeOpen(1) //free open by default
     ,m_keyID(0)
     ,m_handsSleight(0)
     ,m_bDoor(false)

@@ -377,6 +377,7 @@ void CDeleteLogicPoint::redo()
         pCast->markAsDeleted(true);
     }
     setText("Point deleted");
+    m_pView->setDurty();
 }
 
 CRoundMobCommand::CRoundMobCommand(CView *pView, QUndoCommand *parent):

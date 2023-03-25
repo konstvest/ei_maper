@@ -1,4 +1,5 @@
 #include <QJsonArray>
+#include <QJsonDocument>
 
 #include "objects\worldobj.h"
 #include "mob.h"
@@ -40,7 +41,7 @@ CWorldObj::CWorldObj(QJsonObject data):
     CObjectBase(data["Base object"].toObject())
   ,m_type(54)
 {
-    //m_type = (uint)data["Type"].toVariant().toUInt();
+    //m_type = (uint)data["SubType"].toVariant().toUInt();
     m_modelName = data["Model name"].toString();
     m_primaryTexture = data["Primary texture"].toString();
     m_secondaryTexture = data["Secondary texture"].toString();
@@ -325,6 +326,15 @@ void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
     if (comm != eWorldObject)
         return;
 
+//    QJsonArray arrPart;
+//    for(auto& part : m_aPart)
+//    {
+//        arrPart.append(part->name());
+//    }
+//    QJsonObject obj;
+//    obj.insert("parts", arrPart);
+//    QJsonDocument doc(obj);
+//    util::addParam(aParam, eObjParam_BODYPARTS, QString(doc.toJson(QJsonDocument::Compact)));
     util::addParam(aParam, eObjParam_BODYPARTS, util::makeString(m_bodyParts));
     if(nodeType() == eUnit || nodeType() == eMagicTrap) //show player group only for Units and Traps(traps works only for enemy)
         util::addParam(aParam, eObjParam_PLAYER, QString::number(m_player));

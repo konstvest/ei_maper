@@ -239,22 +239,44 @@ uint CMagicTrap::serialize(util::CMobParser &parser)
     writeByte += parser.writeBool(m_bCastOnce);
     parser.endSection(); //LEVER_CAST_ONCE
 
-    writeByte += parser.startSection("MT_AREAS");
-    writeByte += parser.writeDword(m_aActZone.size());
+    int nZone = 0;
     for(auto& pZone : m_aActZone)
     {
-        //writeByte += parser.writeAreaArray(arrArea);
-        writeByte += pZone->serialize(parser);
+        if(!pZone->isMarkDeleted())
+            ++nZone;
     }
-    parser.endSection(); //MT_AREAS
+    if(nZone)
+    {
+        writeByte += parser.startSection("MT_AREAS");
+        writeByte += parser.writeDword(nZone);
+        for(auto& pZone : m_aActZone)
+        {
+            //writeByte += parser.writeAreaArray(arrArea);
+            if(pZone->isMarkDeleted())
+                continue;
+            writeByte += pZone->serialize(parser);
+        }
+        parser.endSection(); //MT_AREAS
+    }
 
-    writeByte += parser.startSection("MT_TARGETS");
-    writeByte += parser.writeDword(m_aCastPoint.size());
+    nZone = 0;
     for(auto& pCast : m_aCastPoint)
     {
-        writeByte += pCast->serialize(parser);
+        if(!pCast->isMarkDeleted())
+            ++nZone;
     }
-    parser.endSection(); //MT_TARGETS
+    if(nZone)
+    {
+        writeByte += parser.startSection("MT_TARGETS");
+        writeByte += parser.writeDword(m_aCastPoint.size());
+        for(auto& pCast : m_aCastPoint)
+        {
+            if(pCast->isMarkDeleted())
+                continue;
+            writeByte += pCast->serialize(parser);
+        }
+        parser.endSection(); //MT_TARGETS
+    }
 
     writeByte += CWorldObj::serialize(parser);
 

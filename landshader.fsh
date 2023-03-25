@@ -16,13 +16,13 @@ void main(void)
 {
   // Ambient
   float ambientStrength = 0.1f;
-  vec3 ambient = ambientStrength * u_lightColor;
+  vec3 ambient = vec3(ambientStrength * u_lightColor);
 
   // Diffuse
   vec3 norm = normalize(v_normal);
-  vec3 lightDir = normalize(u_lightPosition - v_position);
+  vec3 lightDir = vec3(normalize(u_lightPosition - v_position));
   float diff = max(dot(v_normal, lightDir), 0.0f);
-  vec3 diffuse = diff * u_lightColor;
+  vec3 diffuse = vec3(diff * u_lightColor);
 
   //vec4 resColor = vec4((ambient + diffuse) * u_color, 1.0f);
   vec4 texColor = texture2D(qt_Texture0, v_texture);

@@ -678,7 +678,7 @@ uint util::CMobParser::readQuaternion(QVector4D& data)
     return 4*sizeof(float);
 }
 
-uint util::CMobParser::writeQuaternion(QVector4D& data)
+uint util::CMobParser::writeQuaternion(const QVector4D data)
 {
     const auto startPos = m_stream.device()->pos();
     m_stream << data.w(); //must be float

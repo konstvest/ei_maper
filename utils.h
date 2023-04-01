@@ -116,7 +116,7 @@ public:
     uint readAreaArray(QVector<SArea>& data);
     uint writeAreaArray(const QVector<SArea>& data);
     uint readQuaternion(QVector4D& data);
-    uint writeQuaternion(QVector4D& data);
+    uint writeQuaternion(const QVector4D data);
     uint readRectangle(SRectangle& data);
     uint readString(QString& data, uint len);
     uint writeString(const QString& data);

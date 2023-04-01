@@ -124,7 +124,10 @@ void CObjectBase::draw(bool isActive, QOpenGLShaderProgram* program)
         QMatrix4x4 matrix;
         matrix.setToIdentity();
         matrix.translate(m_drawPosition);
-        matrix = matrix * m_rotateMatrix;
+        QMatrix4x4 rtMatrix;
+        rtMatrix.setToIdentity();
+        rtMatrix.rotate(m_rotation);
+        matrix = matrix * rtMatrix;
         program->setUniformValue("u_modelMmatrix", matrix);
     }
 
@@ -156,7 +159,10 @@ void CObjectBase::drawSelect(QOpenGLShaderProgram* program)
         QMatrix4x4 matrix;
         matrix.setToIdentity();
         matrix.translate(m_drawPosition);
-        matrix = matrix * m_rotateMatrix;
+        QMatrix4x4 rtMatrix;
+        rtMatrix.setToIdentity();
+        rtMatrix.rotate(m_rotation);
+        matrix = matrix * rtMatrix;
         program->setUniformValue("u_modelMmatrix", matrix);
         program->setUniformValue("u_color", m_pickingColor.toVec4());
     }
@@ -182,13 +188,10 @@ void CObjectBase::serializeJson(QJsonObject& obj)
     obj.insert("Position", pos);
 
     QJsonArray rot;
-    QMatrix3x3 mtrx3 = m_rotateMatrix.normalMatrix();
-    QQuaternion quat;
-    quat = QQuaternion::fromRotationMatrix(mtrx3);
-    rot.append(QJsonValue::fromVariant(quat.x()));
-    rot.append(QJsonValue::fromVariant(quat.y()));
-    rot.append(QJsonValue::fromVariant(quat.z()));
-    rot.append(QJsonValue::fromVariant(quat.scalar()));
+    rot.append(QJsonValue::fromVariant(m_rotation.x()));
+    rot.append(QJsonValue::fromVariant(m_rotation.y()));
+    rot.append(QJsonValue::fromVariant(m_rotation.z()));
+    rot.append(QJsonValue::fromVariant(m_rotation.scalar()));
     obj.insert("Rotation", rot);
 
     return;
@@ -239,13 +242,10 @@ QJsonObject CObjectBase::toJson()
     obj.insert("Position", pos);
 
     QJsonArray rot;
-    QMatrix3x3 mtrx3 = m_rotateMatrix.normalMatrix();
-    QQuaternion quat;
-    quat = QQuaternion::fromRotationMatrix(mtrx3);
-    rot.append(QJsonValue::fromVariant(quat.x()));
-    rot.append(QJsonValue::fromVariant(quat.y()));
-    rot.append(QJsonValue::fromVariant(quat.z()));
-    rot.append(QJsonValue::fromVariant(quat.scalar()));
+    rot.append(QJsonValue::fromVariant(m_rotation.x()));
+    rot.append(QJsonValue::fromVariant(m_rotation.y()));
+    rot.append(QJsonValue::fromVariant(m_rotation.z()));
+    rot.append(QJsonValue::fromVariant(m_rotation.scalar()));
     obj.insert("Rotation", rot);
     return obj;
 }
@@ -255,6 +255,9 @@ CBox CObjectBase::getBBox()
     QVector3D min;
     QVector3D max;
     bool bInit = false;
+    QMatrix4x4 rtMatrix;
+    rtMatrix.setToIdentity();
+    rtMatrix.rotate(m_rotation);
     const auto fillPoint = [&min, &max](QVector3D& vec)
     {
         //x
@@ -288,7 +291,7 @@ CBox CObjectBase::getBBox()
                 continue;
             }
 
-            rotatedPos = m_rotateMatrix*arrVert[i].position; //get vector, rotated with matrix
+            rotatedPos = rtMatrix*arrVert[i].position; //get vector, rotated with matrix
             fillPoint(rotatedPos);
         }
     }
@@ -408,10 +411,13 @@ void CObjectBase::recalcMinPos()
 {
     float min(1000.0f); // 0.0f?
     QVector3D rotatedPos;
+    QMatrix4x4 rtMatrix;
+    rtMatrix.setToIdentity();
+    rtMatrix.rotate(m_rotation);
     for(auto& part: m_aPart)
         for(auto& vert : part->vertData())
         {
-            rotatedPos = m_rotateMatrix*vert.position; //get vector, rotated with matrix
+            rotatedPos = rtMatrix*vert.position; //get vector, rotated with matrix
             if (rotatedPos.z() < min)
                 min = rotatedPos.z();
         }

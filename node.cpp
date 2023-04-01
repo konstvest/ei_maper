@@ -19,7 +19,7 @@ void CNode::init()
     ++s_freeId;
     m_id = s_freeId;
     m_pickingColor = generateColor(m_id);
-    m_rotateMatrix.setToIdentity();
+    //m_rotation ?
 }
 
 CNode::CNode():
@@ -48,7 +48,7 @@ CNode::CNode(const CNode &node):
   ,m_mapID(node.m_mapID)
   ,m_name(node.m_name)
   ,m_comment(node.m_comment)
-  ,m_rotateMatrix(node.m_rotateMatrix)
+  ,m_rotation(node.m_rotation)
   ,m_parent(node.m_parent)
   ,m_state(node.m_state)
 {
@@ -62,20 +62,13 @@ CNode::~CNode()
         delete child;
 }
 
-void CNode::setRot(const QQuaternion &quat)
-{
-    m_rotateMatrix.setToIdentity();
-    m_rotateMatrix.rotate(quat);
-}
-
-void CNode::setRot(const QVector4D& quat)
-{
-    setRot(QQuaternion(quat));
-}
-
+// 3D Rotation Converter: https://www.andre-gaschler.com/rotationconverter/
 QVector3D CNode::getEulerRotation()
 {
-    QMatrix3x3 mtrx3 = m_rotateMatrix.normalMatrix();
+    QMatrix4x4 rtMatrix;
+    rtMatrix.setToIdentity();
+    rtMatrix.rotate(m_rotation);
+    QMatrix3x3 mtrx3 = rtMatrix.normalMatrix();
     QQuaternion quat;
     quat = QQuaternion::fromRotationMatrix(mtrx3);
     return quat.toEulerAngles();
@@ -86,20 +79,4 @@ void CNode::move(float x, float y, float z)
     m_position.setX(m_position.x()+x);
     m_position.setY(m_position.y()+y);
     m_position.setZ(m_position.z()+z);
-}
-
-void CNode::rotate(QQuaternion& quat)
-{
-// 3D Rotation Converter: https://www.andre-gaschler.com/rotationconverter/
-
-    quat.normalize();
-    m_rotateMatrix.rotate(quat);
-}
-
-void CNode::applyRotation()
-{
-    m_rotateMatrix.setToIdentity();
-//    m_rotateMatrix.rotate(m_rotation.x(), 1.0, 0.0, 0.0);
-//    m_rotateMatrix.rotate(m_rotation.y(), 0.0, 1.0, 0.0);
-//    m_rotateMatrix.rotate(m_rotation.z(), 0.0, 0.0, 1.0);
 }

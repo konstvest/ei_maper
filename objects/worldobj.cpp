@@ -286,11 +286,7 @@ uint CWorldObj::serialize(util::CMobParser &parser)
     parser.endSection(); //OBJ_POSITION
 
     writeByte += parser.startSection("OBJ_ROTATION");
-    QMatrix3x3 mtrx3 = m_rotateMatrix.normalMatrix();
-    QQuaternion quat;
-    quat = QQuaternion::fromRotationMatrix(mtrx3);
-    QVector4D quatObj = quat.toVector4D();
-    writeByte += parser.writeQuaternion(quatObj);
+    writeByte += parser.writeQuaternion(m_rotation.toVector4D());
     parser.endSection(); //OBJ_ROTATION
 
     writeByte += parser.startSection("OBJ_USE_IN_SCRIPT");
@@ -347,11 +343,8 @@ void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
     //addParam(aParam, eObjParam_SEC_TXTR, m_secondaryTexture);
 
 
-    QMatrix3x3 mtrx3 = m_rotateMatrix.normalMatrix();
-    QQuaternion quat;
-    quat = QQuaternion::fromRotationMatrix(mtrx3);
-    QVector3D eulerRot = quat.toEulerAngles();
-    util::addParam(aParam, eObjParam_ROTATION, util::makeString(eulerRot));  //todo: show rotation as X,Y,Z rotation, don't use quaternion
+    QVector3D rot = getEulerRotation();
+    util::addParam(aParam, eObjParam_ROTATION, util::makeString(rot));
     util::addParam(aParam, eObjParam_USE_IN_SCRIPT, util::makeString(m_bUseInScript));
     util::addParam(aParam, eObjParam_IS_SHADOW, util::makeString(m_bShadow));
     util::addParam(aParam, eObjParam_PARENT_ID, QString::number(m_parentID));

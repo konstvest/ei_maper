@@ -44,7 +44,6 @@ public:
     virtual void applyLogicParam(EObjParam param, const QString& value) = 0;
     virtual bool updatePos(QVector3D& pos) = 0;
     virtual const QVector3D& complection() = 0;
-    virtual void setRot(const QQuaternion& quat);
     virtual void setConstitution(QVector3D& vec) = 0;
     virtual const QVector3D& constitution() = 0;
     virtual QJsonObject toJson() = 0;
@@ -61,9 +60,9 @@ public:
     uchar* color() {return m_pickingColor.rgb; }
     bool isColorSuitable(const SColor& color) {return m_pickingColor == color; }
     void setPos(QVector3D& pos) {m_position = pos;}
-    void setRot(const QVector4D& quat);
+    void setRot(const QQuaternion& quat) {m_rotation = quat;}
+    void setRot(const QVector4D& quat) {m_rotation = QQuaternion(quat);}
     QVector3D getEulerRotation();
-    void rotate(QQuaternion& quat);
     void move(float x, float y, float z);
     QVector3D& position() {return m_position; }
     QVector3D& drawPosition() {return m_drawPosition;}
@@ -72,7 +71,6 @@ public:
     ENodeState nodeState() {return m_state;}
 
 private:
-    void applyRotation();
     void init();
 
 protected:
@@ -82,7 +80,7 @@ protected:
     uint m_mapID;
     QString m_name;
     QString m_comment;
-    QMatrix4x4 m_rotateMatrix;
+    QQuaternion m_rotation;
     QVector<CNode*> m_aChild;
     CNode* m_parent;
     SColor m_pickingColor;

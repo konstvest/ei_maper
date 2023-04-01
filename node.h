@@ -51,6 +51,8 @@ public:
     virtual void markAsDeleted(bool bDeleted = true) = 0;
     virtual bool isMarkDeleted() = 0;
 
+    virtual void setRot(const QQuaternion& quat) {m_rotation = quat;}
+
     const uint& innerId() {return m_id; }
     const uint& mapId(){return m_mapID;}
     void setMapId(uint id) {m_mapID = id;}
@@ -60,7 +62,6 @@ public:
     uchar* color() {return m_pickingColor.rgb; }
     bool isColorSuitable(const SColor& color) {return m_pickingColor == color; }
     void setPos(QVector3D& pos) {m_position = pos;}
-    void setRot(const QQuaternion& quat) {m_rotation = quat;}
     void setRot(const QVector4D& quat) {m_rotation = QQuaternion(quat);}
     QVector3D getEulerRotation();
     void move(float x, float y, float z);

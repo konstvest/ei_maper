@@ -8,20 +8,17 @@
 #include "types.h"
 
 class CView;
-class MainWindow;
 
 namespace Ui {
-class CSelector;
+class CSelectForm;
 }
 
-
-
-class CSelector : public QWidget
+class CSelectForm : public QWidget
 {
     Q_OBJECT
 public:
-    explicit CSelector(QWidget *parent = nullptr);
-    void attachParents(MainWindow* pWindow, CView* pView){m_pMainWindow = pWindow;m_pView = pView;}
+    explicit CSelectForm(QWidget *parent = nullptr);
+    void attachParents(CView* pView){m_pView = pView;}
     void onShow();
     void selectAll();
 
@@ -42,8 +39,7 @@ private slots:
     void on_push_Add_to_select_clicked();
 
 private:
-    Ui::CSelector *ui;
-    MainWindow* m_pMainWindow;
+    Ui::CSelectForm *ui;
     CView* m_pView;
     QMap<QString, SSelect> m_loc;
     int m_selected_num;

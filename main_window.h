@@ -14,7 +14,7 @@ class MainWindow;
 }
 
 class CSettings;
-class CSelector;
+class CSelectForm;
 class CCreateObjectForm;
 class CView;
 
@@ -78,7 +78,7 @@ protected:
 private:
     Ui::MainWindow* m_ui;
     QSharedPointer<CSettings> m_settings;
-    QSharedPointer<CSelector> m_selector;
+    QSharedPointer<CSelectForm> m_selector;
     QSharedPointer<CCreateObjectForm> m_createDialog;
     QUndoStack* m_undoStack;
     QUndoView* m_undoView;

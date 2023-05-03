@@ -9,7 +9,7 @@
 
 #include "view.h"
 #include "camera.h"
-#include "mob.h"
+#include "mob\mob.h"
 #include "resourcemanager.h"
 #include "node.h"
 #include "landscape.h"
@@ -21,13 +21,12 @@
 #include "objects/worldobj.h"
 #include "objects/unit.h"
 #include "objects/magictrap.h"
-#include "mob_parameters.h"
+#include "mob\mob_parameters.h"
 #include "progressview.h"
 #include "tablemanager.h"
 #include "operationmanager.h"
 #include "ogl_utils.h"
 #include "scene.h"
-#include "mob_parameters.h"
 #include "round_mob_form.h"
 #include "tree_view.h"
 

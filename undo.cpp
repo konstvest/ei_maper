@@ -1,7 +1,7 @@
 #include "undo.h"
 #include "node.h"
 #include "main_window.h"
-#include "mob.h"
+#include "mob\mob.h"
 #include "objects/unit.h"
 #include "objects/magictrap.h"
 #include "options.h"

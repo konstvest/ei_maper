@@ -2,7 +2,7 @@
 #include <QJsonDocument>
 
 #include "objects\worldobj.h"
-#include "mob.h"
+#include "mob\mob.h"
 #include "view.h"
 #include "resourcemanager.h"
 #include "landscape.h"

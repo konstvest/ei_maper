@@ -1,7 +1,7 @@
 #include "objects\object_base.h"
 #include <QJsonArray>
 #include <QString>
-#include "mob.h"
+#include "mob\mob.h"
 #include "landscape.h"
 #include "view.h"
 #include "log.h"

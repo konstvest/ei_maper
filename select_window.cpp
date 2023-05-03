@@ -4,14 +4,13 @@
 #include <QKeyEvent>
 
 #include "select_window.h"
-#include "ui_selector.h"
+#include "ui_select_window.h"
 #include "view.h"
 #include "scene.h"
 
-CSelector::CSelector(QWidget *parent) :
+CSelectForm::CSelectForm(QWidget *parent) :
     QWidget(parent)
-    ,ui(new Ui::CSelector)
-    ,m_pMainWindow(nullptr)
+    ,ui(new Ui::CSelectForm)
     ,m_pView(nullptr)
     ,m_selected_num(0)
 {
@@ -19,12 +18,12 @@ CSelector::CSelector(QWidget *parent) :
     init();
 }
 
-void CSelector::onShow()
+void CSelectForm::onShow()
 {
     show();
 }
 
-void CSelector::selectAll()
+void CSelectForm::selectAll()
 {
     SSelect sel{eSelectType_all, "", ""};
     if(CScene::getInstance()->getMode() == eEditModeLogic)
@@ -32,13 +31,13 @@ void CSelector::selectAll()
     m_selected_num = m_pView->select(sel, false);
 }
 
-void CSelector::keyPressEvent(QKeyEvent *event)
+void CSelectForm::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Escape)
         close();
 }
 
-void CSelector::init()
+void CSelectForm::init()
 {
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
 
@@ -59,12 +58,12 @@ void CSelector::init()
         ui->combo_SelType->addItem(pair.first);
 }
 
-void CSelector::on_push_Close_clicked()
+void CSelectForm::on_push_Close_clicked()
 {
     close();
 }
 
-void CSelector::updateLabels(const QString &type)
+void CSelectForm::updateLabels(const QString &type)
 {
     ui->label_Param_1->setText(m_loc[type].param1);
     ui->lineEdit_Param_1->clear();
@@ -82,24 +81,24 @@ void CSelector::updateLabels(const QString &type)
     }
 }
 
-void CSelector::updateTotal()
+void CSelectForm::updateTotal()
 {
     ui->label_total->setText("Selected objects count:"+ QString::number(m_selected_num));
 }
 
-void CSelector::on_combo_SelType_currentIndexChanged(const QString &arg1)
+void CSelectForm::on_combo_SelType_currentIndexChanged(const QString &arg1)
 {
     updateLabels(arg1);
 }
 
-void CSelector::on_push_Select_clicked()
+void CSelectForm::on_push_Select_clicked()
 {
     SSelect sel{m_loc[ui->combo_SelType->currentText()].type, ui->lineEdit_Param_1->text(), ui->lineEdit_Param_2->text()};
     m_selected_num = m_pView->select(sel, false);
     updateTotal();
 }
 
-void CSelector::on_push_Add_to_select_clicked()
+void CSelectForm::on_push_Add_to_select_clicked()
 {
     SSelect sel{m_loc[ui->combo_SelType->currentText()].type, ui->lineEdit_Param_1->text(), ui->lineEdit_Param_2->text()};
     m_selected_num = m_pView->select(sel, true);

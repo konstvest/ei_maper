@@ -29,7 +29,6 @@ SOURCES += \
     dynamiccombobox.cpp \
     key_manager.cpp \
     main_window.cpp \
-    mob_parameters.cpp \
     objects/lever.cpp \
     objects/light.cpp \
     log.cpp \
@@ -44,11 +43,10 @@ SOURCES += \
     objects/particle.cpp \
     preview.cpp \
     progressview.cpp \
-    range_dialog.cpp \
+    mob/range_dialog.cpp \
     resourcemanager.cpp \
     round_mob_form.cpp \
     scene.cpp \
-    script_editor.cpp \
     sector.cpp \
     select_window.cpp \
     settings.cpp \
@@ -68,15 +66,16 @@ SOURCES += \
     landscape.cpp \
     view_keybinding.cpp \
     camera.cpp \
-    mob.cpp \
-    objects/worldobj.cpp
+    objects/worldobj.cpp \
+    mob/mob_parameters.cpp \
+    mob/mob.cpp \
+    mob/script_editor.cpp
 
 HEADERS += \
     createobjectform.h \
     dynamiccombobox.h \
     key_manager.h \
     main_window.h \
-    mob_parameters.h \
     objects/lever.h \
     objects/light.h \
     log.h \
@@ -90,11 +89,9 @@ HEADERS += \
     objects/particle.h \
     preview.h \
     progressview.h \
-    range_dialog.h \
     resourcemanager.h \
     round_mob_form.h \
     scene.h \
-    script_editor.h \
     sector.h \
     select_window.h \
     settings.h \
@@ -114,17 +111,20 @@ HEADERS += \
     utils.h \
     landscape.h \
     camera.h \
-    mob.h \
-    objects/worldobj.h
+    objects/worldobj.h \
+    mob/mob_parameters.h \
+    mob/mob.h \
+    mob/script_editor.h \
+    mob/range_dialog.h
 
 FORMS += \
         createobjectform.ui \
         main_window.ui \
-        mob_parameters.ui \
-        range_dialog.ui \
         round_mob_form.ui \
         select_window.ui \
-        settings.ui
+        settings.ui \
+        mob/mob_parameters.ui \
+        mob/range_dialog.ui
 
 LIBS += -lglu32 -lopengl32
 # Default rules for deployment.

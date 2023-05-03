@@ -15,9 +15,9 @@
 #include "settings.h"
 #include "select_window.h"
 #include "createobjectform.h"
-#include "mob.h"
 #include "undo.h"
-#include "mob_parameters.h"
+#include "mob\mob.h"
+#include "mob\mob_parameters.h"
 #include "ui_connectors.h"
 #include "preview.h"
 #include "log.h"
@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget* parent) :
     CIconManager::getInstance()->init();
 
     m_settings.reset(new CSettings());
-    m_selector.reset(new CSelector());
+    m_selector.reset(new CSelectForm());
     m_createDialog.reset(new CCreateObjectForm());
     m_settings->attachMainWindow(this);
     m_ui->setupUi(this); //init CView core also
@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget* parent) :
   m_ui->toolButton_2->hide();
 #endif
 
-    m_selector->attachParents(this, m_pView);
+    m_selector->attachParents(m_pView);
     m_undoStack = new QUndoStack(this);
     createUndoView();
     CStatusConnector::getInstance()->attach(m_ui->statusIco, m_ui->statusBar);

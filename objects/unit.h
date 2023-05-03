@@ -1,7 +1,7 @@
 #ifndef UNIT_H
 #define UNIT_H
 #include "objects\worldobj.h"
-#include "mob.h"
+#include "mob\mob.h"
 
 class CSettings;
 

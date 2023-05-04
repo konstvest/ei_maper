@@ -7,7 +7,7 @@
 #include "key_manager.h"
 #include "settings.h"
 #include "camera.h"
-#include "ui_connectors.h"
+#include "layout_components/ui_connectors.h"
 #include "log.h"
 #include "scene.h"
 #include "undo.h"

@@ -539,12 +539,12 @@
   <customwidget>
    <class>CProgressView</class>
    <extends>QProgressBar</extends>
-   <header>progressview.h</header>
+   <header>layout_components/progressview.h</header>
   </customwidget>
   <customwidget>
    <class>CTreeView</class>
    <extends>QTreeWidget</extends>
-   <header>tree_view.h</header>
+   <header>layout_components/tree_view.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

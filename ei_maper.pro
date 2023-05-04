@@ -26,8 +26,12 @@ CONFIG += c++11
 
 SOURCES += \
     createobjectform.cpp \
-    dynamiccombobox.cpp \
     key_manager.cpp \
+    layout_components/dynamiccombobox.cpp \
+    layout_components/progressview.cpp \
+    layout_components/tree_view.cpp \
+    layout_components/ui_connectors.cpp \
+    layout_components/tablemanager.cpp \
     main_window.cpp \
     objects/lever.cpp \
     objects/light.cpp \
@@ -42,8 +46,6 @@ SOURCES += \
     part.cpp \
     objects/particle.cpp \
     preview.cpp \
-    progressview.cpp \
-    mob/range_dialog.cpp \
     resourcemanager.cpp \
     round_mob_form.cpp \
     scene.cpp \
@@ -51,12 +53,9 @@ SOURCES += \
     select_window.cpp \
     settings.cpp \
     objects/sound.cpp \
-    tablemanager.cpp \
     objects/torch.cpp \
     objects/unit.cpp \
-    tree_view.cpp \
     types.cpp \
-    ui_connectors.cpp \
     undo.cpp \
     view.cpp \
     figure.cpp \
@@ -69,12 +68,17 @@ SOURCES += \
     objects/worldobj.cpp \
     mob/mob_parameters.cpp \
     mob/mob.cpp \
-    mob/script_editor.cpp
+    mob/script_editor.cpp \
+    mob/range_dialog.cpp
 
 HEADERS += \
     createobjectform.h \
-    dynamiccombobox.h \
     key_manager.h \
+    layout_components/dynamiccombobox.h \
+    layout_components/progressview.h \
+    layout_components/tree_view.h \
+    layout_components/ui_connectors.h \
+    layout_components/tablemanager.h \
     main_window.h \
     objects/lever.h \
     objects/light.h \
@@ -88,7 +92,6 @@ HEADERS += \
     part.h \
     objects/particle.h \
     preview.h \
-    progressview.h \
     resourcemanager.h \
     round_mob_form.h \
     scene.h \
@@ -96,11 +99,8 @@ HEADERS += \
     select_window.h \
     settings.h \
     objects/sound.h \
-    tablemanager.h \
     objects/torch.h \
     objects/unit.h \
-    tree_view.h \
-    ui_connectors.h \
     undo.h \
     view.h \
     figure.h \

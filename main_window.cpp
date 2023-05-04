@@ -18,7 +18,7 @@
 #include "undo.h"
 #include "mob\mob.h"
 #include "mob\mob_parameters.h"
-#include "ui_connectors.h"
+#include "layout_components/ui_connectors.h"
 #include "preview.h"
 #include "log.h"
 #include "scene.h"

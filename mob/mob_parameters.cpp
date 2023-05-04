@@ -6,12 +6,12 @@
 
 #include "mob_parameters.h"
 #include "ui_mob_parameters.h"
+#include "range_dialog.h"
 #include "utils.h"
 #include "view.h"
 #include "settings.h"
 #include "undo.h"
-#include "range_dialog.h"
-#include "ui_connectors.h"
+#include "layout_components\ui_connectors.h"
 
 CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     QWidget(parent)
@@ -456,7 +456,7 @@ void CMobParameters::on_button_minusRanges_clicked()
 
 void CMobParameters::on_button_plusRanges_clicked()
 {
-    auto rangeD = new CRangeDialog(this);
+    CRangeDialog* rangeD = new CRangeDialog(this);
     rangeD->setAttribute(Qt::WA_DeleteOnClose);
     rangeD->initRanges(activeRanges(), ui->listRanges->count());
     rangeD->exec();

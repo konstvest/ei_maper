@@ -22,13 +22,13 @@
 #include "objects/unit.h"
 #include "objects/magictrap.h"
 #include "mob\mob_parameters.h"
-#include "progressview.h"
-#include "tablemanager.h"
+#include "layout_components/progressview.h"
+#include "layout_components/tablemanager.h"
 #include "operationmanager.h"
 #include "ogl_utils.h"
 #include "scene.h"
 #include "round_mob_form.h"
-#include "tree_view.h"
+#include "layout_components/tree_view.h"
 
 class CLogic;
 

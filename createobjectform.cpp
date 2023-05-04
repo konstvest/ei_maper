@@ -13,7 +13,7 @@
 #include "log.h"
 #include "preview.h"
 #include "undo.h"
-#include "tree_view.h"
+#include "layout_components/tree_view.h"
 #include <QJsonArray>
 
 CCreateObjectForm::CCreateObjectForm(QWidget *parent) :

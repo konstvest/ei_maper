@@ -23,10 +23,10 @@
 #include "resourcemanager.h"
 #include "landscape.h"
 #include "settings.h"
-#include "progressview.h"
+#include "layout_components/progressview.h"
 #include "log.h"
 #include "scene.h"
-#include "tree_view.h"
+#include "layout_components/tree_view.h"
 
 CMob::CMob():
     m_view(nullptr)

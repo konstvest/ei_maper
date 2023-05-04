@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <QSharedPointer>
 
-#include "tablemanager.h"
+#include "layout_components/tablemanager.h"
 #include "node.h"
 
 namespace Ui {

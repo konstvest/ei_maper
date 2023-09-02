@@ -7,6 +7,7 @@
 #include "resourcemanager.h"
 #include "landscape.h"
 #include "log.h"
+#include "property.h"
 
 CWorldObj::CWorldObj():
     m_type(54)
@@ -315,9 +316,9 @@ uint CWorldObj::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CWorldObj::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
 {
-    CObjectBase::collectParams(aParam, paramType); //don't want to change type from parameters. should use delete and add new object with type
+    CObjectBase::collectParams(aProp, paramType); //don't want to change type from parameters. should use delete and add new object with type
     auto comm = paramType & eWorldObject;
     if (comm != eWorldObject)
         return;
@@ -331,53 +332,139 @@ void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramT
 //    obj.insert("parts", arrPart);
 //    QJsonDocument doc(obj);
 //    util::addParam(aParam, eObjParam_BODYPARTS, QString(doc.toJson(QJsonDocument::Compact)));
-    util::addParam(aParam, eObjParam_BODYPARTS, util::makeString(m_bodyParts));
+
     if(nodeType() == eUnit || nodeType() == eMagicTrap) //show player group only for Units and Traps(traps works only for enemy)
-        util::addParam(aParam, eObjParam_PLAYER, QString::number(m_player));
+    {
+        propChar dipNum(eObjParam_PLAYER, m_player);
+        util::addParam(aProp, &dipNum);
+    }
 
     //addParam(aParam, eObjParam_TYPE, QString::number(m_type));
-    util::addParam(aParam, eObjParam_NAME, m_name);
-    util::addParam(aParam, eObjParam_TEMPLATE, m_modelName);
-    util::addParam(aParam, eObjParam_PARENT_TEMPLATE, m_parentTemplate);
-    util::addParam(aParam, eObjParam_PRIM_TXTR, m_primaryTexture);
+    propStr name(eObjParam_NAME, m_name);
+    util::addParam(aProp, &name);
+    propStr model(eObjParam_TEMPLATE, m_modelName);
+    bool bModel = util::addParam(aProp, &model);
+    if(bModel)
+    {
+        // place bodyparts eObjParam_BODYPARTS m_bodyParts
+    }
+    propStr parentTemplate(eObjParam_PARENT_TEMPLATE, m_parentTemplate);
+    util::addParam(aProp, &parentTemplate);
+    propStr primTexture(eObjParam_PRIM_TXTR, m_primaryTexture);
+    util::addParam(aProp, &primTexture);
     //addParam(aParam, eObjParam_SEC_TXTR, m_secondaryTexture);
 
-
-    QVector3D rot = getEulerRotation();
-    util::addParam(aParam, eObjParam_ROTATION, util::makeString(rot));
-    util::addParam(aParam, eObjParam_USE_IN_SCRIPT, util::makeString(m_bUseInScript));
-    util::addParam(aParam, eObjParam_IS_SHADOW, util::makeString(m_bShadow));
-    util::addParam(aParam, eObjParam_PARENT_ID, QString::number(m_parentID));
-    util::addParam(aParam, eObjParam_QUEST_INFO, m_questInfo);
-    util::addParam(aParam, eObjParam_COMPLECTION, util::makeString(m_complection));
+    QVector3D rotEuler = getEulerRotation();
+    prop3D rot(eObjParam_ROTATION, rotEuler);
+    util::addParam(aProp, &rot);
+    propBool bScript(eObjParam_USE_IN_SCRIPT, m_bUseInScript);
+    util::addParam(aProp, &bScript);
+    propBool bShadow(eObjParam_IS_SHADOW, m_bShadow);
+    util::addParam(aProp, &bShadow);
+    propInt parentId(eObjParam_PARENT_ID, m_parentID);
+    util::addParam(aProp, &parentId);
+    propStr questInfo(eObjParam_QUEST_INFO, m_questInfo);
+    util::addParam(aProp, &questInfo);
+    prop3D complection(eObjParam_COMPLECTION, m_complection);
+    util::addParam(aProp, &complection);
 
 }
 
-void CWorldObj::applyParam(EObjParam param, const QString &value)
+void CWorldObj::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    switch (param)
+    switch (propType)
     {
     case eObjParam_BODYPARTS:
     {
-        m_bodyParts = util::strListFromString(value);
+        prop.reset(new propStrAr(propType, m_bodyParts));
+        break;
+    }
+    case eObjParam_PLAYER:
+    {
+        prop.reset(new propChar(propType, m_player));
+        break;
+    }
+    case eObjParam_TEMPLATE:
+    {
+        prop.reset(new propStr(propType, m_modelName));
+        break;
+    }
+    case eObjParam_PARENT_TEMPLATE:
+    {
+        prop.reset(new propStr(propType, m_parentTemplate));
+        break;
+    }
+    case eObjParam_PRIM_TXTR:
+    {
+        prop.reset(new propStr(propType, m_primaryTexture));
+        break;
+    }
+    case eObjParam_SEC_TXTR:
+    {
+        prop.reset(new propStr(propType, m_secondaryTexture));
+        break;
+    }
+    case eObjParam_ROTATION:
+    {
+        prop.reset(new prop3D(propType, getEulerRotation()));
+        break;
+    }
+    case eObjParam_USE_IN_SCRIPT:
+    {
+        prop.reset(new propBool(propType, m_bUseInScript));
+        break;
+    }
+    case eObjParam_IS_SHADOW:
+    {
+        prop.reset(new propBool(propType, m_bShadow));
+        break;
+    }
+    case eObjParam_PARENT_ID:
+    {
+        prop.reset(new propInt(propType, m_parentID));
+        break;
+    }
+    case eObjParam_QUEST_INFO:
+    {
+        prop.reset(new propStr(propType, m_questInfo));
+        break;
+    }
+    case eObjParam_COMPLECTION:
+    {
+        prop.reset(new prop3D(propType, m_complection));
+        break;
+    }
+    default:
+        CObjectBase::getParam(prop, propType);
+        break;
+    }
+}
+
+void CWorldObj::applyParam(const QSharedPointer<IPropertyBase>& prop)
+{
+    switch (prop->type())
+    {
+    case eObjParam_BODYPARTS:
+    {
+        m_bodyParts = dynamic_cast<propStrAr*>(prop.get())->value();
         recalcFigure();
         updatePos(m_position);
         break;
     }
     case eObjParam_PLAYER:
     {
-        m_player = char(value.toInt());
+        m_player = dynamic_cast<propChar*>(prop.get())->value();
         break;
     }
 
     case eObjParam_TYPE:
     {
-        m_type = value.toUInt();
+        m_type = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_TEMPLATE:
     {
-        m_modelName = value;
+        m_modelName = dynamic_cast<propStr*>(prop.get())->value();
         m_bodyParts.clear();
         auto pFig = CObjectList::getInstance()->getFigure(m_modelName);
         CObjectBase::updateFigure(pFig);
@@ -386,18 +473,18 @@ void CWorldObj::applyParam(EObjParam param, const QString &value)
     case eObjParam_PARENT_TEMPLATE:
     {
         //todo: delete obj and create new from template if exists
-        m_parentTemplate = value;
+        m_parentTemplate = dynamic_cast<propStr*>(prop.get())->value();;
         break;
     }
     case eObjParam_PRIM_TXTR:
     {
-        m_primaryTexture = value;
+        m_primaryTexture = dynamic_cast<propStr*>(prop.get())->value();;
         setTexture(CTextureList::getInstance()->texture(m_primaryTexture));
         break;
     }
     case eObjParam_SEC_TXTR:
     {
-        m_secondaryTexture = value;
+        m_secondaryTexture = dynamic_cast<propStr*>(prop.get())->value();;
         break;
     }
     case eObjParam_ROTATION:
@@ -429,7 +516,7 @@ void CWorldObj::applyParam(EObjParam param, const QString &value)
             }
             return;
         };
-        QVector3D rotation = util::vec3FromString(value); //this rotation will be tested
+        QVector3D rotation = dynamic_cast<prop3D*>(prop.get())->value();; //this rotation will be tested
         setNotNan(rotation);
         setRot(quat);
         rotation = getEulerRotation();
@@ -438,112 +525,34 @@ void CWorldObj::applyParam(EObjParam param, const QString &value)
     }
     case eObjParam_USE_IN_SCRIPT:
     {
-        m_bUseInScript = util::boolFromString(value);
+        m_bUseInScript = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     case eObjParam_IS_SHADOW:
     {
-        m_bShadow = util::boolFromString(value);
+        m_bShadow = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     case eObjParam_PARENT_ID:
     {
-        m_parentID = value.toInt();
+        m_parentID = dynamic_cast<propInt*>(prop.get())->value();
         break;
     }
     case eObjParam_QUEST_INFO:
     {
-        m_questInfo = value;
+        m_questInfo = dynamic_cast<propStr*>(prop.get())->value();
         break;
     }
     case eObjParam_COMPLECTION:
     {
-        m_complection = util::vec3FromString(value);
+        m_complection = dynamic_cast<prop3D*>(prop.get())->value();
         recalcFigure();
         break;
     }
     default:
-        CObjectBase::applyParam(param, value);
+        CObjectBase::applyParam(prop);
         break;
     }
-}
-
-QString CWorldObj::getParam(EObjParam param)
-{
-    QString value;
-    switch (param)
-    {
-    case eObjParam_BODYPARTS:
-    {
-        value = util::makeString(m_bodyParts);
-        break;
-    }
-    case eObjParam_PLAYER:
-    {
-        value = QString::number(m_player);
-        break;
-    }
-//    case eObjParam_TYPE:
-//    {
-//        value = QString::number(m_type);
-//        break;
-//    }
-    case eObjParam_TEMPLATE:
-    {
-        value = m_modelName;
-        break;
-    }
-    case eObjParam_PARENT_TEMPLATE:
-    {
-        value = m_parentTemplate;
-        break;
-    }
-    case eObjParam_PRIM_TXTR:
-    {
-        value = m_primaryTexture;
-        break;
-    }
-    case eObjParam_SEC_TXTR:
-    {
-        value = m_secondaryTexture;
-        break;
-    }
-    case eObjParam_ROTATION:
-    {
-        value = util::makeString(getEulerRotation());
-        break;
-    }
-    case eObjParam_USE_IN_SCRIPT:
-    {
-        value = util::makeString(m_bUseInScript);
-        break;
-    }
-    case eObjParam_IS_SHADOW:
-    {
-        value = util::makeString(m_bShadow);
-        break;
-    }
-    case eObjParam_PARENT_ID:
-    {
-        value = util::makeString(m_parentID);
-        break;
-    }
-    case eObjParam_QUEST_INFO:
-    {
-        value = m_questInfo;
-        break;
-    }
-    case eObjParam_COMPLECTION:
-    {
-        value = util::makeString(m_complection);
-        break;
-    }
-    default:
-        value = CObjectBase::getParam(param);
-        break;
-    }
-
-    return value;
 }
 
 QJsonObject CWorldObj::toJson()

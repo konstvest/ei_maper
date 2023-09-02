@@ -138,14 +138,14 @@ SUnitStat::SUnitStat(QJsonObject data)
     range = data["range"].toVariant().toFloat();
     attack = data["attack"].toVariant().toFloat();
     defence = data["defence"].toVariant().toFloat();
-    weight= data["weight"].toVariant().toFloat();
+    weight = data["weight"].toVariant().toFloat();
     damageMin = data["damageMin"].toVariant().toFloat();
     damageRange = data["damageRange"].toVariant().toFloat();
     aImpalling = data["aImpalling"].toVariant().toFloat();
     aSlashing = data["aSlashing"].toVariant().toFloat();
     aCrushing = data["aCrushing"].toVariant().toFloat();
     aThermal = data["aThermal"].toVariant().toFloat();
-    aChemical= data["aChemical"].toVariant().toFloat();
+    aChemical = data["aChemical"].toVariant().toFloat();
     aElectrical = data["aElectrical"].toVariant().toFloat();
     aGeneral = data["aGeneral"].toVariant().toFloat();
     absorption = data["absorption"].toInt();
@@ -227,6 +227,117 @@ QJsonObject SUnitStat::toJson() const
     obj.insert("empty3", QJsonValue::fromVariant(empty3));// byte;
 
     return obj;
+}
+
+SUnitStat SUnitStat::operator=(const SUnitStat& unit)
+{
+    HP = unit.HP;
+    MaxHP = unit.MaxHP;
+    MP = unit.MP;
+    MaxMP = unit.MaxMP;
+    move = unit.move;
+    actions = unit.actions;
+    SpeedRun = unit.SpeedRun;
+    SpeedWalk = unit.SpeedWalk;
+    SpeedCrouch = unit.SpeedCrouch;
+    SpeedCrawl = unit.SpeedCrawl;
+    VisionArc = unit.VisionArc;
+    SkillsPeripherial = unit.SkillsPeripherial;
+    PeripherialArc = unit.PeripherialArc;
+    AttackDistance = unit.AttackDistance;
+    AIClassStay = unit.AIClassStay;
+    AIClassLay = unit.AIClassLay;
+    empty1 = unit.empty1;
+    range = unit.range;
+    attack = unit.attack;
+    defence = unit.defence;
+    weight = unit.weight;
+    damageMin = unit.damageMin;
+    damageRange = unit.damageRange;
+    aImpalling = unit.aImpalling;
+    aSlashing = unit.aSlashing;
+    aCrushing = unit.aCrushing;
+    aThermal = unit.aThermal;
+    aChemical = unit.aChemical;
+    aElectrical = unit.aElectrical;
+    aGeneral = unit.aGeneral;
+    absorption = unit.absorption;
+    Sight = unit.Sight;
+    NightSight = unit.NightSight;
+    SenseLife = unit.SenseLife;
+    SenseHear = unit.SenseHear;
+    SenseSmell = unit.SenseSmell;
+    SenseTracking = unit.SenseTracking;
+    pSight = unit.pSight;
+    pNightSight = unit.pNightSight;
+    pSenseLife = unit.pSenseLife;
+    pSenseHear = unit.pSenseHear;
+    pSenseSmell = unit.pSenseSmell;
+    pSenseTracking = unit.pSenseTracking;
+    ManualSkill_SCIENCE = unit.ManualSkill_SCIENCE;
+    ManualSkill_STEALING = unit.ManualSkill_STEALING;
+    ManualSkill_TAME = unit.ManualSkill_TAME;
+    MagicalSkill_1 = unit.MagicalSkill_1;
+    MagicalSkill_2 = unit.MagicalSkill_2;
+    MagicalSkill_3 = unit.MagicalSkill_3;
+    empty2 = unit.empty2;
+    empty3 = unit.empty3;
+    return *this;
+}
+
+bool SUnitStat::operator==(const SUnitStat& unit)
+{
+    return (HP == unit.HP)
+    && (MaxHP == unit.MaxHP)
+    && (MP == unit.MP)
+    && (MaxMP == unit.MaxMP)
+    && (move == unit.move)
+    && (actions == unit.actions)
+    && (SpeedRun == unit.SpeedRun)
+    && (SpeedWalk == unit.SpeedWalk)
+    && (SpeedCrouch == unit.SpeedCrouch)
+    && (SpeedCrawl == unit.SpeedCrawl)
+    && (VisionArc == unit.VisionArc)
+    && (SkillsPeripherial == unit.SkillsPeripherial)
+    && (PeripherialArc == unit.PeripherialArc)
+    && (AttackDistance == unit.AttackDistance)
+    && (AIClassStay == unit.AIClassStay)
+    && (AIClassLay == unit.AIClassLay)
+    && (empty1 == unit.empty1)
+    && (range == unit.range)
+    && (attack == unit.attack)
+    && (defence == unit.defence)
+    && (weight == unit.weight)
+    && (damageMin == unit.damageMin)
+    && (damageRange == unit.damageRange)
+    && (aImpalling == unit.aImpalling)
+    && (aSlashing == unit.aSlashing)
+    && (aCrushing == unit.aCrushing)
+    && (aThermal == unit.aThermal)
+    && (aChemical == unit.aChemical)
+    && (aElectrical == unit.aElectrical)
+    && (aGeneral == unit.aGeneral)
+    && (absorption == unit.absorption)
+    && (Sight == unit.Sight)
+    && (NightSight == unit.NightSight)
+    && (SenseLife == unit.SenseLife)
+    && (SenseHear == unit.SenseHear)
+    && (SenseSmell == unit.SenseSmell)
+    && (SenseTracking == unit.SenseTracking)
+    && (pSight == unit.pSight)
+    && (pNightSight == unit.pNightSight)
+    && (pSenseLife == unit.pSenseLife)
+    && (pSenseHear == unit.pSenseHear)
+    && (pSenseSmell == unit.pSenseSmell)
+    && (pSenseTracking == unit.pSenseTracking)
+    && (ManualSkill_SCIENCE == unit.ManualSkill_SCIENCE)
+    && (ManualSkill_STEALING == unit.ManualSkill_STEALING)
+    && (ManualSkill_TAME == unit.ManualSkill_TAME)
+    && (MagicalSkill_1 == unit.MagicalSkill_1)
+    && (MagicalSkill_2 == unit.MagicalSkill_2)
+    && (MagicalSkill_3 == unit.MagicalSkill_3)
+    && (empty2 == unit.empty2)
+    && (empty3 == unit.empty3);
 }
 
 CBox::CBox():

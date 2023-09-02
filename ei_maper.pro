@@ -32,6 +32,7 @@ SOURCES += \
     layout_components/tree_view.cpp \
     layout_components/ui_connectors.cpp \
     layout_components/tablemanager.cpp \
+    property.cpp \
     main_window.cpp \
     objects/lever.cpp \
     objects/light.cpp \
@@ -92,6 +93,7 @@ HEADERS += \
     part.h \
     objects/particle.h \
     preview.h \
+    property.h \
     resourcemanager.h \
     round_mob_form.h \
     scene.h \

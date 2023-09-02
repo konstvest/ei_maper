@@ -9,6 +9,7 @@ class MainWindow;
 class CPatrolPoint;
 class CLookPoint;
 class CUnit;
+class IPropertyBase;
 
 class COpenCommand: public QUndoCommand, public QObject
 {
@@ -52,7 +53,6 @@ private:
     uint m_nodeId;
 };
 
-
 class CDeleteLogicPoint: public QUndoCommand
 {
 public:
@@ -68,56 +68,6 @@ public:
 private:
     CView* m_pView;
     QString m_nodeHash;
-};
-
-struct SParam
-{
-    EObjParam param;
-    QString value;
-};
-
-class CChangeStringParam : public QObject, public QUndoCommand
-{
-    Q_OBJECT
-public:
-    enum { Id = 104 };
-    CChangeStringParam() = delete;
-    CChangeStringParam(CView* pView, uint nodeId, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
-
-    void undo() override;
-    void redo() override;
-    //bool mergeWith(const QUndoCommand *command) override;
-    int id() const override { return Id; }
-
-signals:
-    void updateParam();
-    void updatePosOnLand(CNode* pNode);
-    void changeIdSignal(uint, uint);
-    void changeTreeName(CNode*);
-
-protected:
-    CView* m_pView;
-    uint m_nodeId;
-    EObjParam m_objParam;
-    QString m_oldValue;
-    QString m_newValue;
-};
-
-class CChangeModelParam : public CChangeStringParam
-{
-    Q_OBJECT
-public:
-    enum { Id = 105 };
-
-    CChangeModelParam(CView* pView, uint nodeId, EObjParam& objParam, QString value, QUndoCommand *parent = nullptr);
-
-    void undo() override;
-    void redo() override;
-    //bool mergeWith(const QUndoCommand *command) override;
-    int id() const override { return Id; }
-
-private:
-    QVector<QString> m_oldBodyparts;
 };
 
 class CCreateNodeCommand: public QObject, public QUndoCommand
@@ -149,7 +99,7 @@ class CChangeLogicParam : public QObject, public QUndoCommand
 public:
     enum { Id = 107 };
     CChangeLogicParam() = delete;
-    CChangeLogicParam(CView* pView, QString pointHash, EObjParam objParam, QString value, QUndoCommand *parent = nullptr);
+    CChangeLogicParam(CView* pView, QString pointHash, const QSharedPointer<IPropertyBase>& prop, QUndoCommand *parent = nullptr);
 
     void undo() override;
     void redo() override;
@@ -163,11 +113,9 @@ signals:
 protected:
     CView* m_pView;
     QString m_pointHash;
-    EObjParam m_objParam;
-    QString m_oldValue;
-    QString m_newValue;
+    QSharedPointer<IPropertyBase> m_oldValue;
+    QSharedPointer<IPropertyBase> m_newValue;
 };
-
 
 class CCreatePatrolCommand: public QUndoCommand
 {
@@ -239,7 +187,6 @@ private:
 
 };
 
-
 class CSwitchToQuestMobCommand: public QObject, public QUndoCommand
 {
     Q_OBJECT
@@ -265,7 +212,7 @@ private:
     QVector<SRange> m_arrOldMnR;
     QVector<SRange> m_arrOldScR;
     QVector<QVector<uint>> m_oldDiplomacyFoF;
-    QVector<QString> m_arrOldDiplomacyFieldName; // can be deleted if use only 'default names from player-0 to player-31
+    QList<QString> m_arrOldDiplomacyFieldName; // can be deleted if use only 'default names from player-0 to player-31
 };
 
 class CChangeWorldSetCommand : public QObject, public QUndoCommand
@@ -342,7 +289,7 @@ private:
 class CChangeActiveMobCommand: public QUndoCommand
 {
 public:
-    enum { Id = 110 };
+    enum { Id = 115 };
 
     CChangeActiveMobCommand(CView* pView, QString mobName, QUndoCommand *parent = nullptr);
 
@@ -355,6 +302,32 @@ private:
     CView *m_pView;
     QString m_mobName;
     QString m_oldMobName;
+};
+
+class CChangeProp : public QObject, public QUndoCommand
+{
+    Q_OBJECT
+public:
+    enum { Id = 116 };
+    CChangeProp() = delete;
+    CChangeProp(CView* pView, uint nodeId, const QSharedPointer<IPropertyBase>& prop, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void updateParam();
+    void updatePosOnLand(CNode* pNode);
+    void changeIdSignal(uint, uint);
+    void changeTreeName(CNode*);
+
+protected:
+    CView* m_pView;
+    uint m_nodeId;
+    QSharedPointer<IPropertyBase> m_oldValue;
+    QSharedPointer<IPropertyBase> m_newValue;
 };
 
 #endif // UNDO_H

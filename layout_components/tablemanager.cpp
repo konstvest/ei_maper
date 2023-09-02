@@ -6,299 +6,12 @@
 #include "resourcemanager.h"
 #include "utils.h"
 
-CStringItem::CStringItem(QString value, EObjParam param):
-    QTableWidgetItem(value)
-  ,stored_value(value)
-    ,m_parameter(param)
-{
-}
-
-
-void initComboStr(QMap<uint, QString>& aStr, const EObjParam param)
-{
-    switch (param) {
-
-
-    case eObjParam_LEVER_SCIENCE_STATS_Type_Open:
-    {
-        aStr[0] = "Not active";
-        aStr[1] = "Free";
-        aStr[5] = "Hands skill";
-        aStr[8] = "Key ID";
-        break;
-    }
-    case eObjParam_PLAYER:
-    {
-        for(int i(0); i < 32; ++i)
-            aStr[i] = "Player-" + QString::number(i);
-
-        break;
-    }
-    case eObjParam_IS_SHADOW:
-    case eObjParam_LEVER_IS_CYCLED:
-    case eObjParam_LEVER_IS_DOOR:
-    case eObjParam_USE_IN_SCRIPT:
-    case eObjParam_LEVER_RECALC_GRAPH:
-    case eObjParam_UNIT_NEED_IMPORT:
-    case eObjParam_SOUND_AMBIENT:
-    case eObjParam_SOUND_IS_MUSIC:
-    case eObjParam_LIGHT_SHADOW:
-    case eObjParam_TRAP_CAST_ONCE:
-    {
-        aStr[0] = "false";
-        aStr[1] = "true";
-        break;
-    }
-    case eObjParam_PRIM_TXTR:
-    {
-        aStr.clear();
-        break;
-    }
-    case eObjParam_TEMPLATE:
-    {
-        aStr.clear();
-        break;
-    }
-    case eObjParam_TYPE:
-    {
-        aStr[50] = "Human";
-        aStr[51] = "Animal";
-        aStr[52] = "Monstr";
-        break;
-    }
-    case eObjParam_PARTICL_TYPE:
-    {
-      aStr[8192] = "FIREBALL";
-      aStr[8193] = "CAMPFIRE";
-      aStr[8194] = "FIREBLAST";
-      aStr[8195] = "FIRE";
-      aStr[8196] = "SMOKE";
-      aStr[8197] = "VULCANSMOKE";
-      aStr[8198] = "HEALING";
-      aStr[8199] = "POISONFOG";
-      aStr[8200] = "AGGRESSIONFOG";
-      aStr[8201] = "GEYSER";
-      aStr[8202] = "TORNADO";
-      aStr[8203] = "CASTING";
-      aStr[8204] = "NUKE";
-      aStr[8205] = "BANSHEECASTING";
-      aStr[8206] = "MUSHROOM";
-      aStr[8207] = "BLOOD1";
-      aStr[8208] = "FIREWALL";
-      aStr[8209] = "FIREARROW";
-      aStr[8210] = "ACIDRAY";
-      aStr[8211] = "BLUEGAS";
-      aStr[8212] = "LINK";
-      aStr[8213] = "SPHEREACID";
-      aStr[8214] = "SPHEREELECTRICITY";
-      aStr[8215] = "SPHEREFIRE";
-      aStr[8216] = "CLAYRING";
-      aStr[8217] = "TELEPORT";
-      aStr[8218] = "ANTIMAGIC";
-      aStr[8219] = "MODIFIER1";
-      aStr[8220] = "MODIFIER2";
-      aStr[8221] = "MODIFIER3";
-      aStr[8222] = "MODIFIER4";
-      aStr[8223] = "MODIFIER5";
-      aStr[8224] = "MODIFIER6";
-      aStr[8225] = "MODIFIER7";
-      aStr[8226] = "MODIFIER8";
-      aStr[8227] = "MODIFIER9";
-      aStr[8228] = "MODIFIER10";
-      aStr[8229] = "MODIFIER11";
-      aStr[8230] = "MODIFIER12";
-      aStr[8231] = "CASTINGFIRE";
-      aStr[8232] = "CASTINGELECTRICITY";
-      aStr[8233] = "CASTINGACID";
-      aStr[8234] = "CASTINGDIVINATION";
-      aStr[8235] = "CASTINGILLUSION";
-      aStr[8236] = "CASTINGDOMINATION";
-      aStr[8237] = "CASTINGENCHANTMENT";
-      aStr[8238] = "CASTINGHEALING";
-      aStr[8239] = "CASTINGFAILED";
-      aStr[8240] = "LIGHTNINGBLAST";
-      aStr[8241] = "BLOOD2";
-      aStr[8242] = "BLOOD3";
-      aStr[8243] = "BLOOD4";
-      aStr[8244] = "A4BLOODRED";
-      aStr[8245] = "A4BLOODGREEN";
-      aStr[8246] = "A4BLOODBLUE";
-      aStr[8247] = "A4BLOODBLACK";
-      aStr[8248] = "ZONEEXIT";
-      aStr[8249] = "PATH";
-      aStr[8250] = "PATHDESTINATION";
-      aStr[8251] = "PATHFAILED";
-      aStr[8252] = "MOSHKA";
-      aStr[8253] = "PORTALSTAR";
-      aStr[8254] = "PORTAL";
-      aStr[8255] = "CYLINDER1";
-      aStr[8256] = "CYLINDER2";
-      aStr[8257] = "FIRESTAR";
-      aStr[8258] = "ACIDSTAR";
-      aStr[8259] = "SPARKS";
-      aStr[8260] = "VISIONSTAR1";
-      aStr[8261] = "VISIONSTAR2";
-      aStr[8262] = "VISIONSTAR3";
-      aStr[8263] = "REGENERATION";
-      aStr[8264] = "SILENCE";
-      aStr[8265] = "FEEBLEMIND";
-      aStr[8266] = "FEETCLOUD1";
-      aStr[8267] = "FEETCLOUD2";
-      aStr[8268] = "VISIONSTAR4";
-      aStr[8269] = "BALLOFSTARS";
-      aStr[8270] = "RICKARROW";
-      aStr[8271] = "CURSESTARS";
-      aStr[8272] = "CURSEHOLDER";
-      aStr[8273] = "STARTTRANS";
-      aStr[8274] = "TRANSFORM";
-        break;
-    }
-    case eObjParam_LOGIC_BEHAVIOUR:
-    {
-        aStr[0] = "Idle";
-        aStr[1] = "Guard radius";
-        aStr[2] = "Path";
-        aStr[3] = "Place";
-        aStr[4] = "Briffing";
-        aStr[5] = "Guard Alaram";
-        break;
-    }
-    case eObjParam_AGRESSION_MODE:
-    {
-        aStr[0] = "Attack";
-        aStr[1] = "Revenge";
-        aStr[2] = "Fear";
-        aStr[3] = "Fear player";
-        break;
-    }
-    default:
-        break;
-    }
-
-}
-
-
-
-CComboBoxItem::CComboBoxItem(const QString& currentValue, EObjParam param)
-    :m_parameter(param)
-{
-
-    switch(m_parameter)
-    {
-    case eObjParam_PRIM_TXTR:
-    case eObjParam_TEMPLATE:
-    {
-        break;
-    }
-    default:
-        break;
-    }
-
-    initComboStr(m_aComboString, param);
-    int i = 0;
-    for (const auto& item : m_aComboString.toStdMap())
-    {
-        insertItem(i, item.second);
-        ++i;
-    }
-
-    if(isDIfferent(currentValue))
-    {
-        insertItem(i, valueDifferent());
-        setCurrentText(valueDifferent());
-    }
-    else if(currentValue.isEmpty())
-    {
-        insertItem(0, "<choose>");
-        setCurrentIndex(0);
-    }
-    else
-    {
-        switch(param)
-        {
-        case eObjParam_PRIM_TXTR:
-        case eObjParam_TEMPLATE:
-        {
-            insertItem(0, currentValue);
-            break;
-        }
-        default:
-            setCurrentText(m_aComboString[currentValue.toUInt()]);
-            break;
-        }
-
-    }
-    setMaxVisibleItems(20);
-    QObject::connect(this, SIGNAL(currentIndexChanged(QString)), this, SLOT(currentIndexChangedOver(QString))); //reconnect default currentIndexChanged to override
-}
-
-void CComboBoxItem::getKey(QString &val)
-{
-    val = QString::number(m_aComboString.key(currentText()));
-}
-
-void CComboBoxItem::getValue(QString &val)
-{
-    val = currentText();
-}
-
-void CComboBoxItem::showPopup()
-{
-    switch(m_parameter)
-    {
-    case eObjParam_PRIM_TXTR:
-    {
-        blockSignals(true);
-        auto curText = currentText();
-        clear();
-        insertItems(0, CTextureList::getInstance()->textureList());
-        if(curText != "<choose>")
-            setCurrentText(curText);
-        else
-        {
-            insertItem(0, "<choose>");
-            setCurrentIndex(0);
-        }
-        blockSignals(false);
-        break;
-    }
-    case eObjParam_TEMPLATE:
-    {
-        blockSignals(true);
-        auto curText = currentText();
-        clear();
-        insertItems(0, CObjectList::getInstance()->figureList());
-        if(curText != "<choose>")
-            setCurrentText(curText);
-        else
-        {
-            insertItem(0, "<choose>");
-            setCurrentIndex(0);
-        }
-        blockSignals(false);
-        break;
-    }
-    default:
-        break;
-    }
-
-    QComboBox::showPopup();
-}
-
-void CComboBoxItem::currentIndexChangedOver(QString str)
-{
-    if(isDIfferent(str))
-        return; //skip <different value>
-    emit updateValueOver(this);
-}
-
-
 CTableManager::CTableManager(QTableWidget* pTable):
     m_pTable(pTable)
 {
     initRowName();
     reset();
-    QObject::connect(m_pTable, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(onParamChange(QTableWidgetItem*)));
+    //QObject::connect(m_pTable, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(onCellEdit(QTableWidgetItem*)));
 }
 
 void CTableManager::reset()
@@ -315,21 +28,6 @@ void CTableManager::reset()
     //m_pTable->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents); //adjust whole table. now both columns fill qtablewidget but it occurs blink and offset for main window
 }
 
-void CTableManager::updateParam(EObjParam param, QString newValue)
-{
-    m_pTable->blockSignals(true); //block sending signals
-    for(int i(0); i<m_pTable->rowCount(); ++i)
-    {
-        auto tableItem = m_pTable->item(i, 1);
-        auto it = dynamic_cast<CStringItem*>(tableItem);
-        if (nullptr != it)
-            if(it->param() == param)
-            {
-                it->setText(newValue);
-            }
-    }
-    m_pTable->blockSignals(false); //unblock sending signals
-}
 
 void CTableManager::initRowName()
 {
@@ -484,67 +182,58 @@ bool CTableManager::isValidValue(const EObjParam param, const QString &value)
     return bRes;
 }
 
-void CTableManager::onParamChange(CComboBoxItem *pItem)
+void CTableManager::onParamChange(const QSharedPointer<IPropertyBase> pProp)
 {
-    Q_ASSERT(pItem);
-    QString val;
-    EObjParam currParam = pItem->param();
-    switch(currParam)
-    {
-    case eObjParam_PRIM_TXTR:
-    case eObjParam_TEMPLATE:
-    {
-        pItem->getValue(val);
-        break;
-    }
-    default:
-        pItem->getKey(val);
-        break;
-    }
-
-    SParam param{currParam, val};
-    emit changeParamSignal(param);
+    emit onUpdateProperty(pProp);
 }
 
-void CTableManager::onParamChange(QTableWidgetItem *pItem)
+///
+/// \brief CTableManager::onCellEdit
+/// Manually connect to cell widget and get new value if possible. QTableWidget cant use signal-slot system
+/// \param pItem
+///
+void CTableManager::onCellEdit(QTableWidgetItem* pItem)
 {
-    const auto pParamItem  = dynamic_cast<CStringItem*>(pItem);
-    //validate cell value
-    auto backup = pParamItem->origValue();
-    auto text = pItem->text();
-    if(!isValidValue(pParamItem->param(), text))
-    {
-        m_pTable->blockSignals(true);
-        //show warn message
-        qDebug() << "value check failed, return old value";
-        pItem->setText(backup);
-        m_pTable->blockSignals(false);
+    CValueItem* pValue = dynamic_cast<CValueItem*>(pItem);
+    if(nullptr == pValue)
         return;
+
+    if (pValue->onTextChange(pValue))
+    {
+        blockSignals(1);
+        pValue->displayValue();
+        blockSignals(0);
+        emit onUpdateProperty(pValue->value());
     }
-
-    pParamItem->setNewValue(pItem->text());
-    Q_ASSERT(pParamItem);
-    SParam param{pParamItem->param(), pItem->text()};
-    emit changeParamSignal(param);
 }
 
-void CTableManager::onParamChange(CColorButtonItem *pItem)
+void blockEditWidget(QTableWidgetItem* pItem)
 {
-    QPalette pal = pItem->palette();
-    QColor color = pal.color(QPalette::Button);
-
-    SParam param{pItem->param(), util::colorToString(color)};
-    emit changeParamSignal(param);
+    pItem->setFlags(pItem->flags() & ~Qt::ItemIsEditable);
 }
 
-void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
+// function to sort prop in table
+bool variantLessThan(const std::pair<QSharedPointer<IPropertyBase>, bool> &v1, const std::pair<QSharedPointer<IPropertyBase>, bool> &v2)
+{
+    return v1.first->type() < v2.first->type();
+}
+
+void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& aProp)
 {
     reset();
-    int i(0);
+    int i(0); // row number
+    EObjParam type;
     m_pTable->blockSignals(true); //block sending signals
-    for (const auto& item : aParam.toStdMap())
+
+    for(int iParam(0); iParam < EObjParam::eObjParamCount; ++iParam)
+
+    for (const auto& item : aProp.toStdMap())
     {
-        switch (item.first)
+        type = item.first->type();
+        if(type != iParam)
+            continue; // fcking sort of properties
+
+        switch (type)
         {
         //dropdown list next
         case eObjParam_PLAYER:
@@ -567,11 +256,11 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem
             //The table takes ownership of the item.
             // => table widget take care about memory
-            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
+            blockEditWidget(m_pTable->item(i, 0));
             //todo: collect all created items and delete them before create new (or update). reduce memory leaks
-            CComboBoxItem* pCombo = new CComboBoxItem(item.second, item.first);
-            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            CComboItem* pCombo = new CComboItem(item.first);
+            QObject::connect(pCombo, SIGNAL(onValueChange(const QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(const QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
             break;
@@ -608,20 +297,23 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         {
             //insert combobox
             m_pTable->insertRow(i);
-            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-            CComboBoxItem* pCombo = new CComboBoxItem(item.second, eObjParam_LOGIC_BEHAVIOUR);
-            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
+            blockEditWidget(m_pTable->item(i, 0));
+            CComboItem* pCombo = new CComboItem(item.first);
+            //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
 
-            EBehaviourType type = (EBehaviourType)item.second.toUInt();
+            //EBehaviourType type = dynamic_cast<propBehaviour*>(item.first)->value();
+            EBehaviourType type = EBehaviourType(dynamic_cast<propUint*>(item.first.get())->value());
             if(type == EBehaviourType::eRadius)
             {
                 m_pTable->insertRow(i);
                 m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_GUARD_RADIUS]));
-                m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-                m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_GUARD_RADIUS], eObjParam_GUARD_RADIUS));
+                blockEditWidget(m_pTable->item(i, 0));
+                //m_pTable->setItem(i, 1, new CValueItem(aProp.key(eObjParam_GUARD_RADIUS))); // get radius value
+                auto* pCellValue = new CValueItem(aProp.key(eObjParam_GUARD_RADIUS));
+                m_pTable->setCellWidget(i, 1, pCellValue);
                 m_pTable->resizeColumnToContents(0);
                 ++i;
             }
@@ -635,43 +327,15 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         case eObjParam_LEVER_SCIENCE_STATS_Type_Open:
         {
             m_pTable->insertRow(i);
-            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-            CComboBoxItem* pCombo = new CComboBoxItem(item.second, eObjParam_LEVER_SCIENCE_STATS_Type_Open);
-            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
+            blockEditWidget(m_pTable->item(i, 0));
+            CComboItem* pCombo = new CComboItem(item.first);
+            //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
-            if (!item.second.isEmpty())
+            if (item.second == true)
             {
-                uint type = item.second.toUInt();
-                switch (type) {
-                case 0:
-                case 1:
-                {
-                    break;
-                }
-                case 5:
-                {
-                    m_pTable->insertRow(i);
-                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight]));
-                    m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-                    m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight], eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight));
-                    m_pTable->resizeColumnToContents(0);
-                    ++i;
-                    break;
-                }
-                case 8:
-                {
-                    m_pTable->insertRow(i);
-                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Key_ID]));
-                    m_pTable->setItem(i, 1, new CStringItem(aParam[eObjParam_LEVER_SCIENCE_STATS_Key_ID], eObjParam_LEVER_SCIENCE_STATS_Key_ID));
-                    m_pTable->resizeColumnToContents(0);
-                    ++i;
-                    break;
-                }
-                default:
-                    Q_ASSERT("go away" && false);
-                }
+                //todo: show lever parameters
             }
             break; //eObjParam_LEVER_SCIENCE_STATS_Type_Open
         }
@@ -688,40 +352,45 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         {
             //insert combobox
             m_pTable->insertRow(i);
-            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-            CComboBoxItem* pCombo = new CComboBoxItem(item.second, item.first);
-            QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
+            blockEditWidget(m_pTable->item(i, 0));
+            CComboItem* pCombo = new CComboItem(item.first);
+            //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
-            if(item.second == "1") // is need import unit stats == true
+            if(true) // is need import unit stats == true
             {
-                QVector<EObjParam> importStats;
-                importStats.resize(6);
-                importStats[0] = eObjParam_UNIT_STATS;
-                importStats[1] = eObjParam_UNIT_WEAPONS;
-                importStats[2] = eObjParam_UNIT_ARMORS;
-                importStats[3] = eObjParam_UNIT_SPELLS;
-                importStats[4] = eObjParam_UNIT_QUICK_ITEMS;
-                importStats[5] = eObjParam_UNIT_QUEST_ITEMS;
-                for(int j(0); j<importStats.size();++j)
-                {
-                    m_pTable->insertRow(i);
-                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[importStats[j]]));
-                    m_pTable->setItem(i, 1, new CStringItem(aParam[importStats[j]], importStats[j]));
-                    m_pTable->resizeColumnToContents(0);
-                    ++i;
-                }
+                //todo: collect unit stats data
+//                QVector<EObjParam> importStats;
+//                importStats.resize(6);
+//                importStats[0] = eObjParam_UNIT_STATS;
+//                importStats[1] = eObjParam_UNIT_WEAPONS;
+//                importStats[2] = eObjParam_UNIT_ARMORS;
+//                importStats[3] = eObjParam_UNIT_SPELLS;
+//                importStats[4] = eObjParam_UNIT_QUICK_ITEMS;
+//                importStats[5] = eObjParam_UNIT_QUEST_ITEMS;
+//                for(int j(0); j<importStats.size();++j)
+//                {
+//                    m_pTable->insertRow(i);
+//                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[importStats[j]]));
+//                    m_pTable->setItem(i, 1, new CStringItem(aParam[importStats[j]], importStats[j]));
+//                    m_pTable->resizeColumnToContents(0);
+//                    ++i;
+//                }
             }
             break;
         }
         case eObjParam_LIGHT_COLOR:
         {// for color create tool button with color
             m_pTable->insertRow(i);
-            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-            auto pColorButton = new CColorButtonItem(item.second, item.first);
-            QObject::connect(pColorButton, SIGNAL(onColorChange(CColorButtonItem*)), this, SLOT(onParamChange(CColorButtonItem*)));
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
+            blockEditWidget(m_pTable->item(i, 0));
+            CColorButtonItem* pColorButton = nullptr;
+            if(item.second)
+                pColorButton = new CColorButtonItem(item.first);
+            else
+                pColorButton = new CColorButtonItem(type);
+            QObject::connect(pColorButton, SIGNAL(onColorChange(const QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(const QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pColorButton);
             ++i;
             break;
@@ -729,9 +398,15 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
         default:
         {
             m_pTable->insertRow(i);
-            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[item.first]));
-            m_pTable->item(i, 0)->setFlags(m_pTable->item(i, 0)->flags() & ~Qt::ItemIsEditable);
-            m_pTable->setItem(i, 1, new CStringItem(item.second, item.first));
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
+            blockEditWidget(m_pTable->item(i, 0));
+            CValueItem* pCellValue = nullptr;
+            if(item.second == true) // the same value
+                pCellValue = new CValueItem(item.first);
+            else
+                // todo: create value with <different>
+                pCellValue = new CValueItem(item.first);
+            m_pTable->setCellWidget(i, 1, pCellValue);
             m_pTable->resizeColumnToContents(0);
             ++i;
             break;
@@ -741,33 +416,30 @@ void CTableManager::setNewData(QMap<EObjParam, QString> &aParam)
     m_pTable->blockSignals(false);
 }
 
-void CColorButtonItem::colorFromDialog()
+void CColorButtonItem::applyColor()
 {
-    //Q_UNUSED(pAct);
-    QColor color = QColorDialog::getColor(m_color);
+    QColor color = QColorDialog::getColor(Qt::black);
     if(color.isValid())
     {
         updateColor(color);
-        QString str = util::colorToString(color);
-        SParam param {m_parameter, str};
-        emit onColorChange(this);
+        dynamic_cast<prop3D*>(m_pValue.get())->setValue(color.red(), color.green(), color.blue());
+        emit onColorChange(m_pValue);
     }
-
 }
 
-CColorButtonItem::CColorButtonItem(const QString &colorValue, const EObjParam param):
-  m_parameter(param)
+CColorButtonItem::CColorButtonItem(const EObjParam param):
+    m_pValue(new prop3D(param, 0.0f, 0.0f, 0.0f))
 {
-    QColor color = util::stringToColor(colorValue);
-    if(!color.isValid())
-    {
-        Q_ASSERT(false&&"invalid color");
-        m_color = QColor(Qt::black);
-    }
-    else
-        m_color = color;
-    updateColor(m_color);
-    QObject::connect(this, SIGNAL(clicked()), this, SLOT(colorFromDialog()));
+    QObject::connect(this, SIGNAL(clicked()), this, SLOT(applyColor()));
+}
+
+CColorButtonItem::CColorButtonItem(const QSharedPointer<IPropertyBase>& prop)
+{
+    m_pValue.reset(prop->clone());
+    const auto& clr = dynamic_cast<prop3D*>(m_pValue.get())->value();
+    QColor color(clr.x(), clr.y(), clr.z());
+    updateColor(color);
+    QObject::connect(this, SIGNAL(clicked()), this, SLOT(applyColor()));
 }
 
 void CColorButtonItem::updateColor(const QColor &color)
@@ -777,4 +449,88 @@ void CColorButtonItem::updateColor(const QColor &color)
     setAutoFillBackground(true);
     setPalette(pal);
     update();
+}
+
+bool CValueItem::applyChanges(const QString& text)
+{
+    if(m_pValue->toString() != text)
+    {
+        m_pValue->resetFromString(text);
+        qDebug() << m_pValue->toString();
+        return true;
+    }
+    //todo: validate data. return value if checks failed
+    return false;
+}
+
+bool CValueItem::onTextChange(CValueItem* pCell)
+{
+    QString text = pCell->text();
+    if(m_pValue->toString() != text)
+    {
+        m_pValue->resetFromString(text);
+        qDebug() << m_pValue->toString();
+        return true;
+        // emit signal to update value if its ok
+    }
+    //todo: validate data. return value if checks failed
+    return false;
+}
+
+void CValueItem::displayValue()
+{
+    setText(m_pValue->toString());
+}
+
+void CValueItem::onTextChangeEnd()
+{
+    qDebug() << text();
+}
+
+//CDataItem::CDataItem(IPropertyBase *pProp)
+//{
+//    QObject::connect(this, SIGNAL(clicked()), this, SLOT(hello()));
+//}
+
+//void CDataItem::hello()
+//{
+//    qDebug() << m_pValue->toString();
+//}
+
+CComboItem::CComboItem(const QSharedPointer<IPropertyBase>& prop)
+{
+    m_pValue.reset(prop->clone());
+    if(!CResourceStringList::getInstance()->getPropList(m_valueList, prop->type()))
+    {// case for property that has self-named value (without int-string convertion
+        return;
+    }
+
+    addItems(m_valueList.values());
+    setCurrentText(m_valueList[m_pValue->toString().toUInt()]);
+    QObject::connect(this, SIGNAL(currentIndexChanged(QString)), this, SLOT(_onChange(QString))); //reconnect default currentIndexChanged to override
+}
+
+void CComboItem::_onChange(QString str)
+{
+    QSharedPointer<IPropertyBase> valueNew(m_pValue->clone());
+    valueNew->resetFromString(str);
+    if(valueNew->isEqual(m_pValue.get()))
+        return;
+
+    m_pValue->resetFromString(str);
+    emit onValueChange(m_pValue);
+}
+
+CValueItem::CValueItem(const QSharedPointer<IPropertyBase>& prop):
+    QLineEdit(prop->toString())
+{
+    m_pValue.reset(prop->clone());
+    if(false)
+    {
+        // todo: add validator for each text type (int, uint, float, string)
+        QRegExp re("\\d+");
+        QRegExpValidator *validator = new QRegExpValidator(re, this);
+        setValidator(validator);
+    }
+    QObject::connect(this, SIGNAL(editingFinished()), this, SLOT(onTextChangeEnd()));
 }

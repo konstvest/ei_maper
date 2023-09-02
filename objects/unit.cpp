@@ -7,6 +7,7 @@
 #include "settings.h"
 #include "log.h"
 #include "scene.h"
+#include "property.h"
 
 CUnit::CUnit():
     m_prototypeName("")
@@ -45,7 +46,7 @@ CUnit::CUnit(QJsonObject data):
         m_type = (uint)data["Subtype"].toVariant().toUInt();
     m_prototypeName = data["Prototype name"].toString();
     m_stat.reset(new SUnitStat(data["Unit stats"].toObject()));
-    const auto deSerializeStringList = [&data](QVector<QString>& aList, QString name)
+    const auto deSerializeStringList = [&data](QList<QString>& aList, QString name)
     {
         QJsonArray aItem = data[name].toArray();
         for(auto it=aItem.begin(); it<aItem.end(); ++it)
@@ -188,7 +189,7 @@ void CUnit::serializeJson(QJsonObject& obj)
     obj.insert("Prototype name", m_prototypeName);
     obj.insert("Subtype", QJsonValue::fromVariant(m_type));
     //todo: m_stat
-    const auto serializeStringList = [&obj](QVector<QString>& aList, QString name)
+    const auto serializeStringList = [&obj](QList<QString>& aList, QString name)
     {
         QJsonArray aitem;
         for(auto& item : aList)
@@ -271,147 +272,155 @@ uint CUnit::serialize(util::CMobParser &parser)
 //    return m_pMob->view()->settings();
 //}
 
-void CUnit::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CUnit::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
 {
-    CWorldObj::collectParams(aParam, paramType);
+    CWorldObj::collectParams(aProp, paramType);
 
     auto comm = paramType & eUnit;
     if (comm != eUnit)
         return;
 
-    util::addParam(aParam, eObjParam_UNIT_NEED_IMPORT, util::makeString(m_bImport));
-    util::addParam(aParam, eObjParam_UNIT_PROTOTYPE, m_prototypeName);
-    util::addParam(aParam, eObjParam_UNIT_ARMORS, util::makeString(m_aArmor));
-    util::addParam(aParam, eObjParam_UNIT_WEAPONS, util::makeString(m_aWeapon));
-    util::addParam(aParam, eObjParam_UNIT_SPELLS, util::makeString(m_aSpell));
-    util::addParam(aParam, eObjParam_UNIT_QUICK_ITEMS, util::makeString(m_aQuickItem));
-    util::addParam(aParam, eObjParam_UNIT_QUEST_ITEMS, util::makeString(m_aQuestItem));
-    util::addParam(aParam, eObjParam_UNIT_STATS, util::makeString(*m_stat.get()));
-    util::addParam(aParam, eObjParam_TYPE, QString::number(m_type));
+    propBool bImport(eObjParam_UNIT_NEED_IMPORT, m_bImport);
+    util::addParam(aProp, &bImport);
+    propStr dbName(eObjParam_UNIT_PROTOTYPE, m_prototypeName);
+    util::addParam(aProp, &dbName);
+    propStrAr aArmor(eObjParam_UNIT_ARMORS, m_aArmor);
+    util::addParam(aProp, &aArmor);
+    propStrAr aWeapon(eObjParam_UNIT_WEAPONS, m_aWeapon);
+    util::addParam(aProp, &aWeapon);
+    propStrAr aSpell(eObjParam_UNIT_SPELLS, m_aSpell);
+    util::addParam(aProp, &aSpell);
+    propStrAr aQuickItem(eObjParam_UNIT_QUICK_ITEMS, m_aQuickItem);
+    util::addParam(aProp, &aQuickItem);
+    propStrAr aQuestItem(eObjParam_UNIT_QUEST_ITEMS, m_aQuestItem);
+    util::addParam(aProp, &aQuestItem);
+    propStat stat(eObjParam_UNIT_STATS, *(m_stat.get()));
+    util::addParam(aProp, &stat);
+    propUint type(eObjParam_TYPE, m_type);
+    util::addParam(aProp, &type);
 }
 
-void CUnit::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CUnit::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
 {
     auto comm = paramType & eUnit;
     if (comm != eUnit)
         return;
 
-    m_aLogic.front()->collectlogicParams(aParam);
+    m_aLogic.front()->collectlogicParams(aProp);
 }
 
-void CUnit::applyParam(EObjParam param, const QString &value)
+void CUnit::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    switch (param)
+    switch (propType)
     {
     case eObjParam_UNIT_NEED_IMPORT:
     {
-        m_bImport = util::boolFromString(value);
-        break;
-    }
-    case eObjParam_UNIT_PROTOTYPE:
-    {
-        m_prototypeName = value;
-        break;
-    }
-    case eObjParam_UNIT_ARMORS:
-    {
-        m_aArmor = util::strListFromString(value);
-        break;
-    }
-    case eObjParam_UNIT_WEAPONS:
-    {
-        m_aWeapon = util::strListFromString(value);
-        break;
-    }
-    case eObjParam_UNIT_SPELLS:
-    {
-        m_aSpell = util::strListFromString(value);
-        break;
-    }
-    case eObjParam_UNIT_QUICK_ITEMS:
-    {
-        m_aQuickItem = util::strListFromString(value);
-        break;
-    }
-    case eObjParam_UNIT_QUEST_ITEMS:
-    {
-        m_aQuestItem = util::strListFromString(value);
-        break;
-    }
-    case eObjParam_UNIT_STATS:
-    {
-        m_stat.reset(new SUnitStat(util::unitStatFromString(value)));
-        break;
-    }
-    default:
-        CWorldObj::applyParam(param, value);
-    }
-}
-
-QString CUnit::getParam(EObjParam param)
-{
-    QString value;
-    switch (param)
-    {
-    case eObjParam_UNIT_NEED_IMPORT:
-    {
-        value = util::makeString(m_bImport);
+        prop.reset(new propBool(propType, m_bImport));
         break;
     }
     case eObjParam_TYPE:
     {
-        value = QString::number(m_type);
+        prop.reset(new propUint(propType, m_type));
         break;
     }
     case eObjParam_UNIT_PROTOTYPE:
     {
-        value = m_prototypeName;
+        prop.reset(new propStr(propType, m_prototypeName));
         break;
     }
     case eObjParam_UNIT_ARMORS:
     {
-        value = util::makeString(m_aArmor);
+        prop.reset(new propStrAr(propType, m_aArmor));
         break;
     }
     case eObjParam_UNIT_WEAPONS:
     {
-        value = util::makeString(m_aWeapon);
+        prop.reset(new propStrAr(propType, m_aWeapon));
         break;
     }
     case eObjParam_UNIT_SPELLS:
     {
-        value = util::makeString(m_aSpell);
+        prop.reset(new propStrAr(propType, m_aSpell));
         break;
     }
     case eObjParam_UNIT_QUICK_ITEMS:
     {
-        value = util::makeString(m_aQuickItem);
+        prop.reset(new propStrAr(propType, m_aQuickItem));
         break;
     }
     case eObjParam_UNIT_QUEST_ITEMS:
     {
-        value = util::makeString(m_aQuestItem);
+        prop.reset(new propStrAr(propType, m_aQuestItem));
         break;
     }
     case eObjParam_UNIT_STATS:
     {
-        value = util::makeString(*m_stat.get());
+        prop.reset(new propStat(propType, *m_stat.get())); //todo: check memory leaks
         break;
     }
     default:
-        value = CWorldObj::getParam(param);
+        CWorldObj::getParam(prop, propType);
     }
-    return value;
 }
 
-QString CUnit::getLogicParam(EObjParam param)
+void CUnit::applyParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    return m_aLogic.front()->getLogicParam(param);
+    switch (prop->type())
+    {
+    case eObjParam_UNIT_NEED_IMPORT:
+    {
+        m_bImport = dynamic_cast<propBool*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_UNIT_PROTOTYPE:
+    {
+        m_prototypeName = dynamic_cast<propStr*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_UNIT_ARMORS:
+    {
+        m_aArmor = dynamic_cast<propStrAr*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_UNIT_WEAPONS:
+    {
+        m_aWeapon = dynamic_cast<propStrAr*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_UNIT_SPELLS:
+    {
+        m_aSpell = dynamic_cast<propStrAr*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_UNIT_QUICK_ITEMS:
+    {
+        m_aQuickItem = dynamic_cast<propStrAr*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_UNIT_QUEST_ITEMS:
+    {
+        m_aQuestItem = dynamic_cast<propStrAr*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_UNIT_STATS:
+    {
+        m_stat.reset(new SUnitStat(dynamic_cast<propStat*>(prop.get())->value()));
+        break;
+    }
+    default:
+        CWorldObj::applyParam(prop);
+    }
 }
 
-void CUnit::applyLogicParam(EObjParam param, const QString &value)
+void CUnit::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    m_aLogic.front()->applyLogicParam(param, value);
+    m_aLogic.front()->getLogicParam(prop, propType);
+    return;
+}
+
+void CUnit::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
+{
+    m_aLogic.front()->applyLogicParam(prop);
 }
 
 bool CUnit::updatePos(QVector3D &pos)
@@ -444,7 +453,7 @@ QJsonObject CUnit::toJson()
     obj.insert("Subtype", QJsonValue::fromVariant(m_type));
     obj.insert("Prototype name", m_prototypeName);
     obj.insert("Unit stats", m_stat->toJson());
-    const auto serializeStringList = [&obj](QVector<QString>& aList, QString name)
+    const auto serializeStringList = [&obj](QList<QString>& aList, QString name)
     {
         QJsonArray aitem;
         for(auto& item : aList)
@@ -1009,80 +1018,86 @@ void CLogic::clearPatrolSelect()
     }
 }
 
-void CLogic::collectlogicParams(QMap<EObjParam, QString> &aParam)
+void CLogic::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp)
 {
-    util::addParam(aParam, eObjParam_LOGIC_BEHAVIOUR, QString::number(m_behaviour));
-    util::addParam(aParam, eObjParam_GUARD_ALARM, QString::number(m_help));
+    propUint beh(eObjParam_LOGIC_BEHAVIOUR, m_behaviour);
+    //propUint beh(eObjParam_LOGIC_BEHAVIOUR, m_behaviour);
+    util::addParam(aProp, &beh);
+    propFloat help(eObjParam_GUARD_ALARM, m_help);
+    util::addParam(aProp, &help);
     //if behaviour is radius
-    util::addParam(aParam, eObjParam_GUARD_RADIUS, QString::number(m_guardRadius));
-    util::addParam(aParam, eObjParam_GUARD_PLACE, util::makeString(m_guardPlacement));
-    util::addParam(aParam, eObjParam_AGRESSION_MODE, QString::number(m_agressionMode));
+    propFloat radius(eObjParam_GUARD_RADIUS, m_guardRadius);
+    util::addParam(aProp, &radius);
+    prop3D placement(eObjParam_GUARD_PLACE, m_guardPlacement);
+    util::addParam(aProp, &placement);
+    propChar agrMode(eObjParam_AGRESSION_MODE, m_agressionMode);
+    util::addParam(aProp, &agrMode);
 }
 
-QString CLogic::getLogicParam(EObjParam param)
+void CLogic::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    QString value;
-    switch (param){
+    switch (propType){
     case eObjParam_LOGIC_BEHAVIOUR:
     {
-        value = QString::number(m_behaviour);
+        prop.reset(new propUint(propType, m_behaviour));
         break;
     }
     case eObjParam_GUARD_ALARM:
     {
-        value = QString::number(m_help);
+        prop.reset(new propFloat(propType, m_help));
         break;
     }
     case eObjParam_GUARD_RADIUS:
     {
-        value = QString::number(m_guardRadius);
+        prop.reset(new propFloat(propType, m_guardRadius));
         break;
     }
     case eObjParam_GUARD_PLACE:
     {
-        value = util::makeString(m_guardPlacement);
+        prop.reset(new prop3D(propType, m_guardPlacement));
         break;
     }
     case eObjParam_AGRESSION_MODE:
     {
-        value = QString::number(m_agressionMode);
+        prop.reset(new propChar(propType, m_agressionMode));
         break;
     }
     default:
         Q_ASSERT(false);
     }
-    return value;
+
+    return;
 }
 
-void CLogic::applyLogicParam(EObjParam param, const QString &value)
+void CLogic::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    switch (param){
+    switch (prop->type()){
     case eObjParam_LOGIC_BEHAVIOUR:
     {
-        m_behaviour = (EBehaviourType)value.toUInt();
+        m_behaviour = (EBehaviourType)dynamic_cast<const propUint*>(prop.get())->value();
         createLogicLines();
         break;
     }
     case eObjParam_GUARD_ALARM:
     {
-        m_help = value.toFloat();
+        m_help = dynamic_cast<const propFloat*>(prop.get())->value();
         createLogicLines();
         break;
     }
     case eObjParam_GUARD_RADIUS:
     {
-        m_guardRadius = char(value.toInt());
+        m_guardRadius = dynamic_cast<const propFloat*>(prop.get())->value();
         createLogicLines();
         break;
     }
     case eObjParam_GUARD_PLACE:
     {
-        m_guardPlacement = util::vec3FromString(value);
+        m_guardPlacement = dynamic_cast<const prop3D*>(prop.get())->value();
         break;
     }
     case eObjParam_AGRESSION_MODE:
     {
-        m_agressionMode = char(value.toInt());
+        m_agressionMode = dynamic_cast<const propChar*>(prop.get())->value();
         break;
     }
     default:
@@ -1572,59 +1587,27 @@ uint CPatrolPoint::deserialize(util::CMobParser& parser)
     return readByte;
 }
 
-//QString CPatrolPoint::getParam(EObjParam param)
-//{
-//    QString value;
-//    switch (param){
-//    case eObjParam_POSITION:
-//    {
-//        value = util::makeString(m_position);
-//        break;
-//    }
-//    default:
-//        Q_ASSERT(false);
-//    }
-//    return value;
-//}
-
-//void CPatrolPoint::applyParam(EObjParam param, const QString &value)
-//{
-//    switch (param){
-//    case eObjParam_POSITION:
-//    {
-//        //m_position = util::vec3FromString(value);
-//        QVector3D pos = util::vec3FromString(value);
-//        updatePos(pos);
-//        break;
-//    }
-//    default:
-//        Q_ASSERT(false);
-//    }
-//    emit patrolChanges();
-//}
-
-QString CPatrolPoint::getLogicParam(EObjParam param)
+void CPatrolPoint::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    QString value;
-    switch (param){
+    switch (propType){
     case eObjParam_POSITION:
     {
-        value = util::makeString(m_position);
+        prop.reset(new prop3D(propType, m_position));
         break;
     }
     default:
         Q_ASSERT(false);
     }
-    return value;
+    return;
 }
 
-void CPatrolPoint::applyLogicParam(EObjParam param, const QString &value)
+void CPatrolPoint::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    switch (param){
+    switch (prop->type()){
     case eObjParam_POSITION:
     {
         //m_position = util::vec3FromString(value);
-        QVector3D pos = util::vec3FromString(value);
+        QVector3D pos = dynamic_cast<const prop3D*>(prop.get())->value();
         updatePos(pos);
         break;
     }
@@ -1634,14 +1617,15 @@ void CPatrolPoint::applyLogicParam(EObjParam param, const QString &value)
     emit patrolChanges();
 }
 
-void CPatrolPoint::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CPatrolPoint::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
 {
     //CObjectBase::collectParams(aParam, paramType);
     auto comm = paramType & ePatrolPoint;
     if (comm != ePatrolPoint)
         return;
 
-    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+    prop3D pos(eObjParam_POSITION, m_position);
+    util::addParam(aProp, &pos);
 }
 
 void CPatrolPoint::serializeJson(QJsonObject &obj)
@@ -1820,49 +1804,48 @@ CLookPoint::CLookPoint(const CLookPoint &look):
     m_flag = look.m_flag;
 }
 
-QString CLookPoint::getLogicParam(EObjParam param)
+void CLookPoint::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    QString value;
-    switch (param){
+    switch (propType){
     case eObjParam_POSITION:
     {
-        value = util::makeString(m_position);
+        prop.reset(new prop3D(propType, m_position));
         break;
     }
     case eObjParam_VIEW_WAIT:
     {
-        value = QString::number(m_wait);
+        prop.reset(new propInt(propType, m_wait));
         break;
     }
     case eObjParam_VIEW_TURN_SPEED:
     {
-        value = QString::number(m_turnSpeed);
+        prop.reset(new propUint(propType, m_turnSpeed));
         break;
     }
     default:
         Q_ASSERT(false);
     }
-    return value;
+    return;
 }
 
-void CLookPoint::applyLogicParam(EObjParam param, const QString &value)
+void CLookPoint::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    switch (param){
+    switch (prop->type()){
     case eObjParam_POSITION:
     {
         //m_position = util::vec3FromString(value);
-        QVector3D pos = util::vec3FromString(value);
+        QVector3D pos = dynamic_cast<const prop3D*>(prop.get())->value();
         updatePos(pos);
         break;
     }
     case eObjParam_VIEW_WAIT:
     {
-        m_wait = value.toInt();
+        m_wait = dynamic_cast<const propInt*>(prop.get())->value();
         break;
     }
     case eObjParam_VIEW_TURN_SPEED:
     {
-        m_turnSpeed = value.toUInt();
+        m_turnSpeed = dynamic_cast<const propUint*>(prop.get())->value();
         break;
     }
     default:
@@ -1871,16 +1854,20 @@ void CLookPoint::applyLogicParam(EObjParam param, const QString &value)
     emit lookPointChanges();
 }
 
-void CLookPoint::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CLookPoint::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
 {
     //CObjectBase::collectParams(aParam, paramType);
     auto comm = paramType & eLookPoint;
     if (comm != eLookPoint)
         return;
 
-    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
-    util::addParam(aParam, eObjParam_VIEW_WAIT, QString::number(m_wait)); //TODO: calc to seconds
-    util::addParam(aParam, eObjParam_VIEW_TURN_SPEED, QString::number(m_turnSpeed));
+    prop3D pos(eObjParam_POSITION, m_position);
+    util::addParam(aProp, &pos);
+    propInt wait(eObjParam_VIEW_WAIT, m_wait);
+    util::addParam(aProp, &wait); //TODO: calc to seconds
+    propUint speed(eObjParam_VIEW_TURN_SPEED, m_turnSpeed);
+    util::addParam(aProp, &speed);
+    // m_flag ?
 }
 
 uint CLookPoint::deserialize(util::CMobParser& parser)

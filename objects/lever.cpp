@@ -1,5 +1,6 @@
 #include <QJsonArray>
 #include "lever.h"
+#include "property.h"
 
 CLever::CLever():
     m_curState(0)
@@ -166,123 +167,129 @@ uint CLever::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CLever::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CLever::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
 {
-    CWorldObj::collectParams(aParam, paramType);
+    CWorldObj::collectParams(aProp, paramType);
 
     auto comm = paramType & eLever;
     if (comm != eLever)
         return;
 
     //addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_NEW, util::makeString(m_stat));
-    util::addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_Type_Open, QString::number(m_typeOpen));
-    util::addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_Key_ID, QString::number(m_keyID));
-    util::addParam(aParam, eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight, QString::number(m_handsSleight));
-    util::addParam(aParam, eObjParam_LEVER_CUR_STATE, QString::number(m_curState));
-    util::addParam(aParam, eObjParam_LEVER_TOTAL_STATE, QString::number(m_totalState));
-    util::addParam(aParam, eObjParam_LEVER_IS_CYCLED, util::makeString(m_bCycled));
-    util::addParam(aParam, eObjParam_LEVER_IS_DOOR, util::makeString(m_bDoor));
-    util::addParam(aParam, eObjParam_LEVER_RECALC_GRAPH, util::makeString(m_bRecalcGraph));
+    propUint typeOpen(eObjParam_LEVER_SCIENCE_STATS_Type_Open, m_typeOpen);
+    util::addParam(aProp, &typeOpen);
+    propUint keyId(eObjParam_LEVER_SCIENCE_STATS_Key_ID, m_keyID);
+    util::addParam(aProp, &keyId);
+    propUint handSleight(eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight, m_handsSleight);
+    util::addParam(aProp, &handSleight);
+    propChar curState(eObjParam_LEVER_CUR_STATE, m_curState);
+    util::addParam(aProp, &curState);
+    propChar totalState(eObjParam_LEVER_TOTAL_STATE, m_totalState);
+    util::addParam(aProp, &totalState);
+    propBool bCycle(eObjParam_LEVER_IS_CYCLED, m_bCycled);
+    util::addParam(aProp, &bCycle);
+    propBool bDoor(eObjParam_LEVER_IS_DOOR, m_bDoor);
+    util::addParam(aProp, &bDoor);
+    propBool bRecalcGraph(eObjParam_LEVER_RECALC_GRAPH, m_bRecalcGraph);
+    util::addParam(aProp, &bRecalcGraph);
 }
 
-void CLever::applyParam(EObjParam param, const QString &value)
+void CLever::applyParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    switch (param) {
+    switch (prop->type()) {
     case eObjParam_LEVER_SCIENCE_STATS_Type_Open:
     {
-        m_typeOpen = value.toUInt();
+        m_typeOpen = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_LEVER_SCIENCE_STATS_Key_ID:
     {
-        m_keyID = value.toUInt();
+        m_keyID = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight:
     {
-        m_handsSleight = value.toUInt();
+        m_handsSleight = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_LEVER_CUR_STATE:
     {
-        m_curState = char(value.toInt());
+        m_curState = dynamic_cast<propChar*>(prop.get())->value();
         break;
     }
     case eObjParam_LEVER_TOTAL_STATE:
     {
-        m_totalState = char(value.toInt());
+        m_totalState = dynamic_cast<propChar*>(prop.get())->value();
         break;
     }
     case eObjParam_LEVER_IS_CYCLED:
     {
-        m_bCycled = util::boolFromString(value);
+        m_bCycled = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     case eObjParam_LEVER_IS_DOOR:
     {
-        m_bDoor = util::boolFromString(value);
+        m_bDoor = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     case eObjParam_LEVER_RECALC_GRAPH:
     {
-        m_bRecalcGraph = util::boolFromString(value);
+        m_bRecalcGraph = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     default:
-        CWorldObj::applyParam(param, value);
+        CWorldObj::applyParam(prop);
         break;
     }
 }
 
-QString CLever::getParam(EObjParam param)
+void CLever::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    QString value;
-    switch (param) {
+    switch (propType) {
     case eObjParam_LEVER_SCIENCE_STATS_Type_Open:
     {
-        value = QString::number(m_typeOpen);
+        prop.reset(new propUint(propType, m_typeOpen));
         break;
     }
     case eObjParam_LEVER_SCIENCE_STATS_Key_ID:
     {
-        value = QString::number(m_keyID);
+        prop.reset(new propUint(propType, m_keyID));
         break;
     }
     case eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight:
     {
-        value = QString::number(m_handsSleight);
+        prop.reset(new propUint(propType, m_handsSleight));
         break;
     }
     case eObjParam_LEVER_CUR_STATE:
     {
-        value = QString::number(m_curState);
+        prop.reset(new propChar(propType, m_curState));
         break;
     }
     case eObjParam_LEVER_TOTAL_STATE:
     {
-        value = QString::number(m_totalState);
+        prop.reset(new propChar(propType, m_totalState));
         break;
     }
     case eObjParam_LEVER_IS_CYCLED:
     {
-        value = util::makeString(m_bCycled);
+        prop.reset(new propBool(propType, m_bCycled));
         break;
     }
     case eObjParam_LEVER_IS_DOOR:
     {
-        value = util::makeString(m_bDoor);
+        prop.reset(new propBool(propType, m_bDoor));
         break;
     }
     case eObjParam_LEVER_RECALC_GRAPH:
     {
-        value = util::makeString(m_bRecalcGraph);
+        prop.reset(new propBool(propType, m_bRecalcGraph));
         break;
     }
     default:
-        value = CWorldObj::getParam(param);
+        CWorldObj::getParam(prop, propType);
         break;
     }
-    return value;
 }
 
 QJsonObject CLever::toJson()

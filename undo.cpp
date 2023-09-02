@@ -7,6 +7,7 @@
 #include "options.h"
 #include "settings.h"
 #include "log.h"
+#include "property.h"
 
 
 COpenCommand::COpenCommand(CView* pView, QFileInfo& path, QUndoCommand *parent) : QUndoCommand(parent)
@@ -38,97 +39,36 @@ void COpenCommand::redo()
 
 }
 
-//bool COpenCommand::mergeWith(const QUndoCommand* command)
+//CChangeModelParam::CChangeModelParam(CView* pView, uint nodeId, EObjParam &objParam, QString value, QUndoCommand *parent):
+//    CChangeStringParam(pView, nodeId, objParam, value, parent)
 //{
-//    Q_UNUSED(command);
-//    return true;
+//    //setText("Change model to " + value);
 //}
 
-CChangeStringParam::CChangeStringParam(CView* pView, uint nodeId, EObjParam objParam, QString value, QUndoCommand *parent):
-    QUndoCommand(parent)
-  ,m_pView(pView)
-  ,m_nodeId(nodeId)
-  ,m_objParam(objParam)
-  ,m_newValue(value)
-{
-    //setText("Change value to:" + value);
-}
-
-void CChangeStringParam::undo()
-{
-    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
-    pNode->applyParam(m_objParam, m_oldValue);
-    if(m_objParam == eObjParam_NID)
-    {
-        m_nodeId = m_oldValue.toUInt();
-        emit changeIdSignal(m_newValue.toUInt(), m_oldValue.toUInt());
-    }
-    else if(m_objParam == eObjParam_NAME || m_objParam == eObjParam_UNIT_PROTOTYPE)
-    {
-        emit changeTreeName(pNode);
-    }
-    emit updateParam();
-    //emit updatePosOnLand(m_pNode);
-    m_pView->setDurty();
-}
-
-void CChangeStringParam::redo()
-{
-    setText("Change value to " + m_newValue);
-    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
-    m_oldValue = pNode->getParam(m_objParam);
-    pNode->applyParam(m_objParam, m_newValue);
-    if(m_objParam == eObjParam_NID)
-    {
-        //todo: check if changes allowed
-        m_nodeId = m_newValue.toUInt();
-        emit changeIdSignal(m_oldValue.toUInt(), m_newValue.toUInt());
-    }
-    else if(m_objParam == eObjParam_NAME || m_objParam == eObjParam_UNIT_PROTOTYPE)
-    {
-        emit changeTreeName(pNode);
-    }
-    emit updateParam();
-    //emit updatePosOnLand(m_pNode);
-    m_pView->setDurty();
-}
-
-//bool CChangeObjectParam::mergeWith(const QUndoCommand *command)
+//void CChangeModelParam::undo()
 //{
-//    Q_UNUSED(command);
-//    return true;
+//    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
+//    pNode->applyParam(m_objParam, m_oldValue);
+//    pNode->applyParam(eObjParam_BODYPARTS, util::makeString(m_oldBodyparts));
+//    emit updatePosOnLand(pNode);
+//    emit updateParam();
+//    m_pView->setDurty();
 //}
 
-CChangeModelParam::CChangeModelParam(CView* pView, uint nodeId, EObjParam &objParam, QString value, QUndoCommand *parent):
-    CChangeStringParam(pView, nodeId, objParam, value, parent)
-{
-    //setText("Change model to " + value);
-}
-
-void CChangeModelParam::undo()
-{
-    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
-    pNode->applyParam(m_objParam, m_oldValue);
-    pNode->applyParam(eObjParam_BODYPARTS, util::makeString(m_oldBodyparts));
-    emit updatePosOnLand(pNode);
-    emit updateParam();
-    m_pView->setDurty();
-}
-
-void CChangeModelParam::redo()
-{
-    setText("Change model to " + m_newValue);
-    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
-    m_oldValue = pNode->getParam(m_objParam);
-    QString partsList = pNode->getParam(eObjParam_BODYPARTS);
-    m_oldBodyparts = util::strListFromString(partsList);
-    pNode->applyParam(m_objParam, m_newValue);
-    QString empty("");
-    pNode->applyParam(eObjParam_BODYPARTS, empty);
-    emit updatePosOnLand(pNode);
-    emit updateParam();
-    m_pView->setDurty();
-}
+//void CChangeModelParam::redo()
+//{
+//    setText("Change model to " + m_newValue);
+//    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
+//    m_oldValue = pNode->getParam(m_objParam);
+//    QString partsList = pNode->getParam(eObjParam_BODYPARTS);
+//    m_oldBodyparts = util::strListFromString(partsList);
+//    pNode->applyParam(m_objParam, m_newValue);
+//    QString empty("");
+//    pNode->applyParam(eObjParam_BODYPARTS, empty);
+//    emit updatePosOnLand(pNode);
+//    emit updateParam();
+//    m_pView->setDurty();
+//}
 
 CDeleteNodeCommand::CDeleteNodeCommand(CView* pView, uint nodeId, QUndoCommand *parent)
     :QUndoCommand(parent)
@@ -180,13 +120,12 @@ void CCreateNodeCommand::redo()
     emit addNodeSignal(pNode);
 }
 
-CChangeLogicParam::CChangeLogicParam(CView* pView, QString pointHash, EObjParam objParam, QString value, QUndoCommand *parent):
+CChangeLogicParam::CChangeLogicParam(CView* pView, QString pointHash, const QSharedPointer<IPropertyBase>& prop, QUndoCommand *parent):
     QUndoCommand(parent)
   ,m_pView(pView)
   ,m_pointHash(pointHash)
-  ,m_objParam(objParam)
-  ,m_newValue(value)
 {
+    m_newValue.reset(prop->clone());
 }
 
 void CChangeLogicParam::undo()
@@ -195,27 +134,27 @@ void CChangeLogicParam::undo()
     if(list.size()==1)
     {//unit
         auto pUnit = m_pView->currentMob()->nodeByMapId(list[0].toUInt());
-        pUnit->applyLogicParam(m_objParam, m_oldValue);
+        pUnit->applyLogicParam(m_oldValue);
     }
     else if(list.size()==2)
     {//patrol point
         CPatrolPoint* pPoint = m_pView->currentMob()->patrolPointById(list[0].toInt(), list[1].toInt());
-        pPoint->applyLogicParam(m_objParam, m_oldValue);
+        pPoint->applyLogicParam(m_oldValue);
     }
     else if(list.size()==3)
     {//look point
         CLookPoint* pPoint = m_pView->currentMob()->viewPointById(list[0].toInt(), list[1].toInt(), list[2].toInt());
-        pPoint->applyLogicParam(m_objParam, m_oldValue);
+        pPoint->applyLogicParam(m_oldValue);
     }
     else if(list.size() == 4) //trap zone
     {
         CActivationZone* pZone = m_pView->currentMob()->actZoneById(list[0].toInt(), list[3].toInt());
-        pZone->applyLogicParam(m_objParam, m_oldValue);
+        pZone->applyLogicParam(m_oldValue);
     }
     else if(list.size() == 5) //trap cast point
     {
         CTrapCastPoint* pCast = m_pView->currentMob()->trapCastById(list[0].toInt(), list[4].toInt());
-        pCast->applyLogicParam(m_objParam, m_oldValue);
+        pCast->applyLogicParam(m_oldValue);
     }
 
     emit updateParam();
@@ -228,37 +167,37 @@ void CChangeLogicParam::redo()
     if(list.size()==1)
     {//unit
         auto pUnit = m_pView->currentMob()->nodeByMapId(list[0].toUInt()); //can be magic trap
-        m_oldValue = pUnit->getLogicParam(m_objParam);
-        pUnit->applyLogicParam(m_objParam, m_newValue);
+        pUnit->getLogicParam(m_oldValue, m_newValue->type());
+        pUnit->applyLogicParam(m_newValue);
     }
     else if(list.size()==2)
     {//patrol point
         CPatrolPoint* pPoint = m_pView->currentMob()->patrolPointById(list[0].toInt(), list[1].toInt());
-        m_oldValue = pPoint->getLogicParam(m_objParam);
-        pPoint->applyLogicParam(m_objParam, m_newValue);
+        pPoint->getLogicParam(m_oldValue, m_newValue->type());
+        pPoint->applyLogicParam(m_newValue);
     }
     else if(list.size()==3)
     {//look point
         CLookPoint* pPoint = m_pView->currentMob()->viewPointById(list[0].toInt(), list[1].toInt(), list[2].toInt());
-        m_oldValue = pPoint->getLogicParam(m_objParam);
-        pPoint->applyLogicParam(m_objParam, m_newValue);
+        pPoint->getLogicParam(m_oldValue, m_newValue->type());
+        pPoint->applyLogicParam(m_newValue);
     }
     else if(list.size() == 4) //trap zone
     {
         CActivationZone* pZone = m_pView->currentMob()->actZoneById(list[0].toInt(), list[3].toInt());
-        m_oldValue = pZone->getLogicParam(m_objParam);
-        pZone->applyLogicParam(m_objParam, m_newValue);
+        pZone->getLogicParam(m_oldValue, m_newValue->type());
+        pZone->applyLogicParam(m_newValue);
     }
     else if(list.size() == 5) //trap cast point
     {
         CTrapCastPoint* pCast = m_pView->currentMob()->trapCastById(list[0].toInt(), list[4].toInt());
-        m_oldValue = pCast->getLogicParam(m_objParam);
-        pCast->applyLogicParam(m_objParam, m_newValue);
+        pCast->getLogicParam(m_oldValue, m_newValue->type());
+        pCast->applyLogicParam(m_newValue);
     }
 
     emit updateParam();
     m_pView->setDurty();
-    setText("Change value to " + m_newValue);
+    setText("Change value to " + m_newValue->toString());
 }
 
 CCreatePatrolCommand::CCreatePatrolCommand(CView* pView, QString pointHash, QUndoCommand *parent):
@@ -619,4 +558,60 @@ void CChangeActiveMobCommand::redo()
 {
     m_pView->changeCurrentMob(m_mobName);
     setText("Change MOB to:" + m_mobName);
+}
+
+CChangeProp::CChangeProp(CView* pView, uint nodeId, const QSharedPointer<IPropertyBase>& prop, QUndoCommand* parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_nodeId(nodeId)
+{
+    m_newValue.reset(prop->clone());
+}
+
+void CChangeProp::undo()
+{
+    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
+    pNode->applyParam(m_oldValue);
+    if(m_oldValue->type() == eObjParam_NID)
+    {
+        m_nodeId = dynamic_cast<propUint*>(m_oldValue.get())->value();
+        uint id = dynamic_cast<propUint*>(m_newValue.get())->value();
+        emit changeIdSignal(id, m_nodeId);
+    }
+    else if(m_oldValue->type() == eObjParam_NAME || m_oldValue->type() == eObjParam_UNIT_PROTOTYPE)
+    {
+        emit changeTreeName(pNode);
+    }
+    emit updateParam();
+    //emit updatePosOnLand(m_pNode);
+    m_pView->setDurty();
+}
+
+void CChangeProp::redo()
+{
+    setText("Change value to " + m_newValue->toString());
+    auto pNode = m_pView->currentMob()->nodeByMapId(m_nodeId);
+    pNode->getParam(m_oldValue, m_newValue->type());
+    pNode->applyParam(m_newValue);
+    switch (m_newValue->type()) {
+    case eObjParam_NID:
+    {
+        //todo: check if changes allowed
+        uint oldNodeId = dynamic_cast<propUint*>(m_oldValue.get())->value();
+        m_nodeId = dynamic_cast<propUint*>(m_newValue.get())->value();
+        emit changeIdSignal(oldNodeId, m_nodeId);
+        break;
+    }
+    case eObjParam_NAME:
+    case eObjParam_UNIT_PROTOTYPE:
+    {
+        emit changeTreeName(pNode);
+        break;
+    }
+    default: {break;}
+    }
+
+    emit updateParam();
+    //emit updatePosOnLand(m_pNode);
+    m_pView->setDurty();
 }

@@ -15,9 +15,9 @@ public:
     ~CActivationZone();
     ENodeType nodeType() override {return ENodeType::eTrapActZone; }
 
-    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
-    QString getLogicParam(EObjParam param) override;
-    void applyLogicParam(EObjParam param, const QString& value) override;
+    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
+    void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override;
     uint deserialize(util::CMobParser& parser) override;
     uint serialize(util::CMobParser& parser) override;
     void deSerializeJson(QJsonObject data);
@@ -50,9 +50,9 @@ public:
     ~CTrapCastPoint();
     ENodeType nodeType() override {return ENodeType::eTrapCastPoint; }
 
-    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
-    void applyLogicParam(EObjParam param, const QString& value) override;
-    QString getLogicParam(EObjParam param) override;
+    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override;
+    void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
     uint deserialize(util::CMobParser& parser) override;
     uint serialize(util::CMobParser& parser) override;
     void deSerializeJsonArray(QJsonArray data);
@@ -82,12 +82,12 @@ public:
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
-    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
-    void applyLogicParam(EObjParam param, const QString& value) override;
-    QString getLogicParam(EObjParam param) override;
-    void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
-    void applyParam(EObjParam param, const QString& value) override;
-    QString getParam(EObjParam param) override;
+    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override;
+    void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
+    void collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
+    void applyParam(const QSharedPointer<IPropertyBase>& prop) override;
     QJsonObject toJson() override;
     void loadFigure() override {}
     void loadTexture() override;

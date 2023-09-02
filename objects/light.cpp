@@ -1,6 +1,7 @@
 #include <QJsonArray>
 #include "light.h"
 #include "resourcemanager.h"
+#include "property.h"
 
 CLight::CLight():
     m_range(0.0f)
@@ -130,69 +131,71 @@ uint CLight::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CLight::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CLight::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
 {
-    CObjectBase::collectParams(aParam, paramType);
+    CObjectBase::collectParams(aProp, paramType);
     auto comm = paramType & eLight;
     if (comm != eLight)
         return;
 
-    util::addParam(aParam, eObjParam_NID, QString::number(m_mapID));
-    util::addParam(aParam, eObjParam_LIGHT_SHADOW, util::makeString(m_bShadow));
-    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
-    util::addParam(aParam, eObjParam_LIGHT_COLOR, util::makeString(m_color));
-    util::addParam(aParam, eObjParam_RANGE, QString::number(m_range));
-    util::addParam(aParam, eObjParam_NAME, m_name);
-    util::addParam(aParam, eObjParam_COMMENTS, m_comment);
+    //util::addParam(aProp, eObjParam_NID, QString::number(m_mapID));
+    propBool bShadow(eObjParam_LIGHT_SHADOW, m_bShadow);
+    util::addParam(aProp, &bShadow);
+    //util::addParam(aProp, eObjParam_POSITION, util::makeString(m_position));
+    prop3D color(eObjParam_LIGHT_COLOR, m_color);
+    util::addParam(aProp, &color);
+    propFloat range(eObjParam_RANGE, m_range);
+    util::addParam(aProp, &range);
+    propStr name(eObjParam_NAME, m_name);
+    util::addParam(aProp, &name);
+    //util::addParam(aProp, eObjParam_COMMENTS, m_comment);
 }
 
-void CLight::applyParam(EObjParam param, const QString &value)
+void CLight::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    switch (param){
+    switch (propType)
+    {
     case eObjParam_LIGHT_SHADOW:
     {
-        m_bShadow = util::boolFromString(value);
+        prop.reset(new propBool(propType, m_bShadow));
         break;
     }
     case eObjParam_LIGHT_COLOR:
     {
-        m_color = util::vec3FromString(value);
+        prop.reset(new prop3D(propType, m_color));
         break;
     }
     case eObjParam_RANGE:
     {
-        m_range = value.toFloat();
+        prop.reset(new propFloat(propType, m_range));
         break;
     }
     default:
-        CObjectBase::applyParam(param, value);
+        CObjectBase::getParam(prop, propType);
     }
 }
 
-QString CLight::getParam(EObjParam param)
+void CLight::applyParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    QString value;
-    switch (param){
-
+    switch (prop->type()){
     case eObjParam_LIGHT_SHADOW:
     {
-        value = util::makeString(m_bShadow);
+        m_bShadow = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     case eObjParam_LIGHT_COLOR:
     {
-        value = util::makeString(m_color);
+        m_color = dynamic_cast<prop3D*>(prop.get())->value();
         break;
     }
     case eObjParam_RANGE:
     {
-        value = QString::number(m_range);
+        m_range = dynamic_cast<propFloat*>(prop.get())->value();
         break;
     }
     default:
-        value = CObjectBase::getParam(param);
+        CObjectBase::applyParam(prop);
     }
-    return value;
 }
 
 QJsonObject CLight::toJson()

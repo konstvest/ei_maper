@@ -6,61 +6,101 @@
 #include <QComboBox>
 #include <QList>
 #include <QToolButton>
+#include <QSharedPointer>
+#include <QLineEdit>
 
 #include "types.h"
 #include "undo.h"
+#include "property.h"
 
-class CStringItem : public QTableWidgetItem
+// any type of single value.
+// converting to(from) string must be overrided for each prop
+class CValueItem : public QLineEdit
 {
+    Q_OBJECT
 public:
-    CStringItem(QString value, EObjParam param);
-    EObjParam& param(){return m_parameter;}
-    const QString& origValue() {return stored_value;}
-    void setNewValue(QString value) {stored_value = value;}
-
-private:
-    QString stored_value;
-    EObjParam m_parameter;
-};
-
-class CComboBoxItem : public QComboBox
-{
-Q_OBJECT
-public:
-    CComboBoxItem(const QString& currentValue, EObjParam param);
-    void getKey(QString& val);
-    void getValue(QString& val);
-    EObjParam& param(){return m_parameter;}
-    void subscribe(QTableWidget* pTable);
-    void showPopup() override;
+    CValueItem() = delete;
+    //CValueItem(EObjParam param); // default 'value dif'
+    CValueItem(const QSharedPointer<IPropertyBase>& prop);
+    const EObjParam& param(){return m_pValue->type();}
+    bool applyChanges(const QString& text);
+    const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
+    bool onTextChange(CValueItem* pCell);
+    void displayValue();
 
 public slots:
-    void currentIndexChangedOver(QString);
-
-signals:
-    void updateValueOver(CComboBoxItem*);
+    void onTextChangeEnd();
 
 private:
-    EObjParam m_parameter;
-    QMap<uint, QString> m_aComboString;
+    QSharedPointer<IPropertyBase> m_pValue; //stored value;
+};
+
+// any type of single value choosing in initialized list.
+// value will converted to(from) string
+class CComboItem: public QComboBox
+{
+    Q_OBJECT
+public:
+    CComboItem() = delete;
+    CComboItem(const QSharedPointer<IPropertyBase>& prop);
+    // update value on choosing new one
+    const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
+
+public slots:
+    void _onChange(QString str); //override default 'on change event'
+
+signals:
+    void onValueChange(const QSharedPointer<IPropertyBase>);
+
+private:
+    QSharedPointer<IPropertyBase> m_pValue; //stored value;
+    QMap<uint, QString> m_valueList;
+};
+
+// todo: dynamic combo box (show item on choose)
+
+
+class CDataItem : public QToolButton
+// make "edit" button for changing
+{
+    Q_OBJECT
+public:
+    CDataItem() {}; // = delete;
+    //CDataItem(IPropertyBase* pProp); //todo: data pointer
+
+private:
+    void hello() {};
+
+private:
+// part list (QString, value[true,false,undefined])
+// unit stats (table with value\different)
+// string array (list of strings | "Selected units have different data. Input text will replace data for all selected units")
+    //QSharedPointer<IPropertyBase> m_pValue; //stored value;
 };
 
 class CColorButtonItem : public QToolButton
 {
     Q_OBJECT
 public:
-    CColorButtonItem(const QString& colorValue, const EObjParam param);
-    void updateColor(const QColor& color);
-    EObjParam& param() {return m_parameter;}
-signals:
-    void onColorChange(CColorButtonItem*);
+    CColorButtonItem() = delete;
+    CColorButtonItem(const EObjParam param); // default 'value dif'
+    CColorButtonItem(const QSharedPointer<IPropertyBase>& prop);
 private:
-    QColor m_color;
-    EObjParam m_parameter;
+    void updateColor(const QColor& color);
+
+signals:
+    void onColorChange(const QSharedPointer<IPropertyBase>);
+
 public slots:
-    void colorFromDialog();
+    void applyColor();
+
+private:
+    QSharedPointer<IPropertyBase> m_pValue;
+
 };
 
+
+// class for management property table (signals trasnfer, show data, trasfer applying changes)
 class CTableManager : public QObject
 {
     Q_OBJECT
@@ -69,25 +109,23 @@ public:
     CTableManager(QTableWidget* pTable);
 
     void reset();
-    void updateParam(EObjParam param, QString newValue);
-    void setNewData(QMap<EObjParam, QString>& aParam);
+    void setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& aProp);
 
 private:
     void initRowName();
     bool isValidValue(const EObjParam param, const QString& value);
 
 signals:
-    void changeParamSignal(SParam&);
+    void onUpdateProperty(const QSharedPointer<IPropertyBase>);
 
 public slots:
-    void onParamChange(CComboBoxItem* pItem);
-    void onParamChange(QTableWidgetItem* pItem);
-    void onParamChange(CColorButtonItem* pItem);
-
+    void onParamChange(const QSharedPointer<IPropertyBase> pProp); //retranslate value changing from ui to view class
+    void onCellEdit(QTableWidgetItem*); // emulate signal-slot system  for QTableWidget
 
 private:
     QTableWidget* m_pTable;
     QMap<EObjParam, QString> m_aRowName;
+    QMap<EObjParam, QMap<uint, QString>> m_comboMap;
 };
 
 #endif // CTABLEMANAGER_H

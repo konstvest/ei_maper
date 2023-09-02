@@ -51,8 +51,8 @@ public:
     const QVector<SRange>& ranges(bool bMain);
     void setRanges(bool bMain, const QVector<SRange>& range);
     void clearRanges(bool bMain);
-    const QVector<QString>& diplomacyNames() {return m_aDiplomacyFieldName;}
-    void setDiplomacyNames(QVector<QString>& arrName) {m_aDiplomacyFieldName = arrName;}
+    const QList<QString>& diplomacyNames() {return m_aDiplomacyFieldName;}
+    void setDiplomacyNames(QList<QString>& arrName) {m_aDiplomacyFieldName = arrName;}
     QVector<QVector<uint>>& diplomacyField() {return m_diplomacyFoF;}
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
@@ -105,7 +105,7 @@ private:
     QVector<SRange> m_aMainRange;
     QVector<SRange> m_aSecRange;
     QVector<QVector<uint>> m_diplomacyFoF;
-    QVector<QString> m_aDiplomacyFieldName;
+    QList<QString> m_aDiplomacyFieldName;
     CWorldSet m_worldSet;
     QByteArray m_vss_section;
     QByteArray m_directory;

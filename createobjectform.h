@@ -31,7 +31,7 @@ signals:
 
 private slots:
     void onObjectChoose(QString& object);
-    void onParamChange(SParam& param);
+    void onParamChange(const QSharedPointer<IPropertyBase>);
 
     void on_buttonCancel_clicked();
     void on_buttonCreate_clicked();

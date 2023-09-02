@@ -5,9 +5,13 @@
 #include <QVector>
 #include <QString>
 #include <QSharedPointer>
+#include <QStringList>
 #include "types.h"
+//#include "property.h"
 
 #define EPS 0.0000001
+
+class IPropertyBase;
 
 namespace util
 {
@@ -20,8 +24,10 @@ void splitByLen(QVector<QVector3D>& aPoint, float len);
 bool isEqual(const double& a, const double& b, double Eps = EPS);
 QString makeString(const QVector3D& vec, bool bFormat = true);
 QString makeString(QVector4D& vec);
-QString makeString(QVector<QString>& vec);
-QVector<QString> strListFromString(QString string);
+QString makeString(QList<QString>& vec);
+QStringList strArrFromString(QString string);
+QString makeString(QStringList& vec);
+QList<QString> strListFromString(QString string);
 QString makeString(bool value);
 QString makeString(const QVector<SArea>& aArea);
 QString makeString(const QVector<QVector2D>& aPoint);
@@ -39,8 +45,11 @@ QColor stringToColor(const QString& string);
 QString colorToString(const QColor& color);
 
 void addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str);
+bool addParam(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, IPropertyBase* pProp);
 QVector3D getMinValue(const QVector3D& vec1, const QVector3D& vec2);
 QVector3D getMaxValue(const QVector3D& vec1, const QVector3D& vec2);
+void removeProp(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, EObjParam type);
+IPropertyBase* prop(const QMap<QSharedPointer<IPropertyBase>, bool>& aProp, EObjParam type);
 
 enum EType
 {
@@ -120,8 +129,8 @@ public:
     uint readRectangle(SRectangle& data);
     uint readString(QString& data, uint len);
     uint writeString(const QString& data);
-    uint readStringArray(QVector<QString>& data);
-    uint writeStringArray(const QVector<QString>& data, QString keyName);
+    uint readStringArray(QList<QString>& data);
+    uint writeStringArray(const QList<QString>& data, QString keyName);
     uint readStringEncrypted(QString& data, uint& key, uint len);
     uint writeStringEncrypted(const QString& data, uint key);
     uint readUnitStats(QSharedPointer<SUnitStat>& data, uint len);

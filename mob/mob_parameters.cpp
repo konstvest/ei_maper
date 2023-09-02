@@ -200,7 +200,7 @@ void CMobParameters::updateWindow()
     ui->plainTextEdit->setPlainText(str);
 
     //diplomacy
-    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    QStringList dipName = m_pCurMob->diplomacyNames();
     QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
     int val;
     if(!dipName.isEmpty() && !dipTable.isEmpty())
@@ -235,7 +235,7 @@ void CMobParameters::on_diplomacyButton_clicked()
         return;
     }
 
-    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    QStringList dipName = m_pCurMob->diplomacyNames();
     QVector<QVector<uint>> dipTable = m_pCurMob->diplomacyField();
     if(dipName.isEmpty() || dipTable.isEmpty())
     {
@@ -574,7 +574,7 @@ void CMobParameters::updateMobParamsOnly()
 void CMobParameters::updateDiplomacyTable()
 {
     //diplomacy
-    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    QStringList dipName = m_pCurMob->diplomacyNames();
     const QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
     if(!dipName.isEmpty() && !dipTable.isEmpty())
     {
@@ -594,7 +594,7 @@ void CMobParameters::updateDiplomacyTable()
 void CMobParameters::updateDiplomacyTable(int row, int column)
 {
     //diplomacy
-    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    QStringList dipName = m_pCurMob->diplomacyNames();
     const QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
     if(!dipName.isEmpty() && !dipTable.isEmpty())
     {

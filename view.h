@@ -32,6 +32,7 @@ class QTreeWidget;
 class CMobParameters;
 class CRoundMobForm;
 class CTreeView;
+class IPropertyBase;
 
 class CView : public QGLWidget
 {
@@ -113,7 +114,7 @@ private:
     CNode* pickObject(QList<CNode*>& aNode, int x, int y);
     void applyParam(SParam& param);
     void getColorFromRect(const QRect& rect, QVector<SColor>& aColor);
-    void onParamChangeLogic(CNode* pNode, SParam& sParam);
+    void onParamChangeLogic(CNode* pNode, const QSharedPointer<IPropertyBase>& prop);
     void logOpenGlData();
     void checkOpenGlError();
 
@@ -122,7 +123,7 @@ public slots:
     void updateParameter(EObjParam param);
     void viewParameters();
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
-    void onParamChange(SParam& sParam);
+    void onParamChange(const QSharedPointer<IPropertyBase>& prop);
     void collectObjectTreeData();
 
     void execMobSwitch();

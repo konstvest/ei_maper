@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QUndoView>
+#include <QImageReader>
 
 #include "resourcemanager.h"
 #include "landscape.h"
@@ -23,14 +24,22 @@
 #include "log.h"
 #include "scene.h"
 
+#include "property.h"
 
-#include <QImageReader>
+void testFunc()
+{
+    ei::log(eLogDebug, "test func start");
+
+    ei::log(eLogDebug, "test func end");
+}
 
 MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent),
     m_ui(new Ui::MainWindow)
 {
-
+#ifdef QT_DEBUG
+    testFunc();
+#endif
     CIconManager::getInstance()->init();
 
     m_settings.reset(new CSettings());
@@ -290,6 +299,8 @@ void MainWindow::on_actionUndo_triggered()
 void MainWindow::on_toolButton_2_clicked()
 {
     ei::log(eLogDebug, "btn test start");
+    QString data(".5");
+    float val = QVariant(data).value<float>();
     ei::log(eLogDebug, "btn test end");
 }
 

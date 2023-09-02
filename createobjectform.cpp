@@ -28,7 +28,7 @@ CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     initViewWidget();
     QObject::connect(this, SIGNAL(sendNewBbbox(CBox)), m_pPreview, SLOT(refreshCam(CBox)));
     m_tableManager.reset(new CTableManager(ui->tableParameters));
-    QObject::connect(m_tableManager.get(), SIGNAL(changeParamSignal(SParam&)), this, SLOT(onParamChange(SParam&)));
+    QObject::connect(m_tableManager.get(), SIGNAL(onUpdateProperty(const QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(const QSharedPointer<IPropertyBase>)));
 
     setWindowTitle("Creating object dialog");
     setWindowFlag(Qt::WindowContextHelpButtonHint, false);
@@ -70,38 +70,38 @@ void CCreateObjectForm::initViewWidget()
 void CCreateObjectForm::updateTable()
 {
     m_tableManager->reset();
-    QMap<EObjParam, QString> aParam;
-    m_pNode->collectParams(aParam, m_pNode->nodeType());
+    QMap<QSharedPointer<IPropertyBase>, bool> aProp;
+    m_pNode->collectParams(aProp, m_pNode->nodeType());
     //filter parameters
-    aParam.remove(eObjParam_NID);
-    aParam.remove(eObjParam_POSITION);
-    aParam.remove(eObjParam_ROTATION);
+    util::removeProp(aProp, eObjParam_NID);
+    util::removeProp(aProp, eObjParam_POSITION);
+    util::removeProp(aProp, eObjParam_ROTATION);
 
     auto type = m_pNode->nodeType();
     switch (type)
     {
     case ENodeType::eTorch:
     {
-        aParam.remove(eObjParam_PLAYER);
+        util::removeProp(aProp, eObjParam_PLAYER);
         break;
     }
     case ENodeType::eLight:
     case ENodeType::eSound:
     case ENodeType::eParticle:
     {
-        aParam.remove(eObjParam_PRIM_TXTR);
+        util::removeProp(aProp, eObjParam_PRIM_TXTR);
         break;
     }
     case ENodeType::eMagicTrap:
     {
-        aParam.remove(eObjParam_PRIM_TXTR);
+        util::removeProp(aProp, eObjParam_PRIM_TXTR);
         break;
     }
     default:
         break;
     }
 
-    m_tableManager->setNewData(aParam);
+    m_tableManager->setNewData(aProp);
     m_pPreview->updateGL();
 }
 
@@ -182,14 +182,14 @@ void CCreateObjectForm::onObjectChoose(QString& object)
     {
         //copy data from selected node
         auto pSourceNode = arrNode.first();
-        QMap<EObjParam, QString> aParam;
+        QMap<QSharedPointer<IPropertyBase>, bool> aProp;
         ENodeType type = pSourceNode->nodeType();
-        pSourceNode->collectParams(aParam, type);
-        for(auto& param: aParam.toStdMap())
+        pSourceNode->collectParams(aProp, type);
+        for(const auto& param: aProp.toStdMap())
         {
-            if(param.first == eObjParam_POSITION)
+            if(param.first->type() == eObjParam_POSITION)
                 continue;
-            if(objType == eMagicTrap && param.first == eObjParam_NAME)
+            if(objType == eMagicTrap && param.first->type() == eObjParam_NAME)
                 continue;
 //            switch (param.first) {
 //            case eObjParam_ROTATION:
@@ -200,17 +200,17 @@ void CCreateObjectForm::onObjectChoose(QString& object)
 //            default:
 //                break;
 //            }
-            m_pNode->applyParam(param.first, param.second);
+            m_pNode->applyParam(param.first);
         }
     }
     m_pPreview->attachNode(m_pNode);
     updateTable();
 }
 
-void CCreateObjectForm::onParamChange(SParam& param)
+void CCreateObjectForm::onParamChange(const QSharedPointer<IPropertyBase> prop)
 {
-    m_pNode->applyParam(param.param, param.value);
-    if(param.param == eObjParam_TEMPLATE)
+    m_pNode->applyParam(prop);
+    if(prop->type() == eObjParam_TEMPLATE)
     {
         emit sendNewBbbox(m_pNode->getBBox());
     }

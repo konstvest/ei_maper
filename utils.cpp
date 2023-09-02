@@ -12,6 +12,9 @@
 
 #include "utils.h"
 #include "resourcemanager.h" //TODO: delete this (now it uses only for valuediff)
+#include "property.h"
+
+// float number validation regext: (\d+)?\.?\d+
 
 void util::formatStream(QDataStream& stream)
 {
@@ -715,7 +718,7 @@ uint util::CMobParser::writeString(const QString& data)
     return len;
 }
 
-uint util::CMobParser::readStringArray(QVector<QString>& data)
+uint util::CMobParser::readStringArray(QList<QString>& data)
 {
     uint blockLen(0);
     uint records;
@@ -731,7 +734,7 @@ uint util::CMobParser::readStringArray(QVector<QString>& data)
     return blockLen;
 }
 
-uint util::CMobParser::writeStringArray(const QVector<QString>& data, QString keyName)
+uint util::CMobParser::writeStringArray(const QList<QString>& data, QString keyName)
 {
     uint blockLen(0);
     uint records(data.size()); //row size;
@@ -810,7 +813,7 @@ QString util::makeString(QVector4D& vec)
     return QString("(%1,%2,%3,%4)").arg(vec.x()).arg(vec.y()).arg(vec.z()).arg(vec.w());
 }
 
-QString util::makeString(QVector<QString> &vec)
+QString util::makeString(QStringList& vec)
 {
     QString str("");
     if (!vec.isEmpty())
@@ -901,9 +904,23 @@ QVector3D util::vec3FromString(const QString &str)
     return vec;
 }
 
-QVector<QString> util::strListFromString(QString string)
+QStringList util::strArrFromString(QString string)
 {
-    QVector<QString> aString;
+    QStringList aString;
+    if (string.length() == 0)
+        return aString;
+
+    QStringList list = string.split(QRegularExpression("[\\(,\\)]"));
+    for (const auto& st : list)
+        if (st.length() > 0)
+            aString.append(st);
+
+    return aString;
+}
+
+QList<QString> util::strListFromString(QString string)
+{
+    QList<QString> aString;
     if (string.length() == 0)
         return aString;
 
@@ -1048,6 +1065,21 @@ void util::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString s
         aParam.insert(param, str);
 }
 
+bool util::addParam(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, IPropertyBase* pProp)
+{
+    for(auto it(aProp.begin()); it != aProp.end(); ++it)
+    {
+        if(it.key()->type() != pProp->type())
+            continue;
+
+        if(it.value() == true)
+            it.value() = it.key()->isEqual(pProp);
+        return it.value();
+    }
+    aProp[QSharedPointer<IPropertyBase>(pProp->clone())] = true;
+    return true;
+}
+
 QColor util::stringToColor(const QString &string)
 {
     QVector3D vec = vec3FromString(string);
@@ -1075,4 +1107,24 @@ QVector3D util::getMinValue(const QVector3D &vec1, const QVector3D &vec2)
 QVector3D util::getMaxValue(const QVector3D &vec1, const QVector3D &vec2)
 {
     return QVector3D(vec1.x() > vec2.x() ? vec1.x() : vec2.x(), vec1.y() > vec2.y() ? vec1.y() : vec2.y(), vec1.z() > vec2.z() ? vec1.z() : vec2.z());
+}
+
+void util::removeProp(QMap<QSharedPointer<IPropertyBase>, bool> &aProp, EObjParam type)
+{
+    for (auto it = aProp.begin(); it != aProp.end();)
+        if (it.key()->type() == type)
+        {
+            it = aProp.erase(it);
+            return;
+        }
+}
+
+IPropertyBase *util::prop(const QMap<QSharedPointer<IPropertyBase>, bool>& aProp, EObjParam type)
+{
+    for (auto it = aProp.begin(); it != aProp.end();)
+        if (it.key()->type() == type)
+        {
+            return it.key().get();
+        }
+    return nullptr;
 }

@@ -161,7 +161,7 @@ enum EObjParam
     ,eObjParam_ROTATION
 
     ,eObjParam_COMMENTS
-
+    ,eObjParamCount
 };
 
 enum EMobType
@@ -309,6 +309,8 @@ struct SUnitStat
     SUnitStat(const SUnitStat& stat);
     SUnitStat(QJsonObject data);
     QJsonObject toJson() const;
+    SUnitStat operator=(const SUnitStat& unit);
+    bool operator==(const SUnitStat& unit);
     int HP;
     int MaxHP;
     int MP;

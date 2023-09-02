@@ -277,7 +277,7 @@ void ei::CFigure::calculateConstitution(QVector<SVertexData>& aVrtData, QVector3
     generateTriangles(aVrtData, aMorphVertex);
 }
 
-void ei::CFigure::getVertexData(QVector<CPart*>& model, QVector3D& complection, QVector<QString>& aBodyParts)
+void ei::CFigure::getVertexData(QVector<CPart*>& model, QVector3D& complection, QList<QString>& aBodyParts)
 {
     if (aBodyParts.isEmpty() || aBodyParts.contains(m_name)) // calc only visible body parts
     {

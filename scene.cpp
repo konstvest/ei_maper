@@ -1,5 +1,5 @@
 #include "scene.h"
-#include "layout_components/ui_connectors.h"
+#include "layout_components/connectors_ui.h"
 
 CScene* CScene::m_pScene = nullptr;
 

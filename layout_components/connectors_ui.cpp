@@ -4,7 +4,7 @@
 #include <QDebug>
 #include <QDir>
 
-#include "ui_connectors.h"
+#include "connectors_ui.h"
 #include "log.h"
 #include "view.h"
 #include "utils.h"

@@ -27,10 +27,10 @@ CONFIG += c++11
 SOURCES += \
     createobjectform.cpp \
     key_manager.cpp \
+    layout_components/connectors_ui.cpp \
     layout_components/dynamiccombobox.cpp \
     layout_components/progressview.cpp \
     layout_components/tree_view.cpp \
-    layout_components/ui_connectors.cpp \
     layout_components/tablemanager.cpp \
     property.cpp \
     main_window.cpp \
@@ -75,10 +75,10 @@ SOURCES += \
 HEADERS += \
     createobjectform.h \
     key_manager.h \
+    layout_components/connectors_ui.h \
     layout_components/dynamiccombobox.h \
     layout_components/progressview.h \
     layout_components/tree_view.h \
-    layout_components/ui_connectors.h \
     layout_components/tablemanager.h \
     main_window.h \
     objects/lever.h \

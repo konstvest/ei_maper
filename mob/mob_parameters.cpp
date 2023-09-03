@@ -11,7 +11,7 @@
 #include "view.h"
 #include "settings.h"
 #include "undo.h"
-#include "layout_components\ui_connectors.h"
+#include "layout_components\connectors_ui.h"
 
 CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     QWidget(parent)

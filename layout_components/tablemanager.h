@@ -13,6 +13,36 @@
 #include "undo.h"
 #include "property.h"
 
+class CLineEditEventFilter : public QObject
+{
+public:
+    explicit CLineEditEventFilter(QLineEdit *parent, const QString oldValue):
+        QObject(parent), m_value(oldValue)
+    {}
+
+    void updateValue(const QString value) {m_value = value;}
+    bool eventFilter(QObject* obj, QEvent* e)
+    {
+        if(e->type() == QEvent::FocusOut)
+            restoreValue();
+
+        if (e->type() == QEvent::KeyPress)
+        {
+            QKeyEvent* keyEvent = static_cast<QKeyEvent*>(e);
+            if (keyEvent->key() == Qt::Key_Escape)
+                restoreValue();
+        }
+        // standard event processing
+        return QObject::eventFilter(obj, e);
+    }
+
+private:
+    void restoreValue() {reinterpret_cast<QLineEdit*>(parent())->setText(m_value);}
+
+private:
+    QString m_value;
+};
+
 // any type of single value.
 // converting to(from) string must be overrided for each prop
 class CValueItem : public QLineEdit
@@ -22,17 +52,20 @@ public:
     CValueItem() = delete;
     //CValueItem(EObjParam param); // default 'value dif'
     CValueItem(const QSharedPointer<IPropertyBase>& prop);
+
     const EObjParam& param(){return m_pValue->type();}
     bool applyChanges(const QString& text);
     const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
-    bool onTextChange(CValueItem* pCell);
-    void displayValue();
+
+signals:
+    void onParamChange(const QSharedPointer<IPropertyBase>& pProp);
 
 public slots:
     void onTextChangeEnd();
 
 private:
     QSharedPointer<IPropertyBase> m_pValue; //stored value;
+    QSharedPointer<CLineEditEventFilter> m_filter;
 };
 
 // any type of single value choosing in initialized list.
@@ -61,7 +94,7 @@ private:
 
 
 class CDataItem : public QToolButton
-// make "edit" button for changing
+        // make "edit" button for changing
 {
     Q_OBJECT
 public:
@@ -72,9 +105,9 @@ private:
     void hello() {};
 
 private:
-// part list (QString, value[true,false,undefined])
-// unit stats (table with value\different)
-// string array (list of strings | "Selected units have different data. Input text will replace data for all selected units")
+    // part list (QString, value[true,false,undefined])
+    // unit stats (table with value\different)
+    // string array (list of strings | "Selected units have different data. Input text will replace data for all selected units")
     //QSharedPointer<IPropertyBase> m_pValue; //stored value;
 };
 
@@ -116,10 +149,10 @@ private:
     bool isValidValue(const EObjParam param, const QString& value);
 
 signals:
-    void onUpdateProperty(const QSharedPointer<IPropertyBase>);
+    void onUpdateProperty(const QSharedPointer<IPropertyBase>); //retranslate value changing from ui to view class
 
 public slots:
-    void onParamChange(const QSharedPointer<IPropertyBase> pProp); //retranslate value changing from ui to view class
+    void onParamChange(const QSharedPointer<IPropertyBase>& pProp); //get value for translating it to view class
     void onCellEdit(QTableWidgetItem*); // emulate signal-slot system  for QTableWidget
 
 private:

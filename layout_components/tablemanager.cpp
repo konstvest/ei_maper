@@ -182,7 +182,7 @@ bool CTableManager::isValidValue(const EObjParam param, const QString &value)
     return bRes;
 }
 
-void CTableManager::onParamChange(const QSharedPointer<IPropertyBase> pProp)
+void CTableManager::onParamChange(const QSharedPointer<IPropertyBase>& pProp)
 {
     emit onUpdateProperty(pProp);
 }
@@ -197,14 +197,6 @@ void CTableManager::onCellEdit(QTableWidgetItem* pItem)
     CValueItem* pValue = dynamic_cast<CValueItem*>(pItem);
     if(nullptr == pValue)
         return;
-
-    if (pValue->onTextChange(pValue))
-    {
-        blockSignals(1);
-        pValue->displayValue();
-        blockSignals(0);
-        emit onUpdateProperty(pValue->value());
-    }
 }
 
 void blockEditWidget(QTableWidgetItem* pItem)
@@ -406,6 +398,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             else
                 // todo: create value with <different>
                 pCellValue = new CValueItem(item.first);
+            QObject::connect(pCellValue, SIGNAL(onParamChange(const QSharedPointer<IPropertyBase>&)), this, SLOT(onParamChange(const QSharedPointer<IPropertyBase>&)));
             m_pTable->setCellWidget(i, 1, pCellValue);
             m_pTable->resizeColumnToContents(0);
             ++i;
@@ -463,28 +456,16 @@ bool CValueItem::applyChanges(const QString& text)
     return false;
 }
 
-bool CValueItem::onTextChange(CValueItem* pCell)
-{
-    QString text = pCell->text();
-    if(m_pValue->toString() != text)
-    {
-        m_pValue->resetFromString(text);
-        qDebug() << m_pValue->toString();
-        return true;
-        // emit signal to update value if its ok
-    }
-    //todo: validate data. return value if checks failed
-    return false;
-}
-
-void CValueItem::displayValue()
-{
-    setText(m_pValue->toString());
-}
-
 void CValueItem::onTextChangeEnd()
 {
-    qDebug() << text();
+    const QString& val = text();
+    if(m_pValue->toString() == val)
+        return;
+
+    qDebug() << val;
+    m_pValue->resetFromString(val);
+    m_filter->updateValue(val);
+    emit onParamChange(m_pValue);
 }
 
 //CDataItem::CDataItem(IPropertyBase *pProp)
@@ -532,5 +513,9 @@ CValueItem::CValueItem(const QSharedPointer<IPropertyBase>& prop):
         QRegExpValidator *validator = new QRegExpValidator(re, this);
         setValidator(validator);
     }
+    setFrame(false);
+    m_filter.reset(new CLineEditEventFilter(this, m_pValue->toString()));
+    this->installEventFilter(m_filter.get());
     QObject::connect(this, SIGNAL(editingFinished()), this, SLOT(onTextChangeEnd()));
 }
+

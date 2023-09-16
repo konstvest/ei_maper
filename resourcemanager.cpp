@@ -680,8 +680,8 @@ void CResourceStringList::initResourceString()
     m_propValueName[eObjParam_PLAYER] = map;
 
     map.clear();
-    map[0] = "false";
-    map[1] = "true";
+    map[0] = "False";
+    map[1] = "True";
     m_propValueName[eObjParam_IS_SHADOW] = map;
     m_propValueName[eObjParam_LEVER_IS_CYCLED] = map;
     m_propValueName[eObjParam_LEVER_IS_DOOR] = map;

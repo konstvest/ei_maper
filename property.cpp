@@ -12,7 +12,10 @@ IPropertyBase *CPropertyString::clone() const
         Q_ASSERT("incorrect property convertion" && false);
         return nullptr;
     }
-    return new propStr(type(), pStr->value());
+    if(m_bInit)
+        return new propStr(type(), pStr->value());
+    else
+        return new propStr(type());
 }
 
 bool CPropertyString::isEqual(const IPropertyBase* pProp)
@@ -57,7 +60,10 @@ IPropertyBase* CProperty3D::clone() const
         Q_ASSERT("incorrect property convertion" && false);
         return nullptr;
     }
-    return new prop3D(type(), pStr->value());
+    if(m_bInit)
+        return new prop3D(type(), pStr->value());
+    else
+        return new prop3D(type());
 }
 
 bool CProperty3D::isEqual(const IPropertyBase *pProp)
@@ -102,7 +108,10 @@ IPropertyBase* CPropertyStringArray::clone() const
         Q_ASSERT("incorrect property convertion" && false);
         return nullptr;
     }
-    return new propStrAr(type(), pProp->value());
+    if(m_bInit)
+        return new propStrAr(type(), pProp->value());
+    else
+        return new propStrAr(type());
 }
 
 bool CPropertyStringArray::isEqual(const IPropertyBase *pProp)
@@ -144,7 +153,10 @@ IPropertyBase* CPropertyPartArray::clone() const
         Q_ASSERT("incorrect property convertion" && false);
         return nullptr;
     }
-    return new propPart(type(), pProp->value());
+    if(m_bInit)
+        return new propPart(type(), pProp->value());
+    else
+        return new propPart(type());
 }
 
 bool CPropertyPartArray::isEqual(const IPropertyBase *pProp)
@@ -186,7 +198,10 @@ IPropertyBase* CPropertyStat::clone() const
         Q_ASSERT("incorrect property convertion" && false);
         return nullptr;
     }
-    return new propStat(type(), pProp->value());
+    if(m_bInit)
+        return new propStat(type(), pProp->value());
+    else
+        return new propStat(type());
 }
 
 bool CPropertyStat::isEqual(const IPropertyBase *pProp)

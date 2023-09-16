@@ -57,7 +57,7 @@ public:
     const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
 
 signals:
-    void onParamChange(const QSharedPointer<IPropertyBase>& pProp);
+    void onParamChange(const QSharedPointer<IPropertyBase>&);
 
 public slots:
     void onTextChangeEnd();
@@ -69,20 +69,26 @@ private:
 
 // any type of single value choosing in initialized list.
 // value will converted to(from) string
-class CComboItem: public QComboBox
+class CComboStItem: public QComboBox
 {
     Q_OBJECT
 public:
-    CComboItem() = delete;
-    CComboItem(const QSharedPointer<IPropertyBase>& prop);
+    CComboStItem() = delete;
+    CComboStItem(const QSharedPointer<IPropertyBase>& prop);
     // update value on choosing new one
     const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
+
+    void wheelEvent(QWheelEvent *e) override
+    {
+        if(hasFocus())
+            QComboBox::wheelEvent(e);
+    }
 
 public slots:
     void _onChange(QString str); //override default 'on change event'
 
 signals:
-    void onValueChange(const QSharedPointer<IPropertyBase>);
+    void onParamChange(const QSharedPointer<IPropertyBase>&);
 
 private:
     QSharedPointer<IPropertyBase> m_pValue; //stored value;

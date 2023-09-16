@@ -109,7 +109,11 @@ public:
             Q_ASSERT("incorrect property convertion" && false);
             return nullptr;
         }
-        return new CPropertyNumber<T>(type(), pNum->value());
+        if(m_bInit)
+            return new CPropertyNumber<T>(type(), pNum->value());
+        else
+            return new CPropertyNumber<T>(type());
+
     }
 
     bool isEqual(const IPropertyBase* pProp) override final

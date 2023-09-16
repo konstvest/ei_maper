@@ -251,8 +251,8 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
             //todo: collect all created items and delete them before create new (or update). reduce memory leaks
-            CComboItem* pCombo = new CComboItem(item.first);
-            QObject::connect(pCombo, SIGNAL(onValueChange(const QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(const QSharedPointer<IPropertyBase>)));
+            CComboStItem* pCombo = new CComboStItem(item.second ? item.first : item.first->createEmptyCopy());
+            QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
             break;
@@ -291,7 +291,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
-            CComboItem* pCombo = new CComboItem(item.first);
+            CComboStItem* pCombo = new CComboStItem(item.first);
             //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
@@ -321,7 +321,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
-            CComboItem* pCombo = new CComboItem(item.first);
+            CComboStItem* pCombo = new CComboStItem(item.first);
             //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
@@ -346,7 +346,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
-            CComboItem* pCombo = new CComboItem(item.first);
+            CComboStItem* pCombo = new CComboStItem(item.first);
             //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
@@ -382,7 +382,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
                 pColorButton = new CColorButtonItem(item.first);
             else
                 pColorButton = new CColorButtonItem(type);
-            QObject::connect(pColorButton, SIGNAL(onColorChange(const QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(const QSharedPointer<IPropertyBase>)));
+            QObject::connect(pColorButton, SIGNAL(onColorChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pColorButton);
             ++i;
             break;
@@ -392,13 +392,8 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
-            CValueItem* pCellValue = nullptr;
-            if(item.second == true) // the same value
-                pCellValue = new CValueItem(item.first);
-            else
-                // todo: create value with <different>
-                pCellValue = new CValueItem(item.first->createEmptyCopy());
-            QObject::connect(pCellValue, SIGNAL(onParamChange(const QSharedPointer<IPropertyBase>&)), this, SLOT(onParamChange(const QSharedPointer<IPropertyBase>&)));
+            CValueItem* pCellValue = new CValueItem(item.second ? item.first : item.first->createEmptyCopy());
+            QObject::connect(pCellValue, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCellValue);
             m_pTable->resizeColumnToContents(0);
             ++i;
@@ -477,7 +472,7 @@ void CValueItem::onTextChangeEnd()
 //    qDebug() << m_pValue->toString();
 //}
 
-CComboItem::CComboItem(const QSharedPointer<IPropertyBase>& prop)
+CComboStItem::CComboStItem(const QSharedPointer<IPropertyBase>& prop)
 {
     m_pValue.reset(prop->clone());
     if(!CResourceStringList::getInstance()->getPropList(m_valueList, prop->type()))
@@ -485,20 +480,29 @@ CComboItem::CComboItem(const QSharedPointer<IPropertyBase>& prop)
         return;
     }
 
+    setFocusPolicy(Qt::FocusPolicy::StrongFocus);
+    //lineEdit()->setPlaceholderText("Select item");
     addItems(m_valueList.values());
-    setCurrentText(m_valueList[m_pValue->toString().toUInt()]);
+    if(m_pValue->isInit())
+        setCurrentText(m_valueList[m_pValue->toString().toUInt()]);
+    else
+    {
+        insertItem(0, "undefined/different");
+        setCurrentIndex(0);
+    }
     QObject::connect(this, SIGNAL(currentIndexChanged(QString)), this, SLOT(_onChange(QString))); //reconnect default currentIndexChanged to override
 }
 
-void CComboItem::_onChange(QString str)
+void CComboStItem::_onChange(QString str)
 {
     QSharedPointer<IPropertyBase> valueNew(m_pValue->clone());
-    valueNew->resetFromString(str);
+    QString sourceValue = QString::number(m_valueList.key(str));
+    valueNew->resetFromString(sourceValue);
     if(valueNew->isEqual(m_pValue.get()))
         return;
 
-    m_pValue->resetFromString(str);
-    emit onValueChange(m_pValue);
+    m_pValue->resetFromString(sourceValue);
+    emit onParamChange(m_pValue);
 }
 
 

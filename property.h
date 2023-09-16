@@ -18,29 +18,34 @@ public:
     //virtual bool isEqual(const QString value) = 0;
     virtual QString toString() = 0;
     virtual void resetFromString(const QString& value) = 0;
+    virtual QSharedPointer<IPropertyBase> createEmptyCopy() = 0;
 
     const EObjParam& type() const {return m_type;}
+    const bool& isInit() const {return m_bInit;}
 
 protected:
-    IPropertyBase(EObjParam type): m_type(type) {};
+    IPropertyBase(EObjParam type, bool bInit=false): m_type(type), m_bInit(bInit) {};
 
 protected:
     EObjParam m_type;
+    bool m_bInit;
 };
 
 class CPropertyString: public IPropertyBase
 {
 public:
     CPropertyString() = delete;
+    CPropertyString(EObjParam type): IPropertyBase(type) {}
     IPropertyBase* clone() const override;
-    CPropertyString(EObjParam type, const char* value): IPropertyBase(type), m_value(value) {}
-    CPropertyString(EObjParam type, const QString& value): IPropertyBase(type), m_value(value) {}
+    CPropertyString(EObjParam type, const char* value): IPropertyBase(type, true), m_value(value) {}
+    CPropertyString(EObjParam type, const QString& value): IPropertyBase(type, true), m_value(value) {}
     ~CPropertyString() {}
     bool isEqual(const IPropertyBase* pProp) override final;
     bool isEqual(const QString str) override final;
     //bool isEqual(const QString value) override final;
     QString toString() override final;
     void resetFromString(const QString& value) override final;
+    QSharedPointer<IPropertyBase> createEmptyCopy() override final;
 
     const QString& value() const {return m_value;}
     void setValue(const QString& val) {m_value = val;}
@@ -53,13 +58,15 @@ class CPropertyStringArray: public IPropertyBase
 {
 public:
     CPropertyStringArray() = delete;
-    CPropertyStringArray(EObjParam type, const QStringList& list): IPropertyBase(type), m_value(list) {}
+    CPropertyStringArray(EObjParam type): IPropertyBase(type) {}
+    CPropertyStringArray(EObjParam type, const QStringList& list): IPropertyBase(type, true), m_value(list) {}
     ~CPropertyStringArray() {}
     IPropertyBase* clone() const override;
     bool isEqual(const IPropertyBase* pProp) override final;
     bool isEqual(const QString str) override final;
     QString toString() override final;
     void resetFromString(const QString& value) override final;
+    QSharedPointer<IPropertyBase> createEmptyCopy() override final;
 
     const QStringList& value() const {return m_value;}
 private:
@@ -70,13 +77,15 @@ class CPropertyPartArray: public IPropertyBase
 {
 public:
     CPropertyPartArray() = delete;
-    CPropertyPartArray(EObjParam type, const QMap<QString, char>& list): IPropertyBase(type), m_value(list) {}
+    CPropertyPartArray(EObjParam type): IPropertyBase(type) {}
+    CPropertyPartArray(EObjParam type, const QMap<QString, char>& list): IPropertyBase(type, true), m_value(list) {}
     ~CPropertyPartArray() {}
     IPropertyBase* clone() const override;
     bool isEqual(const IPropertyBase* pProp) override final;
     bool isEqual(const QString str) override final;
     QString toString() override final;
     void resetFromString(const QString& value) override final;
+    QSharedPointer<IPropertyBase> createEmptyCopy() override final;
 
     const QMap<QString, char>& value() const {return m_value;}
 private:
@@ -87,7 +96,8 @@ template<class T> class CPropertyNumber final: public IPropertyBase
 {
 public:
     CPropertyNumber() = delete;
-    CPropertyNumber(EObjParam type, const T value): IPropertyBase(type), m_value(value) {}
+    CPropertyNumber(EObjParam type): IPropertyBase(type) {}
+    CPropertyNumber(EObjParam type, const T value): IPropertyBase(type, true), m_value(value) {}
 
     ~CPropertyNumber() override final {};
 
@@ -123,6 +133,12 @@ public:
     void resetFromString(const QString& value) override final
     {
         m_value = QVariant(value).value<T>();
+        m_bInit = true;
+    }
+
+    QSharedPointer<IPropertyBase> createEmptyCopy() override final
+    {
+        return QSharedPointer<IPropertyBase>(new CPropertyNumber<T>(m_type));
     }
 
     const T& value() const {return m_value;}
@@ -134,8 +150,9 @@ class CProperty3D: public IPropertyBase
 {
 public:
     CProperty3D() = delete;
-    CProperty3D(EObjParam type, const QVector3D& val): IPropertyBase(type), m_value(val) {}
-    CProperty3D(EObjParam type, const float x, const float y, const float z): IPropertyBase(type), m_value(x, y, z) {}
+    CProperty3D(EObjParam type): IPropertyBase(type) {}
+    CProperty3D(EObjParam type, const QVector3D& val): IPropertyBase(type, true), m_value(val) {}
+    CProperty3D(EObjParam type, const float x, const float y, const float z): IPropertyBase(type, true), m_value(x, y, z) {}
     ~CProperty3D() override;
 
     IPropertyBase* clone() const override;
@@ -143,6 +160,7 @@ public:
     bool isEqual(const QString str) override final;
     QString toString() override final;
     void resetFromString(const QString& value) override final;
+    QSharedPointer<IPropertyBase> createEmptyCopy() override final;
 
     const QVector3D& value() const {return m_value;}
     void setValue(const float x, const float y, const float z) {m_value = QVector3D(x, y, z);}
@@ -154,13 +172,15 @@ class CPropertyStat: public IPropertyBase
 {
 public:
     CPropertyStat() = delete;
-    CPropertyStat(EObjParam type, const SUnitStat& val): IPropertyBase(type), m_value(val) {}
+    CPropertyStat(EObjParam type): IPropertyBase(type) {}
+    CPropertyStat(EObjParam type, const SUnitStat& val): IPropertyBase(type, true), m_value(val) {}
     ~CPropertyStat() {}
     IPropertyBase* clone() const override;
     bool isEqual(const IPropertyBase* pProp) override final;
     bool isEqual(const QString str) override final;
     QString toString() override final;
     void resetFromString(const QString& value) override final;
+    QSharedPointer<IPropertyBase> createEmptyCopy() override final;
 
     const SUnitStat& value() const {return m_value;}
 private:

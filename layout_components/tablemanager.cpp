@@ -397,7 +397,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
                 pCellValue = new CValueItem(item.first);
             else
                 // todo: create value with <different>
-                pCellValue = new CValueItem(item.first);
+                pCellValue = new CValueItem(item.first->createEmptyCopy());
             QObject::connect(pCellValue, SIGNAL(onParamChange(const QSharedPointer<IPropertyBase>&)), this, SLOT(onParamChange(const QSharedPointer<IPropertyBase>&)));
             m_pTable->setCellWidget(i, 1, pCellValue);
             m_pTable->resizeColumnToContents(0);
@@ -462,7 +462,6 @@ void CValueItem::onTextChangeEnd()
     if(m_pValue->toString() == val)
         return;
 
-    qDebug() << val;
     m_pValue->resetFromString(val);
     m_filter->updateValue(val);
     emit onParamChange(m_pValue);
@@ -502,8 +501,8 @@ void CComboItem::_onChange(QString str)
     emit onValueChange(m_pValue);
 }
 
-CValueItem::CValueItem(const QSharedPointer<IPropertyBase>& prop):
-    QLineEdit(prop->toString())
+
+CValueItem::CValueItem(const QSharedPointer<IPropertyBase>& prop)
 {
     m_pValue.reset(prop->clone());
     if(false)
@@ -513,8 +512,14 @@ CValueItem::CValueItem(const QSharedPointer<IPropertyBase>& prop):
         QRegExpValidator *validator = new QRegExpValidator(re, this);
         setValidator(validator);
     }
-    setFrame(false);
-    m_filter.reset(new CLineEditEventFilter(this, m_pValue->toString()));
+    setPlaceholderText("undefined/different");
+    //setFrame(false); //with frames look nicer
+
+    if(m_pValue->isInit())
+    {
+        setText(m_pValue->toString());
+    }
+    m_filter.reset(new CLineEditEventFilter(this, text())); // create text backuper with old text
     this->installEventFilter(m_filter.get());
     QObject::connect(this, SIGNAL(editingFinished()), this, SLOT(onTextChangeEnd()));
 }

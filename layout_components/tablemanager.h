@@ -50,7 +50,6 @@ class CValueItem : public QLineEdit
     Q_OBJECT
 public:
     CValueItem() = delete;
-    //CValueItem(EObjParam param); // default 'value dif'
     CValueItem(const QSharedPointer<IPropertyBase>& prop);
 
     const EObjParam& param(){return m_pValue->type();}

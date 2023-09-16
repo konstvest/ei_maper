@@ -36,6 +36,12 @@ QString CPropertyString::toString()
 void CPropertyString::resetFromString(const QString &value)
 {
     m_value = value;
+    m_bInit = true;
+}
+
+QSharedPointer<IPropertyBase> CPropertyString::createEmptyCopy()
+{
+    return QSharedPointer<IPropertyBase>(new CPropertyString(m_type));
 }
 
 CProperty3D::~CProperty3D()
@@ -80,6 +86,12 @@ QString CProperty3D::toString()
 void CProperty3D::resetFromString(const QString &value)
 {
     m_value = util::vec3FromString(value);
+    m_bInit = true;
+}
+
+QSharedPointer<IPropertyBase> CProperty3D::createEmptyCopy()
+{
+    return QSharedPointer<IPropertyBase>(new CProperty3D(m_type));
 }
 
 IPropertyBase* CPropertyStringArray::clone() const
@@ -116,6 +128,12 @@ QString CPropertyStringArray::toString()
 void CPropertyStringArray::resetFromString(const QString &value)
 {
     m_value = util::strArrFromString(value);
+    m_bInit = true;
+}
+
+QSharedPointer<IPropertyBase> CPropertyStringArray::createEmptyCopy()
+{
+    return QSharedPointer<IPropertyBase>(new CPropertyStringArray(m_type));
 }
 
 IPropertyBase* CPropertyPartArray::clone() const
@@ -155,6 +173,11 @@ void CPropertyPartArray::resetFromString(const QString &value)
     Q_ASSERT(false && "todo: implement");
 }
 
+QSharedPointer<IPropertyBase> CPropertyPartArray::createEmptyCopy()
+{
+    return QSharedPointer<IPropertyBase>(new CPropertyPartArray(m_type));
+}
+
 IPropertyBase* CPropertyStat::clone() const
 {
     const propStat* pProp = dynamic_cast<const propStat*>(this);
@@ -191,4 +214,10 @@ void CPropertyStat::resetFromString(const QString &value)
 {
     QJsonDocument doc = QJsonDocument::fromJson(value.toUtf8());
     m_value = SUnitStat(doc.object());
+    m_bInit = true;
+}
+
+QSharedPointer<IPropertyBase> CPropertyStat::createEmptyCopy()
+{
+    return QSharedPointer<IPropertyBase>(new CPropertyStat(m_type));
 }

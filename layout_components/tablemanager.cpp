@@ -236,8 +236,6 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
         case eObjParam_LEVER_RECALC_GRAPH:
         case eObjParam_SOUND_AMBIENT:
         case eObjParam_SOUND_IS_MUSIC:
-        case eObjParam_PRIM_TXTR:
-        case eObjParam_TEMPLATE:
         case eObjParam_LIGHT_SHADOW:
         case eObjParam_TYPE:
         case eObjParam_PARTICL_TYPE:
@@ -252,6 +250,18 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             blockEditWidget(m_pTable->item(i, 0));
             //todo: collect all created items and delete them before create new (or update). reduce memory leaks
             CComboStItem* pCombo = new CComboStItem(item.second ? item.first : item.first->createEmptyCopy());
+            QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
+            m_pTable->setCellWidget(i, 1, pCombo);
+            ++i;
+            break;
+        }
+        case eObjParam_PRIM_TXTR:
+        case eObjParam_TEMPLATE:
+        {
+            m_pTable->insertRow(i);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
+            blockEditWidget(m_pTable->item(i, 0));
+            CComboDynItem* pCombo = new CComboDynItem(item.second ? item.first : item.first->createEmptyCopy());
             QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
@@ -474,6 +484,7 @@ void CValueItem::onTextChangeEnd()
 
 CComboStItem::CComboStItem(const QSharedPointer<IPropertyBase>& prop)
 {
+    m_pListModel.reset(new QStringListModel());
     m_pValue.reset(prop->clone());
     if(!CResourceStringList::getInstance()->getPropList(m_valueList, prop->type()))
     {// case for property that has self-named value (without int-string convertion
@@ -482,7 +493,9 @@ CComboStItem::CComboStItem(const QSharedPointer<IPropertyBase>& prop)
 
     setFocusPolicy(Qt::FocusPolicy::StrongFocus);
     //lineEdit()->setPlaceholderText("Select item");
-    addItems(m_valueList.values());
+    //addItems(m_valueList.values());
+    m_pListModel->setStringList(m_valueList.values());
+    setModel(m_pListModel.get());
     if(m_pValue->isInit())
         setCurrentText(m_valueList[m_pValue->toString().toUInt()]);
     else
@@ -528,3 +541,45 @@ CValueItem::CValueItem(const QSharedPointer<IPropertyBase>& prop)
     QObject::connect(this, SIGNAL(editingFinished()), this, SLOT(onTextChangeEnd()));
 }
 
+
+CComboDynItem::CComboDynItem(const QSharedPointer<IPropertyBase> &prop)
+{
+    setFocusPolicy(Qt::FocusPolicy::TabFocus);
+    setStyleSheet("combobox-popup: 0;");
+    setMaxVisibleItems(20);
+    view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    m_pListModel.reset(new QStringListModel());
+    m_pValue.reset(prop->clone());
+    if(prop->type() == eObjParam_PRIM_TXTR)
+    {
+        m_pListModel->setStringList(CTextureList::getInstance()->textureList());
+    }
+    else if(prop->type() == eObjParam_TEMPLATE)
+    {
+        m_pListModel->setStringList(CObjectList::getInstance()->figureList());
+    }
+    else
+    {
+        Q_ASSERT(false && "not defined");
+        return;
+    }
+
+    setModel(m_pListModel.get());
+    if(m_pValue->isInit())
+        setCurrentText(m_pValue->toString());
+    else
+    {
+        insertItem(0, "undefined/different");
+        setCurrentIndex(0);
+    }
+    QObject::connect(this, SIGNAL(currentIndexChanged(QString)), this, SLOT(_onChange(QString))); //reconnect default currentIndexChanged to override
+}
+
+void CComboDynItem::_onChange(QString str)
+{
+    if(m_pValue->isEqual(str))
+        return;
+
+    m_pValue->resetFromString(str);
+    emit onParamChange(m_pValue);
+}

@@ -8,6 +8,7 @@
 #include <QToolButton>
 #include <QSharedPointer>
 #include <QLineEdit>
+#include <QStringListModel>
 
 #include "types.h"
 #include "undo.h"
@@ -93,9 +94,35 @@ signals:
 private:
     QSharedPointer<IPropertyBase> m_pValue; //stored value;
     QMap<uint, QString> m_valueList;
+    QSharedPointer<QStringListModel> m_pListModel;
 };
 
-// todo: dynamic combo box (show item on choose)
+class CComboDynItem: public QComboBox
+{
+    Q_OBJECT
+public:
+    CComboDynItem() = delete;
+    CComboDynItem(const QSharedPointer<IPropertyBase>& prop);
+    // update value on choosing new one
+    const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
+
+    void wheelEvent(QWheelEvent *e) override
+    {
+        if(hasFocus())
+            QComboBox::wheelEvent(e);
+    }
+
+public slots:
+    void _onChange(QString str); //override default 'on change event'
+
+signals:
+    void onParamChange(const QSharedPointer<IPropertyBase>&);
+
+private:
+    QSharedPointer<IPropertyBase> m_pValue; //stored value;
+    QStringList m_valueList;
+    QSharedPointer<QStringListModel> m_pListModel;
+};
 
 
 class CDataItem : public QToolButton

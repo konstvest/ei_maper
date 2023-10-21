@@ -921,8 +921,7 @@ void CView::updateParameter(EObjParam propType)
         }
         valueToUpdate.reset(value->clone()); //same values will be copied every time
     }
-
-    //todo
+    //todo: pipe to direct update value ot x,y,z, in cell
     //m_tableManager->updateParam(param, valueToUpdate);
 }
 
@@ -959,7 +958,7 @@ void CView::viewParameters()
         ttt &= type;
     const ENodeType commonType = ENodeType(ttt);
 
-    QMap<QSharedPointer<IPropertyBase>, bool> aProp;
+    QList<QSharedPointer<IPropertyBase>> aProp;
     foreach(pNode, CScene::getInstance()->getMode() == eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
     {
         if (pNode->nodeState() != ENodeState::eSelect)
@@ -1314,7 +1313,7 @@ void CView::operationApply(EOperationAxisType operationType)
                 {
                 case eUnit:
                 {
-                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.second));
+                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.first->position()));
                     CChangeProp* pOp = new CChangeProp(this, pair.first->mapId(), pos);
                     QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                     pair.first->updatePos(m_operationBackup[pair.first]);
@@ -1328,7 +1327,7 @@ void CView::operationApply(EOperationAxisType operationType)
                     int patrolId(0);
                     m_activeMob->getPatrolHash(unitId, patrolId, pPoint);
                     QString hash = QString("%1.%2").arg(unitId).arg(patrolId);
-                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.second));
+                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.first->position()));
                     CChangeLogicParam* pOp = new CChangeLogicParam(this, hash, pos);
                     QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                     pair.first->updatePos(m_operationBackup[pair.first]); //revert position to start (it will apply in 'push' operation
@@ -1343,7 +1342,7 @@ void CView::operationApply(EOperationAxisType operationType)
                     int viewId(0);
                     m_activeMob->getViewHash(unitId, patrolId, viewId, pPoint);
                     QString hash = QString("%1.%2.%3").arg(unitId).arg(patrolId).arg(viewId);
-                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.second));
+                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.first->position()));
                     CChangeLogicParam* pOp = new CChangeLogicParam(this, hash, pos);
                     QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                     pair.first->updatePos(m_operationBackup[pair.first]); //revert position to start (it will apply in 'push' operation
@@ -1359,7 +1358,7 @@ void CView::operationApply(EOperationAxisType operationType)
                     int zoneId(0);
                     m_activeMob->getTrapZoneHash(unitId, zoneId, pZone);
                     QString hash = QString("%1.%2.%3.%4").arg(unitId).arg(patrolId).arg(viewId).arg(zoneId);
-                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.second));
+                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.first->position()));
                     CChangeLogicParam* pOp = new CChangeLogicParam(this, hash, pos);
                     QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                     pair.first->updatePos(m_operationBackup[pair.first]); //revert position to start (it will apply in 'push' operation
@@ -1376,7 +1375,7 @@ void CView::operationApply(EOperationAxisType operationType)
                     int castPointId(0);
                     m_activeMob->getTrapCastHash(unitId, castPointId, pCast);
                     QString hash = QString("%1.%2.%3.%4.%5").arg(unitId).arg(patrolId).arg(viewId).arg(zoneId).arg(castPointId);
-                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.second));
+                    QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.first->position()));
                     CChangeLogicParam* pOp = new CChangeLogicParam(this, hash, pos);
                     QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                     pair.first->updatePos(m_operationBackup[pair.first]); //revert position to start (it will apply in 'push' operation
@@ -1391,7 +1390,7 @@ void CView::operationApply(EOperationAxisType operationType)
             }
             else
             {
-                QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.second));
+                QSharedPointer<IPropertyBase> pos (new prop3D(eObjParam_POSITION, pair.first->position()));
                 CChangeProp* pOp = new CChangeProp(this, pair.first->mapId(), pos);
                 QObject::connect(pOp, SIGNAL(updateParam()), this, SLOT(viewParameters()));
                 pair.first->updatePos(m_operationBackup[pair.first]);

@@ -157,7 +157,10 @@ enum EObjParam
     ,eObjParam_UNIT_QUEST_ITEMS
 
     ,eObjParam_COMPLECTION
-    ,eObjParam_POSITION
+    ,eObjParam_POSITION //dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
+    ,eObjParam_POSITION_X
+    ,eObjParam_POSITION_Y
+    ,eObjParam_POSITION_Z
     ,eObjParam_ROTATION
 
     ,eObjParam_COMMENTS
@@ -310,7 +313,7 @@ struct SUnitStat
     SUnitStat(QJsonObject data);
     QJsonObject toJson() const;
     SUnitStat operator=(const SUnitStat& unit);
-    bool operator==(const SUnitStat& unit);
+    bool operator==(const SUnitStat& unit) const;
     int HP;
     int MaxHP;
     int MP;

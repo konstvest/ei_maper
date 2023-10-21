@@ -45,11 +45,11 @@ QColor stringToColor(const QString& string);
 QString colorToString(const QColor& color);
 
 void addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str);
-bool addParam(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, IPropertyBase* pProp);
+void addParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp);
 QVector3D getMinValue(const QVector3D& vec1, const QVector3D& vec2);
 QVector3D getMaxValue(const QVector3D& vec1, const QVector3D& vec2);
-void removeProp(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, EObjParam type);
-IPropertyBase* prop(const QMap<QSharedPointer<IPropertyBase>, bool>& aProp, EObjParam type);
+void removeProp(QList<QSharedPointer<IPropertyBase>>& aProp, EObjParam type);
+const QSharedPointer<IPropertyBase>& constProp(const QList<QSharedPointer<IPropertyBase>>& aProp, EObjParam type);
 
 enum EType
 {

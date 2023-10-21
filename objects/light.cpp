@@ -131,7 +131,7 @@ uint CLight::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CLight::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CLight::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     CObjectBase::collectParams(aProp, paramType);
     auto comm = paramType & eLight;

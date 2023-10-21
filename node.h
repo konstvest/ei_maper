@@ -38,8 +38,8 @@ public:
     virtual void loadTexture() = 0;
     virtual void serializeJson(QJsonObject& obj) = 0;
     virtual uint serialize(util::CMobParser& parser) = 0;
-    virtual void collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) = 0;
-    virtual void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) = 0;
+    virtual void collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) = 0;
+    virtual void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) = 0;
     virtual void getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) = 0;
     virtual void applyParam(const QSharedPointer<IPropertyBase>& prop) = 0;
     virtual void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) = 0;

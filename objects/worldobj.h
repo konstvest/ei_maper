@@ -16,7 +16,7 @@ public:
     void loadTexture() override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
-    void collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
     void getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
     void applyParam(const QSharedPointer<IPropertyBase>& prop) override;
     const char& dipGroup(){return m_player;}

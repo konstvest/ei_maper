@@ -285,7 +285,7 @@ SUnitStat SUnitStat::operator=(const SUnitStat& unit)
     return *this;
 }
 
-bool SUnitStat::operator==(const SUnitStat& unit)
+bool SUnitStat::operator==(const SUnitStat& unit) const
 {
     return (HP == unit.HP)
     && (MaxHP == unit.MaxHP)

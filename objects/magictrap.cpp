@@ -286,7 +286,7 @@ uint CMagicTrap::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CMagicTrap::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CMagicTrap::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     auto comm = paramType & eMagicTrap;
     if (comm != eMagicTrap)
@@ -363,7 +363,7 @@ void CMagicTrap::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam pr
 
 }
 
-void CMagicTrap::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CMagicTrap::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     CWorldObj::collectParams(aProp, paramType);
 
@@ -626,14 +626,18 @@ CActivationZone::~CActivationZone()
     m_indexBuf.destroy();
 }
 
-void CActivationZone::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CActivationZone::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     auto comm = paramType & eTrapActZone;
     if (comm != eTrapActZone)
         return;
 
-    prop3D pos(eObjParam_POSITION, m_position);
-    util::addParam(aProp, &pos);
+    propFloat posX(eObjParam_POSITION_X, m_position.x());
+    util::addParam(aProp, &posX);
+    propFloat posY(eObjParam_POSITION_Y, m_position.y());
+    util::addParam(aProp, &posY);
+    propFloat posZ(eObjParam_POSITION_Z, m_position.z());
+    util::addParam(aProp, &posZ);
     propFloat rad(eObjParam_TRAP_AREA_RADIUS, m_radius);
     util::addParam(aProp, &rad);;
 }
@@ -644,6 +648,21 @@ void CActivationZone::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjPar
     case eObjParam_POSITION:
     {
         prop.reset(new prop3D(propType, m_position));
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        prop.reset(new propFloat(propType, m_position.x()));
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        prop.reset(new propFloat(propType, m_position.y()));
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        prop.reset(new propFloat(propType, m_position.z()));
         break;
     }
     case eObjParam_TRAP_AREA_RADIUS:
@@ -666,6 +685,33 @@ void CActivationZone::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
     case eObjParam_POSITION:
     {
         QVector3D pos = dynamic_cast<const prop3D*>(prop.get())->value();
+        updatePos(pos);
+        emit changeActZone();
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setX(val);
+        updatePos(pos);
+        emit changeActZone();
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setY(val);
+        updatePos(pos);
+        emit changeActZone();
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setZ(val);
         updatePos(pos);
         emit changeActZone();
         break;
@@ -841,14 +887,18 @@ CTrapCastPoint::~CTrapCastPoint()
 {
 }
 
-void CTrapCastPoint::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CTrapCastPoint::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     auto comm = paramType & eTrapCastPoint;
     if (comm != eTrapCastPoint)
         return;
 
-    prop3D pos(eObjParam_POSITION, m_position);
-    util::addParam(aProp, &pos);
+    propFloat posX(eObjParam_POSITION_X, m_position.x());
+    util::addParam(aProp, &posX);
+    propFloat posY(eObjParam_POSITION_Y, m_position.y());
+    util::addParam(aProp, &posY);
+    propFloat posZ(eObjParam_POSITION_Z, m_position.z());
+    util::addParam(aProp, &posZ);
 }
 
 void CTrapCastPoint::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
@@ -857,6 +907,33 @@ void CTrapCastPoint::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
     case eObjParam_POSITION:
     {
         QVector3D pos = dynamic_cast<const prop3D*>(prop.get())->value();
+        updatePos(pos);
+        emit changeCastPoint();
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setX(val);
+        updatePos(pos);
+        emit changeCastPoint();
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setY(val);
+        updatePos(pos);
+        emit changeCastPoint();
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setZ(val);
         updatePos(pos);
         emit changeCastPoint();
         break;
@@ -872,6 +949,21 @@ void CTrapCastPoint::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjPara
     case eObjParam_POSITION:
     {
         prop.reset(new prop3D(propType, m_position));
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        prop.reset(new propFloat(propType, m_position.x()));
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        prop.reset(new propFloat(propType, m_position.y()));
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        prop.reset(new propFloat(propType, m_position.z()));
         break;
     }
     default:

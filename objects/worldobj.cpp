@@ -316,7 +316,7 @@ uint CWorldObj::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CWorldObj::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CWorldObj::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     CObjectBase::collectParams(aProp, paramType); //don't want to change type from parameters. should use delete and add new object with type
     auto comm = paramType & eWorldObject;
@@ -343,11 +343,7 @@ void CWorldObj::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, 
     propStr name(eObjParam_NAME, m_name);
     util::addParam(aProp, &name);
     propStr model(eObjParam_TEMPLATE, m_modelName);
-    bool bModel = util::addParam(aProp, &model);
-    if(bModel)
-    {
-        // place bodyparts eObjParam_BODYPARTS m_bodyParts
-    }
+    util::addParam(aProp, &model); //TODO: process this prop as true model with parts of assembly
     propStr parentTemplate(eObjParam_PARENT_TEMPLATE, m_parentTemplate);
     util::addParam(aProp, &parentTemplate);
     propStr primTexture(eObjParam_PRIM_TXTR, m_primaryTexture);

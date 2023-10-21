@@ -1,6 +1,9 @@
 #include <QHeaderView>
 #include <QToolButton>
 #include <QColorDialog>
+#include <QVBoxLayout>
+#include <QFormLayout>
+#include <QLabel>
 
 #include "tablemanager.h"
 #include "resourcemanager.h"
@@ -139,7 +142,7 @@ bool CTableManager::isValidValue(const EObjParam param, const QString &value)
     case eObjParam_TORCH_PTLINK:
     case eObjParam_LIGHT_COLOR: //todo: use custom palette choose
     case eObjParam_COMPLECTION:
-    case eObjParam_POSITION:
+    //case eObjParam_POSITION:
     case eObjParam_ROTATION:
     {// vector3d. checked value: (111.66,94.46,-0.25) ( 0.21, 0.13, 1.20)
         QRegExp rx("\\((\\s*-?\\d+(\\.\\d+)?\\,){2}(\\s*-?\\d+(\\.\\d+)?)\\)");
@@ -210,7 +213,7 @@ bool variantLessThan(const std::pair<QSharedPointer<IPropertyBase>, bool> &v1, c
     return v1.first->type() < v2.first->type();
 }
 
-void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& aProp)
+void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp)
 {
     reset();
     int i(0); // row number
@@ -219,9 +222,9 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
 
     for(int iParam(0); iParam < EObjParam::eObjParamCount; ++iParam)
 
-    for (const auto& item : aProp.toStdMap())
+    for (const auto& item : aProp)
     {
-        type = item.first->type();
+        type = item->type();
         if(type != iParam)
             continue; // fcking sort of properties
 
@@ -249,7 +252,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
             //todo: collect all created items and delete them before create new (or update). reduce memory leaks
-            CComboStItem* pCombo = new CComboStItem(item.second ? item.first : item.first->createEmptyCopy());
+            CComboStItem* pCombo = new CComboStItem(item);
             QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
@@ -261,7 +264,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
-            CComboDynItem* pCombo = new CComboDynItem(item.second ? item.first : item.first->createEmptyCopy());
+            CComboDynItem* pCombo = new CComboDynItem(item);
             QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
@@ -301,20 +304,20 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
-            CComboStItem* pCombo = new CComboStItem(item.first);
+            CComboStItem* pCombo = new CComboStItem(item);
             //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
 
             //EBehaviourType type = dynamic_cast<propBehaviour*>(item.first)->value();
-            EBehaviourType type = EBehaviourType(dynamic_cast<propUint*>(item.first.get())->value());
+            EBehaviourType type = EBehaviourType(dynamic_cast<propUint*>(item.get())->value());
             if(type == EBehaviourType::eRadius)
             {
                 m_pTable->insertRow(i);
                 m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_GUARD_RADIUS]));
                 blockEditWidget(m_pTable->item(i, 0));
                 //m_pTable->setItem(i, 1, new CValueItem(aProp.key(eObjParam_GUARD_RADIUS))); // get radius value
-                auto* pCellValue = new CValueItem(aProp.key(eObjParam_GUARD_RADIUS));
+                auto* pCellValue = new CValueItem(util::constProp(aProp, eObjParam_GUARD_RADIUS));
                 m_pTable->setCellWidget(i, 1, pCellValue);
                 m_pTable->resizeColumnToContents(0);
                 ++i;
@@ -331,14 +334,10 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
-            CComboStItem* pCombo = new CComboStItem(item.first);
+            CComboStItem* pCombo = new CComboStItem(item);
             //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
-            if (item.second == true)
-            {
-                //todo: show lever parameters
-            }
             break; //eObjParam_LEVER_SCIENCE_STATS_Type_Open
         }
         case eObjParam_UNIT_STATS:
@@ -356,7 +355,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
-            CComboStItem* pCombo = new CComboStItem(item.first);
+            CComboStItem* pCombo = new CComboStItem(item);
             //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
@@ -388,12 +387,26 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
             CColorButtonItem* pColorButton = nullptr;
-            if(item.second)
-                pColorButton = new CColorButtonItem(item.first);
-            else
-                pColorButton = new CColorButtonItem(type);
+            pColorButton = new CColorButtonItem(item);
             QObject::connect(pColorButton, SIGNAL(onColorChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pColorButton);
+            ++i;
+            break;
+        }
+        case eObjParam_POSITION_Y:
+        case eObjParam_POSITION_Z:
+        case eObjParam_POSITION:
+        {//will be processed below
+            break;
+        }
+        case eObjParam_POSITION_X:
+        {
+            m_pTable->insertRow(i);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_POSITION]));
+            blockEditWidget(m_pTable->item(i, 0));
+            auto* pItem = new C3DItem(util::constProp(aProp, eObjParam_POSITION_X), util::constProp(aProp, eObjParam_POSITION_Y), util::constProp(aProp, eObjParam_POSITION_Z));
+            m_pTable->setCellWidget(i,1, pItem);
+            m_pTable->setRowHeight(i, pItem->height()*2.75);
             ++i;
             break;
         }
@@ -402,7 +415,7 @@ void CTableManager::setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& 
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
-            CValueItem* pCellValue = new CValueItem(item.second ? item.first : item.first->createEmptyCopy());
+            CValueItem* pCellValue = new CValueItem(item);
             QObject::connect(pCellValue, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCellValue);
             m_pTable->resizeColumnToContents(0);
@@ -425,15 +438,14 @@ void CColorButtonItem::applyColor()
     }
 }
 
-CColorButtonItem::CColorButtonItem(const EObjParam param):
-    m_pValue(new prop3D(param, 0.0f, 0.0f, 0.0f))
-{
-    QObject::connect(this, SIGNAL(clicked()), this, SLOT(applyColor()));
-}
-
 CColorButtonItem::CColorButtonItem(const QSharedPointer<IPropertyBase>& prop)
 {
-    m_pValue.reset(prop->clone());
+    if(prop->isInit())
+        m_pValue.reset(prop->clone());
+    else
+    {
+        m_pValue.reset(new prop3D(prop->type(), 0.0f, 0.0f, 0.0f)); //todo: display value dif
+    }
     const auto& clr = dynamic_cast<prop3D*>(m_pValue.get())->value();
     QColor color(clr.x(), clr.y(), clr.z());
     updateColor(color);
@@ -582,4 +594,29 @@ void CComboDynItem::_onChange(QString str)
 
     m_pValue->resetFromString(str);
     emit onParamChange(m_pValue);
+}
+
+C3DItem::C3DItem(const QSharedPointer<IPropertyBase>& propX,const QSharedPointer<IPropertyBase>& propY, const QSharedPointer<IPropertyBase>& propZ)
+{
+    auto* pLayout = new QFormLayout();
+    pLayout->setMargin(0);
+    const auto setProp = [&pLayout](QString rowName, const QSharedPointer<IPropertyBase>& prop)
+    {
+        auto* pValue = dynamic_cast<propFloat*>(prop.get());
+        if(not pValue)
+        {
+            Q_ASSERT("NOT implemented" && false);
+            return;
+        }
+        auto pLine = new QLineEdit();
+        pLine->setPlaceholderText("undefined/different");
+        if(pValue->isInit())
+            pLine->setText(QString::number(pValue->value()));
+        pLayout->addRow(rowName, pLine);
+    };
+
+    setProp("X:", propX);
+    setProp("Y:", propY);
+    setProp("Z:", propZ);
+    setLayout(pLayout);
 }

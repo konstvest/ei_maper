@@ -307,18 +307,23 @@ void CObjectBase::setRot(const QQuaternion& quat)
     recalcMinPos();
 }
 
-void CObjectBase::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CObjectBase::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     Q_UNUSED(paramType);
     propUint mapId(eObjParam_NID, m_mapID);
     util::addParam(aProp, &mapId);
     propStr comment(eObjParam_COMMENTS, m_comment);
     util::addParam(aProp, &comment);
-    prop3D pos(eObjParam_POSITION, m_position);
-    util::addParam(aProp, &pos);
+    //prop3D pos(eObjParam_POSITION, m_position);
+    propFloat posX(eObjParam_POSITION_X, m_position.x());
+    util::addParam(aProp, &posX);
+    propFloat posY(eObjParam_POSITION_Y, m_position.y());
+    util::addParam(aProp, &posY);
+    propFloat posZ(eObjParam_POSITION_Z, m_position.z());
+    util::addParam(aProp, &posZ);
 }
 
-void CObjectBase::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CObjectBase::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     Q_UNUSED(aProp);
     Q_UNUSED(paramType);
@@ -341,6 +346,21 @@ void CObjectBase::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propTy
     case eObjParam_POSITION:
     {
         prop.reset(new prop3D(propType, m_position));
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        prop.reset(new propFloat(propType, m_position.x()));
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        prop.reset(new propFloat(propType, m_position.y()));
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        prop.reset(new propFloat(propType, m_position.z()));
         break;
     }
     case eObjParam_COMMENTS:
@@ -374,6 +394,30 @@ void CObjectBase::applyParam(const QSharedPointer<IPropertyBase>& prop)
     case eObjParam_POSITION:
     {
         QVector3D pos = dynamic_cast<const prop3D*>(prop.get())->value();
+        updatePos(pos);
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setX(val);
+        updatePos(pos);
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setY(val);
+        updatePos(pos);
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setZ(val);
         updatePos(pos);
         break;
     }

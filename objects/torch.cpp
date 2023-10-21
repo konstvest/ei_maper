@@ -101,7 +101,7 @@ uint CTorch::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CTorch::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CTorch::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     CWorldObj::collectParams(aProp, paramType);
     auto comm = paramType & eTorch;

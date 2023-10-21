@@ -272,7 +272,7 @@ uint CUnit::serialize(util::CMobParser &parser)
 //    return m_pMob->view()->settings();
 //}
 
-void CUnit::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CUnit::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     CWorldObj::collectParams(aProp, paramType);
 
@@ -300,7 +300,7 @@ void CUnit::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENod
     util::addParam(aProp, &type);
 }
 
-void CUnit::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CUnit::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     auto comm = paramType & eUnit;
     if (comm != eUnit)
@@ -1018,7 +1018,7 @@ void CLogic::clearPatrolSelect()
     }
 }
 
-void CLogic::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp)
+void CLogic::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp)
 {
     propUint beh(eObjParam_LOGIC_BEHAVIOUR, m_behaviour);
     //propUint beh(eObjParam_LOGIC_BEHAVIOUR, m_behaviour);
@@ -1595,6 +1595,21 @@ void CPatrolPoint::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam 
         prop.reset(new prop3D(propType, m_position));
         break;
     }
+    case eObjParam_POSITION_X:
+    {
+        prop.reset(new propFloat(propType, m_position.x()));
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        prop.reset(new propFloat(propType, m_position.y()));
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        prop.reset(new propFloat(propType, m_position.z()));
+        break;
+    }
     default:
         Q_ASSERT(false);
     }
@@ -1611,13 +1626,37 @@ void CPatrolPoint::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
         updatePos(pos);
         break;
     }
+    case eObjParam_POSITION_X:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setX(val);
+        updatePos(pos);
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setY(val);
+        updatePos(pos);
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setZ(val);
+        updatePos(pos);
+        break;
+    }
     default:
         Q_ASSERT(false);
     }
     emit patrolChanges();
 }
 
-void CPatrolPoint::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CPatrolPoint::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     //CObjectBase::collectParams(aParam, paramType);
     auto comm = paramType & ePatrolPoint;
@@ -1854,15 +1893,19 @@ void CLookPoint::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
     emit lookPointChanges();
 }
 
-void CLookPoint::collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CLookPoint::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     //CObjectBase::collectParams(aParam, paramType);
     auto comm = paramType & eLookPoint;
     if (comm != eLookPoint)
         return;
 
-    prop3D pos(eObjParam_POSITION, m_position);
-    util::addParam(aProp, &pos);
+    propFloat posX(eObjParam_POSITION_X, m_position.x());
+    util::addParam(aProp, &posX);
+    propFloat posY(eObjParam_POSITION_Y, m_position.y());
+    util::addParam(aProp, &posY);
+    propFloat posZ(eObjParam_POSITION_Z, m_position.z());
+    util::addParam(aProp, &posZ);
     propInt wait(eObjParam_VIEW_WAIT, m_wait);
     util::addParam(aProp, &wait); //TODO: calc to seconds
     propUint speed(eObjParam_VIEW_TURN_SPEED, m_turnSpeed);

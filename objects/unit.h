@@ -16,7 +16,7 @@ public:
     ENodeType nodeType() override {return ENodeType::eLookPoint;}
     void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override final;
     void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override final;
-    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override final;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override final;
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject &obj) override;
     void deSerializeJson(QJsonObject data);
@@ -50,7 +50,7 @@ public:
     uint deserialize(util::CMobParser& parser) override final;
     void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override final;
     void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override final;
-    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override final;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override final;
     void serializeJson(QJsonObject &obj) override final;
     void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser) override final;
@@ -110,7 +110,7 @@ public:
     void updatePos(QVector3D& offset);
     void collectPatrolNodes(QList<CNode*>& arrNode);
     void clearPatrolSelect();
-    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp);
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp);
     void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType);
     void applyLogicParam(const QSharedPointer<IPropertyBase>& prop);
     bool isChild(CPatrolPoint* pPointIn);
@@ -178,8 +178,8 @@ public:
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
-    void collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
-    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
     void getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
     void applyParam(const QSharedPointer<IPropertyBase>& prop) override;
     void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;

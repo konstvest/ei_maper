@@ -1065,19 +1065,26 @@ void util::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString s
         aParam.insert(param, str);
 }
 
-bool util::addParam(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, IPropertyBase* pProp)
+///
+/// \brief util::addParam
+/// \param aProp - list of properties. different props will be reset
+/// \param pProp - pointer to base property class (use simple pointer for easy process any type of prop)
+/// \return
+///
+void util::addParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp)
 {
-    for(auto it(aProp.begin()); it != aProp.end(); ++it)
+    //firstly, check if prop already exists in list
+    for(const auto& prop: aProp)
     {
-        if(it.key()->type() != pProp->type())
+        if(prop->type() != pProp->type())
             continue;
 
-        if(it.value() == true)
-            it.value() = it.key()->isEqual(pProp);
-        return it.value();
+        if (!prop->isEqual(pProp))
+            prop->reset();
+        return;
     }
-    aProp[QSharedPointer<IPropertyBase>(pProp->clone())] = true;
-    return true;
+    aProp.append(QSharedPointer<IPropertyBase>(pProp->clone()));
+    return;
 }
 
 QColor util::stringToColor(const QString &string)
@@ -1109,22 +1116,24 @@ QVector3D util::getMaxValue(const QVector3D &vec1, const QVector3D &vec2)
     return QVector3D(vec1.x() > vec2.x() ? vec1.x() : vec2.x(), vec1.y() > vec2.y() ? vec1.y() : vec2.y(), vec1.z() > vec2.z() ? vec1.z() : vec2.z());
 }
 
-void util::removeProp(QMap<QSharedPointer<IPropertyBase>, bool> &aProp, EObjParam type)
+void util::removeProp(QList<QSharedPointer<IPropertyBase>> &aProp, EObjParam type)
 {
-    for (auto it = aProp.begin(); it != aProp.end();)
-        if (it.key()->type() == type)
+    for (const auto& prop: aProp)
+        if (prop->type() == type)
         {
-            it = aProp.erase(it);
+            bool bRes = aProp.removeOne(prop);
+            Q_ASSERT(bRes);
             return;
         }
 }
 
-IPropertyBase *util::prop(const QMap<QSharedPointer<IPropertyBase>, bool>& aProp, EObjParam type)
+const QSharedPointer<IPropertyBase> &util::constProp(const QList<QSharedPointer<IPropertyBase>> &aProp, EObjParam type)
 {
-    for (auto it = aProp.begin(); it != aProp.end();)
-        if (it.key()->type() == type)
+    for (const auto& prop: aProp)
+        if (prop->type() == type)
         {
-            return it.key().get();
+            return prop;
         }
-    return nullptr;
+    Q_ASSERT(false);
+    return aProp.back();
 }

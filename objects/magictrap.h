@@ -15,7 +15,7 @@ public:
     ~CActivationZone();
     ENodeType nodeType() override {return ENodeType::eTrapActZone; }
 
-    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
     void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
     void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override;
     uint deserialize(util::CMobParser& parser) override;
@@ -50,7 +50,7 @@ public:
     ~CTrapCastPoint();
     ENodeType nodeType() override {return ENodeType::eTrapCastPoint; }
 
-    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
     void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override;
     void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
     uint deserialize(util::CMobParser& parser) override;
@@ -82,10 +82,10 @@ public:
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
-    void collectlogicParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
     void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override;
     void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
-    void collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType) override;
+    void collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
     void getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
     void applyParam(const QSharedPointer<IPropertyBase>& prop) override;
     QJsonObject toJson() override;

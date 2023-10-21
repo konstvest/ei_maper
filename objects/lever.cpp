@@ -167,7 +167,7 @@ uint CLever::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CLever::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CLever::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     CWorldObj::collectParams(aProp, paramType);
 

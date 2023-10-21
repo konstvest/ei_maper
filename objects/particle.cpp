@@ -111,7 +111,7 @@ uint CParticle::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CParticle::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CParticle::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     CObjectBase::collectParams(aProp, paramType);
     auto comm = paramType & eParticle;

@@ -191,7 +191,7 @@ uint CSound::serialize(util::CMobParser& parser)
     return writeByte;
 }
 
-void CSound::collectParams(QMap<QSharedPointer<IPropertyBase>, bool>& aProp, ENodeType paramType)
+void CSound::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     CObjectBase::collectParams(aProp, paramType);
     auto comm = paramType & eSound;

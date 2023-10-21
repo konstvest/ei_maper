@@ -125,6 +125,27 @@ private:
 };
 
 
+class C3DItem: public QWidget
+{
+    Q_OBJECT
+public:
+    C3DItem() = delete;
+    C3DItem(const QSharedPointer<IPropertyBase>& propX,const QSharedPointer<IPropertyBase>& propY, const QSharedPointer<IPropertyBase>& propZ);
+    // update value on choosing new one
+    //const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
+
+public slots:
+    //void _onChange(QString str); //override default 'on change event'
+
+signals:
+    void onParamChange(const QSharedPointer<IPropertyBase>&);
+
+private:
+    QSharedPointer<IPropertyBase> m_xValue; //stored value;
+    QSharedPointer<IPropertyBase> m_yValue; //stored value;
+    QSharedPointer<IPropertyBase> m_zValue; //stored value;
+};
+
 class CDataItem : public QToolButton
         // make "edit" button for changing
 {
@@ -148,7 +169,6 @@ class CColorButtonItem : public QToolButton
     Q_OBJECT
 public:
     CColorButtonItem() = delete;
-    CColorButtonItem(const EObjParam param); // default 'value dif'
     CColorButtonItem(const QSharedPointer<IPropertyBase>& prop);
 private:
     void updateColor(const QColor& color);
@@ -174,7 +194,7 @@ public:
     CTableManager(QTableWidget* pTable);
 
     void reset();
-    void setNewData(const QMap<QSharedPointer<IPropertyBase>, bool>& aProp);
+    void setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp);
 
 private:
     void initRowName();

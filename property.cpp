@@ -18,7 +18,7 @@ IPropertyBase *CPropertyString::clone() const
         return new propStr(type());
 }
 
-bool CPropertyString::isEqual(const IPropertyBase* pProp)
+bool CPropertyString::isEqual(const IPropertyBase* pProp) const
 {
     if(const CPropertyString* pValue = dynamic_cast<const CPropertyString*>(pProp))
         return m_value == pValue->value();
@@ -26,7 +26,7 @@ bool CPropertyString::isEqual(const IPropertyBase* pProp)
     return false;
 }
 
-bool CPropertyString::isEqual(const QString str)
+bool CPropertyString::isEqual(const QString str) const
 {
     return m_value == str;
 }
@@ -66,7 +66,7 @@ IPropertyBase* CProperty3D::clone() const
         return new prop3D(type());
 }
 
-bool CProperty3D::isEqual(const IPropertyBase *pProp)
+bool CProperty3D::isEqual(const IPropertyBase* pProp) const
 {
     const prop3D* pData = dynamic_cast<const prop3D*>(pProp);
     if(nullptr != pData)
@@ -77,7 +77,7 @@ bool CProperty3D::isEqual(const IPropertyBase *pProp)
     return false;
 }
 
-bool CProperty3D::isEqual(const QString str)
+bool CProperty3D::isEqual(const QString str) const
 {
     QSharedPointer<prop3D> pData(new prop3D(type(), m_value));
     pData->resetFromString(str);
@@ -114,7 +114,7 @@ IPropertyBase* CPropertyStringArray::clone() const
         return new propStrAr(type());
 }
 
-bool CPropertyStringArray::isEqual(const IPropertyBase *pProp)
+bool CPropertyStringArray::isEqual(const IPropertyBase* pProp) const
 {
     if(const CPropertyStringArray* pValue = dynamic_cast<const CPropertyStringArray*>(pProp))
         return m_value == pValue->value();
@@ -122,7 +122,7 @@ bool CPropertyStringArray::isEqual(const IPropertyBase *pProp)
     return false;
 }
 
-bool CPropertyStringArray::isEqual(const QString str)
+bool CPropertyStringArray::isEqual(const QString str) const
 {
     QSharedPointer<propStrAr> pData(new propStrAr(type(), m_value));
     pData->resetFromString(str);
@@ -159,7 +159,7 @@ IPropertyBase* CPropertyPartArray::clone() const
         return new propPart(type());
 }
 
-bool CPropertyPartArray::isEqual(const IPropertyBase *pProp)
+bool CPropertyPartArray::isEqual(const IPropertyBase* pProp) const
 {
     if(const CPropertyPartArray* pValue = dynamic_cast<const CPropertyPartArray*>(pProp))
         return m_value == pValue->value();
@@ -167,7 +167,7 @@ bool CPropertyPartArray::isEqual(const IPropertyBase *pProp)
     return false;
 }
 
-bool CPropertyPartArray::isEqual(const QString str)
+bool CPropertyPartArray::isEqual(const QString str) const
 {
     QSharedPointer<propPart> pData(new propPart(type(), m_value));
     pData->resetFromString(str);
@@ -204,7 +204,7 @@ IPropertyBase* CPropertyStat::clone() const
         return new propStat(type());
 }
 
-bool CPropertyStat::isEqual(const IPropertyBase *pProp)
+bool CPropertyStat::isEqual(const IPropertyBase* pProp) const
 {
     if(const propStat* pValue = dynamic_cast<const propStat*>(pProp))
         return m_value == pValue->value();
@@ -212,7 +212,7 @@ bool CPropertyStat::isEqual(const IPropertyBase *pProp)
     return false;
 }
 
-bool CPropertyStat::isEqual(const QString str)
+bool CPropertyStat::isEqual(const QString str) const
 {
     QSharedPointer<propStat> pData(new propStat(type(), m_value));
     pData->resetFromString(str);

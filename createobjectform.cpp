@@ -70,11 +70,14 @@ void CCreateObjectForm::initViewWidget()
 void CCreateObjectForm::updateTable()
 {
     m_tableManager->reset();
-    QMap<QSharedPointer<IPropertyBase>, bool> aProp;
+    QList<QSharedPointer<IPropertyBase>> aProp;
     m_pNode->collectParams(aProp, m_pNode->nodeType());
     //filter parameters
     util::removeProp(aProp, eObjParam_NID);
     util::removeProp(aProp, eObjParam_POSITION);
+    util::removeProp(aProp, eObjParam_POSITION_X);
+    util::removeProp(aProp, eObjParam_POSITION_Y);
+    util::removeProp(aProp, eObjParam_POSITION_Z);
     util::removeProp(aProp, eObjParam_ROTATION);
 
     auto type = m_pNode->nodeType();
@@ -182,14 +185,17 @@ void CCreateObjectForm::onObjectChoose(QString& object)
     {
         //copy data from selected node
         auto pSourceNode = arrNode.first();
-        QMap<QSharedPointer<IPropertyBase>, bool> aProp;
+        QList<QSharedPointer<IPropertyBase>> aProp;
         ENodeType type = pSourceNode->nodeType();
         pSourceNode->collectParams(aProp, type);
-        for(const auto& param: aProp.toStdMap())
+        for(const auto& param: aProp)
         {
-            if(param.first->type() == eObjParam_POSITION)
+            const EObjParam& tp = param->type();
+            if(tp == eObjParam_POSITION_X
+                    || tp == eObjParam_POSITION_Y
+                    || tp == eObjParam_POSITION_Z)
                 continue;
-            if(objType == eMagicTrap && param.first->type() == eObjParam_NAME)
+            if(objType == eMagicTrap && param->type() == eObjParam_NAME)
                 continue;
 //            switch (param.first) {
 //            case eObjParam_ROTATION:
@@ -200,7 +206,7 @@ void CCreateObjectForm::onObjectChoose(QString& object)
 //            default:
 //                break;
 //            }
-            m_pNode->applyParam(param.first);
+            m_pNode->applyParam(param);
         }
     }
     m_pPreview->attachNode(m_pNode);

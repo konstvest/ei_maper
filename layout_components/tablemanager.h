@@ -134,11 +134,11 @@ public:
     // update value on choosing new one
     //const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
 
-public slots:
-    //void _onChange(QString str); //override default 'on change event'
-
 signals:
     void onParamChange(const QSharedPointer<IPropertyBase>&);
+
+public slots:
+    void _onParamChange(const QSharedPointer<IPropertyBase>&); // slot for inner valueItem signal. re-translator
 
 private:
     QSharedPointer<IPropertyBase> m_xValue; //stored value;

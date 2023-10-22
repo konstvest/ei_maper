@@ -405,6 +405,7 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_POSITION]));
             blockEditWidget(m_pTable->item(i, 0));
             auto* pItem = new C3DItem(util::constProp(aProp, eObjParam_POSITION_X), util::constProp(aProp, eObjParam_POSITION_Y), util::constProp(aProp, eObjParam_POSITION_Z));
+            QObject::connect(pItem, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i,1, pItem);
             m_pTable->setRowHeight(i, pItem->height()*2.75);
             ++i;
@@ -600,18 +601,10 @@ C3DItem::C3DItem(const QSharedPointer<IPropertyBase>& propX,const QSharedPointer
 {
     auto* pLayout = new QFormLayout();
     pLayout->setMargin(0);
-    const auto setProp = [&pLayout](QString rowName, const QSharedPointer<IPropertyBase>& prop)
+    const auto setProp = [this, &pLayout](QString rowName, const QSharedPointer<IPropertyBase>& prop)
     {
-        auto* pValue = dynamic_cast<propFloat*>(prop.get());
-        if(not pValue)
-        {
-            Q_ASSERT("NOT implemented" && false);
-            return;
-        }
-        auto pLine = new QLineEdit();
-        pLine->setPlaceholderText("undefined/different");
-        if(pValue->isInit())
-            pLine->setText(QString::number(pValue->value()));
+        auto pLine = new CValueItem(prop);
+        QObject::connect(pLine, SIGNAL(onParamChange(const QSharedPointer<IPropertyBase>&)), this, SLOT(_onParamChange(const QSharedPointer<IPropertyBase>&)));
         pLayout->addRow(rowName, pLine);
     };
 
@@ -619,4 +612,9 @@ C3DItem::C3DItem(const QSharedPointer<IPropertyBase>& propX,const QSharedPointer
     setProp("Y:", propY);
     setProp("Z:", propZ);
     setLayout(pLayout);
+}
+
+void C3DItem::_onParamChange(const QSharedPointer<IPropertyBase> &prop)
+{
+    emit onParamChange(prop);
 }

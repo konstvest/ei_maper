@@ -49,7 +49,7 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_USE_IN_SCRIPT] = "Is use in script?";
     m_aRowName[eObjParam_IS_SHADOW] = "Is shadow?";
     m_aRowName[eObjParam_PARENT_ID] = "Parent ID";
-    m_aRowName[eObjParam_QUEST_INFO] = "Quest marker";
+    m_aRowName[eObjParam_QUEST_INFO] = "Quest name marker";
     m_aRowName[eObjParam_COMPLECTION] = "Complection";
     m_aRowName[eObjParam_TORCH_PTLINK] = "Torch point";
     m_aRowName[eObjParam_TORCH_STRENGHT] = "Torch power";
@@ -67,8 +67,8 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_PARTICL_SCALE] = "Particle scale";
     //m_aRowName[eObjParam_LEVER_SCIENCE_STATS_NEW] = "Stats new (wtf?)";
     m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Type_Open] = "Type open";
-    m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Key_ID] = "> Key ID";
-    m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight] = "> Hands skill";
+    m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Key_ID] = "Key ID";
+    m_aRowName[eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight] = "Hands skill";
     //sciene stats new
     m_aRowName[eObjParam_LEVER_CUR_STATE] = "Current state";
     m_aRowName[eObjParam_LEVER_TOTAL_STATE] = "Total state";
@@ -324,8 +324,8 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
             }
             break;
         }
-        case eObjParam_LEVER_SCIENCE_STATS_Key_ID:
-        case eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight:
+//        case eObjParam_LEVER_SCIENCE_STATS_Key_ID:
+//        case eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight:
         {// this cases processed below
             break;
         }
@@ -335,7 +335,7 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
             CComboStItem* pCombo = new CComboStItem(item);
-            //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
             break; //eObjParam_LEVER_SCIENCE_STATS_Type_Open
@@ -407,10 +407,15 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
             auto* pItem = new C3DItem(util::constProp(aProp, eObjParam_POSITION_X), util::constProp(aProp, eObjParam_POSITION_Y), util::constProp(aProp, eObjParam_POSITION_Z));
             QObject::connect(pItem, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i,1, pItem);
-            m_pTable->setRowHeight(i, pItem->height()*2.75);
+            m_pTable->setRowHeight(i, pItem->height()*3);
             ++i;
             break;
         }
+        case eObjParam_ROTATION:
+        {
+            break;
+        }
+
         default:
         {
             m_pTable->insertRow(i);

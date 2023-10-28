@@ -157,11 +157,14 @@ enum EObjParam
     ,eObjParam_UNIT_QUEST_ITEMS
 
     ,eObjParam_COMPLECTION
-    ,eObjParam_POSITION //dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
+    ,eObjParam_POSITION // dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
     ,eObjParam_POSITION_X
     ,eObjParam_POSITION_Y
     ,eObjParam_POSITION_Z
-    ,eObjParam_ROTATION
+    ,eObjParam_ROTATION // dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
+    ,eObjParam_ROTATION_X
+    ,eObjParam_ROTATION_Y
+    ,eObjParam_ROTATION_Z
 
     ,eObjParam_COMMENTS
     ,eObjParamCount

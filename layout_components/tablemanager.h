@@ -111,6 +111,7 @@ public:
         if(hasFocus())
             QComboBox::wheelEvent(e);
     }
+    void showPopup() override;
 
 public slots:
     void _onChange(QString str); //override default 'on change event'

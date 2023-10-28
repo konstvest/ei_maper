@@ -667,9 +667,12 @@ void CResourceStringList::initResourceString()
 {
     QMap<uint, QString> map;
     map[0] = "Not active";
-    map[1] = "Free";
-    map[5] = "Hands skill";
-    map[8] = "Key ID";
+    map[1] = "Hand";
+    map[2] = "Picklock (unused)";
+    map[4] = "Crowbar (unused)";
+    map[5] = "Hand or Crowbar";
+    map[8] = "Key";
+    map[9] = "Hand or Key";
     m_propValueName[eObjParam_LEVER_SCIENCE_STATS_Type_Open] = map;
 
     map.clear();

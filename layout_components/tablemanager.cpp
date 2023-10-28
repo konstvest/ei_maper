@@ -244,6 +244,7 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
         case eObjParam_PARTICL_TYPE:
         case eObjParam_AGRESSION_MODE:
         case eObjParam_TRAP_CAST_ONCE:
+        case eObjParam_LEVER_SCIENCE_STATS_Type_Open:
         {
             m_pTable->insertRow(i);
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem
@@ -323,22 +324,6 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
                 ++i;
             }
             break;
-        }
-//        case eObjParam_LEVER_SCIENCE_STATS_Key_ID:
-//        case eObjParam_LEVER_SCIENCE_STATS_Hands_Sleight:
-        {// this cases processed below
-            break;
-        }
-        case eObjParam_LEVER_SCIENCE_STATS_Type_Open:
-        {
-            m_pTable->insertRow(i);
-            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
-            blockEditWidget(m_pTable->item(i, 0));
-            CComboStItem* pCombo = new CComboStItem(item);
-            QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
-            m_pTable->setCellWidget(i, 1, pCombo);
-            ++i;
-            break; //eObjParam_LEVER_SCIENCE_STATS_Type_Open
         }
         case eObjParam_UNIT_STATS:
         case eObjParam_UNIT_WEAPONS:
@@ -568,11 +553,29 @@ CComboDynItem::CComboDynItem(const QSharedPointer<IPropertyBase> &prop)
     view()->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_pListModel.reset(new QStringListModel());
     m_pValue.reset(prop->clone());
-    if(prop->type() == eObjParam_PRIM_TXTR)
+
+    if(m_pValue->isInit())
+    {
+        insertItem(0, m_pValue->toString());
+        setCurrentIndex(0);
+    }
+    else
+    {
+        insertItem(0, "undefined/different");
+        setCurrentIndex(0);
+    }
+    QObject::connect(this, SIGNAL(currentIndexChanged(QString)), this, SLOT(_onChange(QString))); //reconnect default currentIndexChanged to override
+}
+
+void CComboDynItem::showPopup()
+{
+    blockSignals(true);
+    clear();
+    if(m_pValue->type() == eObjParam_PRIM_TXTR)
     {
         m_pListModel->setStringList(CTextureList::getInstance()->textureList());
     }
-    else if(prop->type() == eObjParam_TEMPLATE)
+    else if(m_pValue->type() == eObjParam_TEMPLATE)
     {
         m_pListModel->setStringList(CObjectList::getInstance()->figureList());
     }
@@ -590,7 +593,9 @@ CComboDynItem::CComboDynItem(const QSharedPointer<IPropertyBase> &prop)
         insertItem(0, "undefined/different");
         setCurrentIndex(0);
     }
-    QObject::connect(this, SIGNAL(currentIndexChanged(QString)), this, SLOT(_onChange(QString))); //reconnect default currentIndexChanged to override
+
+    blockSignals(false);
+    QComboBox::showPopup();
 }
 
 void CComboDynItem::_onChange(QString str)

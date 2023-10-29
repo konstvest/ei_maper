@@ -1079,7 +1079,7 @@ void util::addParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* 
         if(prop->type() != pProp->type())
             continue;
 
-        if (!prop->isEqual(pProp))
+        if (prop->isInit() && !prop->isEqual(pProp))
             prop->reset();
         return;
     }

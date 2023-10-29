@@ -301,24 +301,22 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
         }
         case eObjParam_LOGIC_BEHAVIOUR:
         {
-            //insert combobox
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
             CComboStItem* pCombo = new CComboStItem(item);
-            //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
 
-            //EBehaviourType type = dynamic_cast<propBehaviour*>(item.first)->value();
-            EBehaviourType type = EBehaviourType(dynamic_cast<propUint*>(item.get())->value());
-            if(type == EBehaviourType::eRadius)
+            if(item->isInit() && (EBehaviourType(dynamic_cast<propUint*>(item.get())->value()) == EBehaviourType::eRadius))
             {
                 m_pTable->insertRow(i);
                 m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_GUARD_RADIUS]));
                 blockEditWidget(m_pTable->item(i, 0));
                 //m_pTable->setItem(i, 1, new CValueItem(aProp.key(eObjParam_GUARD_RADIUS))); // get radius value
                 auto* pCellValue = new CValueItem(util::constProp(aProp, eObjParam_GUARD_RADIUS));
+                QObject::connect(pCellValue, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
                 m_pTable->setCellWidget(i, 1, pCellValue);
                 m_pTable->resizeColumnToContents(0);
                 ++i;
@@ -336,16 +334,16 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
         }
         case eObjParam_UNIT_NEED_IMPORT:
         {
-            //insert combobox
             m_pTable->insertRow(i);
             m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
             blockEditWidget(m_pTable->item(i, 0));
             CComboStItem* pCombo = new CComboStItem(item);
-            //QObject::connect(pCombo, SIGNAL(updateValueOver(CComboBoxItem*)), this, SLOT(onParamChange(CComboBoxItem*)));
+            QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
-            if(true) // is need import unit stats == true
+            if(item->isInit() && dynamic_cast<propBool*>(item.get())->value() == true) // is need import unit stats == true
             {
+                qDebug() << "todo: unit map stats";
                 //todo: collect unit stats data
 //                QVector<EObjParam> importStats;
 //                importStats.resize(6);
@@ -514,7 +512,7 @@ void CComboStItem::_onChange(QString str)
     QSharedPointer<IPropertyBase> valueNew(m_pValue->clone());
     QString sourceValue = QString::number(m_valueList.key(str));
     valueNew->resetFromString(sourceValue);
-    if(valueNew->isEqual(m_pValue.get()))
+    if(m_pValue->isInit() && valueNew->isEqual(m_pValue.get()))
         return;
 
     m_pValue->resetFromString(sourceValue);

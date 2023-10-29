@@ -20,6 +20,8 @@ IPropertyBase *CPropertyString::clone() const
 
 bool CPropertyString::isEqual(const IPropertyBase* pProp) const
 {
+    if(!isValidProp(pProp, this))
+        return false;
     if(const CPropertyString* pValue = dynamic_cast<const CPropertyString*>(pProp))
         return m_value == pValue->value();
 
@@ -68,6 +70,8 @@ IPropertyBase* CProperty3D::clone() const
 
 bool CProperty3D::isEqual(const IPropertyBase* pProp) const
 {
+    if(!isValidProp(pProp, this))
+        return false;
     const prop3D* pData = dynamic_cast<const prop3D*>(pProp);
     if(nullptr != pData)
     {
@@ -116,6 +120,8 @@ IPropertyBase* CPropertyStringArray::clone() const
 
 bool CPropertyStringArray::isEqual(const IPropertyBase* pProp) const
 {
+    if(!isValidProp(pProp, this))
+        return false;
     if(const CPropertyStringArray* pValue = dynamic_cast<const CPropertyStringArray*>(pProp))
         return m_value == pValue->value();
 
@@ -161,6 +167,8 @@ IPropertyBase* CPropertyPartArray::clone() const
 
 bool CPropertyPartArray::isEqual(const IPropertyBase* pProp) const
 {
+    if(!isValidProp(pProp, this))
+        return false;
     if(const CPropertyPartArray* pValue = dynamic_cast<const CPropertyPartArray*>(pProp))
         return m_value == pValue->value();
 
@@ -206,6 +214,8 @@ IPropertyBase* CPropertyStat::clone() const
 
 bool CPropertyStat::isEqual(const IPropertyBase* pProp) const
 {
+    if(!isValidProp(pProp, this))
+        return false;
     if(const propStat* pValue = dynamic_cast<const propStat*>(pProp))
         return m_value == pValue->value();
 
@@ -235,4 +245,14 @@ void CPropertyStat::resetFromString(const QString &value)
 QSharedPointer<IPropertyBase> CPropertyStat::createEmptyCopy()
 {
     return QSharedPointer<IPropertyBase>(new CPropertyStat(m_type));
+}
+
+bool IPropertyBase::isValidProp(const IPropertyBase* pPropA, const IPropertyBase* pPropB) const
+{
+    if(!pPropA->isInit() || !pPropB->isInit())
+    {
+        ei::log(ELogMessageType::eLogWarning, "prop not initialized");
+        return false;
+    }
+    return true;
 }

@@ -5,6 +5,7 @@
 #include <QVector3D>
 #include <QStringList>
 #include "types.h"
+#include "log.h"
 
 class IPropertyBase
 {
@@ -26,6 +27,7 @@ public:
 
 protected:
     IPropertyBase(EObjParam type, bool bInit=false): m_type(type), m_bInit(bInit) {};
+    bool isValidProp(const IPropertyBase* pPropA, const IPropertyBase* pPropB) const;
 
 protected:
     EObjParam m_type;
@@ -119,6 +121,8 @@ public:
 
     bool isEqual(const IPropertyBase* pProp) const override final
     {
+        if(!isValidProp(pProp, this))
+            return false;
         if(const CPropertyNumber<T>* pValue = dynamic_cast<const CPropertyNumber<T>*>(pProp))
             return m_value == pValue->value();
 

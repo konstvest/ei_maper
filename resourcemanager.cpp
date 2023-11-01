@@ -695,6 +695,7 @@ void CResourceStringList::initResourceString()
     m_propValueName[eObjParam_SOUND_IS_MUSIC] = map;
     m_propValueName[eObjParam_LIGHT_SHADOW] = map;
     m_propValueName[eObjParam_TRAP_CAST_ONCE] = map;
+    m_propValueName[eObjParam_ALWAYS_ACTIVE] = map;
 
     map.clear();
     map[50] = "Human";

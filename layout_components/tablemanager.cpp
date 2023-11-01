@@ -91,6 +91,7 @@ void CTableManager::initRowName()
     m_aRowName[eObjParam_UNIT_QUEST_ITEMS] = "Quest items";
     m_aRowName[eObjParam_UNIT_STATS] = "Unit parameters";
 
+    m_aRowName[eObjParam_ALWAYS_ACTIVE] = "Is always active?";
     m_aRowName[eObjParam_GUARD_PLACE] = "Guard place";
     m_aRowName[eObjParam_GUARD_RADIUS] = "Guard radius";
     m_aRowName[eObjParam_GUARD_ALARM] = "Guard help";
@@ -245,6 +246,7 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
         case eObjParam_AGRESSION_MODE:
         case eObjParam_TRAP_CAST_ONCE:
         case eObjParam_LEVER_SCIENCE_STATS_Type_Open:
+        case eObjParam_ALWAYS_ACTIVE:
         {
             m_pTable->insertRow(i);
             //https://doc.qt.io/archives/qt-4.8/qtablewidget.html#setItem

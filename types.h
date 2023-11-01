@@ -101,6 +101,7 @@ enum EObjParam
     ,eObjParam_QUEST_INFO
 
     //logic params
+    ,eObjParam_ALWAYS_ACTIVE
     ,eObjParam_AGRESSION_MODE
     ,eObjParam_LOGIC_BEHAVIOUR
     ,eObjParam_GUARD_RADIUS

@@ -568,6 +568,7 @@ CLogic::CLogic(CUnit* unit, bool bUse):
     ,m_use(bUse)
     ,m_wait(0.0f)
     ,m_help(10.0f)
+    ,m_alwaysActive(0)
     ,m_agressionMode(0)
     ,m_parent(unit)
 {
@@ -1030,6 +1031,8 @@ void CLogic::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp)
     util::addParam(aProp, &radius);
     prop3D placement(eObjParam_GUARD_PLACE, m_guardPlacement);
     util::addParam(aProp, &placement);
+    propBool bAlwaysActive(eObjParam_ALWAYS_ACTIVE, m_alwaysActive);
+    util::addParam(aProp, &bAlwaysActive);
     propChar agrMode(eObjParam_AGRESSION_MODE, m_agressionMode);
     util::addParam(aProp, &agrMode);
 }
@@ -1055,6 +1058,11 @@ void CLogic::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propTy
     case eObjParam_GUARD_PLACE:
     {
         prop.reset(new prop3D(propType, m_guardPlacement));
+        break;
+    }
+    case eObjParam_ALWAYS_ACTIVE:
+    {
+        prop.reset(new propBool(propType, m_alwaysActive));
         break;
     }
     case eObjParam_AGRESSION_MODE:
@@ -1093,6 +1101,11 @@ void CLogic::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
     case eObjParam_GUARD_PLACE:
     {
         m_guardPlacement = dynamic_cast<const prop3D*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_ALWAYS_ACTIVE:
+    {
+        m_alwaysActive = dynamic_cast<const propBool*>(prop.get())->value();
         break;
     }
     case eObjParam_AGRESSION_MODE:

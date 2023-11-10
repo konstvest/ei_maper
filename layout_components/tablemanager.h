@@ -139,6 +139,8 @@ public:
     // update value on choosing new one
     //const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
 
+    void keyPressEvent(QKeyEvent *event) override;
+
 signals:
     void onParamChange(const QSharedPointer<IPropertyBase>&);
 

@@ -4,6 +4,8 @@
 #include <QVBoxLayout>
 #include <QFormLayout>
 #include <QLabel>
+#include <QGuiApplication>
+#include <QClipboard>
 
 #include "tablemanager.h"
 #include "resourcemanager.h"
@@ -635,6 +637,10 @@ void CComboDynItem::_onChange(QString str)
 
 C3DItem::C3DItem(const QSharedPointer<IPropertyBase>& propX,const QSharedPointer<IPropertyBase>& propY, const QSharedPointer<IPropertyBase>& propZ)
 {
+    m_xValue.reset(propX->clone());
+    m_yValue.reset(propY->clone());
+    m_zValue.reset(propZ->clone());
+    setFocusPolicy(Qt::FocusPolicy::StrongFocus);
     auto* pLayout = new QFormLayout();
     pLayout->setMargin(0);
     const auto setProp = [this, &pLayout](QString rowName, const QSharedPointer<IPropertyBase>& prop)
@@ -648,6 +654,46 @@ C3DItem::C3DItem(const QSharedPointer<IPropertyBase>& propX,const QSharedPointer
     setProp("Y:", propY);
     setProp("Z:", propZ);
     setLayout(pLayout);
+}
+
+void C3DItem::keyPressEvent(QKeyEvent *event)
+{
+
+    if(event->matches(QKeySequence::Copy))
+    {
+        if(!m_xValue->isInit() || !m_yValue->isInit() || !m_zValue->isInit())
+            return;
+        QClipboard *clipboard = QGuiApplication::clipboard();
+        //QString originalText = clipboard->text();
+
+        auto val = QString("%1, %2, %3").arg(m_xValue->toString(), m_yValue->toString(), m_zValue->toString());
+        //qDebug() << m_xValue->toString() << m_yValue->toString() << m_zValue->toString();
+        clipboard->setText(val);
+        //qDebug() << val;
+        event->accept();
+        return;
+    }
+    if((event->matches(QKeySequence::Paste)))
+    {
+        QClipboard *pClipboard = QGuiApplication::clipboard();
+        QString val = pClipboard->text();
+        QRegExp re(R"((\s*-?\d+(\.\d+)?\,){2}(\s*-?\d+(\.\d+)?))");
+        if(re.exactMatch(val))
+        {
+            QStringList list = val.split(", ");
+            m_xValue->resetFromString(list[0]);
+            m_yValue->resetFromString(list[1]);
+            m_zValue->resetFromString(list[2]);
+            emit onParamChange(m_xValue);
+            emit onParamChange(m_yValue);
+            emit onParamChange(m_zValue);
+        }
+        event->accept();
+        return;
+    }
+
+    //QLineEdit::keyPressEvent(event);
+
 }
 
 void C3DItem::_onParamChange(const QSharedPointer<IPropertyBase> &prop)

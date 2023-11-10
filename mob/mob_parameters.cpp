@@ -306,7 +306,8 @@ void CMobParameters::on_pushApply_clicked()
     QString str = QString::fromLatin1(strArr); //convert byte array to qstring
 
     m_pCurMob->setScript(str);
-    if(m_pUndoStack->count() > 0)
+    //if(m_pUndoStack->count() > 0)
+    if(true) //forced set durty flag. todo: add script changes to undo stack
     {
         m_pUndoStack->clear();
         m_pView->setDurty(m_pCurMob);

@@ -79,6 +79,9 @@ void CCreateObjectForm::updateTable()
     util::removeProp(aProp, eObjParam_POSITION_Y);
     util::removeProp(aProp, eObjParam_POSITION_Z);
     util::removeProp(aProp, eObjParam_ROTATION);
+    util::removeProp(aProp, eObjParam_ROTATION_X);
+    util::removeProp(aProp, eObjParam_ROTATION_Y);
+    util::removeProp(aProp, eObjParam_ROTATION_Z);
 
     auto type = m_pNode->nodeType();
     switch (type)

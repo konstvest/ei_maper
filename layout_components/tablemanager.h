@@ -14,10 +14,38 @@
 #include "undo.h"
 #include "property.h"
 
+class CLineEditEventFilter;
+
+// any type of single value.
+// converting to(from) string must be overrided for each prop
+class CValueItem : public QLineEdit
+{
+    Q_OBJECT
+public:
+    CValueItem() = delete;
+    CValueItem(const QSharedPointer<IPropertyBase>& prop);
+
+    const EObjParam& param(){return m_pValue->type();}
+    bool applyChanges(const QString& text);
+    const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
+    void skipNextCheck() {bSkip = true;} //skip checking value for reverting (on lost focus)
+
+signals:
+    void onParamChange(const QSharedPointer<IPropertyBase>&);
+
+public slots:
+    void onTextChangeEnd();
+
+private:
+    QSharedPointer<IPropertyBase> m_pValue; //stored value;
+    QSharedPointer<CLineEditEventFilter> m_filter;
+    bool bSkip;
+};
+
 class CLineEditEventFilter : public QObject
 {
 public:
-    explicit CLineEditEventFilter(QLineEdit *parent, const QString oldValue):
+    explicit CLineEditEventFilter(CValueItem *parent, const QString oldValue):
         QObject(parent), m_value(oldValue)
     {}
 
@@ -38,34 +66,10 @@ public:
     }
 
 private:
-    void restoreValue() {reinterpret_cast<QLineEdit*>(parent())->setText(m_value);}
+    void restoreValue();
 
 private:
     QString m_value;
-};
-
-// any type of single value.
-// converting to(from) string must be overrided for each prop
-class CValueItem : public QLineEdit
-{
-    Q_OBJECT
-public:
-    CValueItem() = delete;
-    CValueItem(const QSharedPointer<IPropertyBase>& prop);
-
-    const EObjParam& param(){return m_pValue->type();}
-    bool applyChanges(const QString& text);
-    const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
-
-signals:
-    void onParamChange(const QSharedPointer<IPropertyBase>&);
-
-public slots:
-    void onTextChangeEnd();
-
-private:
-    QSharedPointer<IPropertyBase> m_pValue; //stored value;
-    QSharedPointer<CLineEditEventFilter> m_filter;
 };
 
 // any type of single value choosing in initialized list.

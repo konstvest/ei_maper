@@ -106,7 +106,13 @@ enum EObjParam
     ,eObjParam_LOGIC_BEHAVIOUR
     ,eObjParam_GUARD_RADIUS
     ,eObjParam_GUARD_ALARM
-    ,eObjParam_GUARD_PLACE
+
+    //DONT CHANGE ORDER (table manager use indices ariphmethic)
+    ,eObjParam_GUARD_PLACE_X
+    ,eObjParam_GUARD_PLACE_Y
+    ,eObjParam_GUARD_PLACE_Z
+    ,eObjParam_GUARD_PLACE // dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
+
     ,eObjParam_VIEW_WAIT
     ,eObjParam_VIEW_TURN_SPEED
 
@@ -157,15 +163,19 @@ enum EObjParam
     ,eObjParam_UNIT_QUICK_ITEMS
     ,eObjParam_UNIT_QUEST_ITEMS
 
-    ,eObjParam_COMPLECTION
-    ,eObjParam_POSITION // dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
+    //DONT CHANGE ORDER (table manager use indices ariphmethic)
+    ,eObjParam_COMPLECTION_X
+    ,eObjParam_COMPLECTION_Y
+    ,eObjParam_COMPLECTION_Z
+    ,eObjParam_COMPLECTION // dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
     ,eObjParam_POSITION_X
     ,eObjParam_POSITION_Y
     ,eObjParam_POSITION_Z
-    ,eObjParam_ROTATION // dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
+    ,eObjParam_POSITION // dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
     ,eObjParam_ROTATION_X
     ,eObjParam_ROTATION_Y
     ,eObjParam_ROTATION_Z
+    ,eObjParam_ROTATION // dont use it in collecting params. usage only for x,y,z optimization (mouse movement, etc)
 
     ,eObjParam_COMMENTS
     ,eObjParamCount

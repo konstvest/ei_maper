@@ -221,8 +221,19 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
     EObjParam type;
     m_pTable->blockSignals(true); //block sending signals
 
-    for(int iParam(0); iParam < EObjParam::eObjParamCount; ++iParam)
 
+    auto insert3DProp =[this, &aProp](const int row, const EObjParam xPosProp)
+    {
+        m_pTable->insertRow(row);
+        m_pTable->setItem(row, 0, new QTableWidgetItem(m_aRowName[EObjParam(xPosProp+3)]));
+        blockEditWidget(m_pTable->item(row, 0));
+        auto* pItem = new C3DItem(util::constProp(aProp, xPosProp), util::constProp(aProp, EObjParam(xPosProp+1)), util::constProp(aProp, EObjParam(xPosProp+2)));
+        QObject::connect(pItem, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
+        m_pTable->setCellWidget(row,1, pItem);
+        m_pTable->setRowHeight(row, pItem->height()*3);
+    };
+
+    for(int iParam(0); iParam < EObjParam::eObjParamCount; ++iParam)
     for (const auto& item : aProp)
     {
         type = item->type();
@@ -381,23 +392,32 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
         case eObjParam_POSITION_Y:
         case eObjParam_POSITION_Z:
         case eObjParam_POSITION:
+        case eObjParam_ROTATION_Y:
+        case eObjParam_ROTATION_Z:
+        case eObjParam_ROTATION:
+        case eObjParam_COMPLECTION_Y:
+        case eObjParam_COMPLECTION_Z:
+        case eObjParam_COMPLECTION:
+        case eObjParam_GUARD_PLACE_Y:
+        case eObjParam_GUARD_PLACE_Z:
+        case eObjParam_GUARD_PLACE:
         {//will be processed below
             break;
         }
         case eObjParam_POSITION_X:
+        case eObjParam_ROTATION_X:
+        case eObjParam_COMPLECTION_X:
+        case eObjParam_GUARD_PLACE_X:
         {
-            m_pTable->insertRow(i);
-            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_POSITION]));
-            blockEditWidget(m_pTable->item(i, 0));
-            auto* pItem = new C3DItem(util::constProp(aProp, eObjParam_POSITION_X), util::constProp(aProp, eObjParam_POSITION_Y), util::constProp(aProp, eObjParam_POSITION_Z));
-            QObject::connect(pItem, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
-            m_pTable->setCellWidget(i,1, pItem);
-            m_pTable->setRowHeight(i, pItem->height()*3);
+//            m_pTable->insertRow(i);
+//            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_POSITION]));
+//            blockEditWidget(m_pTable->item(i, 0));
+//            auto* pItem = new C3DItem(util::constProp(aProp, eObjParam_POSITION_X), util::constProp(aProp, eObjParam_POSITION_Y), util::constProp(aProp, eObjParam_POSITION_Z));
+//            QObject::connect(pItem, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
+//            m_pTable->setCellWidget(i,1, pItem);
+//            m_pTable->setRowHeight(i, pItem->height()*3);
+            insert3DProp(i, type);
             ++i;
-            break;
-        }
-        case eObjParam_ROTATION:
-        {
             break;
         }
 
@@ -466,8 +486,13 @@ bool CValueItem::applyChanges(const QString& text)
 
 void CValueItem::onTextChangeEnd()
 {
+    if(bSkip)
+    {
+        bSkip = false;
+        return;
+    }
     const QString& val = text();
-    if(m_pValue->toString() == val)
+    if(m_pValue->isInit() && (m_pValue->toString() == val))
         return;
 
     m_pValue->resetFromString(val);
@@ -522,7 +547,8 @@ void CComboStItem::_onChange(QString str)
 }
 
 
-CValueItem::CValueItem(const QSharedPointer<IPropertyBase>& prop)
+CValueItem::CValueItem(const QSharedPointer<IPropertyBase>& prop):
+    bSkip(false)
 {
     m_pValue.reset(prop->clone());
     if(false)
@@ -627,4 +653,11 @@ C3DItem::C3DItem(const QSharedPointer<IPropertyBase>& propX,const QSharedPointer
 void C3DItem::_onParamChange(const QSharedPointer<IPropertyBase> &prop)
 {
     emit onParamChange(prop);
+}
+
+void CLineEditEventFilter::restoreValue()
+{
+    auto pLine = reinterpret_cast<CValueItem*>(parent());
+    pLine->setText(m_value);
+    pLine->skipNextCheck();
 }

@@ -351,8 +351,14 @@ void CWorldObj::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENode
     //addParam(aParam, eObjParam_SEC_TXTR, m_secondaryTexture);
 
     QVector3D rotEuler = getEulerRotation();
-    prop3D rot(eObjParam_ROTATION, rotEuler);
-    util::addParam(aProp, &rot);
+    //prop3D rot(eObjParam_ROTATION, rotEuler);
+    //util::addParam(aProp, &rot);
+    propFloat rotX(eObjParam_ROTATION_X, rotEuler.x());
+    util::addParam(aProp, &rotX);
+    propFloat rotY(eObjParam_ROTATION_Y, rotEuler.y());
+    util::addParam(aProp, &rotY);
+    propFloat rotZ(eObjParam_ROTATION_Z, rotEuler.z());
+    util::addParam(aProp, &rotZ);
     propBool bScript(eObjParam_USE_IN_SCRIPT, m_bUseInScript);
     util::addParam(aProp, &bScript);
     propBool bShadow(eObjParam_IS_SHADOW, m_bShadow);
@@ -361,8 +367,14 @@ void CWorldObj::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENode
     util::addParam(aProp, &parentId);
     propStr questInfo(eObjParam_QUEST_INFO, m_questInfo);
     util::addParam(aProp, &questInfo);
-    prop3D complection(eObjParam_COMPLECTION, m_complection);
-    util::addParam(aProp, &complection);
+    //prop3D complection(eObjParam_COMPLECTION, m_complection);
+    //util::addParam(aProp, &complection);
+    propFloat compX(eObjParam_COMPLECTION_X, m_complection.x());
+    util::addParam(aProp, &compX);
+    propFloat compY(eObjParam_COMPLECTION_Y, m_complection.y());
+    util::addParam(aProp, &compY);
+    propFloat compZ(eObjParam_COMPLECTION_Z, m_complection.z());
+    util::addParam(aProp, &compZ);
 
 }
 

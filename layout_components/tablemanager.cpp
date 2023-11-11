@@ -329,7 +329,6 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
                 m_pTable->insertRow(i);
                 m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_GUARD_RADIUS]));
                 blockEditWidget(m_pTable->item(i, 0));
-                //m_pTable->setItem(i, 1, new CValueItem(aProp.key(eObjParam_GUARD_RADIUS))); // get radius value
                 auto* pCellValue = new CValueItem(util::constProp(aProp, eObjParam_GUARD_RADIUS));
                 QObject::connect(pCellValue, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
                 m_pTable->setCellWidget(i, 1, pCellValue);
@@ -411,18 +410,10 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
         case eObjParam_COMPLECTION_X:
         case eObjParam_GUARD_PLACE_X:
         {
-//            m_pTable->insertRow(i);
-//            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_POSITION]));
-//            blockEditWidget(m_pTable->item(i, 0));
-//            auto* pItem = new C3DItem(util::constProp(aProp, eObjParam_POSITION_X), util::constProp(aProp, eObjParam_POSITION_Y), util::constProp(aProp, eObjParam_POSITION_Z));
-//            QObject::connect(pItem, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
-//            m_pTable->setCellWidget(i,1, pItem);
-//            m_pTable->setRowHeight(i, pItem->height()*3);
             insert3DProp(i, type);
             ++i;
             break;
         }
-
         default:
         {
             m_pTable->insertRow(i);
@@ -663,13 +654,10 @@ void C3DItem::keyPressEvent(QKeyEvent *event)
     {
         if(!m_xValue->isInit() || !m_yValue->isInit() || !m_zValue->isInit())
             return;
-        QClipboard *clipboard = QGuiApplication::clipboard();
-        //QString originalText = clipboard->text();
 
+        QClipboard *clipboard = QGuiApplication::clipboard();
         auto val = QString("%1, %2, %3").arg(m_xValue->toString(), m_yValue->toString(), m_zValue->toString());
-        //qDebug() << m_xValue->toString() << m_yValue->toString() << m_zValue->toString();
         clipboard->setText(val);
-        //qDebug() << val;
         event->accept();
         return;
     }
@@ -684,6 +672,7 @@ void C3DItem::keyPressEvent(QKeyEvent *event)
             m_xValue->resetFromString(list[0]);
             m_yValue->resetFromString(list[1]);
             m_zValue->resetFromString(list[2]);
+            //TODO: send 1 event for x,y,z components (x+3)
             emit onParamChange(m_xValue);
             emit onParamChange(m_yValue);
             emit onParamChange(m_zValue);
@@ -691,9 +680,6 @@ void C3DItem::keyPressEvent(QKeyEvent *event)
         event->accept();
         return;
     }
-
-    //QLineEdit::keyPressEvent(event);
-
 }
 
 void C3DItem::_onParamChange(const QSharedPointer<IPropertyBase> &prop)

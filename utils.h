@@ -19,6 +19,7 @@ namespace util
 void formatStream(QDataStream& stream);
 void qNormalizeAngle(int& angle);
 void normalizeAngle(float& angle);
+QQuaternion eulerToQuat(const QVector3D& rot);
 void getCirclePoint(QVector<QVector3D>& aPoint, const QVector3D centr, const double radius, const int nPoint);
 void splitByLen(QVector<QVector3D>& aPoint, float len);
 bool isEqual(const double& a, const double& b, double Eps = EPS);

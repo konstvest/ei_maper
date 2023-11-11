@@ -412,9 +412,24 @@ void CWorldObj::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType
         prop.reset(new propStr(propType, m_secondaryTexture));
         break;
     }
-    case eObjParam_ROTATION:
+//    case eObjParam_ROTATION:
+//    {
+//        prop.reset(new prop3D(propType, getEulerRotation()));
+//        break;
+//    }
+    case eObjParam_ROTATION_X:
     {
-        prop.reset(new prop3D(propType, getEulerRotation()));
+        prop.reset(new propFloat(propType, getEulerRotation().x()));
+        break;
+    }
+    case eObjParam_ROTATION_Y:
+    {
+        prop.reset(new propFloat(propType, getEulerRotation().y()));
+        break;
+    }
+    case eObjParam_ROTATION_Z:
+    {
+        prop.reset(new propFloat(propType, getEulerRotation().z()));
         break;
     }
     case eObjParam_USE_IN_SCRIPT:
@@ -437,9 +452,24 @@ void CWorldObj::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType
         prop.reset(new propStr(propType, m_questInfo));
         break;
     }
-    case eObjParam_COMPLECTION:
+//    case eObjParam_COMPLECTION:
+//    {
+//        prop.reset(new prop3D(propType, m_complection));
+//        break;
+//    }
+    case eObjParam_COMPLECTION_X:
     {
-        prop.reset(new prop3D(propType, m_complection));
+        prop.reset(new propFloat(propType, m_complection.x()));
+        break;
+    }
+    case eObjParam_COMPLECTION_Y:
+    {
+        prop.reset(new propFloat(propType, m_complection.y()));
+        break;
+    }
+    case eObjParam_COMPLECTION_Z:
+    {
+        prop.reset(new propFloat(propType, m_complection.z()));
         break;
     }
     default:
@@ -497,37 +527,32 @@ void CWorldObj::applyParam(const QSharedPointer<IPropertyBase>& prop)
     }
     case eObjParam_ROTATION:
     {
-        //QVector3D eulerRot = util::vec3FromString(value);
-        const float gimbalAvoidStep = 0.001f;
-        QQuaternion quat;//this rotation as quat be applied to object
-        QVector3D eulerRot; // temp variable
-        const auto setNotNan = [&quat, &eulerRot, &gimbalAvoidStep](QVector3D& ch_rot)
-        {
-            for(int i(0); i< 100; ++i)
-            {
-                quat = QQuaternion::fromEulerAngles(ch_rot);
-                eulerRot = quat.toEulerAngles();
-                if(eulerRot.x() != eulerRot.x())
-                {
-                    ch_rot.setX(ch_rot.x() + gimbalAvoidStep);
-                }
-                else if(eulerRot.y() != eulerRot.y())
-                {
-                    ch_rot.setY(ch_rot.y() + gimbalAvoidStep);
-                }
-                else if(eulerRot.z() != eulerRot.z())
-                {
-                    ch_rot.setZ(ch_rot.z() + gimbalAvoidStep);
-                }
-                else
-                    return;
-            }
-            return;
-        };
-        QVector3D rotation = dynamic_cast<prop3D*>(prop.get())->value();; //this rotation will be tested
-        setNotNan(rotation);
-        setRot(quat);
-        rotation = getEulerRotation();
+        QVector3D rotation = dynamic_cast<prop3D*>(prop.get())->value(); //this rotation will be tested
+        setRot(util::eulerToQuat(rotation));
+        recalcMinPos();
+        break;
+    }
+    case eObjParam_ROTATION_X:
+    {
+        QVector3D srcRot = getEulerRotation();
+        srcRot.setX(dynamic_cast<propFloat*>(prop.get())->value());
+        setRot(util::eulerToQuat(srcRot));
+        recalcMinPos();
+        break;
+    }
+    case eObjParam_ROTATION_Y:
+    {
+        QVector3D srcRot = getEulerRotation();
+        srcRot.setY(dynamic_cast<propFloat*>(prop.get())->value());
+        setRot(util::eulerToQuat(srcRot));
+        recalcMinPos();
+        break;
+    }
+    case eObjParam_ROTATION_Z:
+    {
+        QVector3D srcRot = getEulerRotation();
+        srcRot.setZ(dynamic_cast<propFloat*>(prop.get())->value());
+        setRot(util::eulerToQuat(srcRot));
         recalcMinPos();
         break;
     }
@@ -554,6 +579,24 @@ void CWorldObj::applyParam(const QSharedPointer<IPropertyBase>& prop)
     case eObjParam_COMPLECTION:
     {
         m_complection = dynamic_cast<prop3D*>(prop.get())->value();
+        recalcFigure();
+        break;
+    }
+    case eObjParam_COMPLECTION_X:
+    {
+        m_complection.setX(dynamic_cast<propFloat*>(prop.get())->value());
+        recalcFigure();
+        break;
+    }
+    case eObjParam_COMPLECTION_Y:
+    {
+        m_complection.setY(dynamic_cast<propFloat*>(prop.get())->value());
+        recalcFigure();
+        break;
+    }
+    case eObjParam_COMPLECTION_Z:
+    {
+        m_complection.setZ(dynamic_cast<propFloat*>(prop.get())->value());
         recalcFigure();
         break;
     }

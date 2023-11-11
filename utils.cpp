@@ -1137,3 +1137,31 @@ const QSharedPointer<IPropertyBase> &util::constProp(const QList<QSharedPointer<
     Q_ASSERT(false);
     return aProp.back();
 }
+
+QQuaternion util::eulerToQuat(const QVector3D &rot)
+{
+    const float gimbalAvoidStep = 0.001f;
+    QQuaternion quat;//this rotation as quat be applied to object
+    QVector3D sourceRot(rot);
+    QVector3D eulerRot; // temp variable
+    for(int i(0); i< 100; ++i)
+    {
+        quat = QQuaternion::fromEulerAngles(sourceRot);
+        eulerRot = quat.toEulerAngles();
+        if(eulerRot.x() != eulerRot.x())
+        {
+            sourceRot.setX(sourceRot.x() + gimbalAvoidStep);
+        }
+        else if(eulerRot.y() != eulerRot.y())
+        {
+            sourceRot.setY(sourceRot.y() + gimbalAvoidStep);
+        }
+        else if(eulerRot.z() != eulerRot.z())
+        {
+            sourceRot.setZ(sourceRot.z() + gimbalAvoidStep);
+        }
+        else
+            break;
+    }
+    return quat;
+}

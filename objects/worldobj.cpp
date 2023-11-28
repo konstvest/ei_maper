@@ -412,11 +412,11 @@ void CWorldObj::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType
         prop.reset(new propStr(propType, m_secondaryTexture));
         break;
     }
-//    case eObjParam_ROTATION:
-//    {
-//        prop.reset(new prop3D(propType, getEulerRotation()));
-//        break;
-//    }
+    case eObjParam_ROTATION:
+    {
+        prop.reset(new prop3D(propType, getEulerRotation()));
+        break;
+    }
     case eObjParam_ROTATION_X:
     {
         prop.reset(new propFloat(propType, getEulerRotation().x()));
@@ -452,11 +452,11 @@ void CWorldObj::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType
         prop.reset(new propStr(propType, m_questInfo));
         break;
     }
-//    case eObjParam_COMPLECTION:
-//    {
-//        prop.reset(new prop3D(propType, m_complection));
-//        break;
-//    }
+    case eObjParam_COMPLECTION:
+    {
+        prop.reset(new prop3D(propType, m_complection));
+        break;
+    }
     case eObjParam_COMPLECTION_X:
     {
         prop.reset(new propFloat(propType, m_complection.x()));

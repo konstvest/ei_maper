@@ -323,6 +323,7 @@ void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         break;
     }
     case Qt::Key_Return:
+    case Qt::Key_Enter:
     {
         if(!value.isEmpty())
             m_pView->operationApply(EOperationAxisType::eMove);
@@ -525,6 +526,7 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         break;
     }
     case Qt::Key_Return:
+    case Qt::Key_Enter:
     {
         if(!value.isEmpty())
             m_pView->operationApply(EOperationAxisType::eRotate);
@@ -797,6 +799,7 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         break;
     }
     case Qt::Key_Return:
+    case Qt::Key_Enter:
     {
         if(!value.isEmpty())
             m_pView->operationApply(EOperationAxisType::eScale);

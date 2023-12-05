@@ -6,6 +6,7 @@
 #include <QUndoStack>
 #include <QTreeWidget>
 #include <QPair>
+#include <QRandomGenerator>
 
 #include "view.h"
 #include "camera.h"
@@ -895,6 +896,24 @@ QList<CNode *> CView::selectedNodes()
                 arrNode.append(node);
     }
     return arrNode;
+}
+
+void CView::setRandomComplection(const EObjParam param, const float min, const float max)
+{
+    if(nullptr == m_activeMob)
+        return;
+
+    CNode* pNode = nullptr;
+    foreach(pNode, m_activeMob->nodes())
+    {
+        if (pNode->nodeState() != ENodeState::eSelect)
+            continue;
+
+        float value = util::randomFloat(min ,max);
+        QSharedPointer<propFloat> complexity(new propFloat(param, value));
+        pNode->applyParam(complexity);
+    }
+    updateParameter(param);
 }
 
 void CView::updateParameter(EObjParam propType)

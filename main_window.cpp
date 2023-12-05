@@ -24,13 +24,18 @@
 #include "log.h"
 #include "scene.h"
 
-#include "property.h"
-
 void testFunc()
 {
     ei::log(eLogDebug, "test func start");
 
     ei::log(eLogDebug, "test func end");
+}
+
+void MainWindow::on_toolButton_2_clicked()
+{
+    ei::log(eLogDebug, "btn test start");
+
+    ei::log(eLogDebug, "btn test end");
 }
 
 MainWindow::MainWindow(QWidget* parent) :
@@ -294,14 +299,6 @@ void MainWindow::on_action_Mob_parameters_triggered()
 void MainWindow::on_actionUndo_triggered()
 {
     m_undoStack->undo();
-}
-
-void MainWindow::on_toolButton_2_clicked()
-{
-    ei::log(eLogDebug, "btn test start");
-    QString data(".5");
-    float val = QVariant(data).value<float>();
-    ei::log(eLogDebug, "btn test end");
 }
 
 void MainWindow::on_selectButton_clicked()

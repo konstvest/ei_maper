@@ -52,6 +52,9 @@ QVector3D getMaxValue(const QVector3D& vec1, const QVector3D& vec2);
 void removeProp(QList<QSharedPointer<IPropertyBase>>& aProp, EObjParam type);
 const QSharedPointer<IPropertyBase>& constProp(const QList<QSharedPointer<IPropertyBase>>& aProp, EObjParam type);
 
+float randomFloat(float a, float b);
+
+
 enum EType
 {
     eUnknown = 0

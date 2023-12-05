@@ -95,6 +95,7 @@ public:
     CTreeView* objectTree() {return m_pTree;}
     int nSelectedNodes();
     QList<CNode*> selectedNodes();
+    void setRandomComplection(const EObjParam param, const float min, const float max);
 
 protected:
     void initializeGL() override;

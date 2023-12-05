@@ -1165,3 +1165,13 @@ QQuaternion util::eulerToQuat(const QVector3D &rot)
     }
     return quat;
 }
+
+float util::randomFloat(float a, float b)
+{
+    if (a > b)
+        return randomFloat(b, a);
+    if (a == b)
+        return a;
+    return a + ((double) rand() / (RAND_MAX))*(b-a);
+    //return (float)randomInt(a, b) + util::randomFloat();
+}

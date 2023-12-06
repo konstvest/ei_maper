@@ -337,6 +337,7 @@
     <addaction name="actionRedo"/>
     <addaction name="actionReset_cam_position"/>
     <addaction name="actionCopy_IDs_to_clipboard"/>
+    <addaction name="actionRandomize_parameter"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="enabled">
@@ -531,6 +532,11 @@
   <action name="actionReset_logic_paths">
    <property name="text">
     <string>Reset &amp;logic paths</string>
+   </property>
+  </action>
+  <action name="actionRandomize_parameter">
+   <property name="text">
+    <string>Randomize parameter</string>
    </property>
   </action>
  </widget>

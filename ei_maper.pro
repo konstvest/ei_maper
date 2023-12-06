@@ -32,6 +32,7 @@ SOURCES += \
     layout_components/progressview.cpp \
     layout_components/tree_view.cpp \
     layout_components/tablemanager.cpp \
+    randomize_form.cpp \
     property.cpp \
     main_window.cpp \
     objects/lever.cpp \
@@ -80,6 +81,7 @@ HEADERS += \
     layout_components/progressview.h \
     layout_components/tree_view.h \
     layout_components/tablemanager.h \
+    randomize_form.h \
     main_window.h \
     objects/lever.h \
     objects/light.h \
@@ -122,6 +124,7 @@ HEADERS += \
 FORMS += \
         createobjectform.ui \
         main_window.ui \
+        randomize_form.ui \
         round_mob_form.ui \
         select_window.ui \
         settings.ui \

@@ -16,6 +16,7 @@
 #include "settings.h"
 #include "select_window.h"
 #include "createobjectform.h"
+#include "randomize_form.h"
 #include "undo.h"
 #include "mob\mob.h"
 #include "mob\mob_parameters.h"
@@ -50,6 +51,7 @@ MainWindow::MainWindow(QWidget* parent) :
     m_settings.reset(new CSettings());
     m_selector.reset(new CSelectForm());
     m_createDialog.reset(new CCreateObjectForm());
+    m_randomizeForm.reset(new CRandomizeForm());
     m_settings->attachMainWindow(this);
     m_ui->setupUi(this); //init CView core also
 
@@ -72,6 +74,7 @@ MainWindow::MainWindow(QWidget* parent) :
 #endif
 
     m_selector->attachParents(m_pView);
+    m_randomizeForm->attachView(m_pView);
     m_undoStack = new QUndoStack(this);
     createUndoView();
     CStatusConnector::getInstance()->attach(m_ui->statusIco, m_ui->statusBar);
@@ -273,11 +276,13 @@ void MainWindow::on_actionSelect_All_triggered()
 void MainWindow::on_actionSelect_by_triggered()
 {
     m_selector->show();
+    m_selector->activateWindow();
 }
 
 void MainWindow::on_actionShow_undo_redo_triggered()
 {
     m_undoView->show();
+    m_undoView->activateWindow();
 }
 
 void MainWindow::on_actionClose_all_triggered()
@@ -322,6 +327,7 @@ void MainWindow::on_actionRedo_triggered()
 void MainWindow::on_actionCreate_new_object_triggered()
 {
     m_createDialog->show();
+    m_createDialog->activateWindow();
 }
 
 void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
@@ -434,5 +440,12 @@ void MainWindow::on_actionOpen_recent_triggered()
 void MainWindow::on_actionReset_logic_paths_triggered()
 {
     m_pView->resetUnitLogicPaths();
+}
+
+
+void MainWindow::on_actionRandomize_parameter_triggered()
+{
+    m_randomizeForm->show();
+    m_randomizeForm->activateWindow();
 }
 

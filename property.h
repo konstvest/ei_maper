@@ -20,6 +20,7 @@ public:
     virtual QString toString() = 0;
     virtual void resetFromString(const QString& value) = 0;
     virtual QSharedPointer<IPropertyBase> createEmptyCopy() = 0;
+    virtual QRegExp validationRegExp() {return QRegExp(".*");};
 
     const EObjParam& type() const {return m_type;}
     const bool& isInit() const {return m_bInit;}
@@ -148,6 +149,11 @@ public:
     QSharedPointer<IPropertyBase> createEmptyCopy() override final
     {
         return QSharedPointer<IPropertyBase>(new CPropertyNumber<T>(m_type));
+    }
+    QRegExp validationRegExp() override final
+    {
+        //return QRegExp("\\s*-?\\d+(\\.\\d+)?");
+        return QRegExp(R"("^-?\d{1,5}(\.\d{1,5})?$")");
     }
 
     const T& value() const {Q_ASSERT(m_bInit); return m_value;}

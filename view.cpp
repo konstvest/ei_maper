@@ -301,6 +301,12 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
         {
             uint id_min = selectParam.param1.toUInt();
             uint id_max = selectParam.param2.toUInt();
+            // set equal value if only one defined
+            if(id_min!=0 && id_max==0)
+                id_max = id_min;
+            else if(id_max!=0 && id_min==0)
+                id_min = id_max;
+
             if (id_max < id_min)
             {
                 uint temp = id_min;
@@ -911,7 +917,10 @@ void CView::setRandomComplection(const EObjParam param, const float min, const f
 
         float value = util::randomFloat(min ,max);
         QSharedPointer<propFloat> complexity(new propFloat(param, value));
-        pNode->applyParam(complexity);
+        CChangeProp* pChanger = new CChangeProp(this, pNode->mapId(), complexity);
+        QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
+        //QObject::connect(pChanger, SIGNAL(updatePosOnLand(CNode*)), this, SLOT(landPositionUpdate(CNode*)));
+        m_pUndoStack->push(pChanger);
     }
     updateParameter(param);
 }
@@ -1032,7 +1041,7 @@ void CView::onParamChange(const QSharedPointer<IPropertyBase>& prop)
             {
                 CChangeProp* pChanger = new CChangeProp(this, pNode->mapId(), prop);
                 QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
-                QObject::connect(pChanger, SIGNAL(changeIdSignal(uint, uint)), m_pTree, SLOT(onChangeNodeId(uint, uint)));
+                QObject::connect(pChanger, SIGNAL(changeIdSignal(uint,uint)), m_pTree, SLOT(onChangeNodeId(uint,uint)));
                 QObject::connect(pChanger, SIGNAL(changeTreeName(CNode*)), m_pTree, SLOT(onChangeObjectName(CNode*)));
                 m_pUndoStack->push(pChanger);
             }

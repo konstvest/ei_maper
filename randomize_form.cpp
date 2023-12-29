@@ -36,8 +36,8 @@ void CRandomizeForm::init()
     propFloat fl(eObjParam_COMPLECTION_Z);
     ui->lineEdit_Min->setText("0");
     ui->lineEdit_Max->setText("1");
-    ui->lineEdit_Min->setValidator(new QRegExpValidator(fl.validationRegExp(), ui->lineEdit_Min)); //dont work correctly if re-use validator
-    ui->lineEdit_Max->setValidator(new QRegExpValidator(fl.validationRegExp(), ui->lineEdit_Max));
+    //ui->lineEdit_Min->setValidator(new QRegExpValidator(fl.validationRegExp(), ui->lineEdit_Min)); //dont work correctly if re-use validator
+    //ui->lineEdit_Max->setValidator(new QRegExpValidator(fl.validationRegExp(), ui->lineEdit_Max));
 }
 
 void CRandomizeForm::on_push_Randomize_clicked()

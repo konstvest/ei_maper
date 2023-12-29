@@ -10,6 +10,7 @@
 #include "tablemanager.h"
 #include "resourcemanager.h"
 #include "utils.h"
+#include "multiline_edit_form.h"
 
 CTableManager::CTableManager(QTableWidget* pTable):
     m_pTable(pTable)
@@ -359,23 +360,37 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
             {
                 qDebug() << "todo: unit map stats";
                 //todo: collect unit stats data
-//                QVector<EObjParam> importStats;
-//                importStats.resize(6);
-//                importStats[0] = eObjParam_UNIT_STATS;
-//                importStats[1] = eObjParam_UNIT_WEAPONS;
-//                importStats[2] = eObjParam_UNIT_ARMORS;
-//                importStats[3] = eObjParam_UNIT_SPELLS;
-//                importStats[4] = eObjParam_UNIT_QUICK_ITEMS;
-//                importStats[5] = eObjParam_UNIT_QUEST_ITEMS;
-//                for(int j(0); j<importStats.size();++j)
-//                {
-//                    m_pTable->insertRow(i);
-//                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[importStats[j]]));
-//                    m_pTable->setItem(i, 1, new CStringItem(aParam[importStats[j]], importStats[j]));
-//                    m_pTable->resizeColumnToContents(0);
-//                    ++i;
-//                }
+                QVector<EObjParam> importStats;
+                importStats.resize(5);
+                //importStats[0] = eObjParam_UNIT_STATS;
+                importStats[0] = eObjParam_UNIT_WEAPONS;
+                importStats[1] = eObjParam_UNIT_ARMORS;
+                importStats[2] = eObjParam_UNIT_SPELLS;
+                importStats[3] = eObjParam_UNIT_QUICK_ITEMS;
+                importStats[4] = eObjParam_UNIT_QUEST_ITEMS;
+                for(int j(0); j<importStats.size();++j)
+                {
+                    m_pTable->insertRow(i);
+                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[importStats[j]]));
+                    blockEditWidget(m_pTable->item(i, 0));
+                    auto* pMulti = new CMultiLineButtonItem(util::constProp(aProp, importStats[j]));
+                    QObject::connect(pMulti, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
+                    m_pTable->setCellWidget(i, 1, pMulti);
+                    m_pTable->resizeColumnToContents(0);
+                    ++i;
+                }
             }
+            break;
+        }
+        case eObjParam_SOUND_RESNAME:
+        {
+            m_pTable->insertRow(i);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
+            blockEditWidget(m_pTable->item(i, 0));
+            auto* pMulti = new CMultiLineButtonItem(item);
+            QObject::connect(pMulti, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
+            m_pTable->setCellWidget(i, 1, pMulti);
+            ++i;
             break;
         }
         case eObjParam_LIGHT_COLOR:
@@ -692,4 +707,62 @@ void CLineEditEventFilter::restoreValue()
     auto pLine = reinterpret_cast<CValueItem*>(parent());
     pLine->setText(m_value);
     pLine->skipNextCheck();
+}
+
+CMultiLineButtonItem::CMultiLineButtonItem(const QSharedPointer<IPropertyBase> &prop)
+{
+    if (prop->type() == eObjParam_UNIT_STATS)
+    {
+        setText("todo: unit stats");
+        return;
+    }
+    if(prop->isInit())
+    {
+        m_pValue.reset(prop->clone());
+        QString text = dynamic_cast<propStrAr*>(m_pValue.get())->value().join(' ');
+        if (text.isEmpty())
+            text = "<empty>";
+        else if (text.length() > 23)
+        {
+            text = text.mid(0, 22);
+            text += "...";
+        }
+        setText(text);
+    }
+    else
+    {
+        QStringList list;
+        m_pValue.reset(new propStrAr(prop->type(), list)); //todo: display value dif
+        setText("undefined/different");
+    }
+    QObject::connect(this, SIGNAL(clicked()), this, SLOT(onTextEditOpen()));
+}
+
+void CMultiLineButtonItem::onTextEditOpen()
+{
+    if(m_pTextForm.isNull())
+    {
+        m_pTextForm.reset(new CMultiLineEditForm());
+        QObject::connect(m_pTextForm.get(), SIGNAL(onTextApplySignal(QString)), this, SLOT(onTextEdit(QString)));
+    }
+
+    if(m_pValue->isInit())
+    {
+        const auto& val = dynamic_cast<propStrAr*>(m_pValue.get())->value();
+        QString text = val.join('\n');
+        m_pTextForm->setText(text);
+    }
+
+    m_pTextForm->show();
+}
+
+void CMultiLineButtonItem::onTextEdit(QString str)
+{
+    QStringList list = str.split('\n');
+    QSharedPointer<propStrAr> prop(new propStrAr(m_pValue->type(), list));
+    if(m_pValue->isEqual(prop.get()))
+        return;
+
+    m_pValue.reset(prop->clone());
+    emit onParamChange(m_pValue);
 }

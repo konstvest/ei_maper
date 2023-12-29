@@ -1127,7 +1127,7 @@ void util::removeProp(QList<QSharedPointer<IPropertyBase>> &aProp, EObjParam typ
         }
 }
 
-const QSharedPointer<IPropertyBase> &util::constProp(const QList<QSharedPointer<IPropertyBase>> &aProp, EObjParam type)
+const QSharedPointer<IPropertyBase>& util::constProp(const QList<QSharedPointer<IPropertyBase>> &aProp, EObjParam type)
 {
     for (const auto& prop: aProp)
         if (prop->type() == type)

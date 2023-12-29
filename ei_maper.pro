@@ -32,6 +32,7 @@ SOURCES += \
     layout_components/progressview.cpp \
     layout_components/tree_view.cpp \
     layout_components/tablemanager.cpp \
+    multiline_edit_form.cpp \
     randomize_form.cpp \
     property.cpp \
     main_window.cpp \
@@ -81,6 +82,7 @@ HEADERS += \
     layout_components/progressview.h \
     layout_components/tree_view.h \
     layout_components/tablemanager.h \
+    multiline_edit_form.h \
     randomize_form.h \
     main_window.h \
     objects/lever.h \
@@ -124,6 +126,7 @@ HEADERS += \
 FORMS += \
         createobjectform.ui \
         main_window.ui \
+        multiline_edit_form.ui \
         randomize_form.ui \
         round_mob_form.ui \
         select_window.ui \

@@ -15,6 +15,7 @@
 #include "property.h"
 
 class CLineEditEventFilter;
+class CMultiLineEditForm;
 
 // any type of single value.
 // converting to(from) string must be overrided for each prop
@@ -191,6 +192,26 @@ private:
 
 };
 
+class CMultiLineButtonItem: public QToolButton
+{
+    Q_OBJECT
+public:
+    CMultiLineButtonItem() = delete;
+    CMultiLineButtonItem(const QSharedPointer<IPropertyBase>& prop);
+
+signals:
+    void onTextChange(const QSharedPointer<IPropertyBase>);
+    void onParamChange(const QSharedPointer<IPropertyBase>&);
+
+public slots:
+    void onTextEditOpen();
+    void onTextEdit(QString str);
+
+private:
+    QSharedPointer<IPropertyBase> m_pValue;
+    QSharedPointer<CMultiLineEditForm> m_pTextForm;
+
+};
 
 // class for management property table (signals trasnfer, show data, trasfer applying changes)
 class CTableManager : public QObject

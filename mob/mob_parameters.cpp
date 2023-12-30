@@ -88,7 +88,7 @@ void CMobParameters::execWsChanges(EWsType paramType, QString &value)
 void CMobParameters::setNewRange(SRange& arrRanges, int index)
 {
     auto pRangeCommand = new CChangeRangeCommand(m_pCurMob, index, arrRanges);
-    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateMobParamsOnly()));
+    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateRangeList()));
     m_pUndoStack->push(pRangeCommand);
 }
 
@@ -450,7 +450,7 @@ void CMobParameters::on_button_minusRanges_clicked()
 
     SRange range;
     auto pRangeCommand = new CChangeRangeCommand(m_pCurMob, index, range);
-    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateMobParamsOnly()));
+    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateRangeList()));
     m_pUndoStack->push(pRangeCommand);
 }
 
@@ -553,20 +553,10 @@ void CMobParameters::updateMobParamsOnly()
             paramLine((EWsType)i)->setText(worldSet.data((EWsType)i));
             paramLine((EWsType)i)->saveBackupValue();
         }
-
-        arrRange = m_pCurMob->ranges(true);
-
         ui->baseMobParamWidget->show();
     }
 
-    QString rangeText;
-    ui->listRanges->clear();
-    SRange range;
-    foreach(range, arrRange)
-    {
-        rangeText = QString::number(range.minRange) + "-" + QString::number(range.maxRange);
-        ui->listRanges->addItem(rangeText);
-    }
+    updateRangeList();
 
     ui->isPrimaryBox->setChecked(m_pCurMob->isQuestMob());
     setDurty(true);
@@ -636,8 +626,7 @@ void CMobParameters::showContextMenu(QPoint pos)
 
 void CMobParameters::markRange()
 {
-    const QVector<SRange>& arrRange = m_pCurMob->ranges(!m_pCurMob->isQuestMob());
-    m_pCurMob->setActiveRange(arrRange[ui->listRanges->currentRow()]);
+    m_pCurMob->setActiveRange(ui->listRanges->currentRow());
     // If multiple selection is on, we need to erase all selected items
         for (int i = 0; i < ui->listRanges->selectedItems().size(); ++i)
         {

@@ -63,8 +63,10 @@ public:
     bool isDurty() {return m_bDurty;}
     void generateDiplomacyTable();
     void clearDiplomacyTable();
-    const SRange& activeRange() {return m_activeRange;}
-    void setActiveRange(const SRange& range);
+    void addRange(bool bMain, const SRange range);
+    const SRange& activeRange();
+    uint activeRangeId() {return m_activeRangeId;}
+    void setActiveRange(uint rangeId);
 
     //functions for logic processing
     QList<CNode*>& logicNodes();
@@ -118,7 +120,7 @@ private:
     QList<CNode*> m_aLogicNode;
     EMobType m_mobType;
     bool m_bDurty;
-    SRange m_activeRange;
+    uint m_activeRangeId;
 };
 
 #endif // MOB_H

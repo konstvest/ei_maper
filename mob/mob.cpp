@@ -32,6 +32,7 @@ CMob::CMob():
     m_view(nullptr)
   ,m_pProgress(nullptr)
   ,m_bDurty(false)
+  ,m_activeRangeId(0)
 {
     m_aNode.clear();
     m_mobType = eEMobTypeBase;
@@ -69,9 +70,21 @@ void CMob::clearDiplomacyTable()
     m_diplomacyFoF.clear();
 }
 
-void CMob::setActiveRange(const SRange &range)
+void CMob::addRange(bool bMain, const SRange range)
 {
-    m_activeRange = range;
+    QVector<SRange>& mobRange = bMain ? m_aMainRange : m_aSecRange;
+    mobRange.append(range);
+    m_activeRangeId = mobRange.length()-1;
+}
+
+const SRange &CMob::activeRange()
+{
+    return isQuestMob() ? m_aSecRange[m_activeRangeId] : m_aMainRange[m_activeRangeId];
+}
+
+void CMob::setActiveRange(uint rangeId)
+{
+    m_activeRangeId = rangeId;
 }
 
 bool CMob::deserialize(QByteArray data)
@@ -127,7 +140,7 @@ bool CMob::deserialize(QByteArray data)
                     readByte += parser.skipHeader();
                     readByte += parser.readDword(range.maxRange);
                 }
-                m_aMainRange.append(range);
+                addRange(true, range);
             }
         }
         else if(parser.isNextTag("SEC_RANGE"))
@@ -147,7 +160,7 @@ bool CMob::deserialize(QByteArray data)
                     readByte += parser.skipHeader();
                     readByte += parser.readDword(range.maxRange);
                 }
-                m_aSecRange.append(range);
+                addRange(false, range);
             }
         }
         else if(parser.isNextTag("DIPLOMATION"))
@@ -390,26 +403,19 @@ QString CMob::mobName()
 
 const QVector<SRange> &CMob::ranges(bool bMain)
 {
-    if(bMain)
-        return m_aMainRange;
-    else
-        return m_aSecRange;
+    return bMain ? m_aMainRange : m_aSecRange;
 }
 
 void CMob::setRanges(bool bMain, const QVector<SRange> &range)
 {
-    if(bMain)
-        m_aMainRange = range;
-    else
-        m_aSecRange = range;
+    clearRanges(bMain);
+    for(const auto& ran: range)
+        addRange(bMain, ran);
 }
 
 void CMob::clearRanges(bool bMain)
 {
-    if(bMain)
-        m_aMainRange.clear();
-    else
-        m_aSecRange.clear();
+    bMain ? m_aMainRange.clear() : m_aSecRange.clear();
 }
 
 void CMob::getPatrolHash(int &unitMapIdOut, int &pointIdOut, CPatrolPoint *pPoint)
@@ -865,9 +871,6 @@ void CMob::readMob(QFileInfo &path)
 
     updateObjects();
     logicNodesUpdate();
-    auto arrRange = ranges(!isQuestMob());
-    if(arrRange.count() > 0)
-        setActiveRange(arrRange.first());
 }
 
 void CMob::checkUniqueId(QSet<uint> &aId)
@@ -971,23 +974,23 @@ bool CMob::isFreeMapId(uint id)
 
 void CMob::generateMapId(CNode *pNode)
 {
-    //set map ID
     uint id = 0; //future map ID
-    if(!m_activeRange.isEmpty())
-    { // try to find suit id from active range
-        for(uint i(m_activeRange.minRange); i<m_activeRange.maxRange; ++i)
+    // try to find suit id from active range
+    const SRange& range = activeRange();
+    for(uint i(range.minRange); i<range.maxRange; ++i)
+    {
+        if(isFreeMapId(i))
         {
-            if(isFreeMapId(i))
-            {
-                id = i;
-                ei::log(ELogMessageType::eLogInfo, "Found map ID from active range:" + QString::number(i));
-                break;
-            }
+            id = i;
+            ei::log(ELogMessageType::eLogInfo, "Found map ID from active range:" + QString::number(i));
+            break;
         }
     }
+    //TODO: we MUST guarantee setting free id or undo creating object
 
+    // try to find suit id from any mob range. TODO: delete this
     if (id == 0)
-    { // try to find suit id from any mob range. TODO: delete this
+    {
         QVector<SRange> arrRange;
         for(auto& range : m_aMainRange)
             arrRange.append(SRange(range));

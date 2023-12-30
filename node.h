@@ -54,6 +54,7 @@ public:
     virtual bool isMarkDeleted() = 0;
 
     virtual void setRot(const QQuaternion& quat) {m_rotation = quat;}
+    virtual void setDrawPosition(QVector3D pos) {m_drawPosition = pos;}
 
     const uint& innerId() {return m_id; }
     const uint& mapId(){return m_mapID;}
@@ -69,7 +70,6 @@ public:
     void move(float x, float y, float z);
     QVector3D& position() {return m_position; }
     QVector3D& drawPosition() {return m_drawPosition;}
-    void setDrawPosition(QVector3D pos) {m_drawPosition = pos;}
     void setState(ENodeState state) {m_state = state;}
     ENodeState nodeState() {return m_state;}
 

@@ -502,6 +502,12 @@ bool CMagicTrap::updatePos(QVector3D &pos)
     return bRes;
 }
 
+void CMagicTrap::setDrawPosition(QVector3D pos)
+{
+    m_drawPosition = pos;
+    update();
+}
+
 int CMagicTrap::getZoneId(CActivationZone *pZone)
 {
     return m_aActZone.indexOf(pZone);
@@ -571,6 +577,7 @@ void CMagicTrap::update()
         return;
 
     m_aDrawingLine.append(m_drawPosition); // self position
+    //m_aDrawingLine.append(m_position); //todo: use m_drawPosition if update correctly when reading mob file
     for(auto& pZone: m_aActZone)
     {
         if(pZone->isMarkDeleted()) continue;

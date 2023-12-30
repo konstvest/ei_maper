@@ -94,6 +94,7 @@ public:
     void collectLogicNodes(QList<CNode*>& arrNode);
     void clearLogicSelect();
     bool updatePos(QVector3D& pos) override;
+    void setDrawPosition(QVector3D pos) override final;
     int getZoneId(CActivationZone* pZone);
     CActivationZone* actZoneById(int zoneId);
     int getCastPointId(CTrapCastPoint* pCast);
@@ -105,7 +106,7 @@ public:
     const QVector<CActivationZone*>& actZones(){return m_aActZone;}
     const QVector<CTrapCastPoint*>& castPoints() {return m_aCastPoint;}
 
-private slots:
+public slots:
     void update();
 
 private:

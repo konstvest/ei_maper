@@ -294,8 +294,8 @@ void CUnit::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType
     util::addParam(aProp, &aQuickItem);
     propStrAr aQuestItem(eObjParam_UNIT_QUEST_ITEMS, m_aQuestItem);
     util::addParam(aProp, &aQuestItem);
-    propStat stat(eObjParam_UNIT_STATS, *(m_stat.get()));
-    util::addParam(aProp, &stat);
+    propUnitStat stat(eObjParam_UNIT_STATS, *(m_stat.get()));
+    util::addUnitStatParam(aProp, &stat);
     propUint type(eObjParam_TYPE, m_type);
     util::addParam(aProp, &type);
 }
@@ -355,7 +355,7 @@ void CUnit::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
     }
     case eObjParam_UNIT_STATS:
     {
-        prop.reset(new propStat(propType, *m_stat.get())); //todo: check memory leaks
+        prop.reset(new propUnitStat(propType, *m_stat.get())); //todo: check memory leaks
         break;
     }
     default:
@@ -404,7 +404,7 @@ void CUnit::applyParam(const QSharedPointer<IPropertyBase>& prop)
     }
     case eObjParam_UNIT_STATS:
     {
-        m_stat.reset(new SUnitStat(dynamic_cast<propStat*>(prop.get())->value()));
+        util::propListToUnitStat(*(m_stat.get()), dynamic_cast<propUnitStat*>(prop.get())->value());
         break;
     }
     default:

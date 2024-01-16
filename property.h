@@ -25,6 +25,7 @@ public:
     const EObjParam& type() const {return m_type;}
     const bool& isInit() const {return m_bInit;}
     void reset() {m_bInit = false;}
+    void setInit(bool bInit) {m_bInit = bInit;}
 
 protected:
     IPropertyBase(EObjParam type, bool bInit=false): m_type(type), m_bInit(bInit) {};
@@ -183,13 +184,15 @@ private:
     QVector3D m_value;
 };
 
-class CPropertyStat: public IPropertyBase
+
+class CPropertyUnitStat: public IPropertyBase
 {
 public:
-    CPropertyStat() = delete;
-    CPropertyStat(EObjParam type): IPropertyBase(type) {}
-    CPropertyStat(EObjParam type, const SUnitStat& val): IPropertyBase(type, true), m_value(val) {}
-    ~CPropertyStat() {}
+    CPropertyUnitStat() = delete;
+    CPropertyUnitStat(EObjParam type): IPropertyBase(type) {m_value.resize(51);}
+    CPropertyUnitStat(EObjParam type, const SUnitStat& val);
+    CPropertyUnitStat(EObjParam type, const QVector<QSharedPointer<IPropertyBase>>& val): IPropertyBase(type, true), m_value(val) {};
+    ~CPropertyUnitStat() {}
     IPropertyBase* clone() const override;
     bool isEqual(const IPropertyBase* pProp) const override final;
     bool isEqual(const QString str) const override final;
@@ -197,16 +200,18 @@ public:
     void resetFromString(const QString& value) override final;
     QSharedPointer<IPropertyBase> createEmptyCopy() override final;
 
-    const SUnitStat& value() const {Q_ASSERT(m_bInit); return m_value;}
+    void resetValue(const QVector<QSharedPointer<IPropertyBase>>& val);
+
+    const QVector<QSharedPointer<IPropertyBase>>& value() const {Q_ASSERT(m_bInit); return m_value;}
 private:
-    SUnitStat m_value;
+    QVector<QSharedPointer<IPropertyBase>> m_value; //51
 };
 
 typedef CPropertyString propStr;
 typedef CPropertyStringArray propStrAr;
 typedef CPropertyPartArray propPart;
 typedef CProperty3D prop3D;
-typedef CPropertyStat propStat;
+typedef CPropertyUnitStat propUnitStat;
 typedef CPropertyNumber<bool> propBool;
 typedef CPropertyNumber<char> propChar;
 typedef CPropertyNumber<float> propFloat;

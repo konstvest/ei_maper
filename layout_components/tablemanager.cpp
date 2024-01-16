@@ -11,6 +11,7 @@
 #include "resourcemanager.h"
 #include "utils.h"
 #include "multiline_edit_form.h"
+#include "unitstat_form.h"
 
 CTableManager::CTableManager(QTableWidget* pTable):
     m_pTable(pTable)
@@ -358,10 +359,17 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
             ++i;
             if(item->isInit() && dynamic_cast<propBool*>(item.get())->value() == true) // is need import unit stats == true
             {
-                qDebug() << "todo: unit map stats";
-                //todo: collect unit stats data
                 QVector<EObjParam> importStats;
                 importStats.resize(5);
+                auto ustat = util::constProp(aProp, eObjParam_UNIT_STATS);
+                m_pTable->insertRow(i);
+                m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_UNIT_STATS]));
+                blockEditWidget(m_pTable->item(i, 0));
+                auto* pMulti = new CUnitStatItem(ustat);
+                QObject::connect(pMulti, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
+                m_pTable->setCellWidget(i, 1, pMulti);
+                m_pTable->resizeColumnToContents(0);
+                ++i;
                 //importStats[0] = eObjParam_UNIT_STATS;
                 importStats[0] = eObjParam_UNIT_WEAPONS;
                 importStats[1] = eObjParam_UNIT_ARMORS;
@@ -711,11 +719,6 @@ void CLineEditEventFilter::restoreValue()
 
 CMultiLineButtonItem::CMultiLineButtonItem(const QSharedPointer<IPropertyBase> &prop)
 {
-    if (prop->type() == eObjParam_UNIT_STATS)
-    {
-        setText("todo: unit stats");
-        return;
-    }
     if(prop->isInit())
     {
         m_pValue.reset(prop->clone());
@@ -765,4 +768,33 @@ void CMultiLineButtonItem::onTextEdit(QString str)
 
     m_pValue.reset(prop->clone());
     emit onParamChange(m_pValue);
+}
+
+CUnitStatItem::CUnitStatItem(const QSharedPointer<IPropertyBase> &prop)
+{
+    setText("Edit Unit stats");
+    if(prop->type() != eObjParam_UNIT_STATS)
+    {
+        Q_ASSERT(false && "check caller");
+        return;
+    }
+    m_pValue.reset(prop->clone());
+    QObject::connect(this, SIGNAL(clicked()), this, SLOT(onStatEditOpen()));
+
+}
+
+void CUnitStatItem::onStatEditOpen()
+{
+    if(m_pTextForm.isNull())
+    {
+        m_pTextForm.reset(new CUnitStatForm());
+        QObject::connect(m_pTextForm.get(), SIGNAL(onApplyChangesSignal(QSharedPointer<IPropertyBase>)), this, SLOT(_onParamChange(QSharedPointer<IPropertyBase>)));
+    }
+    m_pTextForm->setStat(m_pValue);
+    m_pTextForm->show();
+}
+
+void CUnitStatItem::_onParamChange(const QSharedPointer<IPropertyBase>& prop)
+{
+    emit onParamChange(prop);
 }

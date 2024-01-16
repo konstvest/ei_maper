@@ -47,10 +47,12 @@ QString colorToString(const QColor& color);
 
 void addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str);
 void addParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp);
+void addUnitStatParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp);
 QVector3D getMinValue(const QVector3D& vec1, const QVector3D& vec2);
 QVector3D getMaxValue(const QVector3D& vec1, const QVector3D& vec2);
 void removeProp(QList<QSharedPointer<IPropertyBase>>& aProp, EObjParam type);
 const QSharedPointer<IPropertyBase>& constProp(const QList<QSharedPointer<IPropertyBase>>& aProp, EObjParam type);
+void propListToUnitStat(SUnitStat& stat, const QVector<QSharedPointer<IPropertyBase>>& val);
 
 float randomFloat(float a, float b);
 

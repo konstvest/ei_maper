@@ -16,6 +16,7 @@
 
 class CLineEditEventFilter;
 class CMultiLineEditForm;
+class CUnitStatForm;
 
 // any type of single value.
 // converting to(from) string must be overrided for each prop
@@ -210,6 +211,27 @@ public slots:
 private:
     QSharedPointer<IPropertyBase> m_pValue;
     QSharedPointer<CMultiLineEditForm> m_pTextForm;
+
+};
+
+class CUnitStatItem: public QToolButton
+{
+    Q_OBJECT
+public:
+    CUnitStatItem() = delete;
+    CUnitStatItem(const QSharedPointer<IPropertyBase>& prop);
+
+signals:
+    void onTextChange(const QSharedPointer<IPropertyBase>);
+    void onParamChange(const QSharedPointer<IPropertyBase>&);
+
+public slots:
+    void onStatEditOpen();
+    void _onParamChange(const QSharedPointer<IPropertyBase>& prop); // slot for inner valueItem signal. re-translator
+
+private:
+    QSharedPointer<IPropertyBase> m_pValue;
+    QSharedPointer<CUnitStatForm> m_pTextForm;
 
 };
 

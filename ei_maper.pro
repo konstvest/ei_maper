@@ -60,6 +60,7 @@ SOURCES += \
     objects/unit.cpp \
     types.cpp \
     undo.cpp \
+    unitstat_form.cpp \
     view.cpp \
     figure.cpp \
     res_file.cpp \
@@ -108,6 +109,7 @@ HEADERS += \
     objects/torch.h \
     objects/unit.h \
     undo.h \
+    unitstat_form.h \
     view.h \
     figure.h \
     types.h \
@@ -132,7 +134,8 @@ FORMS += \
         select_window.ui \
         settings.ui \
         mob/mob_parameters.ui \
-        mob/range_dialog.ui
+        mob/range_dialog.ui \
+        unitstat_form.ui
 
 LIBS += -lglu32 -lopengl32
 # Default rules for deployment.

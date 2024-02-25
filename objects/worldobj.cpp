@@ -323,16 +323,6 @@ void CWorldObj::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENode
     if (comm != eWorldObject)
         return;
 
-//    QJsonArray arrPart;
-//    for(auto& part : m_aPart)
-//    {
-//        arrPart.append(part->name());
-//    }
-//    QJsonObject obj;
-//    obj.insert("parts", arrPart);
-//    QJsonDocument doc(obj);
-//    util::addParam(aParam, eObjParam_BODYPARTS, QString(doc.toJson(QJsonDocument::Compact)));
-
     if(nodeType() == eUnit || nodeType() == eMagicTrap) //show player group only for Units and Traps(traps works only for enemy)
     {
         propChar dipNum(eObjParam_PLAYER, m_player);
@@ -344,6 +334,13 @@ void CWorldObj::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENode
     util::addParam(aProp, &name);
     propStr model(eObjParam_TEMPLATE, m_modelName);
     util::addParam(aProp, &model); //TODO: process this prop as true model with parts of assembly
+    if(nodeType() != eMagicTrap)
+    {//bodyparts
+        QMap<QString, QSharedPointer<propBool>> arrBodyPart;
+        util::bodyPartToProp(arrBodyPart, m_modelName, m_bodyParts);
+        propBodyPart bodyPart(eObjParam_BODYPARTS, arrBodyPart);
+        util::addBodyPartParam(aProp, &bodyPart);
+    }
     propStr parentTemplate(eObjParam_PARENT_TEMPLATE, m_parentTemplate);
     util::addParam(aProp, &parentTemplate);
     propStr primTexture(eObjParam_PRIM_TXTR, m_primaryTexture);
@@ -384,7 +381,9 @@ void CWorldObj::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType
     {
     case eObjParam_BODYPARTS:
     {
-        prop.reset(new propStrAr(propType, m_bodyParts));
+        QMap<QString, QSharedPointer<propBool>> arrBodyPart;
+        util::bodyPartToProp(arrBodyPart, m_modelName, m_bodyParts);
+        prop.reset(new propBodyPart(eObjParam_BODYPARTS, arrBodyPart));
         break;
     }
     case eObjParam_PLAYER:
@@ -484,7 +483,7 @@ void CWorldObj::applyParam(const QSharedPointer<IPropertyBase>& prop)
     {
     case eObjParam_BODYPARTS:
     {
-        m_bodyParts = dynamic_cast<propStrAr*>(prop.get())->value();
+        util::propToBodyPart(m_bodyParts, dynamic_cast<propBodyPart*>(prop.get())->value());
         recalcFigure();
         updatePos(m_position);
         break;

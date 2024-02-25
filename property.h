@@ -78,25 +78,6 @@ private:
     QStringList m_value;
 };
 
-class CPropertyPartArray: public IPropertyBase
-{
-public:
-    CPropertyPartArray() = delete;
-    CPropertyPartArray(EObjParam type): IPropertyBase(type) {}
-    CPropertyPartArray(EObjParam type, const QMap<QString, char>& list): IPropertyBase(type, true), m_value(list) {}
-    ~CPropertyPartArray() {}
-    IPropertyBase* clone() const override;
-    bool isEqual(const IPropertyBase* pProp) const override final;
-    bool isEqual(const QString str) const override final;
-    QString toString() override final;
-    void resetFromString(const QString& value) override final;
-    QSharedPointer<IPropertyBase> createEmptyCopy() override final;
-
-    const QMap<QString, char>& value() const {Q_ASSERT(m_bInit); return m_value;}
-private:
-    QMap<QString, char> m_value;
-};
-
 template<class T> class CPropertyNumber final: public IPropertyBase
 {
 public:
@@ -139,6 +120,12 @@ public:
     QString toString() override final
     {
         return QString::number(m_value);// QVariant(m_value).toString();
+    }
+
+    void resetValue(T value)
+    {
+        m_value = value;
+        m_bInit = true;
     }
 
     void resetFromString(const QString& value) override final
@@ -207,9 +194,9 @@ private:
     QVector<QSharedPointer<IPropertyBase>> m_value; //51
 };
 
+
 typedef CPropertyString propStr;
 typedef CPropertyStringArray propStrAr;
-typedef CPropertyPartArray propPart;
 typedef CProperty3D prop3D;
 typedef CPropertyUnitStat propUnitStat;
 typedef CPropertyNumber<bool> propBool;
@@ -218,5 +205,27 @@ typedef CPropertyNumber<float> propFloat;
 typedef CPropertyNumber<uint> propUint;
 typedef CPropertyNumber<int> propInt;
 //typedef CPropertyNumber<EBehaviourType> propBehaviour; // use propUint instead
+
+class CPropertyObjectParts: public IPropertyBase
+{
+public:
+    CPropertyObjectParts() = delete;
+    CPropertyObjectParts(EObjParam type): IPropertyBase(type) {m_value.clear();}
+    CPropertyObjectParts(EObjParam type, const QMap<QString, QSharedPointer<propBool>>& val): IPropertyBase(type, true), m_value(val) {}
+    ~CPropertyObjectParts() {}
+    IPropertyBase* clone() const override;
+    bool isEqual(const IPropertyBase* pProp) const override final;
+    bool isEqual(const QString str) const override final;
+    QString toString() override final;
+    void resetFromString(const QString& value) override final;
+    QSharedPointer<IPropertyBase> createEmptyCopy() override final;
+    const QMap<QString, QSharedPointer<propBool>>& value() const {Q_ASSERT(m_bInit); return m_value;}
+    void mergePartDataFromProp(CPropertyObjectParts* partFrom);
+
+private:
+    QMap<QString, QSharedPointer<propBool>> m_value;
+};
+
+typedef CPropertyObjectParts propBodyPart;
 
 #endif // IPROPERTYBASE_H

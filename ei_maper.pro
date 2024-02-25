@@ -25,8 +25,10 @@ TEMPLATE = app
 CONFIG += c++11
 
 SOURCES += \
+    bodypartedit_form.cpp \
     createobjectform.cpp \
     key_manager.cpp \
+    layout_components/bodypart_checkbox.cpp \
     layout_components/connectors_ui.cpp \
     layout_components/dynamiccombobox.cpp \
     layout_components/progressview.cpp \
@@ -76,8 +78,10 @@ SOURCES += \
     mob/range_dialog.cpp
 
 HEADERS += \
+    bodypartedit_form.h \
     createobjectform.h \
     key_manager.h \
+    layout_components/bodypart_checkbox.h \
     layout_components/connectors_ui.h \
     layout_components/dynamiccombobox.h \
     layout_components/progressview.h \
@@ -126,6 +130,7 @@ HEADERS += \
     mob/range_dialog.h
 
 FORMS += \
+        bodypartedit_form.ui \
         createobjectform.ui \
         main_window.ui \
         multiline_edit_form.ui \

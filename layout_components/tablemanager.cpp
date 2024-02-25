@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "multiline_edit_form.h"
 #include "unitstat_form.h"
+#include "bodypartedit_form.h"
 
 CTableManager::CTableManager(QTableWidget* pTable):
     m_pTable(pTable)
@@ -277,6 +278,20 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
             break;
         }
         case eObjParam_PRIM_TXTR:
+        {
+            m_pTable->insertRow(i);
+            m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[type]));
+            blockEditWidget(m_pTable->item(i, 0));
+            CComboDynItem* pCombo = new CComboDynItem(item);
+            QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
+            m_pTable->setCellWidget(i, 1, pCombo);
+            ++i;
+            break;
+        }
+        case eObjParam_BODYPARTS:
+        { //this case process below
+            break;
+        }
         case eObjParam_TEMPLATE:
         {
             m_pTable->insertRow(i);
@@ -286,6 +301,20 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
             QObject::connect(pCombo, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
             m_pTable->setCellWidget(i, 1, pCombo);
             ++i;
+            if(item->isInit())
+            {
+                auto bodyPart = util::constProp(aProp, eObjParam_BODYPARTS);
+                if(!bodyPart.isNull())
+                {
+                    m_pTable->insertRow(i);
+                    m_pTable->setItem(i, 0, new QTableWidgetItem(m_aRowName[eObjParam_BODYPARTS]));
+                    blockEditWidget(m_pTable->item(i, 0));
+                    CBodyPartItem* pPart = new CBodyPartItem(bodyPart);
+                    QObject::connect(pPart, SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
+                    m_pTable->setCellWidget(i, 1, pPart);
+                    ++i;
+                }
+            }
             break;
         }
 //        case eObjParam_TRAP_CAST_INTERVAL:
@@ -795,6 +824,29 @@ void CUnitStatItem::onStatEditOpen()
 }
 
 void CUnitStatItem::_onParamChange(const QSharedPointer<IPropertyBase>& prop)
+{
+    emit onParamChange(prop);
+}
+
+CBodyPartItem::CBodyPartItem(const QSharedPointer<IPropertyBase>& prop)
+{
+    setText("Edit parts");
+    m_pValue.reset(prop->clone());
+    QObject::connect(this, SIGNAL(clicked()), this, SLOT(onPartEditOpen()));
+}
+
+void CBodyPartItem::onPartEditOpen()
+{
+    if(m_pPartForm.isNull())
+    {
+        m_pPartForm.reset(new CBodyPartEditForm());
+        QObject::connect(m_pPartForm.get(), SIGNAL(onApplyChangesSignal(QSharedPointer<IPropertyBase>)), this, SLOT(_onParamChange(QSharedPointer<IPropertyBase>)));
+    }
+    m_pPartForm->setPartData(m_pValue);
+    m_pPartForm->show();
+}
+
+void CBodyPartItem::_onParamChange(const QSharedPointer<IPropertyBase>& prop)
 {
     emit onParamChange(prop);
 }

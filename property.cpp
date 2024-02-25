@@ -151,53 +151,6 @@ QSharedPointer<IPropertyBase> CPropertyStringArray::createEmptyCopy()
     return QSharedPointer<IPropertyBase>(new CPropertyStringArray(m_type));
 }
 
-IPropertyBase* CPropertyPartArray::clone() const
-{
-    const propPart* pProp = dynamic_cast<const propPart*>(this);
-    if(nullptr == pProp)
-    {
-        Q_ASSERT("incorrect property convertion" && false);
-        return nullptr;
-    }
-    if(m_bInit)
-        return new propPart(type(), pProp->value());
-    else
-        return new propPart(type());
-}
-
-bool CPropertyPartArray::isEqual(const IPropertyBase* pProp) const
-{
-    if(!isValidProp(pProp, this))
-        return false;
-    if(const CPropertyPartArray* pValue = dynamic_cast<const CPropertyPartArray*>(pProp))
-        return m_value == pValue->value();
-
-    return false;
-}
-
-bool CPropertyPartArray::isEqual(const QString str) const
-{
-    QSharedPointer<propPart> pData(new propPart(type(), m_value));
-    pData->resetFromString(str);
-    return isEqual(pData.get());
-}
-
-QString CPropertyPartArray::toString()
-{
-    Q_ASSERT(false && "todo: implement");
-    return QString();
-}
-
-void CPropertyPartArray::resetFromString(const QString &value)
-{
-    Q_ASSERT(false && "todo: implement");
-}
-
-QSharedPointer<IPropertyBase> CPropertyPartArray::createEmptyCopy()
-{
-    return QSharedPointer<IPropertyBase>(new CPropertyPartArray(m_type));
-}
-
 bool IPropertyBase::isValidProp(const IPropertyBase* pPropA, const IPropertyBase* pPropB) const
 {
     if(!pPropA->isInit() || !pPropB->isInit())
@@ -275,7 +228,6 @@ IPropertyBase *CPropertyUnitStat::clone() const
     }
     if(m_bInit)
     {
-        CPropertyUnitStat stat(m_type, m_value);
         return new CPropertyUnitStat(type(), pProp->value());
     }
     else
@@ -288,7 +240,7 @@ bool CPropertyUnitStat::isEqual(const IPropertyBase *pProp) const
     const auto& arr = pData->value();
     for(int i(0); i<51; ++i)
     {
-        if (!m_value[0]->isEqual(arr[0].get()))
+        if (!m_value[i]->isEqual(arr[i].get()))
             return false;
     }
     return true;
@@ -321,4 +273,74 @@ QSharedPointer<IPropertyBase> CPropertyUnitStat::createEmptyCopy()
 void CPropertyUnitStat::resetValue(const QVector<QSharedPointer<IPropertyBase>> &val)
 {
     m_value = val;
+}
+
+IPropertyBase *CPropertyObjectParts::clone() const
+{
+    const CPropertyObjectParts* pProp = dynamic_cast<const CPropertyObjectParts*>(this);
+    if(nullptr == pProp)
+    {
+        Q_ASSERT("incorrect property convertion" && false);
+        return nullptr;
+    }
+    if(m_bInit)
+    {
+        return new CPropertyObjectParts(type(), pProp->value());
+    }
+    else
+        return new CPropertyUnitStat(type());
+}
+
+bool CPropertyObjectParts::isEqual(const IPropertyBase *pProp) const
+{
+    const CPropertyObjectParts* pData = dynamic_cast<const CPropertyObjectParts*>(pProp);
+    const auto& arr = pData->value();
+    if(arr.size() != m_value.size())
+        return false;
+
+    for(auto& part:arr.keys())
+    {
+        if (!m_value[part]->isEqual(arr[part].get()))
+            return false;
+    }
+    return true;
+
+}
+
+bool CPropertyObjectParts::isEqual(const QString str) const
+{
+    //todo
+    Q_ASSERT(false);
+    return false;
+}
+
+QString CPropertyObjectParts::toString()
+{
+    //todo
+    return QString("");
+}
+
+void CPropertyObjectParts::resetFromString(const QString &value)
+{
+    //todo
+    return;
+}
+
+QSharedPointer<IPropertyBase> CPropertyObjectParts::createEmptyCopy()
+{
+    return QSharedPointer<IPropertyBase>(new CPropertyObjectParts(m_type));
+}
+
+void CPropertyObjectParts::mergePartDataFromProp(CPropertyObjectParts* partFrom)
+{
+    auto mapPart = partFrom->value();
+    Q_ASSERT(mapPart.keys() == m_value.keys());
+    for(auto& key : m_value.keys())
+    {
+        if(!m_value[key]->isInit())
+            continue;
+
+        if(!m_value[key]->isEqual(mapPart[key].get()))
+            m_value[key]->reset();
+    }
 }

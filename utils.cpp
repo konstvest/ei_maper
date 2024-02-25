@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "resourcemanager.h" //TODO: delete this (now it uses only for valuediff)
 #include "property.h"
+#include "figure.h"
 
 // float number validation regext: (\d+)?\.?\d+
 
@@ -1087,7 +1088,7 @@ void util::addParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* 
     return;
 }
 
-void util::addUnitStatParam(QList<QSharedPointer<IPropertyBase> > &aProp, IPropertyBase *pProp)
+void util::addUnitStatParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp)
 {
     Q_ASSERT(pProp->type() == eObjParam_UNIT_STATS);
     //firstly, check if prop already exists in list
@@ -1263,4 +1264,59 @@ void util::propListToUnitStat(SUnitStat& stat, const QVector<QSharedPointer<IPro
     if(val[48]->isInit()) stat.MagicalSkill_3      = dynamic_cast<propChar*>(val[48].get())->value();
     if(val[49]->isInit()) stat.empty2              = dynamic_cast<propChar*>(val[49].get())->value();
     if(val[50]->isInit()) stat.empty3              = dynamic_cast<propChar*>(val[50].get())->value();
+}
+
+void util::bodyPartToProp(QMap<QString, QSharedPointer<propBool>>& arrBodyPart, const QString& modelName, const QStringList& bodyParts)
+{
+    arrBodyPart.clear();
+    QStringList arrModelPart;
+    CObjectList::getInstance()->getFigure(modelName)->getPartNames(arrModelPart);
+    for(auto& part: arrModelPart)
+    {
+        arrBodyPart[part] = QSharedPointer<propBool>(new propBool(eObjParam_BODYPARTS, bodyParts.empty() || bodyParts.contains(part)));
+    }
+}
+
+void util::addBodyPartParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp)
+{
+    auto pTemplate = constProp(aProp, eObjParam_TEMPLATE);
+    if(!pTemplate->isInit())
+        return;
+
+    bool bFound = false;
+    for(auto& prop : aProp)
+    {
+        if(prop->type() == eObjParam_BODYPARTS)
+        {
+            auto propFrom = dynamic_cast<propBodyPart*>(pProp);
+            dynamic_cast<propBodyPart*>(prop.get())->mergePartDataFromProp(propFrom);
+            bFound = true;
+            break;
+        }
+    }
+    if(!bFound)
+    {
+        aProp.append(QSharedPointer<IPropertyBase>(pProp->clone()));
+    }
+}
+
+void util::propToBodyPart(QStringList& bodyParts, const QMap<QString, QSharedPointer<propBool> >& arrBodyPart)
+{
+    //bodyParts.clear();
+    QStringList partNew;
+    for(auto& item: arrBodyPart.toStdMap())
+    {
+        if(!item.second->isInit()) // check if previous state has this part
+        {
+            if(bodyParts.contains(item.first))
+                partNew.append(item.first);
+
+            continue;
+        }
+
+        if(item.second->value())
+            partNew.append(item.first);
+    }
+    bodyParts = partNew;
+
 }

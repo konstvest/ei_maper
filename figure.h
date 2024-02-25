@@ -46,6 +46,7 @@ public:
     QString& name() {return m_name;}
     void setOffset(QVector<QVector3D>& offset) {m_offset = offset; }
     QVector<QVector3D>& offset() {return m_offset; }
+    void getPartNames(QStringList& arrBodyParts);
 
 private:
     void generateTriangles(QVector<SVertexData>& aVrtData, QVector<QVector3D>& aMorphVertex);

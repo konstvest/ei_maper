@@ -8,6 +8,7 @@ CBodyPartEditForm::CBodyPartEditForm(QWidget *parent) :
     ui(new Ui::CBodyPartEditForm)
 {
     ui->setupUi(this);
+    setWindowTitle("Bodypart visibility");
 }
 
 CBodyPartEditForm::~CBodyPartEditForm()
@@ -46,7 +47,7 @@ void CBodyPartEditForm::reset()
     header.append("");
     ui->tablePart->setHorizontalHeaderLabels(header);
     ui->tablePart->horizontalHeader()->setVisible(true);
-    //ui->tablePart->horizontalHeader()->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    ui->tablePart->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->tablePart->setColumnWidth(1, 8);
     ui->tablePart->verticalHeader()->hide();
 }

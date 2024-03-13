@@ -485,11 +485,17 @@ void CTableManager::setNewData(const QList<QSharedPointer<IPropertyBase>>& aProp
 
 void CColorButtonItem::applyColor()
 {
-    QColor color = QColorDialog::getColor(Qt::black);
+    QColor initColor(Qt::black);
+    if(m_pValue->isInit())
+    {
+        const auto& clr = dynamic_cast<prop3D*>(m_pValue.get())->value();
+        initColor = QColor(clr.x()*255, clr.y()*255, clr.z()*255);
+    }
+    QColor color = QColorDialog::getColor(initColor);
     if(color.isValid())
     {
         updateColor(color);
-        dynamic_cast<prop3D*>(m_pValue.get())->setValue(color.red(), color.green(), color.blue());
+        dynamic_cast<prop3D*>(m_pValue.get())->setValue(color.redF(), color.greenF(), color.blueF());
         emit onColorChange(m_pValue);
     }
 }
@@ -503,7 +509,10 @@ CColorButtonItem::CColorButtonItem(const QSharedPointer<IPropertyBase>& prop)
         m_pValue.reset(new prop3D(prop->type(), 0.0f, 0.0f, 0.0f)); //todo: display value dif
     }
     const auto& clr = dynamic_cast<prop3D*>(m_pValue.get())->value();
-    QColor color(clr.x(), clr.y(), clr.z());
+    QColor color;
+    color.setRedF(clr.x());
+    color.setGreenF(clr.y());
+    color.setBlueF(clr.z());
     updateColor(color);
     QObject::connect(this, SIGNAL(clicked()), this, SLOT(applyColor()));
 }
@@ -544,16 +553,6 @@ void CValueItem::onTextChangeEnd()
     m_filter->updateValue(val);
     emit onParamChange(m_pValue);
 }
-
-//CDataItem::CDataItem(IPropertyBase *pProp)
-//{
-//    QObject::connect(this, SIGNAL(clicked()), this, SLOT(hello()));
-//}
-
-//void CDataItem::hello()
-//{
-//    qDebug() << m_pValue->toString();
-//}
 
 CComboStItem::CComboStItem(const QSharedPointer<IPropertyBase>& prop)
 {

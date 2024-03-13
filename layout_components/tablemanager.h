@@ -156,24 +156,6 @@ private:
     QSharedPointer<IPropertyBase> m_zValue; //stored value;
 };
 
-class CDataItem : public QToolButton
-        // make "edit" button for changing
-{
-    Q_OBJECT
-public:
-    CDataItem() {}; // = delete;
-    //CDataItem(IPropertyBase* pProp); //todo: data pointer
-
-private:
-    void hello() {};
-
-private:
-    // part list (QString, value[true,false,undefined])
-    // unit stats (table with value\different)
-    // string array (list of strings | "Selected units have different data. Input text will replace data for all selected units")
-    //QSharedPointer<IPropertyBase> m_pValue; //stored value;
-};
-
 class CColorButtonItem : public QToolButton
 {
     Q_OBJECT

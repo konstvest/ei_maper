@@ -5,9 +5,13 @@
 #include <QVector>
 #include <QString>
 #include <QSharedPointer>
+#include <QStringList>
 #include "types.h"
+#include "property.h"
 
 #define EPS 0.0000001
+
+class IPropertyBase;
 
 namespace util
 {
@@ -15,13 +19,16 @@ namespace util
 void formatStream(QDataStream& stream);
 void qNormalizeAngle(int& angle);
 void normalizeAngle(float& angle);
+QQuaternion eulerToQuat(const QVector3D& rot);
 void getCirclePoint(QVector<QVector3D>& aPoint, const QVector3D centr, const double radius, const int nPoint);
 void splitByLen(QVector<QVector3D>& aPoint, float len);
 bool isEqual(const double& a, const double& b, double Eps = EPS);
 QString makeString(const QVector3D& vec, bool bFormat = true);
 QString makeString(QVector4D& vec);
-QString makeString(QVector<QString>& vec);
-QVector<QString> strListFromString(QString string);
+QString makeString(QList<QString>& vec);
+QStringList strArrFromString(QString string);
+QString makeString(QStringList& vec);
+QList<QString> strListFromString(QString string);
 QString makeString(bool value);
 QString makeString(const QVector<SArea>& aArea);
 QString makeString(const QVector<QVector2D>& aPoint);
@@ -39,8 +46,19 @@ QColor stringToColor(const QString& string);
 QString colorToString(const QColor& color);
 
 void addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString str);
+void addParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp);
+void addUnitStatParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp);
+void addBodyPartParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp);
 QVector3D getMinValue(const QVector3D& vec1, const QVector3D& vec2);
 QVector3D getMaxValue(const QVector3D& vec1, const QVector3D& vec2);
+void removeProp(QList<QSharedPointer<IPropertyBase>>& aProp, EObjParam type);
+const QSharedPointer<IPropertyBase>& constProp(const QList<QSharedPointer<IPropertyBase>>& aProp, EObjParam type);
+void propListToUnitStat(SUnitStat& stat, const QVector<QSharedPointer<IPropertyBase>>& val);
+void bodyPartToProp(QMap<QString, QSharedPointer<propBool>>& arrBodyPart, const QString& modelName, const QStringList& bodyParts);
+void propToBodyPart(QStringList& bodyParts, const QMap<QString, QSharedPointer<propBool>>& arrBodyPart);
+
+float randomFloat(float a, float b);
+
 
 enum EType
 {
@@ -120,8 +138,8 @@ public:
     uint readRectangle(SRectangle& data);
     uint readString(QString& data, uint len);
     uint writeString(const QString& data);
-    uint readStringArray(QVector<QString>& data);
-    uint writeStringArray(const QVector<QString>& data, QString keyName);
+    uint readStringArray(QList<QString>& data);
+    uint writeStringArray(const QList<QString>& data, QString keyName);
     uint readStringEncrypted(QString& data, uint& key, uint len);
     uint writeStringEncrypted(const QString& data, uint key);
     uint readUnitStats(QSharedPointer<SUnitStat>& data, uint len);

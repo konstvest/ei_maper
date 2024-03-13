@@ -25,11 +25,19 @@ TEMPLATE = app
 CONFIG += c++11
 
 SOURCES += \
+    bodypartedit_form.cpp \
     createobjectform.cpp \
-    dynamiccombobox.cpp \
     key_manager.cpp \
+    layout_components/bodypart_checkbox.cpp \
+    layout_components/connectors_ui.cpp \
+    layout_components/dynamiccombobox.cpp \
+    layout_components/progressview.cpp \
+    layout_components/tree_view.cpp \
+    layout_components/tablemanager.cpp \
+    multiline_edit_form.cpp \
+    randomize_form.cpp \
+    property.cpp \
     main_window.cpp \
-    mob_parameters.cpp \
     objects/lever.cpp \
     objects/light.cpp \
     log.cpp \
@@ -43,23 +51,18 @@ SOURCES += \
     part.cpp \
     objects/particle.cpp \
     preview.cpp \
-    progressview.cpp \
-    range_dialog.cpp \
     resourcemanager.cpp \
     round_mob_form.cpp \
     scene.cpp \
-    script_editor.cpp \
     sector.cpp \
     select_window.cpp \
     settings.cpp \
     objects/sound.cpp \
-    tablemanager.cpp \
     objects/torch.cpp \
     objects/unit.cpp \
-    tree_view.cpp \
     types.cpp \
-    ui_connectors.cpp \
     undo.cpp \
+    unitstat_form.cpp \
     view.cpp \
     figure.cpp \
     res_file.cpp \
@@ -68,15 +71,25 @@ SOURCES += \
     landscape.cpp \
     view_keybinding.cpp \
     camera.cpp \
-    mob.cpp \
-    objects/worldobj.cpp
+    objects/worldobj.cpp \
+    mob/mob_parameters.cpp \
+    mob/mob.cpp \
+    mob/script_editor.cpp \
+    mob/range_dialog.cpp
 
 HEADERS += \
+    bodypartedit_form.h \
     createobjectform.h \
-    dynamiccombobox.h \
     key_manager.h \
+    layout_components/bodypart_checkbox.h \
+    layout_components/connectors_ui.h \
+    layout_components/dynamiccombobox.h \
+    layout_components/progressview.h \
+    layout_components/tree_view.h \
+    layout_components/tablemanager.h \
+    multiline_edit_form.h \
+    randomize_form.h \
     main_window.h \
-    mob_parameters.h \
     objects/lever.h \
     objects/light.h \
     log.h \
@@ -89,22 +102,18 @@ HEADERS += \
     part.h \
     objects/particle.h \
     preview.h \
-    progressview.h \
-    range_dialog.h \
+    property.h \
     resourcemanager.h \
     round_mob_form.h \
     scene.h \
-    script_editor.h \
     sector.h \
     select_window.h \
     settings.h \
     objects/sound.h \
-    tablemanager.h \
     objects/torch.h \
     objects/unit.h \
-    tree_view.h \
-    ui_connectors.h \
     undo.h \
+    unitstat_form.h \
     view.h \
     figure.h \
     types.h \
@@ -114,17 +123,24 @@ HEADERS += \
     utils.h \
     landscape.h \
     camera.h \
-    mob.h \
-    objects/worldobj.h
+    objects/worldobj.h \
+    mob/mob_parameters.h \
+    mob/mob.h \
+    mob/script_editor.h \
+    mob/range_dialog.h
 
 FORMS += \
+        bodypartedit_form.ui \
         createobjectform.ui \
         main_window.ui \
-        mob_parameters.ui \
-        range_dialog.ui \
+        multiline_edit_form.ui \
+        randomize_form.ui \
         round_mob_form.ui \
         select_window.ui \
-        settings.ui
+        settings.ui \
+        mob/mob_parameters.ui \
+        mob/range_dialog.ui \
+        unitstat_form.ui
 
 LIBS += -lglu32 -lopengl32
 # Default rules for deployment.

@@ -159,7 +159,7 @@
   <customwidget>
    <class>CDynamicComboBox</class>
    <extends>QComboBox</extends>
-   <header>dynamiccombobox.h</header>
+   <header>layout_components/dynamiccombobox.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

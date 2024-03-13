@@ -337,6 +337,7 @@
     <addaction name="actionRedo"/>
     <addaction name="actionReset_cam_position"/>
     <addaction name="actionCopy_IDs_to_clipboard"/>
+    <addaction name="actionRandomize_parameter"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="enabled">
@@ -533,18 +534,23 @@
     <string>Reset &amp;logic paths</string>
    </property>
   </action>
+  <action name="actionRandomize_parameter">
+   <property name="text">
+    <string>Randomize parameter</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>CProgressView</class>
    <extends>QProgressBar</extends>
-   <header>progressview.h</header>
+   <header>layout_components/progressview.h</header>
   </customwidget>
   <customwidget>
    <class>CTreeView</class>
    <extends>QTreeWidget</extends>
-   <header>tree_view.h</header>
+   <header>layout_components/tree_view.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -1,6 +1,7 @@
 #include <QJsonArray>
 #include "sound.h"
 #include "resourcemanager.h"
+#include "property.h"
 
 CSound::CSound():
     m_range(0)
@@ -190,110 +191,115 @@ uint CSound::serialize(util::CMobParser& parser)
     return writeByte;
 }
 
-void CSound::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CSound::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
-    CObjectBase::collectParams(aParam, paramType);
+    CObjectBase::collectParams(aProp, paramType);
     auto comm = paramType & eSound;
     if (comm != eSound)
         return;
 
-    util::addParam(aParam, eObjParam_RANGE, QString::number(m_range));
-    util::addParam(aParam, eObjParam_SOUND_MIN, QString::number(m_min));
-    util::addParam(aParam, eObjParam_SOUND_MAX, QString::number(m_max));
-    util::addParam(aParam, eObjParam_SOUND_RESNAME, util::makeString(m_aResName));
-    util::addParam(aParam, eObjParam_SOUND_RANGE, QString::number(m_range2));
-    util::addParam(aParam, eObjParam_SOUND_AMBIENT, util::makeString(m_bAmbient));
-    util::addParam(aParam, eObjParam_SOUND_IS_MUSIC, util::makeString(m_bMusic));
+    propUint range(eObjParam_RANGE, m_range);
+    util::addParam(aProp, &range);
+    propUint min(eObjParam_SOUND_MIN, m_min);
+    util::addParam(aProp, &min);
+    propUint max(eObjParam_SOUND_MAX, m_max);
+    util::addParam(aProp, &max);
+    propStrAr aResName(eObjParam_SOUND_RESNAME, m_aResName);
+    util::addParam(aProp, &aResName);
+    propUint range2(eObjParam_SOUND_RANGE, m_range2);
+    util::addParam(aProp, &range2);
+    propBool bAmbient(eObjParam_SOUND_AMBIENT, m_bAmbient);
+    util::addParam(aProp, &bAmbient);
+    propBool bMusic(eObjParam_SOUND_IS_MUSIC, m_bMusic);
+    util::addParam(aProp, &bMusic);
 }
 
-void CSound::applyParam(EObjParam param, const QString &value)
+void CSound::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    switch (param)
+    switch (propType)
     {
     case eObjParam_RANGE:
     {
-        m_range = value.toInt();
+        prop.reset(new propUint(propType, m_range));
         break;
     }
     case eObjParam_SOUND_MIN:
     {
-        m_min = value.toInt();
+        prop.reset(new propUint(propType, m_min));
         break;
     }
     case eObjParam_SOUND_MAX:
     {
-        m_max = value.toInt();
+        prop.reset(new propUint(propType, m_max));
         break;
     }
     case eObjParam_SOUND_RESNAME:
     {
-        m_aResName = util::strListFromString(value);
+        prop.reset(new propStrAr(propType, m_aResName));
         break;
     }
     case eObjParam_SOUND_RANGE:
     {
-        m_range2 = value.toInt();
+        prop.reset(new propUint(propType, m_range2));
         break;
     }
     case eObjParam_SOUND_AMBIENT:
     {
-        m_bAmbient = util::boolFromString(value);
+        prop.reset(new propBool(propType, m_bAmbient));
         break;
     }
     case eObjParam_SOUND_IS_MUSIC:
     {
-        m_bMusic = util::boolFromString(value);
+        prop.reset(new propBool(propType, m_bMusic));
         break;
     }
     default:
-        CObjectBase::applyParam(param, value);
+        CObjectBase::getParam(prop, propType);
     }
 }
 
-QString CSound::getParam(EObjParam param)
+void CSound::applyParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    QString value;
-    switch (param)
+    switch (prop->type())
     {
     case eObjParam_RANGE:
     {
-        value = QString::number(m_range);
+        m_range = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_SOUND_MIN:
     {
-        value = QString::number(m_min);
+        m_min = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_SOUND_MAX:
     {
-        value = QString::number(m_max);
+        m_max = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_SOUND_RESNAME:
     {
-        value = util::makeString(m_aResName);
+        m_aResName = dynamic_cast<propStrAr*>(prop.get())->value();
         break;
     }
     case eObjParam_SOUND_RANGE:
     {
-        value = QString::number(m_range2);
+        m_range2 = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_SOUND_AMBIENT:
     {
-        value = util::makeString(m_bAmbient);
+        m_bAmbient = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     case eObjParam_SOUND_IS_MUSIC:
     {
-        value = util::makeString(m_bMusic);
+        m_bMusic = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     default:
-        value = CObjectBase::getParam(param);
+        CObjectBase::applyParam(prop);
     }
-    return value;
 }
 
 QJsonObject CSound::toJson()

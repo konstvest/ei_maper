@@ -351,7 +351,7 @@
   <customwidget>
    <class>CScriptEditor</class>
    <extends>QPlainTextEdit</extends>
-   <header>script_editor.h</header>
+   <header>mob/script_editor.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

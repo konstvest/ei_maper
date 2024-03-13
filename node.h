@@ -11,8 +11,10 @@
 #include "types.h"
 #include "utils.h"
 #include "figure.h"
+//#include "property.h"
 
 class CMob;
+class IPropertyBase;
 
 class CNode : public QObject
 {
@@ -36,12 +38,12 @@ public:
     virtual void loadTexture() = 0;
     virtual void serializeJson(QJsonObject& obj) = 0;
     virtual uint serialize(util::CMobParser& parser) = 0;
-    virtual void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) = 0;
-    virtual void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) = 0;
-    virtual void applyParam(EObjParam param, const QString& value) = 0;
-    virtual QString getParam(EObjParam param) = 0;
-    virtual QString getLogicParam(EObjParam param) = 0;
-    virtual void applyLogicParam(EObjParam param, const QString& value) = 0;
+    virtual void collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) = 0;
+    virtual void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) = 0;
+    virtual void getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) = 0;
+    virtual void applyParam(const QSharedPointer<IPropertyBase>& prop) = 0;
+    virtual void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) = 0;
+    virtual void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) = 0;
     virtual bool updatePos(QVector3D& pos) = 0;
     virtual const QVector3D& complection() = 0;
     virtual void setConstitution(QVector3D& vec) = 0;
@@ -52,6 +54,7 @@ public:
     virtual bool isMarkDeleted() = 0;
 
     virtual void setRot(const QQuaternion& quat) {m_rotation = quat;}
+    virtual void setDrawPosition(QVector3D pos) {m_drawPosition = pos;}
 
     const uint& innerId() {return m_id; }
     const uint& mapId(){return m_mapID;}
@@ -67,7 +70,6 @@ public:
     void move(float x, float y, float z);
     QVector3D& position() {return m_position; }
     QVector3D& drawPosition() {return m_drawPosition;}
-    void setDrawPosition(QVector3D pos) {m_drawPosition = pos;}
     void setState(ENodeState state) {m_state = state;}
     ENodeState nodeState() {return m_state;}
 

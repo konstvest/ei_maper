@@ -1,11 +1,12 @@
 #include "objects\object_base.h"
 #include <QJsonArray>
 #include <QString>
-#include "mob.h"
+#include "mob\mob.h"
 #include "landscape.h"
 #include "view.h"
 #include "log.h"
 #include "resourcemanager.h"
+#include "property.h"
 
 CObjectBase::CObjectBase(): 
   m_modelName("")
@@ -306,44 +307,117 @@ void CObjectBase::setRot(const QQuaternion& quat)
     recalcMinPos();
 }
 
-void CObjectBase::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CObjectBase::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     Q_UNUSED(paramType);
-    util::addParam(aParam, eObjParam_NID, QString::number(m_mapID));
-
-    util::addParam(aParam, eObjParam_COMMENTS, m_comment);
-    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+    propUint mapId(eObjParam_NID, m_mapID);
+    util::addParam(aProp, &mapId);
+    propStr comment(eObjParam_COMMENTS, m_comment);
+    util::addParam(aProp, &comment);
+    //prop3D pos(eObjParam_POSITION, m_position);
+    propFloat posX(eObjParam_POSITION_X, m_position.x());
+    util::addParam(aProp, &posX);
+    propFloat posY(eObjParam_POSITION_Y, m_position.y());
+    util::addParam(aProp, &posY);
+    propFloat posZ(eObjParam_POSITION_Z, m_position.z());
+    util::addParam(aProp, &posZ);
 }
 
-void CObjectBase::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CObjectBase::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
-    Q_UNUSED(aParam);
+    Q_UNUSED(aProp);
     Q_UNUSED(paramType);
-    Q_ASSERT(false);
+    Q_ASSERT(false && "todo: implement");
 }
 
-void CObjectBase::applyParam(EObjParam param, const QString &value)
+void CObjectBase::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-
-    switch (param){
+    switch (propType){
     case eObjParam_NID:
     {
-        m_mapID = value.toUInt();
+        prop.reset(new propUint(propType, m_mapID));
         break;
     }
     case eObjParam_NAME:
     {
-        m_name = value;
-        break;
-    }
-    case eObjParam_COMMENTS:
-    {
-        m_comment = value;
+        prop.reset(new propStr(propType, m_name));
         break;
     }
     case eObjParam_POSITION:
     {
-        QVector3D pos = util::vec3FromString(value);
+        prop.reset(new prop3D(propType, m_position));
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        prop.reset(new propFloat(propType, m_position.x()));
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        prop.reset(new propFloat(propType, m_position.y()));
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        prop.reset(new propFloat(propType, m_position.z()));
+        break;
+    }
+    case eObjParam_COMMENTS:
+    {
+        prop.reset(new propStr(propType, m_comment));
+        break;
+    }
+    default:
+        Q_ASSERT(false);
+    }
+}
+
+void CObjectBase::applyParam(const QSharedPointer<IPropertyBase>& prop)
+{
+    switch (prop->type()) {
+    case eObjParam_NID:
+    {
+        m_mapID = dynamic_cast<const propUint*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_NAME:
+    {
+        m_name = dynamic_cast<const propStr*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_COMMENTS:
+    {
+        m_comment = dynamic_cast<const propStr*>(prop.get())->value();
+        break;
+    }
+    case eObjParam_POSITION:
+    {
+        QVector3D pos = dynamic_cast<const prop3D*>(prop.get())->value();
+        updatePos(pos);
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setX(val);
+        updatePos(pos);
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setY(val);
+        updatePos(pos);
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setZ(val);
         updatePos(pos);
         break;
     }
@@ -351,50 +425,19 @@ void CObjectBase::applyParam(EObjParam param, const QString &value)
         //Q_ASSERT(false);
         break;
     }
-
 }
 
-QString CObjectBase::getParam(EObjParam param)
+void CObjectBase::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    QString value;
-    switch (param){
-    case eObjParam_NID:
-    {
-        value = QString::number(m_mapID);
-        break;
-    }
-    case eObjParam_NAME:
-    {
-        value = m_name;
-        break;
-    }
-    case eObjParam_POSITION:
-    {
-        value = util::makeString(m_position);
-        break;
-    }
-    case eObjParam_COMMENTS:
-    {
-        value = m_comment;
-        break;
-    }
-    default:
-        Q_ASSERT(false);
-    }
-    return value;
-}
-
-QString CObjectBase::getLogicParam(EObjParam param)
-{
-    Q_UNUSED(param);
+    Q_UNUSED(prop);
+    Q_UNUSED(propType);
     Q_ASSERT(false);
-    return "";
+    return;
 }
 
-void CObjectBase::applyLogicParam(EObjParam param, const QString &value)
+void CObjectBase::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    Q_UNUSED(param);
-    Q_UNUSED(value);
+    Q_UNUSED(prop);
     Q_ASSERT(false);
 }
 

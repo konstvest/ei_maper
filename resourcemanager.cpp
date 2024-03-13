@@ -637,3 +637,226 @@ QString valueDifferent()
 {
     return "<different>";
 }
+
+CResourceStringList* CResourceStringList::m_pResourceStringContainer = nullptr;
+
+CResourceStringList* CResourceStringList::getInstance()
+{
+    if(nullptr == m_pResourceStringContainer)
+        m_pResourceStringContainer = new CResourceStringList();
+    return m_pResourceStringContainer;
+}
+
+CResourceStringList::CResourceStringList()
+{
+    initResourceString();
+}
+
+bool CResourceStringList::getPropList(QMap<uint, QString>& map, const EObjParam propType)
+{
+    map.clear();
+    if(!m_propValueName.contains(propType))
+        return false;
+
+    map = m_propValueName[propType];
+    return true;
+}
+
+//todo: move string outside hard code to localization file
+void CResourceStringList::initResourceString()
+{
+    QMap<uint, QString> map;
+    map[0] = "Not active";
+    map[1] = "Hand";
+    map[2] = "Picklock (unused)";
+    map[4] = "Crowbar (unused)";
+    map[5] = "Hand or Crowbar";
+    map[8] = "Key";
+    map[9] = "Hand or Key";
+    m_propValueName[eObjParam_LEVER_SCIENCE_STATS_Type_Open] = map;
+
+    map.clear();
+    {
+        for(int i(0); i < 32; ++i)
+            map[i] = "Player-" + QString::number(i);
+    }
+    m_propValueName[eObjParam_PLAYER] = map;
+
+    map.clear();
+    map[0] = "False";
+    map[1] = "True";
+    m_propValueName[eObjParam_IS_SHADOW] = map;
+    m_propValueName[eObjParam_LEVER_IS_CYCLED] = map;
+    m_propValueName[eObjParam_LEVER_IS_DOOR] = map;
+    m_propValueName[eObjParam_USE_IN_SCRIPT] = map;
+    m_propValueName[eObjParam_LEVER_RECALC_GRAPH] = map;
+    m_propValueName[eObjParam_UNIT_NEED_IMPORT] = map;
+    m_propValueName[eObjParam_SOUND_AMBIENT] = map;
+    m_propValueName[eObjParam_SOUND_IS_MUSIC] = map;
+    m_propValueName[eObjParam_LIGHT_SHADOW] = map;
+    m_propValueName[eObjParam_TRAP_CAST_ONCE] = map;
+    m_propValueName[eObjParam_ALWAYS_ACTIVE] = map;
+
+    map.clear();
+    map[50] = "Human";
+    map[51] = "Animal";
+    map[52] = "Monstr";
+    m_propValueName[eObjParam_TYPE] = map;
+
+    map.clear();
+
+    map[8192] = "Fireball";
+    map[8193] = "Campfire";
+    map[8194] = "Fireblast";
+    map[8195] = "Fire";
+    map[8196] = "Smoke";
+    map[8197] = "Vulcansmoke";
+    map[8198] = "Healing";
+    map[8199] = "Poisonfog";
+    map[8200] = "Aggressionfog";
+    map[8201] = "Geyser";
+    map[8202] = "Tornado";
+    map[8203] = "Casting";
+    map[8204] = "Nuke";
+    map[8205] = "Bansheecasting";
+    map[8206] = "Mushroom";
+    map[8207] = "Blood1";
+    map[8208] = "Firewall";
+    map[8209] = "Firearrow";
+    map[8210] = "Acidray";
+    map[8211] = "Bluegas";
+    map[8212] = "Link";
+    map[8213] = "Sphereacid";
+    map[8214] = "Sphereelectricity";
+    map[8215] = "Spherefire";
+    map[8216] = "Clayring";
+    map[8217] = "Teleport";
+    map[8218] = "Antimagic";
+    map[8219] = "Modifier1";
+    map[8220] = "Modifier2";
+    map[8221] = "Modifier3";
+    map[8222] = "Modifier4";
+    map[8223] = "Modifier5";
+    map[8224] = "Modifier6";
+    map[8225] = "Modifier7";
+    map[8226] = "Modifier8";
+    map[8227] = "Modifier9";
+    map[8228] = "Modifier10";
+    map[8229] = "Modifier11";
+    map[8230] = "Modifier12";
+    map[8231] = "Castingfire";
+    map[8232] = "Castingelectricity";
+    map[8233] = "Castingacid";
+    map[8234] = "Castingdivination";
+    map[8235] = "Castingillusion";
+    map[8236] = "Castingdomination";
+    map[8237] = "Castingenchantment";
+    map[8238] = "Castinghealing";
+    map[8239] = "Castingfailed";
+    map[8240] = "Lightningblast";
+    map[8241] = "Blood2";
+    map[8242] = "Blood3";
+    map[8243] = "Blood4";
+    map[8244] = "A4bloodred";
+    map[8245] = "A4bloodgreen";
+    map[8246] = "A4bloodblue";
+    map[8247] = "A4bloodblack";
+    map[8248] = "Zoneexit";
+    map[8249] = "Path";
+    map[8250] = "Pathdestination";
+    map[8251] = "Pathfailed";
+    map[8252] = "Moshka";
+    map[8253] = "Portalstar";
+    map[8254] = "Portal";
+    map[8255] = "Cylinder1";
+    map[8256] = "Cylinder2";
+    map[8257] = "Firestar";
+    map[8258] = "Acidstar";
+    map[8259] = "Sparks";
+    map[8260] = "Visionstar1";
+    map[8261] = "Visionstar2";
+    map[8262] = "Visionstar3";
+    map[8263] = "Regeneration";
+    map[8264] = "Silence";
+    map[8265] = "Feeblemind";
+    map[8266] = "Feetcloud1";
+    map[8267] = "Feetcloud2";
+    map[8268] = "Visionstar4";
+    map[8269] = "Ballofstars";
+    map[8270] = "Rickarrow";
+    map[8271] = "Cursestars";
+    map[8272] = "Curseholder";
+    map[8273] = "Starttrans";
+    map[8274] = "Transform";
+    m_propValueName[eObjParam_PARTICL_TYPE] = map;
+
+    map.clear();
+    map[0] = "Idle";
+    map[1] = "Guard radius";
+    map[2] = "Path";
+    map[3] = "Place";
+    map[4] = "Briffing";
+    map[5] = "Guard Alaram";
+    m_propValueName[eObjParam_LOGIC_BEHAVIOUR] = map;
+
+    map.clear();
+    map[0] = "Attack";
+    map[1] = "Revenge";
+    map[2] = "Fear";
+    map[3] = "Fear player";
+    m_propValueName[eObjParam_AGRESSION_MODE] = map;
+
+    map.clear();
+    map[0] = "HP";
+    map[1] = "Max HP";
+    map[2] = "MP";
+    map[3] = "Max MP";
+    map[4] = "Tuning Move";
+    map[5] = "Actions";
+    map[6] = "Speed Run";
+    map[7] = "Speed Walk";
+    map[8] = "Speed Crouch";
+    map[9] = "Speed Crawl";
+    map[10] = "Vision Arc";
+    map[11] = "Skills Peripherial";
+    map[12] = "Peripherial Arc";
+    map[13] = "Attack Distance";
+    map[14] = "AI Class Stay";
+    map[15] = "AI Class Lay";
+    map[16] = "Reserved";
+    map[17] = "Range";
+    map[18] = "Attack";
+    map[19] = "Defence";
+    map[20] = "Weight";
+    map[21] = "Damage Min";
+    map[22] = "Damage Range";
+    map[23] = "Armor Impalling";
+    map[24] = "Armor Slashing";
+    map[25] = "Armor Crushing";
+    map[26] = "Armor Thermal";
+    map[27] = "Armor Chemical";
+    map[28] = "Armor Electrical";
+    map[29] = "Armor General";
+    map[30] = "Absorption";
+    map[31] = "Sight";
+    map[32] = "Night Sight";
+    map[33] = "Sense Life";
+    map[34] = "Sense Hear";
+    map[35] = "Sense Smell";
+    map[36] = "Sense Tracking";
+    map[37] = "pSight";
+    map[38] = "pNight Sight";
+    map[39] = "pSense Life";
+    map[40] = "pSense Hear";
+    map[41] = "pSense Smell";
+    map[42] = "pSense Tracking";
+    map[43] = "Manual Skill Science";
+    map[44] = "Manual Skill Stealing";
+    map[45] = "Manual Skill Tame";
+    map[46] = "Magical Skill 1";
+    map[47] = "Magical Skill 2";
+    map[48] = "Magical Skill 3";
+    map[49] = "Reserved";
+    map[50] = "Reserved";
+    m_propValueName[eObjParam_UNIT_STATS] = map;
+}

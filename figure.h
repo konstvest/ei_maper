@@ -30,7 +30,7 @@ public:
     CFigure();
     ~CFigure();
     //void getVertexData(QVector<SVertexData>& aVrtData, QVector3D& complection);
-    void getVertexData(QVector<CPart*>& model, QVector3D& complection, QVector<QString>& aBodyParts);
+    void getVertexData(QVector<CPart*>& model, QVector3D& complection, QList<QString>& aBodyParts);
     void getMinimumBboxZ(float& value, QVector3D& complection);
     void uvCoords();
     void boundBox();
@@ -46,6 +46,7 @@ public:
     QString& name() {return m_name;}
     void setOffset(QVector<QVector3D>& offset) {m_offset = offset; }
     QVector<QVector3D>& offset() {return m_offset; }
+    void getPartNames(QStringList& arrBodyParts);
 
 private:
     void generateTriangles(QVector<SVertexData>& aVrtData, QVector<QVector3D>& aMorphVertex);

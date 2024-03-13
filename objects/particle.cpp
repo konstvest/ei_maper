@@ -1,5 +1,6 @@
 #include "particle.h"
 #include "resourcemanager.h"
+#include "property.h"
 
 CParticle::CParticle():
     m_kind(0)
@@ -110,56 +111,55 @@ uint CParticle::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CParticle::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CParticle::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
-    CObjectBase::collectParams(aParam, paramType);
+    CObjectBase::collectParams(aProp, paramType);
     auto comm = paramType & eParticle;
     if (comm != eParticle)
         return;
 
-
-    util::addParam(aParam, eObjParam_PARTICL_TYPE, QString::number(m_kind));
-    util::addParam(aParam, eObjParam_PARTICL_SCALE, QString::number(m_scale));
+    propUint kind(eObjParam_PARTICL_TYPE, m_kind);
+    util::addParam(aProp, &kind);
+    propFloat scale(eObjParam_PARTICL_SCALE, m_scale);
+    util::addParam(aProp, &scale);
 }
 
-void CParticle::applyParam(EObjParam param, const QString &value)
+void CParticle::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    switch (param)
+    switch (propType)
     {
     case eObjParam_PARTICL_TYPE:
     {
-        m_kind = value.toInt();
+        prop.reset(new propUint(propType, m_kind));
         break;
     }
     case eObjParam_PARTICL_SCALE:
     {
-        m_scale = value.toFloat();
+        prop.reset(new propFloat(propType, m_scale));
         break;
     }
     default:
-        CObjectBase::applyParam(param, value);
+        CObjectBase::getParam(prop, propType);
     }
 }
 
-QString CParticle::getParam(EObjParam param)
+void CParticle::applyParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    QString value;
-    switch (param)
+    switch (prop->type())
     {
     case eObjParam_PARTICL_TYPE:
     {
-        value = QString::number(m_kind);
+        m_kind = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_PARTICL_SCALE:
     {
-        value = QString::number(m_scale);
+        m_scale = dynamic_cast<propFloat*>(prop.get())->value();
         break;
     }
     default:
-        value = CObjectBase::getParam(param);
+        CObjectBase::applyParam(prop);
     }
-    return value;
 }
 
 QJsonObject CParticle::toJson()

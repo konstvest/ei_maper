@@ -4,6 +4,7 @@
 #include "landscape.h"
 #include "settings.h"
 #include "scene.h"
+#include "property.h"
 
 CMagicTrap::CMagicTrap():
     m_indexBuf(QOpenGLBuffer::IndexBuffer)
@@ -285,39 +286,43 @@ uint CMagicTrap::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CMagicTrap::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CMagicTrap::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     auto comm = paramType & eMagicTrap;
     if (comm != eMagicTrap)
         return;
 
-    util::addParam(aParam, eObjParam_TRAP_DIPLOMACY, QString::number(m_diplomacy));
-    util::addParam(aParam, eObjParam_TRAP_SPELL, m_spell);
-    util::addParam(aParam, eObjParam_TRAP_CAST_INTERVAL, QString::number(m_castInterval));
-    util::addParam(aParam, eObjParam_TRAP_CAST_ONCE, util::makeString(m_bCastOnce));
+    propInt diplomacy(eObjParam_TRAP_DIPLOMACY, m_diplomacy);
+    util::addParam(aProp, &diplomacy);
+    propStr spell(eObjParam_TRAP_SPELL, m_spell);
+    util::addParam(aProp, &spell);
+    propUint castInterval(eObjParam_TRAP_CAST_INTERVAL, m_castInterval);
+    util::addParam(aProp, &castInterval);
+    propBool bCastOnce(eObjParam_TRAP_CAST_ONCE, m_bCastOnce);
+    util::addParam(aProp, &bCastOnce);
 }
 
-void CMagicTrap::applyLogicParam(EObjParam param, const QString &value)
+void CMagicTrap::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    switch (param){
+    switch (prop->type()){
     case eObjParam_TRAP_DIPLOMACY:
     {
-        m_diplomacy = value.toInt();
+        m_diplomacy = dynamic_cast<const propChar*>(prop.get())->value();
         break;
     }
     case eObjParam_TRAP_SPELL:
     {
-        m_spell = value;
+        m_spell = dynamic_cast<const propStr*>(prop.get())->value();
         break;
     }
     case eObjParam_TRAP_CAST_INTERVAL:
     {
-        m_castInterval = value.toUInt();
+        m_castInterval = dynamic_cast<const propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_TRAP_CAST_ONCE:
     {
-        m_bCastOnce = util::boolFromString(value);
+        m_bCastOnce = dynamic_cast<const propBool*>(prop.get())->value();
         break;
     }
     default:
@@ -325,28 +330,27 @@ void CMagicTrap::applyLogicParam(EObjParam param, const QString &value)
     }
 }
 
-QString CMagicTrap::getLogicParam(EObjParam param)
+void CMagicTrap::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    QString value;
-    switch (param) {
+    switch (propType) {
     case eObjParam_TRAP_DIPLOMACY:
     {
-        value = QString::number(m_diplomacy);
+        prop.reset(new propChar(propType, m_diplomacy));
         break;
     }
     case eObjParam_TRAP_SPELL:
     {
-        value = m_spell;
+        prop.reset(new propStr(propType, m_spell));
         break;
     }
     case eObjParam_TRAP_CAST_INTERVAL:
     {
-        value = QString::number(m_castInterval);
+        prop.reset(new propUint(propType, m_castInterval));
         break;
     }
     case eObjParam_TRAP_CAST_ONCE:
     {
-        value = util::makeString(m_bCastOnce);
+        prop.reset(new propBool(propType, m_bCastOnce));
         break;
     }
     default:
@@ -355,13 +359,13 @@ QString CMagicTrap::getLogicParam(EObjParam param)
         break;
     }
     }
-    return value;
+    return;
 
 }
 
-void CMagicTrap::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CMagicTrap::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
-    CWorldObj::collectParams(aParam, paramType);
+    CWorldObj::collectParams(aProp, paramType);
 
     auto comm = paramType & eMagicTrap;
     if (comm != eMagicTrap)
@@ -375,73 +379,70 @@ void CMagicTrap::collectParams(QMap<EObjParam, QString> &aParam, ENodeType param
     //util::addParam(aParam, eObjParam_TRAP_CAST_INTERVAL, QString::number(m_castInterval));
     //util::addParam(aParam, eObjParam_TRAP_CAST_ONCE, util::makeString(m_bCastOnce));
 
-    aParam.remove(eObjParam_TEMPLATE); //dont allow change
-    aParam.remove(eObjParam_PRIM_TXTR); //dont allow change
-
+    util::removeProp(aProp, eObjParam_PRIM_TXTR);
+    util::removeProp(aProp, eObjParam_TEMPLATE);
 }
 
-void CMagicTrap::applyParam(EObjParam param, const QString &value)
+void CMagicTrap::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    switch (param) {
+    switch (propType) {
     case eObjParam_TRAP_DIPLOMACY:
     {
-        m_diplomacy = char(value.toInt());
+        prop.reset(new propChar(propType, m_diplomacy));
         break;
     }
     case eObjParam_TRAP_SPELL:
     {
-        m_spell = value;
+        prop.reset(new propStr(propType, m_spell));
         break;
     }
     case eObjParam_TRAP_CAST_INTERVAL:
     {
-        m_castInterval = value.toInt();
+        prop.reset(new propUint(propType, m_castInterval));
         break;
     }
     case eObjParam_TRAP_CAST_ONCE:
     {
-        m_bCastOnce = util::boolFromString(value);
+        prop.reset(new propBool(propType, m_bCastOnce));
         break;
     }
     default:
     {
-        CWorldObj::applyParam(param, value);
+        CWorldObj::getParam(prop, propType);
         break;
     }
     }
 }
 
-QString CMagicTrap::getParam(EObjParam param)
+void CMagicTrap::applyParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    QString value;
-    switch (param) {
+    switch (prop->type()) {
     case eObjParam_TRAP_DIPLOMACY:
     {
-        value = QString::number(m_diplomacy);
+        m_diplomacy = dynamic_cast<propChar*>(prop.get())->value();
         break;
     }
     case eObjParam_TRAP_SPELL:
     {
-        value = m_spell;
+        m_spell = dynamic_cast<propStr*>(prop.get())->value();
         break;
     }
     case eObjParam_TRAP_CAST_INTERVAL:
     {
-        value = QString::number(m_castInterval);
+        m_castInterval = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_TRAP_CAST_ONCE:
     {
-        value = util::makeString(m_bCastOnce);
+        m_bCastOnce = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     default:
     {
-        value = CWorldObj::getParam(param);
+        CWorldObj::applyParam(prop);
         break;
     }
     }
-    return value;
 }
 
 QJsonObject CMagicTrap::toJson()
@@ -499,6 +500,12 @@ bool CMagicTrap::updatePos(QVector3D &pos)
     bool bRes = CObjectBase::updatePos(pos);
     update();
     return bRes;
+}
+
+void CMagicTrap::setDrawPosition(QVector3D pos)
+{
+    m_drawPosition = pos;
+    update();
 }
 
 int CMagicTrap::getZoneId(CActivationZone *pZone)
@@ -570,6 +577,7 @@ void CMagicTrap::update()
         return;
 
     m_aDrawingLine.append(m_drawPosition); // self position
+    //m_aDrawingLine.append(m_position); //todo: use m_drawPosition if update correctly when reading mob file
     for(auto& pZone: m_aActZone)
     {
         if(pZone->isMarkDeleted()) continue;
@@ -625,28 +633,48 @@ CActivationZone::~CActivationZone()
     m_indexBuf.destroy();
 }
 
-void CActivationZone::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CActivationZone::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     auto comm = paramType & eTrapActZone;
     if (comm != eTrapActZone)
         return;
 
-    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
-    util::addParam(aParam, eObjParam_TRAP_AREA_RADIUS, QString::number(m_radius));
+    propFloat posX(eObjParam_POSITION_X, m_position.x());
+    util::addParam(aProp, &posX);
+    propFloat posY(eObjParam_POSITION_Y, m_position.y());
+    util::addParam(aProp, &posY);
+    propFloat posZ(eObjParam_POSITION_Z, m_position.z());
+    util::addParam(aProp, &posZ);
+    propFloat rad(eObjParam_TRAP_AREA_RADIUS, m_radius);
+    util::addParam(aProp, &rad);;
 }
 
-QString CActivationZone::getLogicParam(EObjParam param)
+void CActivationZone::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    QString value;
-    switch (param) {
+    switch (propType) {
     case eObjParam_POSITION:
     {
-        value = util::makeString(m_position);
+        prop.reset(new prop3D(propType, m_position));
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        prop.reset(new propFloat(propType, m_position.x()));
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        prop.reset(new propFloat(propType, m_position.y()));
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        prop.reset(new propFloat(propType, m_position.z()));
         break;
     }
     case eObjParam_TRAP_AREA_RADIUS:
     {
-        value = QString::number(m_radius);
+        prop.reset(new propFloat(propType, m_radius));
         break;
     }
     default:
@@ -655,22 +683,49 @@ QString CActivationZone::getLogicParam(EObjParam param)
         break;
     }
     }
-    return value;
+    return;
 }
 
-void CActivationZone::applyLogicParam(EObjParam param, const QString &value)
+void CActivationZone::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    switch (param){
+    switch (prop->type()){
     case eObjParam_POSITION:
     {
-        QVector3D pos = util::vec3FromString(value);
+        QVector3D pos = dynamic_cast<const prop3D*>(prop.get())->value();
+        updatePos(pos);
+        emit changeActZone();
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setX(val);
+        updatePos(pos);
+        emit changeActZone();
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setY(val);
+        updatePos(pos);
+        emit changeActZone();
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setZ(val);
         updatePos(pos);
         emit changeActZone();
         break;
     }
     case eObjParam_TRAP_AREA_RADIUS:
     {
-        m_radius = value.toFloat();
+        m_radius = dynamic_cast<const propFloat*>(prop.get())->value();
         update();
         break;
     }
@@ -839,21 +894,53 @@ CTrapCastPoint::~CTrapCastPoint()
 {
 }
 
-void CTrapCastPoint::collectlogicParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CTrapCastPoint::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
     auto comm = paramType & eTrapCastPoint;
     if (comm != eTrapCastPoint)
         return;
 
-    util::addParam(aParam, eObjParam_POSITION, util::makeString(m_position));
+    propFloat posX(eObjParam_POSITION_X, m_position.x());
+    util::addParam(aProp, &posX);
+    propFloat posY(eObjParam_POSITION_Y, m_position.y());
+    util::addParam(aProp, &posY);
+    propFloat posZ(eObjParam_POSITION_Z, m_position.z());
+    util::addParam(aProp, &posZ);
 }
 
-void CTrapCastPoint::applyLogicParam(EObjParam param, const QString &value)
+void CTrapCastPoint::applyLogicParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    switch (param){
+    switch (prop->type()){
     case eObjParam_POSITION:
     {
-        QVector3D pos = util::vec3FromString(value);
+        QVector3D pos = dynamic_cast<const prop3D*>(prop.get())->value();
+        updatePos(pos);
+        emit changeCastPoint();
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setX(val);
+        updatePos(pos);
+        emit changeCastPoint();
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setY(val);
+        updatePos(pos);
+        emit changeCastPoint();
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        float val = dynamic_cast<const propFloat*>(prop.get())->value();
+        QVector3D pos(position());
+        pos.setZ(val);
         updatePos(pos);
         emit changeCastPoint();
         break;
@@ -863,13 +950,27 @@ void CTrapCastPoint::applyLogicParam(EObjParam param, const QString &value)
     }
 }
 
-QString CTrapCastPoint::getLogicParam(EObjParam param)
+void CTrapCastPoint::getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    QString value;
-    switch (param) {
+    switch (propType) {
     case eObjParam_POSITION:
     {
-        value = util::makeString(m_position);
+        prop.reset(new prop3D(propType, m_position));
+        break;
+    }
+    case eObjParam_POSITION_X:
+    {
+        prop.reset(new propFloat(propType, m_position.x()));
+        break;
+    }
+    case eObjParam_POSITION_Y:
+    {
+        prop.reset(new propFloat(propType, m_position.y()));
+        break;
+    }
+    case eObjParam_POSITION_Z:
+    {
+        prop.reset(new propFloat(propType, m_position.z()));
         break;
     }
     default:
@@ -878,7 +979,7 @@ QString CTrapCastPoint::getLogicParam(EObjParam param)
         break;
     }
     }
-    return value;
+    return;
 }
 
 uint CTrapCastPoint::deserialize(util::CMobParser &parser)

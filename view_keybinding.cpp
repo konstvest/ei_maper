@@ -10,7 +10,7 @@
 
 #include "view.h"
 #include "key_manager.h"
-#include "mob.h"
+#include "mob\mob.h"
 #include "camera.h"
 #include "landscape.h"
 #include "operationmanager.h"

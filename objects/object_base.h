@@ -34,12 +34,12 @@ public:
     void setTexture(QOpenGLTexture* texture) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
-    void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
-    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
-    void applyParam(EObjParam param, const QString& value) override;
-    QString getParam(EObjParam param) override;
-    QString getLogicParam(EObjParam param) override;
-    void applyLogicParam(EObjParam param, const QString& value) override;
+    void collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
+    void getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
+    void applyParam(const QSharedPointer<IPropertyBase>& prop) override;
+    void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
+    void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override;
     bool updatePos(QVector3D& pos) override;
     void setRot(const QQuaternion& quat) override;
     const QVector3D& constitution() override final {return m_complection;}
@@ -58,7 +58,7 @@ protected:
 protected:
     QString m_modelName;
     QVector3D m_complection;    //x-grace, y-strength, z-tall
-    QVector<QString> m_bodyParts; // for preparing vertex data
+    QStringList m_bodyParts; // for preparing vertex data
 
 private:
     QVector<CPart*> m_aPart;

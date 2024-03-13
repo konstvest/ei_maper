@@ -7,7 +7,7 @@
 #include "key_manager.h"
 #include "settings.h"
 #include "camera.h"
-#include "ui_connectors.h"
+#include "layout_components/connectors_ui.h"
 #include "log.h"
 #include "scene.h"
 #include "undo.h"
@@ -323,6 +323,7 @@ void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         break;
     }
     case Qt::Key_Return:
+    case Qt::Key_Enter:
     {
         if(!value.isEmpty())
             m_pView->operationApply(EOperationAxisType::eMove);
@@ -525,6 +526,7 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         break;
     }
     case Qt::Key_Return:
+    case Qt::Key_Enter:
     {
         if(!value.isEmpty())
             m_pView->operationApply(EOperationAxisType::eRotate);
@@ -797,6 +799,7 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         break;
     }
     case Qt::Key_Return:
+    case Qt::Key_Enter:
     {
         if(!value.isEmpty())
             m_pView->operationApply(EOperationAxisType::eScale);

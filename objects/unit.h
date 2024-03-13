@@ -1,7 +1,7 @@
 #ifndef UNIT_H
 #define UNIT_H
 #include "objects\worldobj.h"
-#include "mob.h"
+#include "mob\mob.h"
 
 class CSettings;
 
@@ -14,11 +14,9 @@ public:
     //CLookPoint(CNode* node);
     ~CLookPoint() {}
     ENodeType nodeType() override {return ENodeType::eLookPoint;}
-    //QString getParam(EObjParam param) override;
-    //void applyParam(EObjParam param, const QString& value) override;
-    QString getLogicParam(EObjParam param) override final;
-    void applyLogicParam(EObjParam param, const QString& value) override final;
-    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override final;
+    void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override final;
+    void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override final;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override final;
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject &obj) override;
     void deSerializeJson(QJsonObject data);
@@ -50,11 +48,9 @@ public:
     void draw(bool isActive, QOpenGLShaderProgram* program) override final;
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override final;
     uint deserialize(util::CMobParser& parser) override final;
-    //QString getParam(EObjParam param) override;
-    //void applyParam(EObjParam param, const QString& value) override;
-    QString getLogicParam(EObjParam param) override final;
-    void applyLogicParam(EObjParam param, const QString& value) override final;
-    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override final;
+    void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override final;
+    void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override final;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override final;
     void serializeJson(QJsonObject &obj) override final;
     void deSerializeJson(QJsonObject data);
     uint serialize(util::CMobParser& parser) override final;
@@ -114,9 +110,9 @@ public:
     void updatePos(QVector3D& offset);
     void collectPatrolNodes(QList<CNode*>& arrNode);
     void clearPatrolSelect();
-    void collectlogicParams(QMap<EObjParam, QString>& aParam);
-    QString getLogicParam(EObjParam param);
-    void applyLogicParam(EObjParam param, const QString& value);
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp);
+    void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType);
+    void applyLogicParam(const QSharedPointer<IPropertyBase>& prop);
     bool isChild(CPatrolPoint* pPointIn);
     void addFirstPoint(QVector3D& pos);
     void undo_addFirstPoint();
@@ -160,7 +156,7 @@ private:
     float m_wait; // idle time, 15 == 1second
     char m_alarmCondition;//eByte
     float m_help; //alarm radius for calling help
-    char m_alwaysActive; // true/false
+    char m_alwaysActive; // true/false. this flag ignore inactive state
     char m_agressionMode; //agressive, revenge, fear, fear player
     QVector<CPatrolPoint*> m_aPatrolPt;
 
@@ -182,12 +178,12 @@ public:
     void drawSelect(QOpenGLShaderProgram* program = nullptr) override;
     void serializeJson(QJsonObject& obj) override;
     uint serialize(util::CMobParser& parser) override;
-    void collectParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
-    void collectlogicParams(QMap<EObjParam, QString>& aParam, ENodeType paramType) override;
-    void applyParam(EObjParam param, const QString& value) override;
-    QString getParam(EObjParam param) override;
-    QString getLogicParam(EObjParam param) override final;
-    void applyLogicParam(EObjParam param, const QString& value) override final;
+    void collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
+    void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType) override;
+    void getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
+    void applyParam(const QSharedPointer<IPropertyBase>& prop) override;
+    void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType) override;
+    void applyLogicParam(const QSharedPointer<IPropertyBase>& prop) override final;
     const QString& databaseName(){return m_prototypeName;}
     bool updatePos(QVector3D& pos) override;
     QJsonObject toJson() override;
@@ -211,11 +207,11 @@ private:
     QString m_prototypeName;//"UNIT_PROTOTYPE", eString};
     //"UNIT_ITEMS", eNull};
     QSharedPointer<SUnitStat> m_stat;//"UNIT_STATS", eUnitStats};
-    QVector<QString> m_aQuestItem;//"UNIT_QUEST_ITEMS", eStringArray};
-    QVector<QString> m_aQuickItem;//"UNIT_QUICK_ITEMS", eStringArray};
-    QVector<QString> m_aSpell;//"UNIT_SPELLS", eStringArray};
-    QVector<QString> m_aWeapon;//"UNIT_WEAPONS", eStringArray};
-    QVector<QString> m_aArmor;//"UNIT_ARMORS", eStringArray};
+    QStringList m_aQuestItem;//"UNIT_QUEST_ITEMS", eStringArray};
+    QStringList m_aQuickItem;//"UNIT_QUICK_ITEMS", eStringArray};
+    QStringList m_aSpell;//"UNIT_SPELLS", eStringArray};
+    QStringList m_aWeapon;//"UNIT_WEAPONS", eStringArray};
+    QStringList m_aArmor;//"UNIT_ARMORS", eStringArray};
     bool m_bImport;//"UNIT_NEED_IMPORT", eByte};
     //
     QVector<CLogic*> m_aLogic;

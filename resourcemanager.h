@@ -1,4 +1,4 @@
-#ifndef CRESOURCEMANAGER_H
+﻿#ifndef CRESOURCEMANAGER_H
 #define CRESOURCEMANAGER_H
 
 #include <QListWidget>
@@ -7,6 +7,7 @@
 #include <QImage>
 #include <QOpenGLTexture>
 #include "figure.h"
+#include "types.h"
 
 //forward declarations
 class CSettings;
@@ -106,7 +107,7 @@ public:
     QOpenGLTexture* textureDefault();
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
     void initResource();
-    QList<QString>& textureList() {return m_arrCellComboBox;}
+    const QList<QString>& textureList() const {return m_arrCellComboBox;}
 
 private:
     CTextureList();
@@ -119,6 +120,26 @@ private:
     QMap<QString, QOpenGLTexture*> m_aTexture;
     CSettings* m_pSettings;
     QList<QString> m_arrCellComboBox; //optimization for cell widget
+};
+
+
+// Class for managing string localization
+class CResourceStringList
+{
+public:
+    static CResourceStringList* getInstance();
+    CResourceStringList(CResourceStringList const&) = delete;
+    void operator=(CResourceStringList const&)  = delete;
+    bool getPropList(QMap<uint, QString>& map, const EObjParam propType);
+
+private:
+    CResourceStringList();
+    ~CResourceStringList();
+    void initResourceString();
+
+private:
+    static CResourceStringList* m_pResourceStringContainer;
+    QMap<EObjParam, QMap<uint, QString>> m_propValueName;
 };
 
 class CResourceManager

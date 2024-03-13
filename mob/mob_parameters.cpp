@@ -6,12 +6,12 @@
 
 #include "mob_parameters.h"
 #include "ui_mob_parameters.h"
+#include "range_dialog.h"
 #include "utils.h"
 #include "view.h"
 #include "settings.h"
 #include "undo.h"
-#include "range_dialog.h"
-#include "ui_connectors.h"
+#include "layout_components\connectors_ui.h"
 
 CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     QWidget(parent)
@@ -88,7 +88,7 @@ void CMobParameters::execWsChanges(EWsType paramType, QString &value)
 void CMobParameters::setNewRange(SRange& arrRanges, int index)
 {
     auto pRangeCommand = new CChangeRangeCommand(m_pCurMob, index, arrRanges);
-    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateMobParamsOnly()));
+    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateRangeList()));
     m_pUndoStack->push(pRangeCommand);
 }
 
@@ -200,7 +200,7 @@ void CMobParameters::updateWindow()
     ui->plainTextEdit->setPlainText(str);
 
     //diplomacy
-    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    QStringList dipName = m_pCurMob->diplomacyNames();
     QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
     int val;
     if(!dipName.isEmpty() && !dipTable.isEmpty())
@@ -235,7 +235,7 @@ void CMobParameters::on_diplomacyButton_clicked()
         return;
     }
 
-    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    QStringList dipName = m_pCurMob->diplomacyNames();
     QVector<QVector<uint>> dipTable = m_pCurMob->diplomacyField();
     if(dipName.isEmpty() || dipTable.isEmpty())
     {
@@ -306,7 +306,8 @@ void CMobParameters::on_pushApply_clicked()
     QString str = QString::fromLatin1(strArr); //convert byte array to qstring
 
     m_pCurMob->setScript(str);
-    if(m_pUndoStack->count() > 0)
+    //if(m_pUndoStack->count() > 0)
+    if(true) //forced set durty flag. todo: add script changes to undo stack
     {
         m_pUndoStack->clear();
         m_pView->setDurty(m_pCurMob);
@@ -449,14 +450,14 @@ void CMobParameters::on_button_minusRanges_clicked()
 
     SRange range;
     auto pRangeCommand = new CChangeRangeCommand(m_pCurMob, index, range);
-    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateMobParamsOnly()));
+    QObject::connect(pRangeCommand, SIGNAL(changeRangeSignal()), this, SLOT(updateRangeList()));
     m_pUndoStack->push(pRangeCommand);
 }
 
 
 void CMobParameters::on_button_plusRanges_clicked()
 {
-    auto rangeD = new CRangeDialog(this);
+    CRangeDialog* rangeD = new CRangeDialog(this);
     rangeD->setAttribute(Qt::WA_DeleteOnClose);
     rangeD->initRanges(activeRanges(), ui->listRanges->count());
     rangeD->exec();
@@ -552,20 +553,10 @@ void CMobParameters::updateMobParamsOnly()
             paramLine((EWsType)i)->setText(worldSet.data((EWsType)i));
             paramLine((EWsType)i)->saveBackupValue();
         }
-
-        arrRange = m_pCurMob->ranges(true);
-
         ui->baseMobParamWidget->show();
     }
 
-    QString rangeText;
-    ui->listRanges->clear();
-    SRange range;
-    foreach(range, arrRange)
-    {
-        rangeText = QString::number(range.minRange) + "-" + QString::number(range.maxRange);
-        ui->listRanges->addItem(rangeText);
-    }
+    updateRangeList();
 
     ui->isPrimaryBox->setChecked(m_pCurMob->isQuestMob());
     setDurty(true);
@@ -574,7 +565,7 @@ void CMobParameters::updateMobParamsOnly()
 void CMobParameters::updateDiplomacyTable()
 {
     //diplomacy
-    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    QStringList dipName = m_pCurMob->diplomacyNames();
     const QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
     if(!dipName.isEmpty() && !dipTable.isEmpty())
     {
@@ -594,7 +585,7 @@ void CMobParameters::updateDiplomacyTable()
 void CMobParameters::updateDiplomacyTable(int row, int column)
 {
     //diplomacy
-    QStringList dipName = QStringList::fromVector(m_pCurMob->diplomacyNames());
+    QStringList dipName = m_pCurMob->diplomacyNames();
     const QVector<QVector<uint>>& dipTable = m_pCurMob->diplomacyField();
     if(!dipName.isEmpty() && !dipTable.isEmpty())
     {
@@ -635,8 +626,7 @@ void CMobParameters::showContextMenu(QPoint pos)
 
 void CMobParameters::markRange()
 {
-    const QVector<SRange>& arrRange = m_pCurMob->ranges(!m_pCurMob->isQuestMob());
-    m_pCurMob->setActiveRange(arrRange[ui->listRanges->currentRow()]);
+    m_pCurMob->setActiveRange(ui->listRanges->currentRow());
     // If multiple selection is on, we need to erase all selected items
         for (int i = 0; i < ui->listRanges->selectedItems().size(); ++i)
         {

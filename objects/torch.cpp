@@ -1,6 +1,7 @@
 #include <QJsonArray>
 #include "torch.h"
 #include "log.h"
+#include "property.h"
 
 CTorch::CTorch():
     m_power(0.0f)
@@ -100,64 +101,65 @@ uint CTorch::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CTorch::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CTorch::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
-    CWorldObj::collectParams(aParam, paramType);
+    CWorldObj::collectParams(aProp, paramType);
     auto comm = paramType & eTorch;
     if (comm != eTorch)
         return;
 
-    util::addParam(aParam, eObjParam_TORCH_PTLINK, util::makeString(m_pointLink));
-    util::addParam(aParam, eObjParam_TORCH_STRENGHT, QString::number(m_power));
-    util::addParam(aParam, eObjParam_TORCH_SOUND, m_sound);
+    prop3D linkPoint(eObjParam_TORCH_PTLINK, m_pointLink);
+    util::addParam(aProp, &linkPoint);
+    propFloat strength(eObjParam_TORCH_STRENGHT, m_power);
+    util::addParam(aProp, &strength);
+    propStr soundName(eObjParam_TORCH_SOUND, m_sound);
+    util::addParam(aProp, &soundName);
 }
 
-void CTorch::applyParam(EObjParam param, const QString &value)
+void CTorch::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    switch (param) {
+    switch (propType) {
     case eObjParam_TORCH_PTLINK:
     {
-        m_pointLink = util::vec3FromString(value);
+        prop.reset(new prop3D(propType, m_pointLink));
         break;
     }
     case eObjParam_TORCH_STRENGHT:
     {
-        m_power = value.toFloat();
+        prop.reset(new propFloat(propType, m_power));
         break;
     }
     case eObjParam_TORCH_SOUND:
     {
-        m_sound = value;
+        prop.reset(new propStr(propType, m_sound));
         break;
     }
     default:
-        CWorldObj::applyParam(param, value);
+        CWorldObj::getParam(prop, propType);
     }
 }
 
-QString CTorch::getParam(EObjParam param)
+void CTorch::applyParam(const QSharedPointer<IPropertyBase>& prop)
 {
-    QString value;
-    switch (param) {
+    switch (prop->type()) {
     case eObjParam_TORCH_PTLINK:
     {
-        value = util::makeString(m_pointLink);
+        m_pointLink = dynamic_cast<prop3D*>(prop.get())->value();
         break;
     }
     case eObjParam_TORCH_STRENGHT:
     {
-        value = QString::number(m_power);
+        m_power = dynamic_cast<propFloat*>(prop.get())->value();
         break;
     }
     case eObjParam_TORCH_SOUND:
     {
-        value = m_sound;
+        m_sound = dynamic_cast<propStr*>(prop.get())->value();
         break;
     }
     default:
-        value = CWorldObj::getParam(param);
+        CWorldObj::applyParam(prop);
     }
-    return value;
 }
 
 QJsonObject CTorch::toJson()

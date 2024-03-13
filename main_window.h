@@ -14,9 +14,10 @@ class MainWindow;
 }
 
 class CSettings;
-class CSelector;
+class CSelectForm;
 class CCreateObjectForm;
 class CView;
+class CRandomizeForm;
 
 struct SWindowTitle
 {
@@ -72,14 +73,17 @@ private slots:
 
     void on_actionReset_logic_paths_triggered();
 
+    void on_actionRandomize_parameter_triggered();
+
 protected:
     void closeEvent(QCloseEvent* e);
 
 private:
     Ui::MainWindow* m_ui;
     QSharedPointer<CSettings> m_settings;
-    QSharedPointer<CSelector> m_selector;
+    QSharedPointer<CSelectForm> m_selector;
     QSharedPointer<CCreateObjectForm> m_createDialog;
+    QSharedPointer<CRandomizeForm> m_randomizeForm;
     QUndoStack* m_undoStack;
     QUndoView* m_undoView;
     CView* m_pView;

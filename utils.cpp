@@ -12,6 +12,10 @@
 
 #include "utils.h"
 #include "resourcemanager.h" //TODO: delete this (now it uses only for valuediff)
+#include "property.h"
+#include "figure.h"
+
+// float number validation regext: (\d+)?\.?\d+
 
 void util::formatStream(QDataStream& stream)
 {
@@ -715,7 +719,7 @@ uint util::CMobParser::writeString(const QString& data)
     return len;
 }
 
-uint util::CMobParser::readStringArray(QVector<QString>& data)
+uint util::CMobParser::readStringArray(QList<QString>& data)
 {
     uint blockLen(0);
     uint records;
@@ -731,7 +735,7 @@ uint util::CMobParser::readStringArray(QVector<QString>& data)
     return blockLen;
 }
 
-uint util::CMobParser::writeStringArray(const QVector<QString>& data, QString keyName)
+uint util::CMobParser::writeStringArray(const QList<QString>& data, QString keyName)
 {
     uint blockLen(0);
     uint records(data.size()); //row size;
@@ -810,7 +814,7 @@ QString util::makeString(QVector4D& vec)
     return QString("(%1,%2,%3,%4)").arg(vec.x()).arg(vec.y()).arg(vec.z()).arg(vec.w());
 }
 
-QString util::makeString(QVector<QString> &vec)
+QString util::makeString(QStringList& vec)
 {
     QString str("");
     if (!vec.isEmpty())
@@ -901,9 +905,23 @@ QVector3D util::vec3FromString(const QString &str)
     return vec;
 }
 
-QVector<QString> util::strListFromString(QString string)
+QStringList util::strArrFromString(QString string)
 {
-    QVector<QString> aString;
+    QStringList aString;
+    if (string.length() == 0)
+        return aString;
+
+    QStringList list = string.split(QRegularExpression("[\\(,\\)]"));
+    for (const auto& st : list)
+        if (st.length() > 0)
+            aString.append(st);
+
+    return aString;
+}
+
+QList<QString> util::strListFromString(QString string)
+{
+    QList<QString> aString;
     if (string.length() == 0)
         return aString;
 
@@ -1048,6 +1066,52 @@ void util::addParam(QMap<EObjParam, QString>& aParam, EObjParam param, QString s
         aParam.insert(param, str);
 }
 
+///
+/// \brief util::addParam
+/// \param aProp - list of properties. different props will be reset
+/// \param pProp - pointer to base property class (use simple pointer for easy process any type of prop)
+/// \return
+///
+void util::addParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp)
+{
+    //firstly, check if prop already exists in list
+    for(const auto& prop: aProp)
+    {
+        if(prop->type() != pProp->type())
+            continue;
+
+        if (prop->isInit() && !prop->isEqual(pProp))
+            prop->reset();
+        return;
+    }
+    aProp.append(QSharedPointer<IPropertyBase>(pProp->clone()));
+    return;
+}
+
+void util::addUnitStatParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp)
+{
+    Q_ASSERT(pProp->type() == eObjParam_UNIT_STATS);
+    //firstly, check if prop already exists in list
+    for(const auto& prop: aProp)
+    {
+        if(prop->type() != eObjParam_UNIT_STATS)
+            continue;
+
+        auto pAddProp = dynamic_cast<const CPropertyUnitStat*>(pProp);
+        auto arrAdd = pAddProp->value();
+        auto pSourceProp = dynamic_cast<const CPropertyUnitStat*>(prop.get());
+        auto arrSrc = pSourceProp->value();
+        for(int i(0); i<51; ++i)
+        {
+            if(!arrSrc[i]->isEqual(arrAdd[i].get()))
+                arrSrc[i]->reset();
+        }
+        return;
+    }
+    aProp.append(QSharedPointer<IPropertyBase>(pProp->clone()));
+    return;
+}
+
 QColor util::stringToColor(const QString &string)
 {
     QVector3D vec = vec3FromString(string);
@@ -1075,4 +1139,184 @@ QVector3D util::getMinValue(const QVector3D &vec1, const QVector3D &vec2)
 QVector3D util::getMaxValue(const QVector3D &vec1, const QVector3D &vec2)
 {
     return QVector3D(vec1.x() > vec2.x() ? vec1.x() : vec2.x(), vec1.y() > vec2.y() ? vec1.y() : vec2.y(), vec1.z() > vec2.z() ? vec1.z() : vec2.z());
+}
+
+void util::removeProp(QList<QSharedPointer<IPropertyBase>> &aProp, EObjParam type)
+{
+    for (const auto& prop: aProp)
+        if (prop->type() == type)
+        {
+            bool bRes = aProp.removeOne(prop);
+            Q_ASSERT(bRes);
+            return;
+        }
+}
+
+const QSharedPointer<IPropertyBase>& util::constProp(const QList<QSharedPointer<IPropertyBase>> &aProp, EObjParam type)
+{
+    for (const auto& prop: aProp)
+        if (prop->type() == type)
+        {
+            return prop;
+        }
+    Q_ASSERT(false);
+    return aProp.back();
+}
+
+QQuaternion util::eulerToQuat(const QVector3D &rot)
+{
+    const float gimbalAvoidStep = 0.001f;
+    QQuaternion quat;//this rotation as quat be applied to object
+    QVector3D sourceRot(rot);
+    QVector3D eulerRot; // temp variable
+    for(int i(0); i< 100; ++i)
+    {
+        quat = QQuaternion::fromEulerAngles(sourceRot);
+        eulerRot = quat.toEulerAngles();
+        if(eulerRot.x() != eulerRot.x())
+        {
+            sourceRot.setX(sourceRot.x() + gimbalAvoidStep);
+        }
+        else if(eulerRot.y() != eulerRot.y())
+        {
+            sourceRot.setY(sourceRot.y() + gimbalAvoidStep);
+        }
+        else if(eulerRot.z() != eulerRot.z())
+        {
+            sourceRot.setZ(sourceRot.z() + gimbalAvoidStep);
+        }
+        else
+            break;
+    }
+    return quat;
+}
+
+float util::randomFloat(float a, float b)
+{
+    if (a > b)
+        return randomFloat(b, a);
+    if (a == b)
+        return a;
+    return a + ((double) rand() / (RAND_MAX))*(b-a);
+    //return (float)randomInt(a, b) + util::randomFloat();
+}
+
+void util::propListToUnitStat(SUnitStat& stat, const QVector<QSharedPointer<IPropertyBase>> &val)
+{
+    if(val.size() != 51)
+        return;
+    enum EPropType
+    {
+        EPropTypeInt = 0
+        ,EPropTypeFloat
+        ,EPropTypeChar
+    };
+
+    //if value not init, skip
+    if(val[0]->isInit()) stat.HP                   = dynamic_cast<propInt*>(val[0].get())->value();
+    if(val[1]->isInit()) stat.MaxHP                = dynamic_cast<propInt*>(val[1].get())->value();
+    if(val[2]->isInit()) stat.MP                   = dynamic_cast<propInt*>(val[2].get())->value();
+    if(val[3]->isInit()) stat.MaxMP                = dynamic_cast<propInt*>(val[3].get())->value();
+    if(val[4]->isInit()) stat.move                 = dynamic_cast<propFloat*>(val[4].get())->value();
+    if(val[5]->isInit()) stat.actions              = dynamic_cast<propFloat*>(val[5].get())->value();
+    if(val[6]->isInit()) stat.SpeedRun             = dynamic_cast<propFloat*>(val[6].get())->value();
+    if(val[7]->isInit()) stat.SpeedWalk            = dynamic_cast<propFloat*>(val[7].get())->value();
+    if(val[8]->isInit()) stat.SpeedCrouch          = dynamic_cast<propFloat*>(val[8].get())->value();
+    if(val[9]->isInit()) stat.SpeedCrawl           = dynamic_cast<propFloat*>(val[9].get())->value();
+    if(val[10]->isInit()) stat.VisionArc           = dynamic_cast<propFloat*>(val[10].get())->value();
+    if(val[11]->isInit()) stat.SkillsPeripherial   = dynamic_cast<propFloat*>(val[11].get())->value();
+    if(val[12]->isInit()) stat.PeripherialArc      = dynamic_cast<propFloat*>(val[12].get())->value();
+    if(val[13]->isInit()) stat.AttackDistance      = dynamic_cast<propFloat*>(val[13].get())->value();
+    if(val[14]->isInit()) stat.AIClassStay         = dynamic_cast<propChar*>(val[14].get())->value();
+    if(val[15]->isInit()) stat.AIClassLay          = dynamic_cast<propChar*>(val[15].get())->value();
+    if(val[16]->isInit()) stat.empty1              = dynamic_cast<propChar*>(val[16].get())->value();
+    if(val[17]->isInit()) stat.range               = dynamic_cast<propFloat*>(val[17].get())->value();
+    if(val[18]->isInit()) stat.attack              = dynamic_cast<propFloat*>(val[18].get())->value();
+    if(val[19]->isInit()) stat.defence             = dynamic_cast<propFloat*>(val[19].get())->value();
+    if(val[20]->isInit()) stat.weight              = dynamic_cast<propFloat*>(val[20].get())->value();
+    if(val[21]->isInit()) stat.damageMin           = dynamic_cast<propFloat*>(val[21].get())->value();
+    if(val[22]->isInit()) stat.damageRange         = dynamic_cast<propFloat*>(val[22].get())->value();
+    if(val[23]->isInit()) stat.aImpalling          = dynamic_cast<propFloat*>(val[23].get())->value();
+    if(val[24]->isInit()) stat.aSlashing           = dynamic_cast<propFloat*>(val[24].get())->value();
+    if(val[25]->isInit()) stat.aCrushing           = dynamic_cast<propFloat*>(val[25].get())->value();
+    if(val[26]->isInit()) stat.aThermal            = dynamic_cast<propFloat*>(val[26].get())->value();
+    if(val[27]->isInit()) stat.aChemical           = dynamic_cast<propFloat*>(val[27].get())->value();
+    if(val[28]->isInit()) stat.aElectrical         = dynamic_cast<propFloat*>(val[28].get())->value();
+    if(val[29]->isInit()) stat.aGeneral            = dynamic_cast<propFloat*>(val[29].get())->value();
+    if(val[30]->isInit()) stat.absorption          = dynamic_cast<propInt*>(val[30].get())->value();
+    if(val[31]->isInit()) stat.Sight               = dynamic_cast<propFloat*>(val[31].get())->value();
+    if(val[32]->isInit()) stat.NightSight          = dynamic_cast<propFloat*>(val[32].get())->value();
+    if(val[33]->isInit()) stat.SenseLife           = dynamic_cast<propFloat*>(val[33].get())->value();
+    if(val[34]->isInit()) stat.SenseHear           = dynamic_cast<propFloat*>(val[34].get())->value();
+    if(val[35]->isInit()) stat.SenseSmell          = dynamic_cast<propFloat*>(val[35].get())->value();
+    if(val[36]->isInit()) stat.SenseTracking       = dynamic_cast<propFloat*>(val[36].get())->value();
+    if(val[37]->isInit()) stat.pSight              = dynamic_cast<propFloat*>(val[37].get())->value();
+    if(val[38]->isInit()) stat.pNightSight         = dynamic_cast<propFloat*>(val[38].get())->value();
+    if(val[39]->isInit()) stat.pSenseLife          = dynamic_cast<propFloat*>(val[39].get())->value();
+    if(val[40]->isInit()) stat.pSenseHear          = dynamic_cast<propFloat*>(val[40].get())->value();
+    if(val[41]->isInit()) stat.pSenseSmell         = dynamic_cast<propFloat*>(val[41].get())->value();
+    if(val[42]->isInit()) stat.pSenseTracking      = dynamic_cast<propFloat*>(val[42].get())->value();
+    if(val[43]->isInit()) stat.ManualSkill_SCIENCE = dynamic_cast<propChar*>(val[43].get())->value();
+    if(val[44]->isInit()) stat.ManualSkill_STEALING= dynamic_cast<propChar*>(val[44].get())->value();
+    if(val[45]->isInit()) stat.ManualSkill_TAME    = dynamic_cast<propChar*>(val[45].get())->value();
+    if(val[46]->isInit()) stat.MagicalSkill_1      = dynamic_cast<propChar*>(val[46].get())->value();
+    if(val[47]->isInit()) stat.MagicalSkill_2      = dynamic_cast<propChar*>(val[47].get())->value();
+    if(val[48]->isInit()) stat.MagicalSkill_3      = dynamic_cast<propChar*>(val[48].get())->value();
+    if(val[49]->isInit()) stat.empty2              = dynamic_cast<propChar*>(val[49].get())->value();
+    if(val[50]->isInit()) stat.empty3              = dynamic_cast<propChar*>(val[50].get())->value();
+}
+
+void util::bodyPartToProp(QMap<QString, QSharedPointer<propBool>>& arrBodyPart, const QString& modelName, const QStringList& bodyParts)
+{
+    arrBodyPart.clear();
+    QStringList arrModelPart;
+    CObjectList::getInstance()->getFigure(modelName)->getPartNames(arrModelPart);
+    for(auto& part: arrModelPart)
+    {
+        arrBodyPart[part] = QSharedPointer<propBool>(new propBool(eObjParam_BODYPARTS, bodyParts.empty() || bodyParts.contains(part)));
+    }
+}
+
+void util::addBodyPartParam(QList<QSharedPointer<IPropertyBase>>& aProp, IPropertyBase* pProp)
+{
+    auto pTemplate = constProp(aProp, eObjParam_TEMPLATE);
+    if(!pTemplate->isInit())
+        return;
+
+    bool bFound = false;
+    for(auto& prop : aProp)
+    {
+        if(prop->type() == eObjParam_BODYPARTS)
+        {
+            auto propFrom = dynamic_cast<propBodyPart*>(pProp);
+            dynamic_cast<propBodyPart*>(prop.get())->mergePartDataFromProp(propFrom);
+            bFound = true;
+            break;
+        }
+    }
+    if(!bFound)
+    {
+        aProp.append(QSharedPointer<IPropertyBase>(pProp->clone()));
+    }
+}
+
+void util::propToBodyPart(QStringList& bodyParts, const QMap<QString, QSharedPointer<propBool> >& arrBodyPart)
+{
+    //bodyParts.clear();
+    QStringList partNew;
+    for(auto& item: arrBodyPart.toStdMap())
+    {
+        if(!item.second->isInit()) // check if previous state has this part
+        {
+            if(bodyParts.contains(item.first))
+                partNew.append(item.first);
+
+            continue;
+        }
+
+        if(item.second->value())
+            partNew.append(item.first);
+    }
+    bodyParts = partNew;
+
 }

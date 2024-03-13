@@ -51,8 +51,8 @@ public:
     const QVector<SRange>& ranges(bool bMain);
     void setRanges(bool bMain, const QVector<SRange>& range);
     void clearRanges(bool bMain);
-    const QVector<QString>& diplomacyNames() {return m_aDiplomacyFieldName;}
-    void setDiplomacyNames(QVector<QString>& arrName) {m_aDiplomacyFieldName = arrName;}
+    const QList<QString>& diplomacyNames() {return m_aDiplomacyFieldName;}
+    void setDiplomacyNames(QList<QString>& arrName) {m_aDiplomacyFieldName = arrName;}
     QVector<QVector<uint>>& diplomacyField() {return m_diplomacyFoF;}
     void setDiplomacyField(const QVector<QVector<uint>>& df) {m_diplomacyFoF = df;}
     const QString& script() {return m_script;}
@@ -63,8 +63,10 @@ public:
     bool isDurty() {return m_bDurty;}
     void generateDiplomacyTable();
     void clearDiplomacyTable();
-    const SRange& activeRange() {return m_activeRange;}
-    void setActiveRange(const SRange& range);
+    void addRange(bool bMain, const SRange range);
+    const SRange& activeRange();
+    uint activeRangeId() {return m_activeRangeId;}
+    void setActiveRange(uint rangeId);
 
     //functions for logic processing
     QList<CNode*>& logicNodes();
@@ -105,7 +107,7 @@ private:
     QVector<SRange> m_aMainRange;
     QVector<SRange> m_aSecRange;
     QVector<QVector<uint>> m_diplomacyFoF;
-    QVector<QString> m_aDiplomacyFieldName;
+    QList<QString> m_aDiplomacyFieldName;
     CWorldSet m_worldSet;
     QByteArray m_vss_section;
     QByteArray m_directory;
@@ -118,7 +120,7 @@ private:
     QList<CNode*> m_aLogicNode;
     EMobType m_mobType;
     bool m_bDurty;
-    SRange m_activeRange;
+    uint m_activeRangeId;
 };
 
 #endif // MOB_H

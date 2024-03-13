@@ -2,11 +2,12 @@
 #include <QJsonDocument>
 
 #include "objects\worldobj.h"
-#include "mob.h"
+#include "mob\mob.h"
 #include "view.h"
 #include "resourcemanager.h"
 #include "landscape.h"
 #include "log.h"
+#include "property.h"
 
 CWorldObj::CWorldObj():
     m_type(54)
@@ -315,69 +316,192 @@ uint CWorldObj::serialize(util::CMobParser &parser)
     return writeByte;
 }
 
-void CWorldObj::collectParams(QMap<EObjParam, QString> &aParam, ENodeType paramType)
+void CWorldObj::collectParams(QList<QSharedPointer<IPropertyBase>>& aProp, ENodeType paramType)
 {
-    CObjectBase::collectParams(aParam, paramType); //don't want to change type from parameters. should use delete and add new object with type
+    CObjectBase::collectParams(aProp, paramType); //don't want to change type from parameters. should use delete and add new object with type
     auto comm = paramType & eWorldObject;
     if (comm != eWorldObject)
         return;
 
-//    QJsonArray arrPart;
-//    for(auto& part : m_aPart)
-//    {
-//        arrPart.append(part->name());
-//    }
-//    QJsonObject obj;
-//    obj.insert("parts", arrPart);
-//    QJsonDocument doc(obj);
-//    util::addParam(aParam, eObjParam_BODYPARTS, QString(doc.toJson(QJsonDocument::Compact)));
-    util::addParam(aParam, eObjParam_BODYPARTS, util::makeString(m_bodyParts));
     if(nodeType() == eUnit || nodeType() == eMagicTrap) //show player group only for Units and Traps(traps works only for enemy)
-        util::addParam(aParam, eObjParam_PLAYER, QString::number(m_player));
+    {
+        propChar dipNum(eObjParam_PLAYER, m_player);
+        util::addParam(aProp, &dipNum);
+    }
 
     //addParam(aParam, eObjParam_TYPE, QString::number(m_type));
-    util::addParam(aParam, eObjParam_NAME, m_name);
-    util::addParam(aParam, eObjParam_TEMPLATE, m_modelName);
-    util::addParam(aParam, eObjParam_PARENT_TEMPLATE, m_parentTemplate);
-    util::addParam(aParam, eObjParam_PRIM_TXTR, m_primaryTexture);
+    propStr name(eObjParam_NAME, m_name);
+    util::addParam(aProp, &name);
+    propStr model(eObjParam_TEMPLATE, m_modelName);
+    util::addParam(aProp, &model); //TODO: process this prop as true model with parts of assembly
+    if(nodeType() != eMagicTrap)
+    {//bodyparts
+        QMap<QString, QSharedPointer<propBool>> arrBodyPart;
+        util::bodyPartToProp(arrBodyPart, m_modelName, m_bodyParts);
+        propBodyPart bodyPart(eObjParam_BODYPARTS, arrBodyPart);
+        util::addBodyPartParam(aProp, &bodyPart);
+    }
+    propStr parentTemplate(eObjParam_PARENT_TEMPLATE, m_parentTemplate);
+    util::addParam(aProp, &parentTemplate);
+    propStr primTexture(eObjParam_PRIM_TXTR, m_primaryTexture);
+    util::addParam(aProp, &primTexture);
     //addParam(aParam, eObjParam_SEC_TXTR, m_secondaryTexture);
 
-
-    QVector3D rot = getEulerRotation();
-    util::addParam(aParam, eObjParam_ROTATION, util::makeString(rot));
-    util::addParam(aParam, eObjParam_USE_IN_SCRIPT, util::makeString(m_bUseInScript));
-    util::addParam(aParam, eObjParam_IS_SHADOW, util::makeString(m_bShadow));
-    util::addParam(aParam, eObjParam_PARENT_ID, QString::number(m_parentID));
-    util::addParam(aParam, eObjParam_QUEST_INFO, m_questInfo);
-    util::addParam(aParam, eObjParam_COMPLECTION, util::makeString(m_complection));
+    QVector3D rotEuler = getEulerRotation();
+    //prop3D rot(eObjParam_ROTATION, rotEuler);
+    //util::addParam(aProp, &rot);
+    propFloat rotX(eObjParam_ROTATION_X, rotEuler.x());
+    util::addParam(aProp, &rotX);
+    propFloat rotY(eObjParam_ROTATION_Y, rotEuler.y());
+    util::addParam(aProp, &rotY);
+    propFloat rotZ(eObjParam_ROTATION_Z, rotEuler.z());
+    util::addParam(aProp, &rotZ);
+    propBool bScript(eObjParam_USE_IN_SCRIPT, m_bUseInScript);
+    util::addParam(aProp, &bScript);
+    propBool bShadow(eObjParam_IS_SHADOW, m_bShadow);
+    util::addParam(aProp, &bShadow);
+    propInt parentId(eObjParam_PARENT_ID, m_parentID);
+    util::addParam(aProp, &parentId);
+    propStr questInfo(eObjParam_QUEST_INFO, m_questInfo);
+    util::addParam(aProp, &questInfo);
+    //prop3D complection(eObjParam_COMPLECTION, m_complection);
+    //util::addParam(aProp, &complection);
+    propFloat compX(eObjParam_COMPLECTION_X, m_complection.x());
+    util::addParam(aProp, &compX);
+    propFloat compY(eObjParam_COMPLECTION_Y, m_complection.y());
+    util::addParam(aProp, &compY);
+    propFloat compZ(eObjParam_COMPLECTION_Z, m_complection.z());
+    util::addParam(aProp, &compZ);
 
 }
 
-void CWorldObj::applyParam(EObjParam param, const QString &value)
+void CWorldObj::getParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType)
 {
-    switch (param)
+    switch (propType)
     {
     case eObjParam_BODYPARTS:
     {
-        m_bodyParts = util::strListFromString(value);
+        QMap<QString, QSharedPointer<propBool>> arrBodyPart;
+        util::bodyPartToProp(arrBodyPart, m_modelName, m_bodyParts);
+        prop.reset(new propBodyPart(eObjParam_BODYPARTS, arrBodyPart));
+        break;
+    }
+    case eObjParam_PLAYER:
+    {
+        prop.reset(new propChar(propType, m_player));
+        break;
+    }
+    case eObjParam_TEMPLATE:
+    {
+        prop.reset(new propStr(propType, m_modelName));
+        break;
+    }
+    case eObjParam_PARENT_TEMPLATE:
+    {
+        prop.reset(new propStr(propType, m_parentTemplate));
+        break;
+    }
+    case eObjParam_PRIM_TXTR:
+    {
+        prop.reset(new propStr(propType, m_primaryTexture));
+        break;
+    }
+    case eObjParam_SEC_TXTR:
+    {
+        prop.reset(new propStr(propType, m_secondaryTexture));
+        break;
+    }
+    case eObjParam_ROTATION:
+    {
+        prop.reset(new prop3D(propType, getEulerRotation()));
+        break;
+    }
+    case eObjParam_ROTATION_X:
+    {
+        prop.reset(new propFloat(propType, getEulerRotation().x()));
+        break;
+    }
+    case eObjParam_ROTATION_Y:
+    {
+        prop.reset(new propFloat(propType, getEulerRotation().y()));
+        break;
+    }
+    case eObjParam_ROTATION_Z:
+    {
+        prop.reset(new propFloat(propType, getEulerRotation().z()));
+        break;
+    }
+    case eObjParam_USE_IN_SCRIPT:
+    {
+        prop.reset(new propBool(propType, m_bUseInScript));
+        break;
+    }
+    case eObjParam_IS_SHADOW:
+    {
+        prop.reset(new propBool(propType, m_bShadow));
+        break;
+    }
+    case eObjParam_PARENT_ID:
+    {
+        prop.reset(new propInt(propType, m_parentID));
+        break;
+    }
+    case eObjParam_QUEST_INFO:
+    {
+        prop.reset(new propStr(propType, m_questInfo));
+        break;
+    }
+    case eObjParam_COMPLECTION:
+    {
+        prop.reset(new prop3D(propType, m_complection));
+        break;
+    }
+    case eObjParam_COMPLECTION_X:
+    {
+        prop.reset(new propFloat(propType, m_complection.x()));
+        break;
+    }
+    case eObjParam_COMPLECTION_Y:
+    {
+        prop.reset(new propFloat(propType, m_complection.y()));
+        break;
+    }
+    case eObjParam_COMPLECTION_Z:
+    {
+        prop.reset(new propFloat(propType, m_complection.z()));
+        break;
+    }
+    default:
+        CObjectBase::getParam(prop, propType);
+        break;
+    }
+}
+
+void CWorldObj::applyParam(const QSharedPointer<IPropertyBase>& prop)
+{
+    switch (prop->type())
+    {
+    case eObjParam_BODYPARTS:
+    {
+        util::propToBodyPart(m_bodyParts, dynamic_cast<propBodyPart*>(prop.get())->value());
         recalcFigure();
         updatePos(m_position);
         break;
     }
     case eObjParam_PLAYER:
     {
-        m_player = char(value.toInt());
+        m_player = dynamic_cast<propChar*>(prop.get())->value();
         break;
     }
 
     case eObjParam_TYPE:
     {
-        m_type = value.toUInt();
+        m_type = dynamic_cast<propUint*>(prop.get())->value();
         break;
     }
     case eObjParam_TEMPLATE:
     {
-        m_modelName = value;
+        m_modelName = dynamic_cast<propStr*>(prop.get())->value();
         m_bodyParts.clear();
         auto pFig = CObjectList::getInstance()->getFigure(m_modelName);
         CObjectBase::updateFigure(pFig);
@@ -386,164 +510,99 @@ void CWorldObj::applyParam(EObjParam param, const QString &value)
     case eObjParam_PARENT_TEMPLATE:
     {
         //todo: delete obj and create new from template if exists
-        m_parentTemplate = value;
+        m_parentTemplate = dynamic_cast<propStr*>(prop.get())->value();;
         break;
     }
     case eObjParam_PRIM_TXTR:
     {
-        m_primaryTexture = value;
+        m_primaryTexture = dynamic_cast<propStr*>(prop.get())->value();;
         setTexture(CTextureList::getInstance()->texture(m_primaryTexture));
         break;
     }
     case eObjParam_SEC_TXTR:
     {
-        m_secondaryTexture = value;
+        m_secondaryTexture = dynamic_cast<propStr*>(prop.get())->value();;
         break;
     }
     case eObjParam_ROTATION:
     {
-        //QVector3D eulerRot = util::vec3FromString(value);
-        const float gimbalAvoidStep = 0.001f;
-        QQuaternion quat;//this rotation as quat be applied to object
-        QVector3D eulerRot; // temp variable
-        const auto setNotNan = [&quat, &eulerRot, &gimbalAvoidStep](QVector3D& ch_rot)
-        {
-            for(int i(0); i< 100; ++i)
-            {
-                quat = QQuaternion::fromEulerAngles(ch_rot);
-                eulerRot = quat.toEulerAngles();
-                if(eulerRot.x() != eulerRot.x())
-                {
-                    ch_rot.setX(ch_rot.x() + gimbalAvoidStep);
-                }
-                else if(eulerRot.y() != eulerRot.y())
-                {
-                    ch_rot.setY(ch_rot.y() + gimbalAvoidStep);
-                }
-                else if(eulerRot.z() != eulerRot.z())
-                {
-                    ch_rot.setZ(ch_rot.z() + gimbalAvoidStep);
-                }
-                else
-                    return;
-            }
-            return;
-        };
-        QVector3D rotation = util::vec3FromString(value); //this rotation will be tested
-        setNotNan(rotation);
-        setRot(quat);
-        rotation = getEulerRotation();
+        QVector3D rotation = dynamic_cast<prop3D*>(prop.get())->value(); //this rotation will be tested
+        setRot(util::eulerToQuat(rotation));
+        recalcMinPos();
+        break;
+    }
+    case eObjParam_ROTATION_X:
+    {
+        QVector3D srcRot = getEulerRotation();
+        srcRot.setX(dynamic_cast<propFloat*>(prop.get())->value());
+        setRot(util::eulerToQuat(srcRot));
+        recalcMinPos();
+        break;
+    }
+    case eObjParam_ROTATION_Y:
+    {
+        QVector3D srcRot = getEulerRotation();
+        srcRot.setY(dynamic_cast<propFloat*>(prop.get())->value());
+        setRot(util::eulerToQuat(srcRot));
+        recalcMinPos();
+        break;
+    }
+    case eObjParam_ROTATION_Z:
+    {
+        QVector3D srcRot = getEulerRotation();
+        srcRot.setZ(dynamic_cast<propFloat*>(prop.get())->value());
+        setRot(util::eulerToQuat(srcRot));
         recalcMinPos();
         break;
     }
     case eObjParam_USE_IN_SCRIPT:
     {
-        m_bUseInScript = util::boolFromString(value);
+        m_bUseInScript = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     case eObjParam_IS_SHADOW:
     {
-        m_bShadow = util::boolFromString(value);
+        m_bShadow = dynamic_cast<propBool*>(prop.get())->value();
         break;
     }
     case eObjParam_PARENT_ID:
     {
-        m_parentID = value.toInt();
+        m_parentID = dynamic_cast<propInt*>(prop.get())->value();
         break;
     }
     case eObjParam_QUEST_INFO:
     {
-        m_questInfo = value;
+        m_questInfo = dynamic_cast<propStr*>(prop.get())->value();
         break;
     }
     case eObjParam_COMPLECTION:
     {
-        m_complection = util::vec3FromString(value);
+        m_complection = dynamic_cast<prop3D*>(prop.get())->value();
+        recalcFigure();
+        break;
+    }
+    case eObjParam_COMPLECTION_X:
+    {
+        m_complection.setX(dynamic_cast<propFloat*>(prop.get())->value());
+        recalcFigure();
+        break;
+    }
+    case eObjParam_COMPLECTION_Y:
+    {
+        m_complection.setY(dynamic_cast<propFloat*>(prop.get())->value());
+        recalcFigure();
+        break;
+    }
+    case eObjParam_COMPLECTION_Z:
+    {
+        m_complection.setZ(dynamic_cast<propFloat*>(prop.get())->value());
         recalcFigure();
         break;
     }
     default:
-        CObjectBase::applyParam(param, value);
+        CObjectBase::applyParam(prop);
         break;
     }
-}
-
-QString CWorldObj::getParam(EObjParam param)
-{
-    QString value;
-    switch (param)
-    {
-    case eObjParam_BODYPARTS:
-    {
-        value = util::makeString(m_bodyParts);
-        break;
-    }
-    case eObjParam_PLAYER:
-    {
-        value = QString::number(m_player);
-        break;
-    }
-//    case eObjParam_TYPE:
-//    {
-//        value = QString::number(m_type);
-//        break;
-//    }
-    case eObjParam_TEMPLATE:
-    {
-        value = m_modelName;
-        break;
-    }
-    case eObjParam_PARENT_TEMPLATE:
-    {
-        value = m_parentTemplate;
-        break;
-    }
-    case eObjParam_PRIM_TXTR:
-    {
-        value = m_primaryTexture;
-        break;
-    }
-    case eObjParam_SEC_TXTR:
-    {
-        value = m_secondaryTexture;
-        break;
-    }
-    case eObjParam_ROTATION:
-    {
-        value = util::makeString(getEulerRotation());
-        break;
-    }
-    case eObjParam_USE_IN_SCRIPT:
-    {
-        value = util::makeString(m_bUseInScript);
-        break;
-    }
-    case eObjParam_IS_SHADOW:
-    {
-        value = util::makeString(m_bShadow);
-        break;
-    }
-    case eObjParam_PARENT_ID:
-    {
-        value = util::makeString(m_parentID);
-        break;
-    }
-    case eObjParam_QUEST_INFO:
-    {
-        value = m_questInfo;
-        break;
-    }
-    case eObjParam_COMPLECTION:
-    {
-        value = util::makeString(m_complection);
-        break;
-    }
-    default:
-        value = CObjectBase::getParam(param);
-        break;
-    }
-
-    return value;
 }
 
 QJsonObject CWorldObj::toJson()

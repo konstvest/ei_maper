@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QUndoView>
+#include <QImageReader>
 
 #include "resourcemanager.h"
 #include "landscape.h"
@@ -15,27 +16,42 @@
 #include "settings.h"
 #include "select_window.h"
 #include "createobjectform.h"
-#include "mob.h"
+#include "randomize_form.h"
 #include "undo.h"
-#include "mob_parameters.h"
-#include "ui_connectors.h"
+#include "mob\mob.h"
+#include "mob\mob_parameters.h"
+#include "layout_components/connectors_ui.h"
 #include "preview.h"
 #include "log.h"
 #include "scene.h"
 
+void testFunc()
+{
+    ei::log(eLogDebug, "test func start");
 
-#include <QImageReader>
+    ei::log(eLogDebug, "test func end");
+}
+
+void MainWindow::on_toolButton_2_clicked()
+{
+    ei::log(eLogDebug, "btn test start");
+
+    ei::log(eLogDebug, "btn test end");
+}
 
 MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent),
     m_ui(new Ui::MainWindow)
 {
-
+#ifdef QT_DEBUG
+    testFunc();
+#endif
     CIconManager::getInstance()->init();
 
     m_settings.reset(new CSettings());
-    m_selector.reset(new CSelector());
+    m_selector.reset(new CSelectForm());
     m_createDialog.reset(new CCreateObjectForm());
+    m_randomizeForm.reset(new CRandomizeForm());
     m_settings->attachMainWindow(this);
     m_ui->setupUi(this); //init CView core also
 
@@ -57,7 +73,8 @@ MainWindow::MainWindow(QWidget* parent) :
   m_ui->toolButton_2->hide();
 #endif
 
-    m_selector->attachParents(this, m_pView);
+    m_selector->attachParents(m_pView);
+    m_randomizeForm->attachView(m_pView);
     m_undoStack = new QUndoStack(this);
     createUndoView();
     CStatusConnector::getInstance()->attach(m_ui->statusIco, m_ui->statusBar);
@@ -259,11 +276,13 @@ void MainWindow::on_actionSelect_All_triggered()
 void MainWindow::on_actionSelect_by_triggered()
 {
     m_selector->show();
+    m_selector->activateWindow();
 }
 
 void MainWindow::on_actionShow_undo_redo_triggered()
 {
     m_undoView->show();
+    m_undoView->activateWindow();
 }
 
 void MainWindow::on_actionClose_all_triggered()
@@ -287,12 +306,6 @@ void MainWindow::on_actionUndo_triggered()
     m_undoStack->undo();
 }
 
-void MainWindow::on_toolButton_2_clicked()
-{
-    ei::log(eLogDebug, "btn test start");
-    ei::log(eLogDebug, "btn test end");
-}
-
 void MainWindow::on_selectButton_clicked()
 {
     qDebug() << "hello Select";
@@ -314,6 +327,7 @@ void MainWindow::on_actionRedo_triggered()
 void MainWindow::on_actionCreate_new_object_triggered()
 {
     m_createDialog->show();
+    m_createDialog->activateWindow();
 }
 
 void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
@@ -426,5 +440,12 @@ void MainWindow::on_actionOpen_recent_triggered()
 void MainWindow::on_actionReset_logic_paths_triggered()
 {
     m_pView->resetUnitLogicPaths();
+}
+
+
+void MainWindow::on_actionRandomize_parameter_triggered()
+{
+    m_randomizeForm->show();
+    m_randomizeForm->activateWindow();
 }
 

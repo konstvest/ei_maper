@@ -14,6 +14,9 @@
 
 #include "mob.h"
 
+///
+/// \brief The Highlighter class provides syntax highlighting for the *.mob file script.
+///
 class Highlighter : public QSyntaxHighlighter
  {
      Q_OBJECT
@@ -73,6 +76,9 @@ namespace Ui {
 class CMobParameters;
 }
 
+///
+/// \brief The CMobParameters class provides a form for editing parameters of the *mob. file
+///
 class CMobParameters : public QWidget
 {
     Q_OBJECT
@@ -130,7 +136,9 @@ private:
     QShortcut* m_pShortcut;
 };
 
-//a header view that renders text vertically
+///
+/// \brief The HorizontalHeaderView class renders text vertically (diplomacy table)
+///
 class HorizontalHeaderView : public QHeaderView {
 public:
     explicit HorizontalHeaderView(Qt::Orientation orientation, QWidget *parent = nullptr)

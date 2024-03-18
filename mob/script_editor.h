@@ -5,6 +5,9 @@
 
 class CLineNumberArea;
 
+///
+/// \brief The CScriptEditor class provides script editing *.mob file
+///
 class CScriptEditor : public QPlainTextEdit
 {
     Q_OBJECT
@@ -25,7 +28,9 @@ private:
     CLineNumberArea *m_pLineNumberArea;
 };
 
-
+///
+/// \brief The CLineNumberArea class provides a display of the number of lines of the script
+///
 class CLineNumberArea : public QWidget
 {
 public:

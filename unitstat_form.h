@@ -8,6 +8,9 @@ namespace Ui {
 class CUnitStatForm;
 }
 
+///
+/// \brief The CUnitStatForm class provides UI for editing object parameters (if import option is enabled for unit).
+///
 class CUnitStatForm : public QWidget
 {
     Q_OBJECT

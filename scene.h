@@ -3,6 +3,10 @@
 
 #include "types.h"
 
+///
+/// \brief The CScene class stores the current scene state mode and updates the control hint
+/// \todo change the name to something more appropriate
+///
 class CScene : public QObject
 {
 Q_OBJECT

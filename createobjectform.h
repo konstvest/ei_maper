@@ -14,6 +14,9 @@ class CCreateObjectForm;
 class CView;
 class CPreview;
 
+///
+/// \brief The CCreateObjectForm class provides a form for creating a new object in the scene
+///
 class CCreateObjectForm : public QDialog
 {
     Q_OBJECT

@@ -7,6 +7,9 @@
 class CKeyManager;
 class CSettings;
 
+///
+/// \brief The CCamera class provides camera motion processing in a 3D scene
+///
 class CCamera
 {
 public:

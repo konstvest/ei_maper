@@ -13,6 +13,9 @@ namespace Ui {
 class CSelectForm;
 }
 
+///
+/// \brief The CSelectForm class provides a form for defining the parameter by which objects in the 3D scene will be selected after pressing the corresponding key.
+///
 class CSelectForm : public QWidget
 {
     Q_OBJECT

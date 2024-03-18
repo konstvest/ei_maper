@@ -5,6 +5,9 @@
 #include <QOpenGLShaderProgram>
 #include "types.h"
 
+///
+/// \brief The CPart class provides a display of each part(figure) of the object in the scene.
+///
 class CPart
 {
 public:

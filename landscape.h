@@ -116,6 +116,9 @@ struct SAnimTile
 
 class CNode;
 
+///
+/// \brief The CLandscape class provides an implementation of the internal game landscape format (*.mpr)
+///
 class CLandscape
 {
 public:

@@ -4,6 +4,9 @@
 #include <QKeySequence>
 #include <QSet>
 
+///
+/// \brief The CKeyManager class provides keystroke handling in the scene (change of operations, camera movement, etc.)
+///
 class CKeyManager
 {
 public:

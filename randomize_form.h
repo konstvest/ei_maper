@@ -10,6 +10,9 @@ class CRandomizeForm;
 
 class CView;
 
+///
+/// \brief The CRandomizeForm class is a form that allows you to set random values for some properties of selected objects in a 3D scene.
+///
 class CRandomizeForm : public QWidget
 {
     Q_OBJECT

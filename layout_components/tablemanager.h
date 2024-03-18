@@ -19,8 +19,10 @@ class CMultiLineEditForm;
 class CUnitStatForm;
 class CBodyPartEditForm;
 
-// any type of single value.
-// converting to(from) string must be overrided for each prop
+///
+/// \brief The CValueItem class supports any type of property that can be displayed with a single line.
+/// \details converting to(from) string must be overrided for each property.
+///
 class CValueItem : public QLineEdit
 {
     Q_OBJECT
@@ -45,6 +47,9 @@ private:
     bool bSkip;
 };
 
+///
+/// \brief The CLineEditEventFilter class overrides the behavior for QLineEdit (loss of focus, keystrokes).
+///
 class CLineEditEventFilter : public QObject
 {
 public:
@@ -75,8 +80,9 @@ private:
     QString m_value;
 };
 
-// any type of single value choosing in initialized list.
-// value will converted to(from) string
+///
+/// \brief The CComboStItem class extends the behavior of the drop-down list. Gets string values from CResourceStringList.
+///
 class CComboStItem: public QComboBox
 {
     Q_OBJECT
@@ -104,6 +110,10 @@ private:
     QSharedPointer<QStringListModel> m_pListModel;
 };
 
+
+///
+/// \brief The CComboStItem class extends the behavior of the drop-down list. Gets string values from CResourceStringList when it clicked.
+///
 class CComboDynItem: public QComboBox
 {
     Q_OBJECT
@@ -132,7 +142,9 @@ private:
     QSharedPointer<QStringListModel> m_pListModel;
 };
 
-
+///
+/// \brief The C3DItem class provides editing of a value consisting of 3 components (x,y,z).
+///
 class C3DItem: public QWidget
 {
     Q_OBJECT
@@ -156,6 +168,9 @@ private:
     QSharedPointer<IPropertyBase> m_zValue; //stored value;
 };
 
+///
+/// \brief The CColorButtonItem class provides color editing for light sources
+///
 class CColorButtonItem : public QToolButton
 {
     Q_OBJECT
@@ -176,6 +191,9 @@ private:
 
 };
 
+///
+/// \brief The CMultiLineButtonItem class provides editing of multiline values. For example, quest items, equipment.
+///
 class CMultiLineButtonItem: public QToolButton
 {
     Q_OBJECT
@@ -197,6 +215,9 @@ private:
 
 };
 
+///
+/// \brief The CUnitStatItem class provides editing of unit parameters as a table
+///
 class CUnitStatItem: public QToolButton
 {
     Q_OBJECT
@@ -218,6 +239,9 @@ private:
 
 };
 
+///
+/// \brief The CBodyPartItem class provides editing the visibility of body parts as a table
+///
 class CBodyPartItem: public QToolButton
 {
     Q_OBJECT
@@ -239,7 +263,9 @@ private:
 
 };
 
-// class for management property table (signals trasnfer, show data, trasfer applying changes)
+///
+/// \brief The CTableManager class managements property table (signals trasnfer, show data, trasfer applying changes)
+///
 class CTableManager : public QObject
 {
     Q_OBJECT

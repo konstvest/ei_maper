@@ -5,6 +5,9 @@
 #include <QVector>
 #include <QMap>
 
+///
+/// \brief The COpt class is a base class for working with options. Each option type is overridden below
+///
 class COpt
 {
 public:

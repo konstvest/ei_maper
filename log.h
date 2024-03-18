@@ -18,6 +18,9 @@ enum ELogMessageType
 
 class CSettings;
 
+///
+/// \brief The CLogger class provides logging
+///
 class CLogger
 {
 public:

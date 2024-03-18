@@ -6,6 +6,9 @@
 class CView;
 class CNode;
 
+///
+/// \brief The CTreeObject class stores additional information about the object ID so that it can be selected in the 3D scene.
+///
 class CTreeObject : public QTreeWidgetItem//, public QObject
 {
     //Q_OBJECT
@@ -20,6 +23,10 @@ private:
     uint m_nodeId;
 };
 
+///
+/// \brief The CTreeView class provides display of objects on the scene
+/// \todo display of patrol points (partially implemented)
+///
 class CTreeView : public QTreeWidget
 {
     Q_OBJECT

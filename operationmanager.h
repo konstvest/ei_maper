@@ -17,6 +17,9 @@ class CKeyManager;
 class CCamera;
 class QLineEdit;
 
+///
+/// \brief The CState class represents the base class for the keystroke response operation.
+///
 class CState : public QObject //base state class - interface
 {
     Q_OBJECT
@@ -37,6 +40,9 @@ protected:
     QPoint m_lastPos;
 };
 
+///
+/// \brief The COperation class represents an infinite automaton containing the current state(operation type) and allowing to pass between its states.
+///
 class COperation //state manager
 {
 public:

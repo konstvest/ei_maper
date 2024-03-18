@@ -21,6 +21,9 @@ enum EOptSet
 };
 class MainWindow;
 
+///
+/// \brief The CSettings class provides a UI for changing options.
+///
 class CSettings : public QWidget
 {
     Q_OBJECT

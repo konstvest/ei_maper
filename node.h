@@ -16,6 +16,9 @@
 class CMob;
 class IPropertyBase;
 
+///
+/// \brief The CNode class provides basic implementation of 3D scene node such as: unit, light source, particle, etc.
+///
 class CNode : public QObject
 {
     Q_OBJECT

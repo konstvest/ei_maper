@@ -1,10 +1,8 @@
 #include "bodypart_checkbox.h"
 
-CBodyPartCheckBox::CBodyPartCheckBox(QWidget *parent) : QCheckBox(parent)
-{
-
-}
-
+///
+/// \brief Overriding behavior for state selection. You cannot reselect an undefined behavior, only yes/no.
+///
 void CBodyPartCheckBox::nextCheckState()
 {
     switch (checkState()) {

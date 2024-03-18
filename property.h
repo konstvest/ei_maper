@@ -7,6 +7,9 @@
 #include "types.h"
 #include "log.h"
 
+///
+/// \brief The IPropertyBase class is the base class for handling object properties that are stored in the *mob file. Each property type is defined below.
+///
 class IPropertyBase
 {
 public:

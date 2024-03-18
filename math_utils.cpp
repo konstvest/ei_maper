@@ -3,7 +3,14 @@
 namespace util
 {
 
-
+///
+/// \brief checks if the point belongs to the triangle
+/// \param in. pos - point
+/// \param in. pt1 - first point of triagle
+/// \param in. pt2 - second point of triangle
+/// \param in. pt3 - third point of triangle
+/// \return
+///
 bool pointIsInTriangle(QVector3D& pos, QVector3D& pt1, QVector3D& pt2, QVector3D& pt3)
 {
     float a = (pt1.x() - pos.x()) * (pt2.y() - pt1.y()) - (pt2.x() - pt1.x()) * (pt1.y() - pos.y());
@@ -13,10 +20,22 @@ bool pointIsInTriangle(QVector3D& pos, QVector3D& pt1, QVector3D& pt2, QVector3D
     return ((a >= 0 && b >= 0 && c >= 0) || (a <= 0 && b <= 0 && c <= 0));
 }
 
-//calc distance from ray origin to triangle
+
+///
+/// \brief calculates the distance from a point to a triangle
+/// \param out. t - projected coordinate
+/// \param out. u - projected coordinate
+/// \param out. v - projected coordinate
+/// \param i. origin - the point from which the distance is to be calculated
+/// \param in. dir - direction from the point to the triangle
+/// \param in. vert0 - first point of triagle
+/// \param in. vert1 - second point of triangle
+/// \param in. vert2 - third point of triangle
+/// \param in. bTestCull
+/// \return true if it has an intersection with a triangle
+///
 bool ptToTriangle(float& t, float& u, float& v, QVector3D& origin, QVector3D& dir, QVector3D& vert0, QVector3D& vert1, QVector3D& vert2, bool bTestCull)
 {
-    // http://masters.donntu.org/2015/frt/yablokov/library/transl.htm
     QVector3D edge1 = vert1-vert0;
     QVector3D edge2 = vert2-vert0;
     QVector3D pvec = QVector3D::crossProduct(dir, edge2);

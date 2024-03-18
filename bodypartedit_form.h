@@ -8,6 +8,9 @@ namespace Ui {
 class CBodyPartEditForm;
 }
 
+///
+/// \brief The CBodyPartEditForm class provides a form-table for editing the visibility of body parts of objects.
+///
 class CBodyPartEditForm : public QWidget
 {
     Q_OBJECT

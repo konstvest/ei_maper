@@ -34,6 +34,10 @@ class CRoundMobForm;
 class CTreeView;
 class IPropertyBase;
 
+///
+/// \brief The CView class is the main class for managing and editing 3D scene contents. It is also a link between read out *.mob files and their editing. It also controls the camera and current operations.
+/// \todo Separate "core" functionality from rendering so that you can use the editor without using the UI
+///
 class CView : public QGLWidget
 {
     Q_OBJECT

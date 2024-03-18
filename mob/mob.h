@@ -18,6 +18,9 @@ class CLookPoint;
 class CActivationZone;
 class CTrapCastPoint;
 
+///
+/// \brief The CMob class provides reading, saving and editing of *.mob file.
+///
 class CMob
 {
 public:

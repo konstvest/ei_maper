@@ -69,6 +69,9 @@ struct STile
     ushort m_rotation;
 };
 
+///
+/// \brief The CSector class realizes a part of the game resources, from which the landscape is assembled
+///
 class CSector
 {
 public:

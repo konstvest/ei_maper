@@ -10,7 +10,9 @@
 //forward declarations
 class QOpenGLShaderProgram;
 
-
+///
+/// \brief The CSelectFrame class draws a frame for selecting objects
+///
 class CSelectFrame
 {
 public:

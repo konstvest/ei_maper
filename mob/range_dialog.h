@@ -9,6 +9,9 @@ class CRangeDialog;
 }
 
 class CMobParameters;
+///
+/// \brief The CRangeDialog class provides edit range parameter for *.mob file
+///
 class CRangeDialog : public QDialog
 {
     Q_OBJECT

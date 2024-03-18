@@ -3,6 +3,10 @@
 
 #include <QComboBox>
 
+///
+/// \brief The CDynamicComboBox class represents a drop-down list that loads a list of items when clicked.
+/// \todo delete the class, since QStringListModel has handled the optimization. (class CComboDynItem)
+///
 class CDynamicComboBox : public QComboBox
 {
     Q_OBJECT

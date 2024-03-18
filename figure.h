@@ -24,6 +24,9 @@ struct SHeader{
     void read(QDataStream& stream);
 };
 
+///
+/// \brief The CFigure class provides implementation of the internal 3D format of the game objects
+///
 class CFigure
 {
 public:

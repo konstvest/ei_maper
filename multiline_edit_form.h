@@ -7,6 +7,9 @@ namespace Ui {
 class CMultiLineEditForm;
 }
 
+///
+/// \brief The CMultiLineEditForm class provides a form for editing multi-line parameters. For example, quest items, equipment.
+///
 class CMultiLineEditForm : public QDialog
 {
     Q_OBJECT

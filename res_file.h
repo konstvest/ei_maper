@@ -63,6 +63,9 @@ struct ResFileEntry
     QDateTime LastWriteTime;
 };
 
+///
+/// \brief The ResFile class provides implementation of *.res files of the game
+///
 class ResFile
 {
 public:

@@ -9,6 +9,10 @@
 
 class CView;
 
+
+///
+/// \brief The CStatusConnector class shows message in status field. Is currently only used to display control hints.
+///
 class CStatusConnector
 {
 public:
@@ -25,6 +29,9 @@ private:
     QLineEdit* m_pStatus;
 };
 
+///
+/// \brief The CButtonConnector class synchronizes actions between buttons in UI and current operations
+///
 class CButtonConnector
 {
 public:
@@ -43,6 +50,9 @@ private:
     QMap<EButtonOp, QToolButton*> m_aButton;
 };
 
+///
+/// \brief The CIconManager class defines a set of icons in the interface.
+///
 class CIconManager
 {
 public:

@@ -7,6 +7,9 @@ namespace Ui {
 class CRoundMobForm;
 }
 
+///
+/// \brief The CRoundMobForm class provides possibility to change the currently read *.mob file to the next one
+///
 class CRoundMobForm : public QWidget
 {
     Q_OBJECT

@@ -12,6 +12,9 @@
 //forward declarations
 class CSettings;
 
+///
+/// \brief The CObjectList class stores information about the currently read 3D figures from the game resources.
+///
 class CObjectList
 {
 public:
@@ -94,6 +97,9 @@ struct SMmpHeader
     }
 };
 
+///
+/// \brief The CTextureList class stores information about the currently read textures from the game resources.
+///
 class CTextureList
 {
 public:
@@ -123,7 +129,9 @@ private:
 };
 
 
-// Class for managing string localization
+///
+/// \brief The CResourceStringList class manages string localization
+///
 class CResourceStringList
 {
 public:

@@ -11,6 +11,9 @@ class CView;
 class CCamera;
 class CSettings;
 
+///
+/// \brief The CPreview class provides a display of the currently created 3D scene node (new object creation form).
+///
 class CPreview : public QGLWidget
 {
     Q_OBJECT

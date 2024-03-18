@@ -3,6 +3,9 @@
 
 #include <QProgressBar>
 
+///
+/// \brief The CProgressView class controls the behavior of the progress bar.
+///
 class CProgressView : public QProgressBar
 {
     Q_OBJECT

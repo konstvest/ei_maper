@@ -5,6 +5,10 @@
 #include <QMessageBox>
 #include "view.h"
 
+///
+/// THis file presents types of operations that can be realized with undo\redo mechanism.
+///
+
 class MainWindow;
 class CPatrolPoint;
 class CLookPoint;

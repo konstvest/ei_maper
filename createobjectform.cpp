@@ -28,7 +28,7 @@ CCreateObjectForm::CCreateObjectForm(QWidget *parent) :
     initViewWidget();
     QObject::connect(this, SIGNAL(sendNewBbbox(CBox)), m_pPreview, SLOT(refreshCam(CBox)));
     m_tableManager.reset(new CTableManager(ui->tableParameters));
-    QObject::connect(m_tableManager.get(), SIGNAL(onUpdateProperty(const QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(const QSharedPointer<IPropertyBase>)));
+    QObject::connect(m_tableManager.get(), SIGNAL(onUpdateProperty(QSharedPointer<IPropertyBase>)), this, SLOT(onParamChange(QSharedPointer<IPropertyBase>)));
 
     setWindowTitle("Creating object dialog");
     setWindowFlag(Qt::WindowContextHelpButtonHint, false);

@@ -396,6 +396,18 @@ CNode *CMob::nodeByMapId(uint id)
     return pNode;
 }
 
+bool CMob::isFreeId(const uint id)
+{
+    QVector<uint> arrId;
+    for(auto& node: m_aNode)
+    {
+        if(node->mapId() == id)
+            return false;
+    }
+    //todo: add check for ranges (ranges is not necessary property of mob file)
+    return true;
+}
+
 QString CMob::mobName()
 {
     return m_filePath.fileName();

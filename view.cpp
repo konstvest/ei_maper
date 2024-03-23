@@ -7,6 +7,7 @@
 #include <QTreeWidget>
 #include <QPair>
 #include <QRandomGenerator>
+#include <QMessageBox>
 
 #include "view.h"
 #include "camera.h"
@@ -1028,6 +1029,28 @@ void CView::onParamChange(const QSharedPointer<IPropertyBase>& prop)
             CChangeProp* pChanger = new CChangeProp(this, pNode->mapId(), prop); // #todo: update node pos after undo-redo
             QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
             //QObject::connect(pChanger, SIGNAL(updatePosOnLand(CNode*)), this, SLOT(landPositionUpdate(CNode*)));
+            m_pUndoStack->push(pChanger);
+            break;
+        }
+        case eObjParam_NID:
+        {
+            if(nSelectedNodes() > 1)
+            {
+                ei::log(eLogWarning, "incorrect operation. You cannot set the same identifier for several objects");
+                QMessageBox::warning(nullptr, "Operation Error", "incorrect operation. You cannot set the same identifier for several objects");
+                return;
+            }
+            auto pId = dynamic_cast<propUint*>(prop.get());
+            if(!m_activeMob->isFreeId(pId->value()))
+            {
+                ei::log(eLogWarning, "incorrect operation. Duplicate id");
+                QMessageBox::warning(nullptr, "Operation Error", "incorrect operation. Duplicate id");
+                return;
+            }
+            CChangeProp* pChanger = new CChangeProp(this, pNode->mapId(), prop);
+            QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
+            QObject::connect(pChanger, SIGNAL(changeIdSignal(uint,uint)), m_pTree, SLOT(onChangeNodeId(uint,uint)));
+            QObject::connect(pChanger, SIGNAL(changeTreeName(CNode*)), m_pTree, SLOT(onChangeObjectName(CNode*)));
             m_pUndoStack->push(pChanger);
             break;
         }

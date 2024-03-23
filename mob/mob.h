@@ -45,6 +45,7 @@ public:
     void clearSelect(bool bClearLogic = true);
     void delNodes();
     CNode* nodeByMapId(uint id);
+    bool isFreeId(const uint id);
     CView* view() {Q_ASSERT(m_view); return m_view;}
     QString mobName();
     const QFileInfo& filePath() {return m_filePath;}
@@ -52,8 +53,6 @@ public:
     const CWorldSet& worldSet() {return m_worldSet;}
     void setWorldSet(const CWorldSet& ws){m_worldSet = ws;}
     const QVector<SRange>& ranges(bool bMain);
-    void setRanges(bool bMain, const QVector<SRange>& range);
-    void clearRanges(bool bMain);
     const QList<QString>& diplomacyNames() {return m_aDiplomacyFieldName;}
     void setDiplomacyNames(QList<QString>& arrName) {m_aDiplomacyFieldName = arrName;}
     QVector<QVector<uint>>& diplomacyField() {return m_diplomacyFoF;}
@@ -66,6 +65,8 @@ public:
     bool isDurty() {return m_bDurty;}
     void generateDiplomacyTable();
     void clearDiplomacyTable();
+    void setRanges(bool bMain, const QVector<SRange>& range);
+    void clearRanges(bool bMain);
     void addRange(bool bMain, const SRange range);
     const SRange& activeRange();
     uint activeRangeId() {return m_activeRangeId;}

@@ -54,9 +54,12 @@ CView::CView(QWidget *parent, const QGLWidget *pShareWidget) : QGLWidget(parent,
     m_selectFrame.reset(new CSelectFrame);
     //qDebug() << format();
     //qDebug() << isSharing();
+    QApplication* application = static_cast<QApplication *>(QApplication::instance());
+    application->inputMethod()->reset();
+    QLocale a = application->inputMethod()->locale();
+    QString lang = a.languageToString(a.language());
+    a.setDefault(QLocale::English);
 }
-
-
 
 void CView::updateReadState(EReadState state)
 {
@@ -1216,7 +1219,7 @@ void CView::wheelEvent(QWheelEvent* event)
 void CView::focusOutEvent(QFocusEvent *event)
 {
     Q_UNUSED(event);
-    QSet<Qt::Key> aKey(m_pOp->keyManager()->keys());
+    QSet<EKeyCode> aKey(m_pOp->keyManager()->keys());
     for(auto& key : aKey)
     {
         QKeyEvent keyEvent(QEvent::KeyRelease, key, Qt::NoModifier);

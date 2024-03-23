@@ -22,18 +22,19 @@ void CView::keyPressEvent(QKeyEvent* event)
     application->inputMethod()->reset();
     QLocale a = application->inputMethod()->locale();
     QString lang = a.languageToString(a.language());
+    //a.setDefault(QLocale::English);
 
 //    if (a.language() != QLocale::English)
 //        QMessageBox::warning(this, "Warning", "Please set locale to english");
 
-    switch (event->key()) {
-    case Qt::Key_M:
+    switch (event->nativeVirtualKey()) {
+    case eKey_M:
 //        unloadLand();
         break;
-//    case Qt::Key_U:
+//    case eKey_U:
 //        unloadMob("");
 //        break;
-    case Qt::Key_I:
+    case eKey_I:
     {
         break;
     }
@@ -43,6 +44,7 @@ void CView::keyPressEvent(QKeyEvent* event)
         break;
     }
     }
+    qDebug() << QString(event->nativeVirtualKey()) << ":" << event->nativeVirtualKey();
 }
 
 void CView::keyReleaseEvent(QKeyEvent* event)

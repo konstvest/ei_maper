@@ -55,22 +55,22 @@ void strToOperValue(QVector3D& vec, const EOperateAxis axis, const QString& valu
 
 void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
 {
-    switch (pEvent->key()) {
-    case Qt::Key_G:
+    switch (pEvent->nativeVirtualKey()) {
+    case eKey_G:
     {
         pOp->setCurrent(new CMoveAxis(m_pView, EOperateAxisXY));
         delete this;
         break;
     }
-    case Qt::Key_R:
+    case eKey_R:
     {
         pOp->setCurrent(new CRotateAxis(m_pView, EOperateAxisZ));
         delete this;
         break;
     }
-    case Qt::Key_T:
+    case eKey_T:
     {
-        if (pOp->keyManager()->isPressed(Qt::Key_Control))
+        if (pOp->keyManager()->isPressed(eKey_leftCtrl))
         {
             m_pView->iterateRoundMob();
         }
@@ -81,75 +81,75 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
         }
         break;
     }
-    case Qt::Key_Delete:
+    case eKey_Delete:
     {
         m_pView->deleteSelectedNodes();
         //pOp->setCurrent(new CScaleAxis(m_pView, EOperateAxisZ));
         break;
     }
-    case Qt::Key_C:
+    case eKey_C:
     {
-        if (pOp->keyManager()->isPressed(Qt::Key_Control))
+        if (pOp->keyManager()->isPressed(eKey_leftCtrl))
             m_pView->selectedObjectToClipboardBuffer();
         break;
     }
-    case Qt::Key_V:
+    case eKey_V:
     {
-        if (pOp->keyManager()->isPressed(Qt::Key_Control))
+        if (pOp->keyManager()->isPressed(eKey_leftCtrl))
             m_pView->clipboradObjectsToScene();
         break;
     }
-    case Qt::Key_H:
+    case eKey_H:
     {
-        if (pOp->keyManager()->isPressed(Qt::Key_Alt))
+        if (pOp->keyManager()->isPressed(eKey_Alt))
             m_pView->unHideAll();
         else
             m_pView->hideSelectedNodes();
 
         break;
     }
-    case Qt::Key_P:
+    case eKey_P:
     {
         if(CScene::getInstance()->getMode() == eEditModeLogic)
             m_pView->addLogicPoint(false);
         break;
     }
-    case Qt::Key_L:
+    case eKey_L:
     {
         if(CScene::getInstance()->getMode() == eEditModeLogic)
             m_pView->addLogicPoint(true);
         break;
     }
-    case  Qt::Key_U:
+    case  eKey_U:
     {
         m_pView->execUnloadCommand();
         break;
     }
-    case Qt::Key_X:
+    case eKey_X:
     {
-        if (pOp->keyManager()->isPressed(Qt::Key_Control))
+        if (pOp->keyManager()->isPressed(eKey_leftCtrl))
         {
             m_pView->selectedObjectToClipboardBuffer();
             m_pView->deleteSelectedNodes();
         }
         break;
     }
-    case Qt::Key_Period:
+    case eKey_NumDot:
     {
         m_pView->moveCamToSelectedObjects();
         break;
     }
     default:
-        pOp->keyManager()->press(Qt::Key(pEvent->key()));
+        pOp->keyManager()->press(EKeyCode(pEvent->nativeVirtualKey()));
         break;
     }
 }
 
 void CSelect::keyRelease(COperation *pOp, QKeyEvent *pEvent)
 {
-    pOp->keyManager()->release(Qt::Key(pEvent->key()));
-    switch (pEvent->key()) {
-    case Qt::Key_Control:
+    pOp->keyManager()->release(EKeyCode(pEvent->nativeVirtualKey()));
+    switch (pEvent->nativeVirtualKey()) {
+    case eKey_leftCtrl:
     { //todo: optimize logic for applying active mob selection
         m_pView->applyRoundMob();
         break;
@@ -164,8 +164,8 @@ void CSelect::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
     switch (pEvent->buttons()) {
     case Qt::LeftButton:
     {
-        pOp->keyManager()->press(Qt::Key_Dead_a);
-//        m_pView->pickObject(event->pos(), pOp->keyManager()->isPressed(Qt::Key_Shift));
+        pOp->keyManager()->press(eKey_special1);
+//        m_pView->pickObject(event->pos(), pOp->keyManager()->isPressed(eKey_Shift));
 //        m_pView->viewParameters();
         break;
     }
@@ -179,11 +179,11 @@ void CSelect::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
     switch (pEvent->button()) {
     case Qt::LeftButton:
     {
-        pOp->keyManager()->release(Qt::Key_Dead_a);
+        pOp->keyManager()->release(eKey_special1);
         const QPoint topLeft(m_lastPos.x() < pEvent->pos().x() ? m_lastPos.x() : pEvent->pos().x(), m_lastPos.y() > pEvent->pos().y() ? m_lastPos.y() : pEvent->pos().y());
         const QPoint bottomRight(m_lastPos.x() > pEvent->pos().x() ? m_lastPos.x() : pEvent->pos().x(), m_lastPos.y() < pEvent->pos().y() ? m_lastPos.y() : pEvent->pos().y());
         QRect rect(topLeft, bottomRight);
-        m_pView->pickObject(rect, pOp->keyManager()->isPressed(Qt::Key_Shift));
+        m_pView->pickObject(rect, pOp->keyManager()->isPressed(eKey_Shift));
         m_pView->viewParameters();
 
         break;
@@ -251,8 +251,8 @@ CMoveAxis::CMoveAxis(CView *pView, EOperateAxis ax)
 
 void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
 {
-    switch (pEvent->key()) {
-    case Qt::Key_Escape:
+    switch (pEvent->nativeVirtualKey()) {
+    case eKey_Esc:
     {
         qDebug() << "exit moveAxis operation";
         m_pView->operationRevert(EOperationAxisType::eMove);
@@ -260,44 +260,44 @@ void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         delete this;
         break;
     }
-    case Qt::Key_X:
+    case eKey_X:
     {
         m_pView->operationRevert(EOperationAxisType::eMove);
-        if(pOp->keyManager()->isPressed(Qt::Key_Shift))
+        if(pOp->keyManager()->isPressed(eKey_Shift))
             pOp->setCurrent(new CMoveAxis(m_pView, EOperateAxisYZ));
         else
             pOp->setCurrent(new CMoveAxis(m_pView, EOperateAxisX));
         delete this;
         break;
     }
-    case Qt::Key_Y:
+    case eKey_Y:
     {
         m_pView->operationRevert(EOperationAxisType::eMove);
-        if(pOp->keyManager()->isPressed(Qt::Key_Shift))
+        if(pOp->keyManager()->isPressed(eKey_Shift))
             pOp->setCurrent(new CMoveAxis(m_pView, EOperateAxisXZ));
         else
             pOp->setCurrent(new CMoveAxis(m_pView, EOperateAxisY));
         delete this;
         break;
     }
-    case Qt::Key_Z:
+    case eKey_Z:
     {
         m_pView->operationRevert(EOperationAxisType::eMove);
-        if(pOp->keyManager()->isPressed(Qt::Key_Shift))
+        if(pOp->keyManager()->isPressed(eKey_Shift))
             pOp->setCurrent(new CMoveAxis(m_pView, EOperateAxisXY));
         else
             pOp->setCurrent(new CMoveAxis(m_pView, EOperateAxisZ));
         delete this;
         break;
     }
-    case Qt::Key_Minus:
-    case Qt::Key_Period:
+    case eKey_NumMinus:
+    case eKey_NumDot:
     {
         value += pEvent->text();
         qDebug() << value << endl;
         break;
     }
-    case Qt::Key_0 ... Qt::Key_9:
+    case eKey_0 ... eKey_9:
     {
         //todo: show value in ui
         value += pEvent->text();
@@ -308,7 +308,7 @@ void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         m_pView->moveTo(dir);
         break;
     }
-    case Qt::Key_Backspace:
+    case eKey_Backspace:
     {
         if(!value.isEmpty())
             value.remove(value.length()-1, 1);
@@ -322,8 +322,7 @@ void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         m_pView->moveTo(dir);
         break;
     }
-    case Qt::Key_Return:
-    case Qt::Key_Enter:
+    case eKey_Enter:
     {
         if(!value.isEmpty())
             m_pView->operationApply(EOperationAxisType::eMove);
@@ -333,7 +332,7 @@ void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
     }
     default:
     {
-        pOp->keyManager()->press(Qt::Key(pEvent->key()));
+        pOp->keyManager()->press(EKeyCode(pEvent->nativeVirtualKey()));
         break;
     }
     }
@@ -341,10 +340,10 @@ void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
 
 void CMoveAxis::keyRelease(COperation *pOp, QKeyEvent *pEvent)
 {
-    switch (pEvent->key()) {
+    switch (pEvent->nativeVirtualKey()) {
     default:
     {
-        pOp->keyManager()->release(Qt::Key(pEvent->key()));
+        pOp->keyManager()->release(EKeyCode(pEvent->nativeVirtualKey()));
         break;
     }
     }
@@ -485,8 +484,8 @@ CRotateAxis::CRotateAxis(CView *pView, EOperateAxis ax)
 
 void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
 {
-    switch (pEvent->key()) {
-    case Qt::Key_Escape:
+    switch (pEvent->nativeVirtualKey()) {
+    case eKey_Esc:
     {
         qDebug() << "exit CRotateAxis operation";
         m_pView->operationRevert(EOperationAxisType::eRotate);
@@ -494,14 +493,14 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         delete this;
         break;
     }
-    case Qt::Key_Minus:
-    case Qt::Key_Period:
+    case eKey_NumMinus:
+    case eKey_NumDot:
     {
         value += pEvent->text();
         qDebug() << value << endl;
         break;
     }
-    case Qt::Key_0 ... Qt::Key_9:
+    case eKey_0 ... eKey_9:
     {
         value += pEvent->text();
         qDebug() << value << endl;
@@ -511,7 +510,7 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         m_pView->rotateTo(rot);
         break;
     }
-    case Qt::Key_Backspace:
+    case eKey_Backspace:
     {
         if(!value.isEmpty())
             value.remove(value.length()-1, 1);
@@ -525,8 +524,7 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         m_pView->rotateTo(rot);
         break;
     }
-    case Qt::Key_Return:
-    case Qt::Key_Enter:
+    case eKey_Enter:
     {
         if(!value.isEmpty())
             m_pView->operationApply(EOperationAxisType::eRotate);
@@ -534,21 +532,21 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         delete this;
         break;
     }
-    case Qt::Key_X:
+    case eKey_X:
     {
         m_pView->operationRevert(EOperationAxisType::eRotate);
         pOp->setCurrent(new CRotateAxis(m_pView, EOperateAxisX));
         delete this;
         break;
     }
-    case Qt::Key_Y:
+    case eKey_Y:
     {
         m_pView->operationRevert(EOperationAxisType::eRotate);
         pOp->setCurrent(new CRotateAxis(m_pView, EOperateAxisY));
         delete this;
         break;
     }
-    case Qt::Key_Z:
+    case eKey_Z:
     {
         m_pView->operationRevert(EOperationAxisType::eRotate);
         pOp->setCurrent(new CRotateAxis(m_pView, EOperateAxisZ));
@@ -557,7 +555,7 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
     }
     default:
     {
-        pOp->keyManager()->press(Qt::Key(pEvent->key()));
+        pOp->keyManager()->press(EKeyCode(pEvent->nativeVirtualKey()));
         break;
     }
     }
@@ -565,10 +563,10 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
 
 void CRotateAxis::keyRelease(COperation *pOp, QKeyEvent *pEvent)
 {
-    switch (pEvent->key()) {
+    switch (pEvent->nativeVirtualKey()) {
     default:
     {
-        pOp->keyManager()->release(Qt::Key(pEvent->key()));
+        pOp->keyManager()->release(EKeyCode(pEvent->nativeVirtualKey()));
         break;
     }
     }
@@ -758,8 +756,8 @@ CScaleAxis::CScaleAxis(CView *pView, EOperateAxis ax)
 
 void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
 {
-    switch (pEvent->key()) {
-    case Qt::Key_Escape:
+    switch (pEvent->nativeVirtualKey()) {
+    case eKey_Esc:
     {
         qDebug() << "exit CScaleAxis operation";
         m_pView->operationRevert(EOperationAxisType::eScale);
@@ -767,14 +765,14 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         delete this;
         break;
     }
-    case Qt::Key_Minus:
-    case Qt::Key_Period:
+    case eKey_NumMinus:
+    case eKey_NumDot:
     {
         value += pEvent->text();
         qDebug() << value << endl;
         break;
     }
-    case Qt::Key_0 ... Qt::Key_9:
+    case eKey_0 ... eKey_9:
     {
         value += pEvent->text();
         qDebug() << value << endl;
@@ -784,7 +782,7 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         m_pView->scaleTo(scale);
         break;
     }
-    case Qt::Key_Backspace:
+    case eKey_Backspace:
     {
         if(!value.isEmpty())
             value.remove(value.length()-1, 1);
@@ -798,8 +796,7 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         m_pView->scaleTo(scale);
         break;
     }
-    case Qt::Key_Return:
-    case Qt::Key_Enter:
+    case eKey_Enter:
     {
         if(!value.isEmpty())
             m_pView->operationApply(EOperationAxisType::eScale);
@@ -807,21 +804,21 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         delete this;
         break;
     }
-    case Qt::Key_X:
+    case eKey_X:
     {
         m_pView->operationRevert(EOperationAxisType::eScale);
         pOp->setCurrent(new CScaleAxis(m_pView, EOperateAxisX));
         delete this;
         break;
     }
-    case Qt::Key_Y:
+    case eKey_Y:
     {
         m_pView->operationRevert(EOperationAxisType::eScale);
         pOp->setCurrent(new CScaleAxis(m_pView, EOperateAxisY));
         delete this;
         break;
     }
-    case Qt::Key_Z:
+    case eKey_Z:
     {
         m_pView->operationRevert(EOperationAxisType::eScale);
         pOp->setCurrent(new CScaleAxis(m_pView, EOperateAxisZ));
@@ -830,7 +827,7 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
     }
     default:
     {
-        pOp->keyManager()->press(Qt::Key(pEvent->key()));
+        pOp->keyManager()->press(EKeyCode(pEvent->nativeVirtualKey()));
         break;
     }
     }
@@ -838,10 +835,10 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
 
 void CScaleAxis::keyRelease(COperation *pOp, QKeyEvent *pEvent)
 {
-    switch (pEvent->key()) {
+    switch (pEvent->nativeVirtualKey()) {
     default:
     {
-        pOp->keyManager()->release(Qt::Key(pEvent->key()));
+        pOp->keyManager()->release(EKeyCode(pEvent->nativeVirtualKey()));
         break;
     }
     }

@@ -152,12 +152,12 @@ void MainWindow::initShortcuts()
     m_ui->actionSelect_by->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F));
     m_ui->actionOpen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 
-    m_ui->actionSave->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
-    m_ui->actionSave_all_MOB_s->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
-    m_ui->actionSave_as->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + Qt::Key_S));
+    m_ui->actionSave->setShortcut(QKeySequence(Qt::CTRL + eKey_S));
+    m_ui->actionSave_all_MOB_s->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + eKey_S));
+    m_ui->actionSave_as->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + eKey_S));
 
-    m_ui->actionSelect_All->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_A));
-    m_ui->actionClose_all->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    m_ui->actionSelect_All->setShortcut(QKeySequence(Qt::CTRL + eKey_A));
+    m_ui->actionClose_all->setShortcut(QKeySequence(Qt::CTRL + eKey_Q));
     m_ui->actionUndo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
     m_ui->actionRedo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
     m_ui->actionCreate_new_object->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));

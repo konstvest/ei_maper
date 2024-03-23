@@ -480,6 +480,105 @@ enum EBehaviourType //todo: move to logic m_model
 
 };
 
+enum EKeyCode
+{
+     eKey_Backspace    = 8
+    ,eKey_Tab          = 9
+    ,eKey_NumCenter    = 12 //num 5 when numlock is off
+    ,eKey_Enter        = 13
+    ,eKey_Shift        = 16
+    ,eKey_Ctrl         = 17
+    ,eKey_Alt          = 18
+    ,eKey_PauseBreak   = 19
+    ,eKey_CapsLock     = 20
+    ,eKey_Esc          = 27
+    ,eKey_Space        = 32
+    ,eKey_PageUp       = 33
+    ,eKey_PageDown     = 34
+    ,eKey_End          = 35
+    ,eKey_Home         = 36
+    ,eKey_LeftArrow    = 37
+    ,eKey_UpArrow      = 38
+    ,eKey_RightArrow   = 39
+    ,eKey_DownArrow    = 40
+    ,eKey_PrintScreen  = 44
+    ,eKey_Insert       = 45
+    ,eKey_Delete       = 46
+    ,eKey_0            = 48
+    ,eKey_1            = 49
+    ,eKey_2            = 50
+    ,eKey_3            = 51
+    ,eKey_4            = 52
+    ,eKey_5            = 53
+    ,eKey_6            = 54
+    ,eKey_7            = 55
+    ,eKey_8            = 56
+    ,eKey_9            = 57
+    ,eKey_A            = 65
+    ,eKey_B            = 66
+    ,eKey_C            = 67
+    ,eKey_D            = 68
+    ,eKey_E            = 69
+    ,eKey_F            = 70
+    ,eKey_G            = 71
+    ,eKey_H            = 72
+    ,eKey_I            = 73
+    ,eKey_J            = 74
+    ,eKey_K            = 75
+    ,eKey_L            = 76
+    ,eKey_M            = 77
+    ,eKey_N            = 78
+    ,eKey_O            = 79
+    ,eKey_P            = 80
+    ,eKey_Q            = 81
+    ,eKey_R            = 82
+    ,eKey_S            = 83
+    ,eKey_T            = 84
+    ,eKey_U            = 85
+    ,eKey_V            = 86
+    ,eKey_W            = 87
+    ,eKey_X            = 88
+    ,eKey_Y            = 89
+    ,eKey_Z            = 90
+    ,eKey_leftWin      = 91
+    ,eKey_rightWin     = 92
+    ,eKey_Popup        = 93
+    ,eKey_Num0         = 96
+    ,eKey_Num1         = 97
+    ,eKey_Num2         = 98
+    ,eKey_Num3         = 99
+    ,eKey_Num4         = 100
+    ,eKey_Num5         = 101
+    ,eKey_Num6         = 102
+    ,eKey_Num7         = 103
+    ,eKey_Num8         = 104
+    ,eKey_Num9         = 105
+    ,eKey_NumMul       = 106
+    ,eKey_NumPlus      = 107
+    ,eKey_NumMinus     = 109
+    ,eKey_NumDot       = 110
+    ,eKey_NumSlash     = 111
+    ,eKey_F1           = 112
+    ,eKey_F2           = 113
+    ,eKey_F3           = 114
+    ,eKey_F4           = 115
+    ,eKey_F5           = 116
+    ,eKey_F6           = 117
+    ,eKey_F7           = 118
+    ,eKey_F8           = 119
+    ,eKey_F9           = 120
+    ,eKey_F10          = 121
+    ,eKey_F11          = 122
+    ,eKey_F12          = 123
+    ,eKey_NumLock      = 144
+    ,eKey_ScrollLock   = 145
+    ,eKey_leftShift    = 160
+    ,eKey_rightShift   = 161
+    ,eKey_leftCtrl     = 162
+    ,eKey_rightCtrl    = 163
+    ,eKey_special1     = 164
+};
+
 typedef ei::vector2<short> S2;
 typedef ei::vector2<int> I2;
 typedef ei::vector2<uint> UI2;

@@ -33,7 +33,7 @@ CMobParameters::CMobParameters(QWidget* parent, CMob* pMob, CView* pView):
     ui->listRanges->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     m_pTable.reset(new QTableWidget(32, 32));
     QObject::connect(m_pTable.get(), SIGNAL(cellDoubleClicked(int,int)), this, SLOT(tableItemClicked(int,int)));
-    m_pShortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_S), this, SLOT(onSaveShortcut()));
+    m_pShortcut = new QShortcut(QKeySequence(Qt::CTRL + eKey_S), this, SLOT(onSaveShortcut()));
     //m_aCell.clear();
     m_aCell.resize(32*32);
     for (int i(0); i < 32; ++i)

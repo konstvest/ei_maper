@@ -190,9 +190,9 @@ void CCamera::enlarge(const bool bZoom)
     else
     {
         if(bZoom)
-            strafeDownward(nullptr == m_keyManager ? false : m_keyManager->isPressed(Qt::Key_Shift));
+            strafeDownward(nullptr == m_keyManager ? false : m_keyManager->isPressed(eKey_Shift));
         else
-            strafeUpward(nullptr == m_keyManager ? false : m_keyManager->isPressed(Qt::Key_Shift));
+            strafeUpward(nullptr == m_keyManager ? false : m_keyManager->isPressed(eKey_Shift));
     }
 }
 
@@ -207,26 +207,26 @@ void CCamera::move()
     Q_ASSERT(pOpt);
     if (pOpt->value())
     { // free camera
-        if(m_keyManager->isPressed(Qt::Key_W) || m_keyManager->isPressed(Qt::Key_Up))
-            strafeForward(m_keyManager->isPressed(Qt::Key_Shift));
-        if(m_keyManager->isPressed(Qt::Key_S) || m_keyManager->isPressed(Qt::Key_Down))
-            strafeBack(m_keyManager->isPressed(Qt::Key_Shift));
+        if(m_keyManager->isPressed(eKey_W) || m_keyManager->isPressed(eKey_UpArrow))
+            strafeForward(m_keyManager->isPressed(eKey_Shift));
+        if(m_keyManager->isPressed(eKey_S) || m_keyManager->isPressed(eKey_DownArrow))
+            strafeBack(m_keyManager->isPressed(eKey_Shift));
     }
     else
     {
-        if(m_keyManager->isPressed(Qt::Key_W) || m_keyManager->isPressed(Qt::Key_Up))
-            shiftForward(m_keyManager->isPressed(Qt::Key_Shift));
-        if(m_keyManager->isPressed(Qt::Key_S) || m_keyManager->isPressed(Qt::Key_Down))
-            shiftBack(m_keyManager->isPressed(Qt::Key_Shift));
+        if(m_keyManager->isPressed(eKey_W) || m_keyManager->isPressed(eKey_UpArrow))
+            shiftForward(m_keyManager->isPressed(eKey_Shift));
+        if(m_keyManager->isPressed(eKey_S) || m_keyManager->isPressed(eKey_DownArrow))
+            shiftBack(m_keyManager->isPressed(eKey_Shift));
     }
-    if(m_keyManager->isPressed(Qt::Key_D) || m_keyManager->isPressed(Qt::Key_Right))
-        strafeRight(m_keyManager->isPressed(Qt::Key_Shift));
-    if(m_keyManager->isPressed(Qt::Key_A) || m_keyManager->isPressed(Qt::Key_Left))
-        strafeLeft(m_keyManager->isPressed(Qt::Key_Shift));
-    if(m_keyManager->isPressed(Qt::Key_E))
-        strafeUpward(m_keyManager->isPressed(Qt::Key_Shift));
-    if(m_keyManager->isPressed(Qt::Key_Q))
-        strafeDownward(m_keyManager->isPressed(Qt::Key_Shift));
+    if(m_keyManager->isPressed(eKey_D) || m_keyManager->isPressed(eKey_RightArrow))
+        strafeRight(m_keyManager->isPressed(eKey_Shift));
+    if(m_keyManager->isPressed(eKey_A) || m_keyManager->isPressed(eKey_LeftArrow))
+        strafeLeft(m_keyManager->isPressed(eKey_Shift));
+    if(m_keyManager->isPressed(eKey_E))
+        strafeUpward(m_keyManager->isPressed(eKey_Shift));
+    if(m_keyManager->isPressed(eKey_Q))
+        strafeDownward(m_keyManager->isPressed(eKey_Shift));
 }
 
 // move camera to 'posTarget' point

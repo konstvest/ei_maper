@@ -66,7 +66,7 @@ public:
         if (e->type() == QEvent::KeyPress)
         {
             QKeyEvent* keyEvent = static_cast<QKeyEvent*>(e);
-            if (keyEvent->key() == Qt::Key_Escape)
+            if (keyEvent->nativeVirtualKey() == eKey_Esc)
                 restoreValue();
         }
         // standard event processing

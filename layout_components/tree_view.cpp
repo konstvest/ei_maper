@@ -13,8 +13,8 @@ CTreeView::CTreeView(QWidget *parent) : QTreeWidget(parent)
 
 void CTreeView::keyPressEvent(QKeyEvent *pEvent)
 {
-    auto key = pEvent->key();
-    if(key == Qt::Key_Delete)
+    auto key = pEvent->nativeVirtualKey();
+    if(key == eKey_Delete)
     {
         auto pItem = currentItem();
         if(currentColumn() != 0 || nullptr == pItem) // clicked on count field. ignore it

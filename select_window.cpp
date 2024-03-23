@@ -33,7 +33,7 @@ void CSelectForm::selectAll()
 
 void CSelectForm::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Escape)
+    if (event->nativeVirtualKey() == eKey_Esc)
         close();
 }
 

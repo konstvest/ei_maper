@@ -1219,11 +1219,10 @@ void CView::wheelEvent(QWheelEvent* event)
 void CView::focusOutEvent(QFocusEvent *event)
 {
     Q_UNUSED(event);
-    QSet<EKeyCode> aKey(m_pOp->keyManager()->keys());
-    for(auto& key : aKey)
+    auto keySet = m_pOp->keyManager()->keys();
+    for(auto& key : keySet)
     {
-        QKeyEvent keyEvent(QEvent::KeyRelease, key, Qt::NoModifier);
-        m_pOp->keyRelease(&keyEvent);
+        m_pOp->keyRelease(key);
     }
 }
 

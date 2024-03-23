@@ -482,6 +482,7 @@ enum EBehaviourType //todo: move to logic m_model
 
 enum EKeyCode
 {
+    // https://cherrytree.at/misc/vk.htm
      eKey_Backspace    = 8
     ,eKey_Tab          = 9
     ,eKey_NumCenter    = 12 //num 5 when numlock is off
@@ -572,11 +573,22 @@ enum EKeyCode
     ,eKey_F12          = 123
     ,eKey_NumLock      = 144
     ,eKey_ScrollLock   = 145
+    //151-159 - unassigned
+    ,eKey_special1     = 151
+
     ,eKey_leftShift    = 160
     ,eKey_rightShift   = 161
     ,eKey_leftCtrl     = 162
     ,eKey_rightCtrl    = 163
-    ,eKey_special1     = 164
+    //menus, media, etc
+    ,eKey_Semicolon    = 186 // ;:
+    ,eKey_Plus         = 187
+    ,eKey_Comma        = 188
+    ,eKey_Minus        = 189
+    ,eKey_Period       = 190
+    ,eKey_Question     = 191 // /?
+    ,eKey_Tilde        = 192 // `
+
 };
 
 typedef ei::vector2<short> S2;

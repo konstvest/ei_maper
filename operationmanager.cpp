@@ -53,9 +53,9 @@ void strToOperValue(QVector3D& vec, const EOperateAxis axis, const QString& valu
     }
 }
 
-void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
+void CSelect::keyPress(COperation *pOp, EKeyCode key)
 {
-    switch (pEvent->nativeVirtualKey()) {
+    switch (key) {
     case eKey_G:
     {
         pOp->setCurrent(new CMoveAxis(m_pView, EOperateAxisXY));
@@ -140,15 +140,15 @@ void CSelect::keyPress(COperation *pOp, QKeyEvent *pEvent)
         break;
     }
     default:
-        pOp->keyManager()->press(EKeyCode(pEvent->nativeVirtualKey()));
+        pOp->keyManager()->press(key);
         break;
     }
 }
 
-void CSelect::keyRelease(COperation *pOp, QKeyEvent *pEvent)
+void CSelect::keyRelease(COperation *pOp, EKeyCode key)
 {
-    pOp->keyManager()->release(EKeyCode(pEvent->nativeVirtualKey()));
-    switch (pEvent->nativeVirtualKey()) {
+    pOp->keyManager()->release(key);
+    switch (key) {
     case eKey_leftCtrl:
     { //todo: optimize logic for applying active mob selection
         m_pView->applyRoundMob();
@@ -249,9 +249,9 @@ CMoveAxis::CMoveAxis(CView *pView, EOperateAxis ax)
     CButtonConnector::getInstance()->pressButton(EButtonOpMove);
 }
 
-void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
+void CMoveAxis::keyPress(COperation *pOp, EKeyCode key)
 {
-    switch (pEvent->nativeVirtualKey()) {
+    switch (key) {
     case eKey_Esc:
     {
         qDebug() << "exit moveAxis operation";
@@ -290,17 +290,23 @@ void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         delete this;
         break;
     }
+    case eKey_Minus:
     case eKey_NumMinus:
+    {
+        value += "-";
+        break;
+    }
+    case eKey_Period:
     case eKey_NumDot:
     {
-        value += pEvent->text();
+        value += ".";
         qDebug() << value << endl;
         break;
     }
     case eKey_0 ... eKey_9:
     {
         //todo: show value in ui
-        value += pEvent->text();
+        value += QString().number(key-eKey_0); //get key as digit
         qDebug() << value << endl;
         m_pView->operationRevert(EOperationAxisType::eMove);
         QVector3D dir(0.0f, 0.0f, 0.0f);
@@ -332,18 +338,18 @@ void CMoveAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
     }
     default:
     {
-        pOp->keyManager()->press(EKeyCode(pEvent->nativeVirtualKey()));
+        pOp->keyManager()->press(key);
         break;
     }
     }
 }
 
-void CMoveAxis::keyRelease(COperation *pOp, QKeyEvent *pEvent)
+void CMoveAxis::keyRelease(COperation *pOp, EKeyCode key)
 {
-    switch (pEvent->nativeVirtualKey()) {
+    switch (key) {
     default:
     {
-        pOp->keyManager()->release(EKeyCode(pEvent->nativeVirtualKey()));
+        pOp->keyManager()->release(key);
         break;
     }
     }
@@ -482,9 +488,9 @@ CRotateAxis::CRotateAxis(CView *pView, EOperateAxis ax)
 }
 
 
-void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
+void CRotateAxis::keyPress(COperation *pOp, EKeyCode key)
 {
-    switch (pEvent->nativeVirtualKey()) {
+    switch (key) {
     case eKey_Esc:
     {
         qDebug() << "exit CRotateAxis operation";
@@ -493,16 +499,22 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         delete this;
         break;
     }
+    case eKey_Minus:
     case eKey_NumMinus:
+    {
+        value += "-";
+        break;
+    }
+    case eKey_Period:
     case eKey_NumDot:
     {
-        value += pEvent->text();
+        value += ".";
         qDebug() << value << endl;
         break;
     }
     case eKey_0 ... eKey_9:
     {
-        value += pEvent->text();
+        value += QString().number(key-eKey_0); //get key as digit
         qDebug() << value << endl;
         m_pView->operationRevert(EOperationAxisType::eRotate);
         QVector3D rot(0.0f, 0.0f, 0.0f);
@@ -555,18 +567,18 @@ void CRotateAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
     }
     default:
     {
-        pOp->keyManager()->press(EKeyCode(pEvent->nativeVirtualKey()));
+        pOp->keyManager()->press(key);
         break;
     }
     }
 }
 
-void CRotateAxis::keyRelease(COperation *pOp, QKeyEvent *pEvent)
+void CRotateAxis::keyRelease(COperation *pOp, EKeyCode key)
 {
-    switch (pEvent->nativeVirtualKey()) {
+    switch (key) {
     default:
     {
-        pOp->keyManager()->release(EKeyCode(pEvent->nativeVirtualKey()));
+        pOp->keyManager()->release(key);
         break;
     }
     }
@@ -754,9 +766,9 @@ CScaleAxis::CScaleAxis(CView *pView, EOperateAxis ax)
 }
 
 
-void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
+void CScaleAxis::keyPress(COperation *pOp, EKeyCode key)
 {
-    switch (pEvent->nativeVirtualKey()) {
+    switch (key) {
     case eKey_Esc:
     {
         qDebug() << "exit CScaleAxis operation";
@@ -765,16 +777,22 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
         delete this;
         break;
     }
+    case eKey_Minus:
     case eKey_NumMinus:
+    {
+        value += "-";
+        break;
+    }
+    case eKey_Period:
     case eKey_NumDot:
     {
-        value += pEvent->text();
+        value += ".";
         qDebug() << value << endl;
         break;
     }
     case eKey_0 ... eKey_9:
     {
-        value += pEvent->text();
+        value += QString().number(key-eKey_0); //get key as digit
         qDebug() << value << endl;
         m_pView->operationRevert(EOperationAxisType::eScale);
         QVector3D scale(0.0f, 0.0f, 0.0f);
@@ -827,18 +845,18 @@ void CScaleAxis::keyPress(COperation *pOp, QKeyEvent *pEvent)
     }
     default:
     {
-        pOp->keyManager()->press(EKeyCode(pEvent->nativeVirtualKey()));
+        pOp->keyManager()->press(key);
         break;
     }
     }
 }
 
-void CScaleAxis::keyRelease(COperation *pOp, QKeyEvent *pEvent)
+void CScaleAxis::keyRelease(COperation *pOp, EKeyCode key)
 {
-    switch (pEvent->nativeVirtualKey()) {
+    switch (key) {
     default:
     {
-        pOp->keyManager()->release(EKeyCode(pEvent->nativeVirtualKey()));
+        pOp->keyManager()->release(key);
         break;
     }
     }

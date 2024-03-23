@@ -27,8 +27,8 @@ class CState : public QObject //base state class - interface
     CState() = delete;
     CState(CView* pView) {m_pView = pView;}
     virtual ~CState() {};
-    virtual void keyPress(COperation* pOp, QKeyEvent* event) = 0;
-    virtual void keyRelease(COperation* pOp, QKeyEvent* event) = 0;
+    virtual void keyPress(COperation* pOp, EKeyCode key) = 0;
+    virtual void keyRelease(COperation* pOp, EKeyCode key) = 0;
     virtual void execute(COperation *pOp, QVector3D& dir, CNode* pNode) = 0;
     virtual void axisOperate(COperation *pOp, CNode* pNode) = 0;
     virtual void mousePressEvent(COperation *pOp, QMouseEvent* event) = 0;
@@ -49,8 +49,8 @@ public:
     COperation(CState *s);
     void changeState(CState* state);
     void setCurrent(CState *s) {current = s;}
-    void keyPress(QKeyEvent* event) {current->keyPress(this, event);};
-    void keyRelease(QKeyEvent* event) {current->keyRelease(this, event);};
+    void keyPress(EKeyCode key) {current->keyPress(this, key);};
+    void keyRelease(EKeyCode key) {current->keyRelease(this, key);};
     void execute(QVector3D& dir, CNode* pNode) {current->execute(this, dir, pNode);}
     void axisOperate(CNode* pNode) {current->axisOperate(this, pNode);};
     void mousePressEvent(QMouseEvent* pEvent);
@@ -75,8 +75,8 @@ class CSelect: public CState
 public:
     CSelect(CView* pView);
     ~CSelect() {}
-    void keyPress(COperation* pOp, QKeyEvent* event) override;
-    void keyRelease(COperation* pOp, QKeyEvent* event) override;
+    void keyPress(COperation* pOp, EKeyCode key) override;
+    void keyRelease(COperation* pOp, EKeyCode key) override;
     void execute(COperation *pOp, QVector3D& dir, CNode* pNode) override {Q_UNUSED(pOp);Q_UNUSED(dir);Q_UNUSED(pNode);}
     void axisOperate(COperation *pOp, CNode* pNode) override {Q_UNUSED(pOp);;Q_UNUSED(pNode);};
     void mousePressEvent(COperation *pOp, QMouseEvent* event) override;
@@ -93,8 +93,8 @@ public:
     CMoveAxis(CView* pView, EOperateAxis ax);
     ~CMoveAxis() {}
 
-    void keyPress(COperation* pOp, QKeyEvent* event) override final;
-    void keyRelease(COperation* pOp, QKeyEvent* event) override final;
+    void keyPress(COperation* pOp, EKeyCode key) override final;
+    void keyRelease(COperation* pOp, EKeyCode key) override final;
     void execute(COperation* pOp, QVector3D& dir, CNode* pNode) override {Q_UNUSED(pOp);Q_UNUSED(dir);Q_UNUSED(pNode);};
     void axisOperate(COperation* pOp, CNode* pNode) override final;
     void mousePressEvent(COperation *pOp, QMouseEvent* event) override final;
@@ -112,8 +112,8 @@ public:
     CRotateAxis() = delete;
     CRotateAxis(CView* pView, EOperateAxis ax);
     ~CRotateAxis() {}
-    void keyPress(COperation* pOp, QKeyEvent* event) override;
-    void keyRelease(COperation* pOp, QKeyEvent* event) override;
+    void keyPress(COperation* pOp, EKeyCode key) override;
+    void keyRelease(COperation* pOp, EKeyCode key) override;
     void execute(COperation* pOp, QVector3D& dir, CNode* pNode) override {Q_UNUSED(pOp);Q_UNUSED(dir);Q_UNUSED(pNode);};
     void axisOperate(COperation* pOp, CNode* pNode) override final;
     void mousePressEvent(COperation *pOp, QMouseEvent* event) override final;
@@ -130,8 +130,8 @@ public:
     CScaleAxis() = delete;
     CScaleAxis(CView* pView, EOperateAxis ax);
     ~CScaleAxis() {}
-    void keyPress(COperation* pOp, QKeyEvent* event) override final;
-    void keyRelease(COperation* pOp, QKeyEvent* event) override final;
+    void keyPress(COperation* pOp, EKeyCode key) override final;
+    void keyRelease(COperation* pOp, EKeyCode key) override final;
     void execute(COperation* pOp, QVector3D& dir, CNode* pNode) override {Q_UNUSED(pOp);Q_UNUSED(dir);Q_UNUSED(pNode);};
     void axisOperate(COperation* pOp, CNode* pNode) override;
     void mousePressEvent(COperation *pOp, QMouseEvent* event) override final;

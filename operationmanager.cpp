@@ -70,7 +70,7 @@ void CSelect::keyPress(COperation *pOp, EKeyCode key)
     }
     case eKey_T:
     {
-        if (pOp->keyManager()->isPressed(eKey_leftCtrl))
+        if (pOp->keyManager()->isPressed(eKey_Ctrl))
         {
             m_pView->iterateRoundMob();
         }
@@ -89,13 +89,13 @@ void CSelect::keyPress(COperation *pOp, EKeyCode key)
     }
     case eKey_C:
     {
-        if (pOp->keyManager()->isPressed(eKey_leftCtrl))
+        if (pOp->keyManager()->isPressed(eKey_Ctrl))
             m_pView->selectedObjectToClipboardBuffer();
         break;
     }
     case eKey_V:
     {
-        if (pOp->keyManager()->isPressed(eKey_leftCtrl))
+        if (pOp->keyManager()->isPressed(eKey_Ctrl))
             m_pView->clipboradObjectsToScene();
         break;
     }
@@ -127,7 +127,7 @@ void CSelect::keyPress(COperation *pOp, EKeyCode key)
     }
     case eKey_X:
     {
-        if (pOp->keyManager()->isPressed(eKey_leftCtrl))
+        if (pOp->keyManager()->isPressed(eKey_Ctrl))
         {
             m_pView->selectedObjectToClipboardBuffer();
             m_pView->deleteSelectedNodes();
@@ -149,7 +149,7 @@ void CSelect::keyRelease(COperation *pOp, EKeyCode key)
 {
     pOp->keyManager()->release(key);
     switch (key) {
-    case eKey_leftCtrl:
+    case eKey_Ctrl:
     { //todo: optimize logic for applying active mob selection
         m_pView->applyRoundMob();
         break;

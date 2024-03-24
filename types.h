@@ -578,7 +578,7 @@ enum EKeyCode
 
     ,eKey_leftShift    = 160
     ,eKey_rightShift   = 161
-    ,eKey_leftCtrl     = 162
+    ,eKey_leftCtrl     = 162 //dont works as expected, both cotrols return 17
     ,eKey_rightCtrl    = 163
     //menus, media, etc
     ,eKey_Semicolon    = 186 // ;:

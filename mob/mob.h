@@ -27,7 +27,7 @@ public:
     CMob();
     ~CMob();
     void attach(CView* view, CProgressView* pProgress);
-    void readMob(QFileInfo& path);
+    int readMob(QFileInfo& path);
     void checkUniqueId(QSet<uint>& aId);
     void saveAs(const QFileInfo& path);
     void save();
@@ -97,8 +97,10 @@ private:
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, const QString value);
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value);
     bool isFreeMapId(uint id);
-    void generateMapId(CNode* pNode);
+    uint freeMapId();
     void collectTreeView();
+    QVector<uint> findIdDuplicate();
+    void autoFixDuplicateId(QVector<uint>& arrId);
 
 private:
     //todo: global text data, script

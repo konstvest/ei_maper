@@ -754,7 +754,7 @@ CNode* CMob::createNode(QJsonObject data)
     if(nullptr == pNode)
         return nullptr;
 
-    generateMapId(pNode);
+    pNode->setMapId(freeMapId());
     pNode->setState(ENodeState::eSelect);
 
 
@@ -855,10 +855,10 @@ CNode *CMob::undo_deleteNode(uint mapId)
     return nullptr;
 }
 
-void CMob::readMob(QFileInfo &path)
+int CMob::readMob(QFileInfo &path)
 {
     if (!path.exists())
-        return;
+        return 1;
 
     m_filePath = path;
     QFile file(m_filePath.filePath());
@@ -868,7 +868,7 @@ void CMob::readMob(QFileInfo &path)
         if (file.error() != QFile::NoError)
         {
             qDebug() << file.fileName() << " Error while open mob-file";
-            return;
+            return 2;
         }
 
         deserialize(file.readAll());
@@ -880,9 +880,15 @@ void CMob::readMob(QFileInfo &path)
         qDebug() << ex.what();
         file.close();
     }
-
+    auto arrId = findIdDuplicate();
+    if(!arrId.isEmpty())
+    {
+        QMessageBox::warning(nullptr, "Map checker", "Mob file contains objects with duplicate IDs. It's not a valid file. IDs will be generated from available IDs for correct operation. You can see the details in the log.");
+        autoFixDuplicateId(arrId);
+    }
     updateObjects();
     logicNodesUpdate();
+    return 0;
 }
 
 void CMob::checkUniqueId(QSet<uint> &aId)
@@ -984,7 +990,7 @@ bool CMob::isFreeMapId(uint id)
     return true;
 }
 
-void CMob::generateMapId(CNode *pNode)
+uint CMob::freeMapId()
 {
     uint id = 0; //future map ID
     // try to find suit id from active range
@@ -1048,7 +1054,48 @@ void CMob::generateMapId(CNode *pNode)
         ei::log(ELogMessageType::eLogError, "Cant find suit ID for object");
         Q_ASSERT(false);
     }
-    pNode->setMapId(id);
+    return id;
+}
+
+QVector<uint> CMob::findIdDuplicate()
+{
+    QSet<uint> arrId;
+    QVector<uint> arrDuplicate;
+    uint mapId;
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        mapId = pNode->mapId();
+        if(arrId.contains(mapId))
+        {
+            ei::log(eLogWarning, "duplicate id found:" + QString::number(mapId));
+            arrDuplicate.append(mapId);
+        }
+        else
+            arrId.insert(mapId);
+    }
+    return arrDuplicate;
+}
+
+void CMob::autoFixDuplicateId(QVector<uint>& arrId)
+{
+    uint mapId;
+    CNode* pNode = nullptr;
+    foreach(pNode, m_aNode)
+    {
+        if(arrId.isEmpty())
+            return;
+
+        mapId = pNode->mapId();
+        if(arrId.contains(mapId))
+        {
+            uint freeId = freeMapId();
+            pNode->setMapId(freeId);
+            ei::log(eLogInfo, "duplicate id changed from: " + QString::number(mapId) + " to: " + QString::number(freeId));
+            arrId.removeOne(mapId);
+            setDurty();
+        }
+    }
 }
 
 /// file - inout. mob file
@@ -1371,7 +1418,7 @@ void CMob::createNode(CNode *pNode)
     if(nullptr == pNewNode)
         return;
 
-    generateMapId(pNewNode);
+    pNewNode->setMapId(freeMapId());
     pNewNode->setState(ENodeState::eSelect);
 
 

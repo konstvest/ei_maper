@@ -75,6 +75,8 @@ private slots:
 
     void on_actionRandomize_parameter_triggered();
 
+    void on_actionReset_selected_IDs_triggered();
+
 protected:
     void closeEvent(QCloseEvent* e);
 

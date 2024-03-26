@@ -427,9 +427,6 @@ void MainWindow::closeEvent(QCloseEvent *e)
         e->ignore();
 }
 
-
-
-
 void MainWindow::on_actionOpen_recent_triggered()
 {
     closeAll();

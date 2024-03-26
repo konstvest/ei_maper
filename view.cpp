@@ -950,24 +950,32 @@ void CView::resetSelectedId()
     std::sort(arrId.begin(), arrId.end());
     std::sort(arrSelectedId.begin(), arrSelectedId.end());
     uint nSelect = arrSelectedId.size();
-    QVector<uint> arrNewId;
     uint startId;
     bool bFind = false;
     //todo: check if available 10->arrId[0]
-    for(int i(0); i<arrId.size()-1; ++i)
-    {
-        if((arrId[i+1]-arrId[i]) >= nSelect)
-        {
-            qDebug() << "range found:" << arrId[i] << "->" << arrId[i+1] << "size:" << nSelect;
-            startId = arrId[i]+1;
-            bFind = true;
-            break;
-        }
+    if(arrId.isEmpty())
+    { // case if ALL objects selected
+        startId = 11;
+        bFind = true;
     }
+    else if(arrId.front() > 10 && (arrId.front()-10) >=nSelect)
+    {
+        startId = 11;
+        bFind = true;
+    }
+    else
+        for(int i(0); i<arrId.size()-1; ++i)
+        {
+            if((arrId[i+1]-arrId[i]) >= nSelect)
+            {
+                startId = arrId[i]+1;
+                bFind = true;
+                break;
+            }
+        }
     if(!bFind)
         startId = arrId.back() > arrSelectedId.back() ? (arrId.back()+1) : (arrSelectedId.back() + 1);
 
-    qDebug() << startId;
     QMap<uint, uint> reconnectId; // from first to second
     //find identical IDs
     QVector<uint> arrIdSkip;
@@ -981,8 +989,8 @@ void CView::resetSelectedId()
         }
     }
     //remove identical IDs from base ID array
-    for(int i(0); i<arrIdToRemove.size(); ++i)
-        arrSelectedId.removeAt(i);
+    for(int i(arrIdToRemove.size()-1); i>=0; --i)
+        arrSelectedId.removeAt(arrIdToRemove[i]);
 
     int curInd(0);
     for(uint id(startId); id<startId+nSelect; ++id)
@@ -1995,6 +2003,7 @@ void CView::copySelectedIDsToClipboard()
             continue;
         arrId.append(pNode->mapId());
     }
+    std::sort(arrId.begin(), arrId.end());
     QString text;
     for(auto id : arrId)
     {

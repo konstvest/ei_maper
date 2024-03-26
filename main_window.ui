@@ -336,8 +336,9 @@
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="actionReset_cam_position"/>
-    <addaction name="actionCopy_IDs_to_clipboard"/>
     <addaction name="actionRandomize_parameter"/>
+    <addaction name="actionReset_selected_IDs"/>
+    <addaction name="actionCopy_IDs_to_clipboard"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="enabled">
@@ -537,6 +538,11 @@
   <action name="actionRandomize_parameter">
    <property name="text">
     <string>Randomize parameter</string>
+   </property>
+  </action>
+  <action name="actionReset_selected_IDs">
+   <property name="text">
+    <string>&amp;Reset selected IDs</string>
    </property>
   </action>
  </widget>

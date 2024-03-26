@@ -449,3 +449,9 @@ void MainWindow::on_actionRandomize_parameter_triggered()
     m_randomizeForm->activateWindow();
 }
 
+
+void MainWindow::on_actionReset_selected_IDs_triggered()
+{
+    m_pView->resetSelectedId();
+}
+

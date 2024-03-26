@@ -929,6 +929,84 @@ void CView::setRandomComplection(const EObjParam param, const float min, const f
     updateParameter(param);
 }
 
+void CView::resetSelectedId()
+{
+    if(nullptr == m_activeMob)
+        return;
+
+    QVector<uint> arrId;
+    QVector<uint> arrSelectedId;
+    CNode* pNode = nullptr;
+    foreach(pNode, m_activeMob->nodes())
+    {
+        if (pNode->nodeState() == ENodeState::eSelect)
+            arrSelectedId.append(pNode->mapId());
+        else
+            arrId.append(pNode->mapId());
+    }
+    if(arrSelectedId.size() < 2)
+        return;
+
+    std::sort(arrId.begin(), arrId.end());
+    std::sort(arrSelectedId.begin(), arrSelectedId.end());
+    uint nSelect = arrSelectedId.size();
+    QVector<uint> arrNewId;
+    uint startId;
+    bool bFind = false;
+    //todo: check if available 10->arrId[0]
+    for(int i(0); i<arrId.size()-1; ++i)
+    {
+        if((arrId[i+1]-arrId[i]) >= nSelect)
+        {
+            qDebug() << "range found:" << arrId[i] << "->" << arrId[i+1] << "size:" << nSelect;
+            startId = arrId[i]+1;
+            bFind = true;
+            break;
+        }
+    }
+    if(!bFind)
+        startId = arrId.back() > arrSelectedId.back() ? (arrId.back()+1) : (arrSelectedId.back() + 1);
+
+    qDebug() << startId;
+    QMap<uint, uint> reconnectId; // from first to second
+    //find identical IDs
+    QVector<uint> arrIdSkip;
+    QVector<int> arrIdToRemove;
+    for(int i(0); i<arrSelectedId.size(); ++i)
+    {
+        if(arrSelectedId[i] >= startId && arrSelectedId[i] < (startId + nSelect))
+        {
+            arrIdSkip.append(arrSelectedId[i]);
+            arrIdToRemove.append(i);
+        }
+    }
+    //remove identical IDs from base ID array
+    for(int i(0); i<arrIdToRemove.size(); ++i)
+        arrSelectedId.removeAt(i);
+
+    int curInd(0);
+    for(uint id(startId); id<startId+nSelect; ++id)
+    {
+        if(arrIdSkip.contains(id))
+            continue;
+
+        reconnectId[arrSelectedId[curInd]] = id;
+        ++curInd;
+    }
+    //set new IDs
+    foreach(pNode, m_activeMob->nodes())
+    {
+        if (pNode->nodeState() == ENodeState::eSelect && reconnectId.contains(pNode->mapId()))
+        {
+            QSharedPointer<propUint> idNew(new propUint(eObjParam_NID, reconnectId[pNode->mapId()]));
+            CChangeProp* pChanger = new CChangeProp(this, pNode->mapId(), idNew);
+            QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
+            m_pUndoStack->push(pChanger);
+        }
+    }
+    viewParameters();
+}
+
 void CView::updateParameter(EObjParam propType)
 {
     if(nullptr == m_activeMob)

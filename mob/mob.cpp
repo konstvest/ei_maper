@@ -1051,7 +1051,7 @@ uint CMob::freeMapId()
     }
     if(id == 0)
     {
-        ei::log(ELogMessageType::eLogError, "Cant find suit ID for object");
+        ei::log(ELogMessageType::eLogFatal, "Cant find suit ID for object");
         Q_ASSERT(false);
     }
     return id;
@@ -1467,7 +1467,7 @@ void CMob::saveAs(const QFileInfo& path)
         file.open(QIODevice::WriteOnly);
         if (file.error() != QFile::NoError)
         {
-            ei::log(eLogError, QString("Have no access to MOB file:%1").arg(file.fileName()));
+            ei::log(eLogFatal, QString("Have no access to MOB file:%1").arg(file.fileName()));
             return;
         }
         QByteArray data;

@@ -5,7 +5,7 @@ mouseSenseX
 mouseSenseY
 dipEditSymmetric
 rangeIncrement
-detailedLog
+logLevel
 Option set name:Resource
 figPaths
 texPaths

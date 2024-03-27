@@ -22,9 +22,11 @@ void CLogger::log(ELogMessageType type, const char *msg)
 
 void CLogger::log(ELogMessageType type, const QString msg)
 {
+    if(m_loglvl<type)
+        return;
+
     QString dt = QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
     QString txt = QString("[%1] ").arg(dt);
-
 
     QTextStream textStream(&log_file);
     switch (type)
@@ -32,23 +34,12 @@ void CLogger::log(ELogMessageType type, const QString msg)
     case eLogInfo:
         txt += QString("{INFO} \t %1").arg(msg); break;
     case eLogDebug:
-    {
-        txt += QString("{DEBUG} \t %1").arg(msg);
-        qDebug() << txt;
-        if(nullptr == m_pSettings)
-            return;
-        COptBool* pOpt = dynamic_cast<COptBool*>(m_pSettings->opt("detailedLog"));
-        if(nullptr == pOpt || !pOpt->value())
-            return;
-        break;
-    }
+        txt += QString("{DEBUG} \t %1").arg(msg); break;
     case eLogWarning:
         txt += QString("{WARNING} \t %1").arg(msg); break;
-    case eLogError:
-        txt += QString("{ERROR} \t %1").arg(msg); break;
     case eLogFatal:
-        txt += QString("{FATAL} \t %1").arg(msg); break;
-    case eLogStart:
+        txt += QString("{ERROR} \t %1").arg(msg); break;
+    case eLogInit:
         txt = QString("[   %1\t  %2  ] {%3} \t %4").arg("DATE", "TIME", "TYPE", "MESSAGE"); break;
     }
 
@@ -72,15 +63,20 @@ void CLogger::attachSettings(CSettings *pSet)
 CLogger::CLogger()
     :log_file("workflow.log")
     ,m_pSettings(nullptr)
+    ,m_loglvl(eLogDebug)
 {
-    log(eLogStart, "Log started");
+    log(eLogInit, "Log started");
+}
+
+void CLogger::setLogLevel(ELogMessageType type)
+{
+    m_loglvl = type;
 }
 
 CLogger::~CLogger()
 {//this method never used bcs singleton is a singleton!!!
     if(nullptr != m_pLogger)
     {
-        log(eLogInfo, "Log ended");
         delete m_pLogger;
     }
 }

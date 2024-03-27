@@ -16,7 +16,7 @@ CSettings::CSettings(QWidget *parent) :
     QWidget(parent)
     ,ui(new Ui::CSettings)
     ,m_fileOpt("options.json")
-  ,m_version(2.0)
+  ,m_version(3.0)
 {
     ui->setupUi(this);
     ui->rangeIncrement->setValidator(new QIntValidator(1, 1000000, this));
@@ -229,11 +229,12 @@ void CSettings::updateOptFromUi()
             }
         }
     }
+    CLogger::getInstance()->setLogLevel(ELogMessageType(dynamic_cast<COptInt*>(opt("logLevel"))->value()));
 }
 
 void CSettings::initOptions()
 {
-    QList<QSharedPointer<COpt>> aOpt;
+    QVector<QSharedPointer<COpt>> aOpt;
     //init default options for strings
     aOpt.append(QSharedPointer<COpt>(new COptStringList("figPaths", {})));
     aOpt.append(QSharedPointer<COpt>(new COptStringList("texPaths", {})));
@@ -245,7 +246,7 @@ void CSettings::initOptions()
     aOpt.append(QSharedPointer<COpt>(new COptBool("freeCamera", false)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("saveSelectedOnly", false)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("dipEditSymmetric", true)));
-    aOpt.append(QSharedPointer<COpt>(new COptBool("detailedLog", false)));
+    aOpt.append(QSharedPointer<COpt>(new COptInt("logLevel", 2)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("drawHelp", false)));
 
 

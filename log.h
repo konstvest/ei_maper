@@ -8,12 +8,11 @@
 
 enum ELogMessageType
 {
-    eLogInfo = 0
-    ,eLogWarning
-    ,eLogError
+    eLogInit = 0
     ,eLogFatal
+    ,eLogWarning
+    ,eLogInfo
     ,eLogDebug
-    ,eLogStart
 };
 
 class CSettings;
@@ -31,6 +30,7 @@ public:
 
     CLogger(CLogger const&) = delete;
     void operator=(CLogger const&)  = delete;
+    void setLogLevel(ELogMessageType type);
 
 private:
     CLogger();
@@ -40,6 +40,7 @@ private:
     static CLogger* m_pLogger;
     QFile log_file;
     CSettings* m_pSettings;
+    ELogMessageType m_loglvl;
 };
 
 namespace ei {

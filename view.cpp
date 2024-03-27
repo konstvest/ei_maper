@@ -658,7 +658,7 @@ void CView::checkOpenGlError()
     errCode = glGetError();
     if (errCode != GL_NO_ERROR)
     {
-        ei::log(eLogError, "OpenGL error: " + QString::number(errCode));
+        ei::log(eLogFatal, "OpenGL error: " + QString::number(errCode));
 
     }
 }
@@ -2236,7 +2236,7 @@ int CView::renameActiveMobUnits(QMap<QString, QString> &mapName)
             ei::log(eLogInfo, "Unit:" + QString::number(pUnit->mapId()) + " last name:" + sourceName + " new name:" + newName->toString());
         }
         else
-            ei::log(ELogMessageType::eLogError, "not found:" + sourceName);
+            ei::log(ELogMessageType::eLogFatal, "not found:" + sourceName);
     }
     ei::log(ELogMessageType::eLogInfo, "processing map finished:" + m_activeMob->mobName());
     return n;

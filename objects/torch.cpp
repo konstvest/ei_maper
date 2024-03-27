@@ -61,7 +61,7 @@ uint CTorch::deserialize(util::CMobParser& parser)
     }
     if(m_type!=58)
     {
-        ei::log(eLogError, "Incorrect object type("+QString::number(m_type)+"), should be 58");
+        ei::log(eLogWarning, "Incorrect object type("+QString::number(m_type)+"), should be 58");
     }
     return readByte;
 }

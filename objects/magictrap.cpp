@@ -497,7 +497,28 @@ void CMagicTrap::clearLogicSelect()
 
 bool CMagicTrap::updatePos(QVector3D &pos)
 {
-    bool bRes = CObjectBase::updatePos(pos);
+    bool bRes(false);
+    if(CScene::getInstance()->getMode() == eEditModeLogic)
+    {
+        bRes = CObjectBase::updatePos(pos);
+        return bRes;
+    }
+    else
+    {
+        QVector3D offset = pos - m_position;
+        QVector3D posN;
+        for(auto& castPoint : m_aCastPoint)
+        {
+            posN = castPoint->position() + offset;
+            castPoint->updatePos(posN);
+        }
+        for(auto& pActZone : m_aActZone)
+        {
+            posN = pActZone->position() + offset;
+            pActZone->updatePos(posN);
+        }
+        bRes = CObjectBase::updatePos(pos);
+    }
     update();
     return bRes;
 }

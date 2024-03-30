@@ -23,7 +23,7 @@
       <enum>Qt::LeftToRight</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabGeneral">
       <attribute name="title">
@@ -237,13 +237,6 @@
             <widget class="QCheckBox" name="freeCamera">
              <property name="text">
               <string>Free Camera</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="saveSelectedOnly">
-             <property name="text">
-              <string>Save only selected objects</string>
              </property>
             </widget>
            </item>

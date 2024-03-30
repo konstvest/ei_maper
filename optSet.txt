@@ -12,6 +12,5 @@ texPaths
 Option set name:Render
 drawLogic
 freeCamera
-saveSelectedOnly
 drawWater
 drawHelp

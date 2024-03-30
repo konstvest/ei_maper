@@ -244,7 +244,6 @@ void CSettings::initOptions()
     aOpt.append(QSharedPointer<COpt>(new COptBool("drawLogic", false)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("drawWater", true)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("freeCamera", false)));
-    aOpt.append(QSharedPointer<COpt>(new COptBool("saveSelectedOnly", false)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("dipEditSymmetric", true)));
     aOpt.append(QSharedPointer<COpt>(new COptInt("logLevel", 2)));
     aOpt.append(QSharedPointer<COpt>(new COptBool("drawHelp", false)));

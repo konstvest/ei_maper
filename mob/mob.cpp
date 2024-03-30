@@ -93,7 +93,7 @@ bool CMob::deserialize(QByteArray data)
     //todo: global check len of nodes
     uint readByte(0);
     util::CMobParser parser(data);
-    double step = double(50)/3;
+    double step = 50;
     if (parser.isNextTag("OBJECT_DB_FILE"))
         readByte += parser.skipHeader();
     else
@@ -252,6 +252,7 @@ bool CMob::deserialize(QByteArray data)
         //object section
         else if(parser.isNextTag("OBJECT_SECTION"))
         {
+            step = step/3;
             m_pProgress->update(step);
             uint objSecLen = parser.nodeLen();
             uint readSecByte(0);

@@ -269,7 +269,7 @@ uint CMagicTrap::serialize(util::CMobParser &parser)
     if(nZone)
     {
         writeByte += parser.startSection("MT_TARGETS");
-        writeByte += parser.writeDword(m_aCastPoint.size());
+        writeByte += parser.writeDword(nZone);
         for(auto& pCast : m_aCastPoint)
         {
             if(pCast->isMarkDeleted())

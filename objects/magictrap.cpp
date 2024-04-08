@@ -27,12 +27,16 @@ CMagicTrap::CMagicTrap(const CMagicTrap &trap):
     m_spell = trap.m_spell;
     for(auto& area : trap.m_aActZone)
     {
+        if(area->isMarkDeleted())
+            continue;
         CActivationZone* pZone = new CActivationZone(this, *area);
         QObject::connect(pZone, SIGNAL(changeActZone()), this, SLOT(update()));
         m_aActZone.append(pZone);
     }
     for(const auto& pPoint : trap.m_aCastPoint)
     {
+        if(pPoint->isMarkDeleted())
+            continue;
         CTrapCastPoint* pCast = new CTrapCastPoint(this, *pPoint);
         QObject::connect(pCast, SIGNAL(changeCastPoint), this, SLOT(update()));
         m_aCastPoint.append(pCast);

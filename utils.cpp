@@ -1103,6 +1103,9 @@ void util::addUnitStatParam(QList<QSharedPointer<IPropertyBase>>& aProp, IProper
         auto arrSrc = pSourceProp->value();
         for(int i(0); i<51; ++i)
         {
+            if(!arrSrc[i]->isInit())
+                continue;
+
             if(!arrSrc[i]->isEqual(arrAdd[i].get()))
                 arrSrc[i]->reset();
         }

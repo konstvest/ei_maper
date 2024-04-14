@@ -41,17 +41,17 @@ void CSelectForm::init()
 {
     setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
 
-    m_loc["Id range"] = {eSelectType_Id_range, "Start Id", "End Id"};//QStringList{, "Start Id", "End Id"};
-    m_loc["Map name"] = {eSelectType_Map_name, "Map name", ""};
-    m_loc["Texture name"] = {eSelectType_Texture_name, "Texture name", ""};
-    m_loc["Model name"] = {eSelectType_Model_name, "Model name", ""};
+    m_loc["Id range"] = {eSelectType_Id_range, "Start Id", "End Id", true};//QStringList{, "Start Id", "End Id"};
+    m_loc["Map name"] = {eSelectType_Map_name, "Map name", "", false};
+    m_loc["Texture name"] = {eSelectType_Texture_name, "Texture name", "", false};
+    m_loc["Model name"] = {eSelectType_Model_name, "Model name", "", false};
     //m_loc["Mob file"] = {eSelectType_Mob_file, "Mob name", ""};
-    m_loc["Diplomacy group"] = {eSelectType_Diplomacy_group, "Start group number", "End group number"};
+    m_loc["Diplomacy group"] = {eSelectType_Diplomacy_group, "Start group number", "End group number", true};
     //TODO
     //m_loc["Position (circle)"] = {eSelectType_Position_circle, "Center point", "Radius"};
     //m_loc["Position (rectangle)"] = {eSelectType_Position_rectangle, "Left down corner", "Right up corner"};
-    m_loc["Database name"] = {eSelectType_Database_name, "Database name", ""};
-    m_loc["Template"] = {eSelectType_Template, "Template", ""};
+    m_loc["Database name"] = {eSelectType_Database_name, "Database name", "", false};
+    m_loc["Template"] = {eSelectType_Template, "Template", "", false};
     //m_loc["Object type"] = {eSelectType_ObjectType, "Object type", ""};
 
     for (const auto& pair : m_loc.toStdMap())
@@ -79,6 +79,16 @@ void CSelectForm::updateLabels(const QString &type)
         ui->lineEdit_Param_2->show();
         ui->lineEdit_Param_2->clear();
     }
+    if(!m_loc[type].exactMatch)
+    { //set visible checkbox only for non-exactMatch options by default
+        ui->check_exactMatch->setVisible(true);
+        ui->check_exactMatch->setChecked(false);
+    }
+    else
+    {
+        ui->check_exactMatch->setChecked(true);
+        ui->check_exactMatch->setVisible(false);
+    }
 }
 
 void CSelectForm::updateTotal()
@@ -93,14 +103,14 @@ void CSelectForm::on_combo_SelType_currentIndexChanged(const QString &arg1)
 
 void CSelectForm::on_push_Select_clicked()
 {
-    SSelect sel{m_loc[ui->combo_SelType->currentText()].type, ui->lineEdit_Param_1->text(), ui->lineEdit_Param_2->text()};
+    SSelect sel{m_loc[ui->combo_SelType->currentText()].type, ui->lineEdit_Param_1->text(), ui->lineEdit_Param_2->text(), ui->check_exactMatch->isChecked()};
     m_selected_num = m_pView->select(sel, false);
     updateTotal();
 }
 
 void CSelectForm::on_push_Add_to_select_clicked()
 {
-    SSelect sel{m_loc[ui->combo_SelType->currentText()].type, ui->lineEdit_Param_1->text(), ui->lineEdit_Param_2->text()};
+    SSelect sel{m_loc[ui->combo_SelType->currentText()].type, ui->lineEdit_Param_1->text(), ui->lineEdit_Param_2->text(), ui->check_exactMatch->isChecked()};
     m_selected_num = m_pView->select(sel, true);
     updateTotal();
 }

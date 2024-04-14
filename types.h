@@ -30,6 +30,7 @@ struct SSelect
     //todo: param0 - object filters for find in ENodeType types
     QString param1;
     QString param2;
+    bool exactMatch;
 };
 
 enum EEditMode

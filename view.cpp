@@ -330,8 +330,8 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
             auto pObj = dynamic_cast<CObjectBase*>(pNode);
             if (!pObj)
                 break;
-            if (!selectParam.param1.isEmpty()
-                    && (pNode->mapName().toLower().contains(selectParam.param1.toLower())))
+            bool bAppropriate = selectParam.exactMatch ? pNode->mapName() == selectParam.param1 : pNode->mapName().toLower().contains(selectParam.param1.toLower());
+            if (bAppropriate)
             {
                 pNode->setState(eSelect);
             }
@@ -343,8 +343,8 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
         {
             if (!(pNode->nodeType() & ENodeType::eWorldObject))
                 break;
-            if (!selectParam.param1.isEmpty()
-                    && (pNode->textureName().toLower().contains(selectParam.param1.toLower())))
+            bool bAppropriate = selectParam.exactMatch ? pNode->textureName() == selectParam.param1 : pNode->textureName().toLower().contains(selectParam.param1.toLower());
+            if (bAppropriate)
             {
                 pNode->setState(eSelect);
             }
@@ -356,8 +356,9 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
         {
             if (!(pNode->nodeType() & ENodeType::eWorldObject))
                 break;
-            if (!selectParam.param1.isEmpty()
-                    && (pNode->modelName().toLower().contains(selectParam.param1.toLower())))
+
+            bool bAppropriate = selectParam.exactMatch ? pNode->modelName() == selectParam.param1 : pNode->modelName().toLower().contains(selectParam.param1.toLower());
+            if (bAppropriate)
             {
                 pNode->setState(eSelect);
             }
@@ -379,7 +380,11 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
         {
             auto pObj = dynamic_cast<CWorldObj*>(pNode);
             if (!pObj)
+            {//deselect if we are trying to object diplomacy group with selected particles(and others)
+                if(!bAddToSelect && (pNode->nodeState() & eSelect))
+                    pNode->setState(eDraw);
                 break;
+            }
 
             int group_min = selectParam.param1.toUInt();
             int group_max = selectParam.param2.toUInt();
@@ -403,29 +408,20 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
         {
             auto pObj = dynamic_cast<CUnit*>(pNode);
             if (!pObj)
+            { //deselect if we are trying to find unit database name with selected world object(and others)
+                if(!bAddToSelect && (pNode->nodeState() & eSelect))
+                    pNode->setState(eDraw);
                 break;
-
-            if (selectParam.param2 == selectParam.param1)
-            {// hard comparison
-                if (pObj->databaseName() == selectParam.param1)
-                {
-                    pNode->setState(eSelect);
-                }
-                else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
-                {
-                    pNode->setState(eDraw);
-                }
             }
-            else
+
+            bool bAppropriate = selectParam.exactMatch ? pObj->databaseName() == selectParam.param1 : pObj->databaseName().toLower().contains(selectParam.param1.toLower());
+            if (bAppropriate)
             {
-                if (pObj->databaseName().toLower().contains(selectParam.param1.toLower()))
-                {
-                    pNode->setState(eSelect);
-                }
-                else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
-                {
-                    pNode->setState(eDraw);
-                }
+                pNode->setState(eSelect);
+            }
+            else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
+            {
+                pNode->setState(eDraw);
             }
             break;
         }
@@ -437,8 +433,13 @@ int CView::select(const SSelect &selectParam, bool bAddToSelect)
 
             QSharedPointer<IPropertyBase> templ;
             pWo->getParam(templ, eObjParam_PARENT_TEMPLATE);
-            if(templ->toString().toLower().contains(selectParam.param1.toLower()))
+            bool bAppropriate = selectParam.exactMatch ? templ->toString() == selectParam.param1 : templ->toString().toLower().contains(selectParam.param1.toLower());
+            if(bAppropriate)
                 pNode->setState(ENodeState::eSelect);
+            else if (!bAddToSelect && (pNode->nodeState() & eSelect)) //deselect
+            {
+                pNode->setState(eDraw);
+            }
 
             break;
         }

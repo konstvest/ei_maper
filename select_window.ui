@@ -63,6 +63,13 @@
     </layout>
    </item>
    <item>
+    <widget class="QCheckBox" name="check_exactMatch">
+     <property name="text">
+      <string>Exact match</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>

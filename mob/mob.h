@@ -71,6 +71,7 @@ public:
     const SRange& activeRange();
     uint activeRangeId() {return m_activeRangeId;}
     void setActiveRange(uint rangeId);
+    uint freeMapId();
 
     //functions for logic processing
     QList<CNode*>& logicNodes();
@@ -97,7 +98,6 @@ private:
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, const QString value);
     void writeData(QJsonObject& mob, const QFileInfo& file, const QString key, QByteArray& value);
     bool isFreeMapId(uint id);
-    uint freeMapId();
     void collectTreeView();
     QVector<uint> findIdDuplicate();
     void autoFixDuplicateId(QVector<uint>& arrId);

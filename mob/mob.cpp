@@ -1320,10 +1320,7 @@ void CMob::serializeMob(QByteArray& data)
 
     if(!m_aNode.empty())
     {
-        COptBool* pOpt = dynamic_cast<COptBool*>(m_view->settings()->opt("freeCamera"));
-        bool bSaveSelect = false;
-        if(pOpt)
-            bSaveSelect = pOpt->value();
+        bool bSaveSelect = false; //todo: save selected objects with file->save selected objects only
 
         writeByte += parser.startSection("OBJECT_SECTION");
         for (const auto& node : m_aNode)

@@ -944,7 +944,16 @@ void CView::resetSelectedId()
         else
             arrId.append(pNode->mapId());
     }
-    if(arrSelectedId.size() < 2)
+    if(arrSelectedId.size() == 1)
+    {
+        //set new IDs
+        QSharedPointer<propUint> idNew(new propUint(eObjParam_NID, m_activeMob->freeMapId()));
+        CChangeProp* pChanger = new CChangeProp(this, arrSelectedId.back(), idNew);
+        QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
+        m_pUndoStack->push(pChanger);
+        return;
+    }
+    else if(arrSelectedId.size() < 2)
         return;
 
     std::sort(arrId.begin(), arrId.end());

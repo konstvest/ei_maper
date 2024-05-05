@@ -562,7 +562,22 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
         }
     }
 
-    Q_ASSERT(!aPart.empty());
+    if(aPart.empty())
+    {
+        ei::log(ELogMessageType::eLogWarning, "cannot find texture for zone, loading default");
+        STexSpecified part;
+        auto auxFile = QFileInfo(":/auxData.res");
+        ResFile res(auxFile.filePath());
+        QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+        part.data = aFile["default_zone.mmp"];
+        QDataStream stream(part.data);
+        util::formatStream(stream);
+        stream >> part.header;
+        for(int i(0); i<8; ++i)
+        {
+            aPart.append(part);
+        }
+    }
     //get min texture size
     int minTexSize(aPart.first().header.m_width);
     for(auto& part: aPart)

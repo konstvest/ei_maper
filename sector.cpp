@@ -80,7 +80,7 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
             aWaterTiles.append(tile);
         }
 
-        ushort wa;
+        short wa;
         for(int i(0); i<nSecTile; ++i)
         {
             stream >> wa;

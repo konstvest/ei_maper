@@ -90,7 +90,7 @@ private:
 
 
 private:
-    QVector<ushort> m_aWaterAllow;
+    QVector<short> m_aWaterAllow;
     UI2 m_index;
     QVector<SVertexData> m_aVertexData;
     //QVector<SSpecificQuad> m_aQuad;

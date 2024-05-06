@@ -1,6 +1,7 @@
 #include "resourcemanager.h"
 #include <QDebug>
 #include <QMessageBox>
+#include <QtMath>
 #include "res_file.h"
 #include "utils.h"
 #include "view.h"
@@ -332,19 +333,11 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     QOpenGLTexture* texture = new QOpenGLTexture(QOpenGLTexture::Target2D);
     texture->setMinificationFilter(QOpenGLTexture::NearestMipMapNearest);
     texture->setMagnificationFilter(QOpenGLTexture::NearestMipMapNearest);
-    //texture->setAutoMipMapGenerationEnabled(true);
-    //texture->setMipLevels(4); //this code will generate mipmaps for textures
-    //TODO: read mipmaps
-//    for (int i(0); i<mipMapsCount; ++i)
-//    {
-//        texture->setCompressedData(i, 0, size, data.data() + header.size());
-//    }
     texture->setWrapMode(QOpenGLTexture::Repeat);
     switch (header.m_format)
     {
     case ETextureFormat::eMMP_DXT1:
     {
-        //TODO: read mipmaps
         texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT1);
         texture->setSize(int(header.m_width), int(header.m_height));
         texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
@@ -354,12 +347,16 @@ void CTextureList::parse(QByteArray& data, const QString& name)
     }
     case ETextureFormat::eMMP_DXT3:
     {
-        //TODO: read mipmaps
         texture->setFormat(QOpenGLTexture::TextureFormat::RGBA_DXT3);
         texture->setSize(int(header.m_width), int(header.m_height));
         texture->allocateStorage(QOpenGLTexture::RGBA, QOpenGLTexture::UInt8);
-        const int size = int(header.m_width * header.m_height);
-        texture->setCompressedData(0, 0, size, data.data() + header.size());
+        int offset = header.size();
+        for(int i(0); i<header.m_mipcount; ++i)
+        {
+            const int size = header.m_width / qPow(2,i) * header.m_height / qPow(2,i);
+            texture->setCompressedData(i, 0, size, data.data() + offset);
+            offset += size;
+        }
         break;
     }
     case ETextureFormat::eMMP_5650    : // use the same direct draw reading algorithm

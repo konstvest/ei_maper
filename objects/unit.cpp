@@ -612,7 +612,7 @@ void CLogic::draw(bool isActive, QOpenGLShaderProgram* program)
     if(!m_use)
         return;
 
-    drawHelp(program);
+    drawHelp(isActive, program);
     if(m_aDrawPoint.empty())
             return;
     COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawLogic"));
@@ -947,14 +947,16 @@ void CLogic::generateVisibleLogicVBO()
     m_indexBuf.release();
 }
 
-void CLogic::drawHelp(QOpenGLShaderProgram *program)
+void CLogic::drawHelp(bool isActive, QOpenGLShaderProgram *program)
 {
     if(!m_use || m_aHelpPoint.empty())
         return;
 
+    if(!isActive)
+        return;
     //todo: for selected objects ALWAYS draw logic
     COptBool* pOpt = dynamic_cast<COptBool*>(CObjectList::getInstance()->settings()->opt("drawHelp"));
-    if (nullptr == pOpt)
+    if(nullptr == pOpt)
         return;
 
     if(CScene::getInstance()->getMode() == eEditModeObjects)

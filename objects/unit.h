@@ -136,7 +136,7 @@ public slots:
 
 private:
     void generateVisibleLogicVBO();
-    void drawHelp(QOpenGLShaderProgram* program);
+    void drawHelp(bool isActive, QOpenGLShaderProgram* program);
 
 private:
     QOpenGLBuffer m_vertexBuf;

@@ -77,6 +77,8 @@ private slots:
 
     void on_actionReset_selected_IDs_triggered();
 
+    void on_action_About_triggered();
+
 protected:
     void closeEvent(QCloseEvent* e);
 

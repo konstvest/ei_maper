@@ -322,11 +322,12 @@
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="title">
      <string>About</string>
     </property>
+    <addaction name="action_About"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -364,7 +365,6 @@
     <addaction name="menuSelect"/>
     <addaction name="actionCreate_new_object"/>
     <addaction name="actionChange_mod_e"/>
-    <addaction name="actionSwitch_active_MOB"/>
     <addaction name="menuUnit"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
@@ -485,14 +485,6 @@
     <string>Copy &amp;IDs to clipboard</string>
    </property>
   </action>
-  <action name="actionSwitch_active_MOB">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Switch active MOB</string>
-   </property>
-  </action>
   <action name="actionOpen_2">
    <property name="text">
     <string>Open</string>
@@ -541,8 +533,16 @@
    </property>
   </action>
   <action name="actionReset_selected_IDs">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Reset selected IDs</string>
+   </property>
+  </action>
+  <action name="action_About">
+   <property name="text">
+    <string>&amp;About</string>
    </property>
   </action>
  </widget>

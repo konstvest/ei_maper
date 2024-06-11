@@ -89,7 +89,7 @@ void CMob::setActiveRange(uint rangeId)
 
 bool CMob::deserialize(QByteArray data)
 {
-    ei::log(eLogInfo, "Start read mob");
+    ei::log(eLogInfo, "Start read mob: " + m_filePath.fileName());
     //todo: global check len of nodes
     uint readByte(0);
     util::CMobParser parser(data);
@@ -358,7 +358,7 @@ bool CMob::deserialize(QByteArray data)
 
 void CMob::updateObjects()
 {
-    ei::log(eLogInfo, "Start update objects");
+    ei::log(eLogInfo, "Start update " + QString::number(m_aNode.size())+ " objects");
     for(auto& node: m_aNode)
     {
         node->loadFigure();

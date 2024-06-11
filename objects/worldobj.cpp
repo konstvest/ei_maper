@@ -184,7 +184,7 @@ uint CWorldObj::deserialize(util::CMobParser& parser)
 
 void CWorldObj::loadTexture()
 {
-    QString texName(m_primaryTexture.toLower());
+    QString texName(m_primaryTexture);
     setTexture(CTextureList::getInstance()->texture(texName));
 }
 

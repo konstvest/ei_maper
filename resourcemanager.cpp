@@ -390,7 +390,7 @@ void CTextureList::parse(QByteArray& data, const QString& name)
         return;
     }
     }
-    m_aTexture.insert(name, texture);
+    m_aTexture.insert(name.toLower(), texture);
 }
 
 void CTextureList::initAuxTexture()
@@ -440,6 +440,7 @@ void CTextureList::loadTexture(QSet<QString>& aName)
             for (auto& packedTex : aFile.toStdMap())
             {
                 texName = packedTex.first.split(".")[0];
+                texName = texName.toLower();
                 if(rx.exactMatch(texName)) continue;
                 if(m_aTexture.contains(texName)) continue;
                 //if(packedTex.first.toLower().contains("zone")) continue;
@@ -452,8 +453,9 @@ void CTextureList::loadTexture(QSet<QString>& aName)
         else
             for(auto& name: aName)
             {
+                texName = name.toLower();
                 //if(!name.contains(".mmp")) continue;
-                if(m_aTexture.contains(name)) continue;
+                if(m_aTexture.contains(texName)) continue;
                 if(!aFile.contains(name + ".mmp")) continue;
 
                 parse(aFile[name + ".mmp"], name);
@@ -464,14 +466,15 @@ void CTextureList::loadTexture(QSet<QString>& aName)
 
 QOpenGLTexture* CTextureList::texture(const QString& name)
 {
-    if(!m_aTexture.contains(name))
+    QString texName(name.toLower());
+    if(!m_aTexture.contains(texName))
     {
         QSet<QString> texture;
-        texture.insert(name);
+        texture.insert(texName);
         loadTexture(texture);
     }
 
-    return m_aTexture.contains(name) ? m_aTexture[name] : textureDefault();
+    return m_aTexture.contains(texName) ? m_aTexture[texName] : textureDefault();
 }
 
 QOpenGLTexture* CTextureList::textureDefault()

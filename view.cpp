@@ -943,7 +943,10 @@ void CView::resetSelectedId()
         if (pNode->nodeState() == ENodeState::eSelect)
             arrSelectedId.append(pNode->mapId());
         else
-            arrId.append(pNode->mapId());
+        {
+            if(pNode->mapId() > 9)
+                arrId.append(pNode->mapId());
+        }
     }
     if(arrSelectedId.size() == 1)
     {

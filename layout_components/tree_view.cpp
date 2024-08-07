@@ -135,7 +135,8 @@ void CTreeView::itemClickedOver(QTreeWidgetItem *pItem, int column)
         ENodeType baseType = objectTypeByString(pItem->parent()->text(0));
         sel.type = baseType == ENodeType::eUnit ? eSelectType_Database_name : eSelectType_Map_name;
         sel.param1 = pItem->text(0);
-        sel.param2 = sel.param1; //for hard comparison
+        //sel.param2 = sel.param1; //for hard comparison
+        sel.exactMatch = true;
         m_pView->select(sel, false);
         if(pItem->text(1).toInt() == 1)
             m_pView->moveCamToSelectedObjects();

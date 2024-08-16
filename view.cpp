@@ -935,97 +935,106 @@ void CView::resetSelectedId()
     if(nullptr == m_activeMob)
         return;
 
-    QVector<uint> arrId;
-    QVector<uint> arrSelectedId;
+    // get MOB ranges - is a high priority. Chck if valid data (10+)
+    QVector<SRange> arrRange = m_activeMob->ranges(!m_activeMob->isQuestMob());
+    if(arrRange.isEmpty())
+    {
+        ei::log(eLogWarning, "not found available MOB ID range to reset IDs");
+        QMessageBox::warning(this, "Warning", "Not found available MOB ID range to reset IDs. Check MOB parameters,");
+        return;
+    }
+    for(auto& range: arrRange)
+    {
+        if(range.minRange < 10)
+            range.minRange = 10;
+        if(range.maxRange <= range.minRange)
+        {
+            ei::log(eLogWarning, "Incorrect MOB ranges:"+QString::number(range.minRange) + ":" + QString::number(range.maxRange));
+            break;
+        }
+    }
+    // collect busy IDs (skip ID from selected objects)
+    QVector<uint> arrBusyId;
+    QVector<uint> arrNodes;
     CNode* pNode = nullptr;
     foreach(pNode, m_activeMob->nodes())
     {
         if (pNode->nodeState() == ENodeState::eSelect)
-            arrSelectedId.append(pNode->mapId());
+            arrNodes.append(pNode->mapId());
         else
         {
-            if(pNode->mapId() > 9)
-                arrId.append(pNode->mapId());
+            arrBusyId.append(pNode->mapId());
         }
     }
-    if(arrSelectedId.size() == 1)
-    {
-        //set new IDs
-        QSharedPointer<propUint> idNew(new propUint(eObjParam_NID, m_activeMob->freeMapId()));
-        CChangeProp* pChanger = new CChangeProp(this, arrSelectedId.back(), idNew);
-        QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
-        m_pUndoStack->push(pChanger);
+    if(arrNodes.isEmpty())
         return;
-    }
-    else if(arrSelectedId.size() < 2)
-        return;
-
-    std::sort(arrId.begin(), arrId.end());
-    std::sort(arrSelectedId.begin(), arrSelectedId.end());
-    uint nSelect = arrSelectedId.size();
-    uint startId;
-    bool bFind = false;
-    //todo: check if available 10->arrId[0]
-    if(arrId.isEmpty())
-    { // case if ALL objects selected
-        startId = 11;
-        bFind = true;
-    }
-    else if(arrId.front() > 10 && (arrId.front()-10) >=nSelect)
+    // find range of free IDs
+    std::sort(arrBusyId.begin(), arrBusyId.end());
+    uint min;
+    uint max;
+    uint startId(0);
+    const auto nElem = arrNodes.size();
+    bool bFound = false;
+    for(auto& range: arrRange)
     {
-        startId = 11;
-        bFind = true;
-    }
-    else
-        for(int i(0); i<arrId.size()-1; ++i)
+        if(nElem > int(range.maxRange-range.minRange))
+            continue; // skip too small ranges
+        min = range.minRange;
+        max = min;
+        for(int i(0); i<arrBusyId.size(); ++i)
         {
-            if((arrId[i+1]-arrId[i]) >= nSelect)
+            if(arrBusyId[i]<min)
+                continue; //filter left-side value
+            if(arrBusyId[i]==min)
+            {// filter conflict value
+                ++min;
+                max = min;
+                continue;
+            }
+            if(arrBusyId[i]>=range.maxRange)
+                break; //filter right-side value
+            if(arrBusyId[i] > max)
+            { // found value in range
+                max = arrBusyId[i];
+            }
+            else
             {
-                startId = arrId[i]+1;
-                bFind = true;
+                continue;
+            }
+            if(int(max-min) >= nElem)
+            {
+                startId = min;
+                bFound = true;
                 break;
             }
+            else
+            {
+                min = arrBusyId[i]+1;
+                max = min;
+            }
         }
-    if(!bFind)
-        startId = arrId.back() > arrSelectedId.back() ? (arrId.back()+1) : (arrSelectedId.back() + 1);
-
-    QMap<uint, uint> reconnectId; // from first to second
-    //find identical IDs
-    QVector<uint> arrIdSkip;
-    QVector<int> arrIdToRemove;
-    for(int i(0); i<arrSelectedId.size(); ++i)
-    {
-        if(arrSelectedId[i] >= startId && arrSelectedId[i] < (startId + nSelect))
+        if(bFound)
+            break;
+        //not found between busy ids
+        if(int(range.maxRange - max) >= nElem)
         {
-            arrIdSkip.append(arrSelectedId[i]);
-            arrIdToRemove.append(i);
+            startId = max;
+            break;
         }
     }
-    //remove identical IDs from base ID array
-    for(int i(arrIdToRemove.size()-1); i>=0; --i)
-        arrSelectedId.removeAt(arrIdToRemove[i]);
 
-    int curInd(0);
-    for(uint id(startId); id<startId+nSelect; ++id)
+    QMap<uint, uint> reconnectId;
+    for(int i(0); i<nElem; ++i)
     {
-        if(arrIdSkip.contains(id))
-            continue;
-
-        reconnectId[arrSelectedId[curInd]] = id;
-        ++curInd;
+        reconnectId[arrNodes[i]] = startId;
+        ++startId;
     }
-    //set new IDs
-    foreach(pNode, m_activeMob->nodes())
-    {
-        if (pNode->nodeState() == ENodeState::eSelect && reconnectId.contains(pNode->mapId()))
-        {
-            QSharedPointer<propUint> idNew(new propUint(eObjParam_NID, reconnectId[pNode->mapId()]));
-            CChangeProp* pChanger = new CChangeProp(this, pNode->mapId(), idNew);
-            QObject::connect(pChanger, SIGNAL(updateParam()), this, SLOT(viewParameters()));
-            m_pUndoStack->push(pChanger);
-        }
-    }
-    viewParameters();
+    for(auto pair: reconnectId.toStdMap())
+        qDebug() << pair.first << ": " << pair.second;
+    CResetIdCommand* pReset = new CResetIdCommand(this, reconnectId);
+    QObject::connect(pReset, SIGNAL(updateParam()), this, SLOT(viewParameters()));
+    m_pUndoStack->push(pReset);
+    // update tree view?
 }
 
 void CView::updateParameter(EObjParam propType)

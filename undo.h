@@ -334,4 +334,25 @@ protected:
     QSharedPointer<IPropertyBase> m_newValue;
 };
 
+class CResetIdCommand: public QObject, public QUndoCommand
+{
+    Q_OBJECT
+public:
+    enum { Id = 117 };
+
+    CResetIdCommand(CView* pView, QMap<uint, uint>& reconnectId, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    //bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+signals:
+    void updateParam();
+
+private:
+    CView *m_pView;
+    QMap<uint, uint> m_reconnectId;
+};
+
 #endif // UNDO_H

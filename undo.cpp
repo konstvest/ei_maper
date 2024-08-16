@@ -615,3 +615,36 @@ void CChangeProp::redo()
     //emit updatePosOnLand(m_pNode);
     m_pView->setDurty();
 }
+
+CResetIdCommand::CResetIdCommand(CView* pView, QMap<uint, uint>& reconnectId, QUndoCommand* parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_reconnectId(reconnectId)
+{
+
+}
+
+void CResetIdCommand::undo()
+{
+    CNode* pNode = nullptr;
+    foreach(pNode, m_pView->currentMob()->nodes())
+    {
+        if(!m_reconnectId.values().contains(pNode->mapId()))
+            continue;
+        pNode->setMapId(m_reconnectId.key(pNode->mapId()));
+    }
+    emit updateParam();
+}
+
+void CResetIdCommand::redo()
+{
+    setText("reset IDs for "+QString::number(m_reconnectId.size())+" elems");
+    CNode* pNode = nullptr;
+    foreach(pNode, m_pView->currentMob()->nodes())
+    {
+        if(!m_reconnectId.contains(pNode->mapId()))
+            continue;
+        pNode->setMapId(m_reconnectId[pNode->mapId()]);
+    }
+    emit updateParam();
+}

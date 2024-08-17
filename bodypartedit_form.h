@@ -23,6 +23,8 @@ public:
 private slots:
     void on_pushCancel_clicked();
     void on_pushApply_clicked();
+    void on_toolCopy_clicked();
+    void on_toolPaste_clicked();
 
 private:
     void reset();
@@ -33,6 +35,7 @@ signals:
 private:
     Ui::CBodyPartEditForm *ui;
     QSharedPointer<IPropertyBase> m_prop;
+    QFile m_clipboardFile;
 };
 
 #endif // BODYPARTEDIT_FORM_H

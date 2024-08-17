@@ -2,10 +2,15 @@
 #include "ui_bodypartedit_form.h"
 #include "layout_components/bodypart_checkbox.h"
 #include <QSharedPointer>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QDir>
 
 CBodyPartEditForm::CBodyPartEditForm(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::CBodyPartEditForm)
+    QWidget(parent)
+  ,ui(new Ui::CBodyPartEditForm)
+  ,m_clipboardFile(QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("bodypart_buffer.json"))
 {
     ui->setupUi(this);
     setWindowTitle("Bodypart visibility");
@@ -34,7 +39,6 @@ void CBodyPartEditForm::setPartData(const QSharedPointer<IPropertyBase>& prop)
         ui->tablePart->setCellWidget(i, 1, pCheck);
         ++i;
     }
-
 }
 
 void CBodyPartEditForm::reset()
@@ -74,5 +78,78 @@ void CBodyPartEditForm::on_pushApply_clicked()
     }
     emit onApplyChangesSignal(m_prop);
     close();
+}
+
+
+void CBodyPartEditForm::on_toolCopy_clicked()
+{
+    auto arrStat = dynamic_cast<propBodyPart*>(m_prop.get())->value();
+    QJsonObject obj;
+    obj.insert("Version", 2);
+
+    QJsonObject part;
+    for(int i(0); i<ui->tablePart->rowCount(); ++i)
+    {
+        auto pBox = dynamic_cast<QCheckBox*>(ui->tablePart->cellWidget(i, 1));
+        if(pBox->checkState() == Qt::CheckState::PartiallyChecked)
+            continue;
+
+        part.insert(ui->tablePart->item(i,0)->text(), pBox->checkState() == Qt::CheckState::Checked);
+    }
+    obj.insert("bodyparts", part);
+    QJsonDocument doc(obj);
+
+    if (!m_clipboardFile.open(QIODevice::WriteOnly))
+    {
+        Q_ASSERT("Couldn't open bodypart copypast buffer file." && false);
+    }
+    else
+    {
+        m_clipboardFile.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
+        m_clipboardFile.close();
+    }
+}
+
+
+void CBodyPartEditForm::on_toolPaste_clicked()
+{
+    if (!m_clipboardFile.open(QIODevice::ReadOnly))
+    {
+        Q_ASSERT("Couldn't open bodypart copypaste buffer file." && false);
+        return;
+    }
+
+    if (m_clipboardFile.size() == 0)
+    {
+        qDebug() << "empty copypasteBuffer file";
+        return;
+    }
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(m_clipboardFile.readAll(), &parseError);
+    m_clipboardFile.close();
+    //todo: check if has no error
+    QJsonObject obj = doc.object();
+    if (obj["Version"].toInt() != 2)
+        return;
+
+    auto arrPart = obj["bodyparts"].toObject();
+    if(arrPart.isEmpty())
+    {
+        ei::log(eLogInfo, "bodypart empty");
+        return;
+    }
+    QStringList arrKey = arrPart.keys();
+    QString partName;
+    for(int i(0); i<ui->tablePart->rowCount(); ++i)
+    {
+        partName = ui->tablePart->item(i,0)->text();
+        if(!arrKey.contains(partName))
+            continue;
+
+        auto pBox = dynamic_cast<QCheckBox*>(ui->tablePart->cellWidget(i, 1));
+        pBox->setChecked(arrPart[partName].toBool()? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    }
+
 }
 

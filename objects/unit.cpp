@@ -489,6 +489,12 @@ void CUnit::clearLogicSelect()
     m_aLogic.front()->clearPatrolSelect();
 }
 
+void CUnit::clearPaths()
+{
+    m_aLogic.front()->clearLogicPaths();
+    addFirstPatrolPoint();
+}
+
 bool CUnit::isChild(CPatrolPoint *pPointIn)
 {
     return m_aLogic.front()->isChild(pPointIn);
@@ -1019,6 +1025,11 @@ void CLogic::clearPatrolSelect()
         pPoint->setState(ENodeState::eDraw);
         pPoint->clearLookSelect();
     }
+}
+
+void CLogic::clearLogicPaths()
+{
+    m_aPatrolPt.clear();
 }
 
 void CLogic::collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp)

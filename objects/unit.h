@@ -110,6 +110,7 @@ public:
     void updatePos(QVector3D& offset);
     void collectPatrolNodes(QList<CNode*>& arrNode);
     void clearPatrolSelect();
+    void clearLogicPaths();
     void collectlogicParams(QList<QSharedPointer<IPropertyBase>>& aProp);
     void getLogicParam(QSharedPointer<IPropertyBase>& prop, EObjParam propType);
     void applyLogicParam(const QSharedPointer<IPropertyBase>& prop);
@@ -189,6 +190,7 @@ public:
     QJsonObject toJson() override;
     void collectLogicNodes(QList<CNode*>& arrNode);
     void clearLogicSelect();
+    void clearPaths();
     bool isChild(CPatrolPoint* pPointIn);
     void addFirstPatrolPoint();
     void undo_addFirstPatrolPoint();

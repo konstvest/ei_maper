@@ -333,13 +333,19 @@
     <property name="title">
      <string>&amp;Tools</string>
     </property>
+    <widget class="QMenu" name="menuSelect_2">
+     <property name="title">
+      <string>Select</string>
+     </property>
+     <addaction name="actionSelect_by"/>
+     <addaction name="actionSelect_All"/>
+    </widget>
     <addaction name="actionShow_undo_redo"/>
-    <addaction name="actionUndo"/>
-    <addaction name="actionRedo"/>
-    <addaction name="actionReset_cam_position"/>
-    <addaction name="actionRandomize_parameter"/>
-    <addaction name="actionReset_selected_IDs"/>
     <addaction name="actionCopy_IDs_to_clipboard"/>
+    <addaction name="actionReset_cam_position"/>
+    <addaction name="actionCreate_new_object"/>
+    <addaction name="menuSelect_2"/>
+    <addaction name="actionRandomize_parameter"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="enabled">
@@ -348,24 +354,18 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
-    <widget class="QMenu" name="menuSelect">
-     <property name="title">
-      <string>&amp;Select</string>
-     </property>
-     <addaction name="actionSelect_All"/>
-     <addaction name="actionSelect_by"/>
-    </widget>
     <widget class="QMenu" name="menuUnit">
      <property name="title">
       <string>&amp;Unit</string>
      </property>
      <addaction name="actionReset_logic_paths"/>
     </widget>
+    <addaction name="actionRedo"/>
+    <addaction name="actionUndo"/>
     <addaction name="action_Mob_parameters"/>
-    <addaction name="menuSelect"/>
-    <addaction name="actionCreate_new_object"/>
     <addaction name="actionChange_mod_e"/>
     <addaction name="menuUnit"/>
+    <addaction name="actionReset_selected_IDs"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">

@@ -83,7 +83,6 @@ void CBodyPartEditForm::on_pushApply_clicked()
 
 void CBodyPartEditForm::on_toolCopy_clicked()
 {
-    auto arrStat = dynamic_cast<propBodyPart*>(m_prop.get())->value();
     QJsonObject obj;
     obj.insert("Version", 2);
 

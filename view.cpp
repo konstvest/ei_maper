@@ -1662,11 +1662,10 @@ void CView::scaleTo(QVector3D &scale)
 
 void CView::resetUnitLogicPaths()
 {
-    // save selected objects
-    // select patrol points of selected units
-    // delete selected nodes
-    // restore selection
-    QVector<CUnit*> arrSelectedNode;
+    if(nullptr == m_activeMob)
+        return;
+
+    //todo: make undo for this operation
     CNode* pNode = nullptr;
     foreach(pNode, m_activeMob->logicNodes())
     {
@@ -1676,27 +1675,10 @@ void CView::resetUnitLogicPaths()
         if(pNode->nodeType() != ENodeType::eUnit)
             continue;
 
-        arrSelectedNode.append(dynamic_cast<CUnit*>(pNode));
+        auto pUnit = dynamic_cast<CUnit*>(pNode);
+        pUnit->clearPaths();
     }
-    m_activeMob->clearSelect(true);
-    for(auto& pUnit : arrSelectedNode)
-    {
-        QList<CNode*> arrPathPoint;
-        pUnit->collectLogicNodes(arrPathPoint);
-        for(auto& pPoint : arrPathPoint)
-        {
-            if(pPoint->nodeType() == ENodeType::ePatrolPoint)
-                pPoint->setState(ENodeState::eSelect);
-        }
-    }
-    auto lastState = CScene::getInstance()->getMode();
-    CScene::getInstance()->changeMode(EEditMode::eEditModeLogic);
-    deleteSelectedNodes();
-    CScene::getInstance()->changeMode(lastState);
-    for(auto& pUnit : arrSelectedNode)
-    {
-        pUnit->setState(ENodeState::eSelect);
-    }
+    m_activeMob->logicNodesUpdate();
 }
 
 void CView::deleteSelectedNodes()

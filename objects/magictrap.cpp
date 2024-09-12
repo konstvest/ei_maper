@@ -591,6 +591,11 @@ void CMagicTrap::deleteLastCastPoint()
     update();
 }
 
+bool CMagicTrap::isOperationAxisAllow(EOperationAxisType type)
+{
+    return type == EOperationAxisType::eMove;
+}
+
 void CMagicTrap::update()
 {
     for(auto& pZone : m_aActZone)
@@ -900,6 +905,11 @@ void CActivationZone::markAsDeleted(bool bDeleted)
     emit changeActZone();
 }
 
+bool CActivationZone::isOperationAxisAllow(EOperationAxisType type)
+{
+    return type == EOperationAxisType::eMove;
+}
+
 CTrapCastPoint::CTrapCastPoint(CMagicTrap *pTrap):
     m_pParent(pTrap)
 {
@@ -1062,4 +1072,9 @@ void CTrapCastPoint::markAsDeleted(bool bDeleted)
     CObjectBase::markAsDeleted(bDeleted);
     setState(ENodeState::eDraw); // clear select for undo-redo
     emit changeCastPoint();
+}
+
+bool CTrapCastPoint::isOperationAxisAllow(EOperationAxisType type)
+{
+    return type==EOperationAxisType::eMove;
 }

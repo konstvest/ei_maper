@@ -23,6 +23,7 @@ public:
     uint serialize(util::CMobParser& parser) override;
     bool updatePos(QVector3D& pos) override;
     void markAsDeleted(bool bDeleted = true) override final;
+    bool isOperationAxisAllow(EOperationAxisType type) override final;
     CLookPoint* createLookPoint();
     void undo_createLookPoint(CLookPoint* pCreatedPoint);
 
@@ -59,6 +60,7 @@ public:
     void clearLookSelect();
     bool updatePos(QVector3D& pos) override;
     void markAsDeleted(bool bDeleted = true) override final;
+    bool isOperationAxisAllow(EOperationAxisType type) override final;
     CPatrolPoint* createNewPoint();
     void undo_createNewPoint(CPatrolPoint* pCreatedPoint);
     void addFirstViewPoint();

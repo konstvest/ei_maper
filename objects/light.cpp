@@ -212,3 +212,8 @@ QJsonObject CLight::toJson()
     obj.insert("Color", aColor);
     return obj;
 }
+
+bool CLight::isOperationAxisAllow(EOperationAxisType type)
+{
+    return type == EOperationAxisType::eMove;
+}

@@ -1040,6 +1040,8 @@ void CView::resetSelectedId()
 
 void CView::updateParameter(EObjParam propType)
 {
+    return; // not all prop types can be updated for each node. Use direct updating for each operation separately.
+
     if(nullptr == m_activeMob)
         return;
 
@@ -1419,6 +1421,8 @@ void CView::operationSetBackup(EOperationAxisType operationType)
     {
         if (node->nodeState() != ENodeState::eSelect)
             continue;
+        if(!node->isOperationAxisAllow(operationType))
+            continue;
 
         switch (operationType)
         {
@@ -1633,11 +1637,8 @@ void CView::rotateTo(QVector3D &rot)
     };
 
 
-    for (auto& node : m_activeMob->nodes())
+    for(auto& node : m_operationBackup.keys())
     {
-        if (node->nodeState() != ENodeState::eSelect)
-            continue;
-
         rotation = node->getEulerRotation() + rot;
         setNotNan(rotation);
         node->setRot(quat);

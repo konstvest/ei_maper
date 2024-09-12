@@ -321,3 +321,8 @@ QJsonObject CSound::toJson()
     obj.insert("Is Music?", m_bMusic);
     return obj;
 }
+
+bool CSound::isOperationAxisAllow(EOperationAxisType type)
+{
+    return type == EOperationAxisType::eMove;
+}

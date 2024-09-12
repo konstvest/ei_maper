@@ -27,6 +27,7 @@ public:
     void update();
     bool updatePos(QVector3D& pos) override;
     void markAsDeleted(bool bDeleted = true) override;
+    bool isOperationAxisAllow(EOperationAxisType type) override final;
 
 signals:
     void changeActZone();
@@ -60,6 +61,7 @@ public:
     void draw(bool isActive, QOpenGLShaderProgram* program) override;
     bool updatePos(QVector3D& pos) override;
     void markAsDeleted(bool bDeleted = true) override;
+    bool isOperationAxisAllow(EOperationAxisType type) override final;
 
 signals:
     void changeCastPoint();
@@ -77,7 +79,6 @@ public:
     CMagicTrap(QJsonObject data);
     ~CMagicTrap();
     ENodeType nodeType() override {return ENodeType::eMagicTrap; }
-
     void draw(bool isActive, QOpenGLShaderProgram* program) override;
     uint deserialize(util::CMobParser& parser) override;
     void serializeJson(QJsonObject& obj) override;
@@ -91,10 +92,12 @@ public:
     QJsonObject toJson() override;
     void loadFigure() override {}
     void loadTexture() override;
-    void collectLogicNodes(QList<CNode*>& arrNode);
-    void clearLogicSelect();
     bool updatePos(QVector3D& pos) override;
     void setDrawPosition(QVector3D pos) override final;
+    bool isOperationAxisAllow(EOperationAxisType type) override final;
+
+    void collectLogicNodes(QList<CNode*>& arrNode);
+    void clearLogicSelect();
     int getZoneId(CActivationZone* pZone);
     CActivationZone* actZoneById(int zoneId);
     int getCastPointId(CTrapCastPoint* pCast);

@@ -1790,6 +1790,11 @@ void CPatrolPoint::markAsDeleted(bool bDeleted)
     emit patrolChanges();
 }
 
+bool CPatrolPoint::isOperationAxisAllow(EOperationAxisType type)
+{
+    return type == EOperationAxisType::eMove;
+}
+
 CPatrolPoint* CPatrolPoint::createNewPoint()
 {
     CPatrolPoint* pPoint = new CPatrolPoint;
@@ -2081,6 +2086,11 @@ void CLookPoint::markAsDeleted(bool bDeleted)
     CObjectBase::markAsDeleted(bDeleted);
     setState(ENodeState::eDraw); // clear select for undo-redo
     emit lookPointChanges();
+}
+
+bool CLookPoint::isOperationAxisAllow(EOperationAxisType type)
+{
+    return type == EOperationAxisType::eMove;
 }
 
 CLookPoint *CLookPoint::createLookPoint()

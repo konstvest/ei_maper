@@ -171,3 +171,8 @@ QJsonObject CParticle::toJson()
     obj.insert("Scale", QJsonValue::fromVariant(m_scale));
     return obj;
 }
+
+bool CParticle::isOperationAxisAllow(EOperationAxisType type)
+{
+    return type == EOperationAxisType::eMove;
+}

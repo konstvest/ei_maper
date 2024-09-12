@@ -49,6 +49,7 @@ public:
     CBox getBBox() override final;
     void markAsDeleted(bool bDeleted = true) override {m_bDeleted = bDeleted;}
     bool isMarkDeleted() override {return m_bDeleted;}
+    bool isOperationAxisAllow(EOperationAxisType type) override {Q_UNUSED(type); return true;};
 
 protected:
     void recalcFigure();

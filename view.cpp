@@ -1034,6 +1034,7 @@ void CView::resetSelectedId()
     CResetIdCommand* pReset = new CResetIdCommand(this, reconnectId);
     QObject::connect(pReset, SIGNAL(updateParam()), this, SLOT(viewParameters()));
     m_pUndoStack->push(pReset);
+    m_activeMob->setDurty();
     // update tree view?
 }
 
@@ -1679,6 +1680,7 @@ void CView::resetUnitLogicPaths()
         pUnit->clearPaths();
     }
     m_activeMob->logicNodesUpdate();
+    m_activeMob->setDurty();
 }
 
 void CView::deleteSelectedNodes()

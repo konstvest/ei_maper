@@ -254,6 +254,7 @@ void CSettings::initOptions()
     aOpt.append(QSharedPointer<COpt>(new COptInt("mouseSenseX", 25)));
     aOpt.append(QSharedPointer<COpt>(new COptInt("mouseSenseY", 25)));
     aOpt.append(QSharedPointer<COpt>(new COptInt("rangeIncrement", 999)));
+    aOpt.append(QSharedPointer<COpt>(new COptInt("landCheckTime", 0)));
 
     //split options into different category
     QFile inputFile(":/optSet.txt");

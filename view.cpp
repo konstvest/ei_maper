@@ -50,6 +50,8 @@ CView::CView(QWidget *parent, const QGLWidget *pShareWidget) : QGLWidget(parent,
     m_timer = new QTimer;
     m_aReadState.resize(eReadCount);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(updateWindow()));
+    m_mprModifyTimer = new QTimer;
+    connect(m_mprModifyTimer, SIGNAL(timeout()), this, SLOT(checkNewLandVersion()));
     m_operationBackup.clear();
     m_selectFrame.reset(new CSelectFrame);
     //qDebug() << format();
@@ -283,10 +285,18 @@ void CView::loadLandscape(QFileInfo& filePath)
     ei::log(eLogInfo, "End read landscape");
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
+    m_lastModifiedLand = filePath.lastModified();
+    COptInt* pOpt = dynamic_cast<COptInt*>(settings()->opt("landCheckTime"));
+    if (pOpt and pOpt->value() != 0)
+    {
+        m_mprModifyTimer->setInterval(pOpt->value());
+        m_mprModifyTimer->start();
+    }
 }
 
 void CView::unloadLand()
 {
+    m_mprModifyTimer->stop();
     CLandscape::getInstance()->unloadMpr();
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, "");
     ei::log(eLogInfo, "Landscape unloaded");
@@ -664,6 +674,20 @@ void CView::checkOpenGlError()
     }
 }
 
+void CView::checkNewLandVersion()
+{
+    // Dont use QFileSystemWatcher because it spams signals several time for 1 MapEd save
+    QFileInfo landPath(CLandscape::getInstance()->filePath());
+    landPath.refresh();
+    QDateTime lastM = landPath.lastModified();
+    if (lastM > m_lastModifiedLand)
+    {
+        unloadLand();
+        loadLandscape(landPath);
+        m_lastModifiedLand = lastM;
+    }
+}
+
 void CView::drawSelectFrame(QRect &rect)
 {
     //convert frame to [(-1, 1), (-1, 1)]
@@ -768,6 +792,9 @@ void CView::saveMobAs()
 
 void CView::saveActiveMob()
 {
+    if(nullptr == m_activeMob)
+        return;
+
     QSet<uint> aId;
     m_activeMob->checkUniqueId(aId);
     m_activeMob->save();

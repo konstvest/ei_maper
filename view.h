@@ -8,6 +8,7 @@
 #include <QSharedPointer>
 #include <QTableWidget>
 #include <QTreeWidgetItem>
+#include <QDateTime>
 
 #include "types.h"
 #include "select_window.h"
@@ -135,6 +136,7 @@ public slots:
     void execMobSwitch();
     void clearHistory();
     void onMobParamEditFinished(CMobParameters* pMob);
+    void checkNewLandVersion();
 
 signals:
     void updateMsg(QString msg);
@@ -166,6 +168,8 @@ private:
     CTreeView* m_pTree;
     QList<CMobParameters*> m_arrParamWindow;
     CRoundMobForm* m_pRoundForm;
+    QTimer* m_mprModifyTimer;
+    QDateTime m_lastModifiedLand;
 };
 
 #endif // MYGLWIDGET_H

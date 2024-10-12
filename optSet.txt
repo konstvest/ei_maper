@@ -6,6 +6,7 @@ mouseSenseY
 dipEditSymmetric
 rangeIncrement
 logLevel
+landCheckTime
 Option set name:Resource
 figPaths
 texPaths

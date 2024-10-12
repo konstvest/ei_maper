@@ -25,7 +25,7 @@ void CSelectForm::onShow()
 
 void CSelectForm::selectAll()
 {
-    SSelect sel{eSelectType_all, "", ""};
+    SSelect sel{eSelectType_all, "", "", false};
     if(CScene::getInstance()->getMode() == eEditModeLogic)
         sel.param1="logic";
     m_selected_num = m_pView->select(sel, false);

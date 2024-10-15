@@ -77,6 +77,8 @@ public:
 
     QMap<QString, QByteArray>& bufferOfFiles() {return m_aFiles;}
 //    QVector<ResFileEntry>& entries() {return m_aEntry;}
+    void saveToFile(QString path);
+    QByteArray generateResData();
 
 private:
     //void completePreviousFile();

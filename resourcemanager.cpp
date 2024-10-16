@@ -25,7 +25,7 @@ CObjectList::CObjectList():
     //TODO: can be conflict with user model name. load aux figures in separate map
     auto auxFile = QFileInfo(":/auxData.res");
 
-    ResFile res(auxFile.filePath());
+    CResFile res(auxFile.filePath());
     QMap<QString, QByteArray> aFile = res.bufferOfFiles();
 
     for(auto file : aFile.toStdMap())
@@ -59,7 +59,7 @@ void CObjectList::readFigure(const QByteArray& file, const QString& name)
 //in: aFile, assemblyRoot
 void CObjectList::readAssembly(const QMap<QString, QByteArray>& aFile, const QString& assemblyRoot)
 {
-    ResFile model(aFile[assemblyRoot]);
+    CResFile model(aFile[assemblyRoot]);
     QMap<QString, QByteArray> aComponent  = model.bufferOfFiles();
     QDataStream lnkStream(aComponent[assemblyRoot.split(".mod").first()]);
     util::formatStream(lnkStream);
@@ -98,7 +98,7 @@ void CObjectList::readAssembly(const QMap<QString, QByteArray>& aFile, const QSt
     //.bon file parse here
     QString bonFile (assemblyRoot.split(".mod").first());
     bonFile.append(".bon");
-    ResFile position(aFile[bonFile]);
+    CResFile position(aFile[bonFile]);
     aComponent  = position.bufferOfFiles();
     for (auto& fig: aParent.values())
     {
@@ -124,7 +124,7 @@ void CObjectList::loadFigures(QSet<QString>& aFigure)
     QString figName;
     for(auto& file: pOpt->value())
     {
-        ResFile res(file);
+        CResFile res(file);
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
         if(aFigure.isEmpty())
         {
@@ -399,7 +399,7 @@ void CTextureList::initAuxTexture()
     //TODO: can be conflict with user tex name. load aux textures in separate map
     auto auxFile = QFileInfo(":/auxData.res");
 
-    ResFile res(auxFile.filePath());
+    CResFile res(auxFile.filePath());
     QMap<QString, QByteArray> aFile = res.bufferOfFiles();
 
     QString texName;
@@ -429,7 +429,7 @@ void CTextureList::loadTexture(QSet<QString>& aName)
     uint n(0);
     for(auto& file: pOpt->value())
     {
-        ResFile res(file);
+        CResFile res(file);
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
         if (aName.isEmpty())
         {
@@ -540,7 +540,7 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
         if(!aPart.isEmpty())
             break;
 
-        ResFile res(file);
+        CResFile res(file);
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
         for(int i(0); i<8; ++i)
         {
@@ -567,7 +567,7 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
         ei::log(ELogMessageType::eLogWarning, "cannot find texture for zone, loading default");
         STexSpecified part;
         auto auxFile = QFileInfo(":/auxData.res");
-        ResFile res(auxFile.filePath());
+        CResFile res(auxFile.filePath());
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
         part.data = aFile["default_zone.mmp"];
         QDataStream stream(part.data);

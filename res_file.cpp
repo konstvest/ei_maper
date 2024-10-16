@@ -3,13 +3,13 @@
 #include "res_file.h"
 #include "utils.h"
 
-void ResFile::buildFileMap(
-        QMap<QString, ResFileEntry>& aEntry,
+void CResFile::buildFileMap(
+        QMap<QString, SResFileEntry>& aEntry,
         QVector<SResHashTable>& fileTable, int offsetStream,
         int streamLength, QString &nameBuf)
 {
 
-    ResFileEntry entry;
+    SResFileEntry entry;
     for (auto& file: fileTable)
     {
         if(int(file.DataOffset + file.DataSize) > streamLength - offsetStream)
@@ -24,7 +24,7 @@ void ResFile::buildFileMap(
 
 }
 
-bool ResFile::getFiles(QMap<QString, ResFileEntry>& aEntry, QDataStream& stream)
+bool CResFile::getFiles(QMap<QString, SResFileEntry>& aEntry, QDataStream& stream)
 {
     qint64 startPos = stream.device()->pos();
 
@@ -53,9 +53,9 @@ bool ResFile::getFiles(QMap<QString, ResFileEntry>& aEntry, QDataStream& stream)
 }
 
 // in: aEntry, stream
-void ResFile::readFiles(QMap<QString, ResFileEntry>& aEntry, QDataStream& stream)
+void CResFile::readFiles(QMap<QString, SResFileEntry>& aEntry, QDataStream& stream)
 {
-    for (auto& entry: aEntry.values())
+    for(auto& entry: aEntry.values())
     {
         QByteArray ba(entry.Size, 0);
         stream.device()->seek(entry.Position);
@@ -86,7 +86,8 @@ uint getEIStringHash32(QString value, uint hashTableSize = 0)
 }
 
 
-
+// author: Demoth
+// modyfied by: Konstvest (moved from c# to c++, export align offset)
 void buildResHashTable(QMap<QString, QByteArray> entries, uint& tableOffset,
                        QVector<SResHashTable>& outHashTable, QVector<uint>& outAlignOffset, QByteArray& outName)
 {
@@ -131,7 +132,7 @@ void buildResHashTable(QMap<QString, QByteArray> entries, uint& tableOffset,
     }
 }
 
-QByteArray ResFile::generateResData()
+QByteArray CResFile::generateResData()
 {
     if(m_aFiles.empty())
     {
@@ -170,7 +171,7 @@ QByteArray ResFile::generateResData()
     return resData;
 }
 
-ResFile::ResFile(QString path)
+CResFile::CResFile(QString path)
 {
     m_aFiles.clear();
     m_aEntry.clear();
@@ -178,7 +179,7 @@ ResFile::ResFile(QString path)
     QFile file(path);
     if (!file.exists())
     {
-        qDebug() << file.fileName() << " not exists";
+        ei::log(eLogFatal, file.fileName() + " does not exists");
         return;
     }
 
@@ -187,7 +188,7 @@ ResFile::ResFile(QString path)
         file.open(QIODevice::ReadOnly);
         if (file.error() != QFile::NoError)
         {
-            qDebug() << file.fileName() << " Error while open res-file";
+            ei::log(eLogFatal, file.fileName() + " Error while open res-file");
             return;
         }
 
@@ -197,10 +198,10 @@ ResFile::ResFile(QString path)
 
         QDataStream stream(buffer);
         util::formatStream(stream);
-        QMap<QString, ResFileEntry> resEntries;
+        QMap<QString, SResFileEntry> resEntries;
         if (!getFiles(resEntries, stream))
         {
-            qDebug() << "Incorrect file signature";
+            ei::log(eLogFatal, "Incorrect file signature");
             buffer.clear();
             file.close();
             return;
@@ -214,12 +215,12 @@ ResFile::ResFile(QString path)
     }
 }
 
-ResFile::ResFile(const QByteArray& data)
+CResFile::CResFile(const QByteArray& data)
 {
     m_bufLen = data.length();
     QDataStream stream(data);
     util::formatStream(stream);
-    QMap<QString, ResFileEntry> resEntries;
+    QMap<QString, SResFileEntry> resEntries;
     if (!getFiles(resEntries, stream))
     {
         qDebug() << "Incorrect file signature";
@@ -228,7 +229,7 @@ ResFile::ResFile(const QByteArray& data)
     readFiles(resEntries, stream);
 }
 
-void ResFile::saveToFile(QString path)
+void CResFile::saveToFile(QString path)
 {
     QFile file(path);
     if (file.exists())
@@ -255,7 +256,7 @@ void ResFile::saveToFile(QString path)
     }
 }
 
-ResFile::~ResFile()
+CResFile::~CResFile()
 {
     for (auto& buf: m_aFiles.values())
     {

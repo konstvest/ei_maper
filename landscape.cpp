@@ -103,7 +103,7 @@ void CLandscape::readMap(QFileInfo& path)
 
     m_filePath = path;
 
-    ResFile map(path.filePath());
+    CResFile map(path.filePath());
     QMap<QString, QByteArray> aTmp =  map.bufferOfFiles();  // map contains DIfferentCaseName
     QMap<QString, QByteArray> aComponent;
     QString innerMapName;

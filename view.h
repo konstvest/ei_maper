@@ -50,6 +50,7 @@ public:
 
     void loadLandscape(QFileInfo& filePath);
     void unloadLand();
+    void saveLandAs();
     void loadMob(QFileInfo& filePath);
     void saveMobAs();
     void saveActiveMob();

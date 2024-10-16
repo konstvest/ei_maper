@@ -317,6 +317,9 @@
     <addaction name="actionSave_all_MOB_s"/>
     <addaction name="actionSave_as"/>
     <addaction name="separator"/>
+    <addaction name="actionSave_landscape_MPR"/>
+    <addaction name="actionSave_landscape_MPR_as"/>
+    <addaction name="separator"/>
     <addaction name="actionClose_all"/>
     <addaction name="actionExit"/>
    </widget>
@@ -543,6 +546,16 @@
   <action name="action_About">
    <property name="text">
     <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionSave_landscape_MPR">
+   <property name="text">
+    <string>Save landscape (MPR)</string>
+   </property>
+  </action>
+  <action name="actionSave_landscape_MPR_as">
+   <property name="text">
+    <string>Save landscape (MPR) as...</string>
    </property>
   </action>
  </widget>

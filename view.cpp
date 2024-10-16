@@ -302,6 +302,19 @@ void CView::unloadLand()
     ei::log(eLogInfo, "Landscape unloaded");
 }
 
+void CView::saveLandAs()
+{
+    if(!CLandscape::getInstance()->isMprLoad())
+        return;
+
+    const QFileInfo fileName = QFileDialog::getSaveFileName(this, "Save " + CLandscape::getInstance()->filePath().fileName() + " as... ", "" , tr("Landscape (*.mpr);;)"));
+    //const QFileInfo fileName("c:\\konst\\temp\\1\\testZone.mpr");
+
+    CLandscape::getInstance()->saveMapAs(fileName);
+//    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, fileName.baseName());
+//    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
+}
+
 int CView::select(const SSelect &selectParam, bool bAddToSelect)
 {
     if(nullptr == m_activeMob)

@@ -456,6 +456,12 @@ void MainWindow::on_actionReset_selected_IDs_triggered()
 
 void MainWindow::on_action_About_triggered()
 {
-    QMessageBox::information(this, "About","Mob editor for Evil Islands game v0.2\n\nAuthor: konstvest\nHome page: https://github.com/konstvest/ei_maper\nLicense: GNU GPL-3.0");
+    QMessageBox::information(this, "About","Map editor for Evil Islands game v0.3\n\nAuthor: konstvest\nHome page: https://github.com/konstvest/ei_maper\nLicense: GNU GPL-3.0");
+}
+
+
+void MainWindow::on_actionSave_landscape_MPR_as_triggered()
+{
+    m_pView->saveLandAs();
 }
 

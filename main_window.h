@@ -79,6 +79,8 @@ private slots:
 
     void on_action_About_triggered();
 
+    void on_actionSave_landscape_MPR_as_triggered();
+
 protected:
     void closeEvent(QCloseEvent* e);
 

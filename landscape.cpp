@@ -71,6 +71,37 @@ bool CLandscape::readHeader(QDataStream& stream)
     return true;
 }
 
+bool CLandscape::serializeMpr(const QString& zoneName, CResFile& mprFile)
+{
+    QByteArray mpData;
+    QDataStream mpStream(&mpData, QIODevice::WriteOnly);
+    util::formatStream(mpStream);
+
+    //write map header data (*.mp)
+    mpStream << m_header;
+    for(auto& mat: m_aMaterial)
+    {
+        mpStream << mat;
+    }
+
+    int type;
+    for(auto& tileTyle: m_aTileTypes)
+    {
+        type = int(tileTyle);
+        mpStream << type;
+    }
+
+    for(auto& animTile: m_aAnimTile)
+    {
+        mpStream << animTile;
+    }
+    // end of header data
+    mprFile.addFiledata(zoneName + ".mp", mpData);
+
+    //todo: write sectors data
+    return true;
+}
+
 // Generates sector suffix by number: 001002 - sector x:1 y:2
 QString genSectorSuffix(int x, int y)
 {
@@ -139,6 +170,17 @@ void CLandscape::readMap(QFileInfo& path)
         }
         m_aSector.append(xSec);
     }
+}
+
+void CLandscape::saveMapAs(const QFileInfo& path)
+{
+    //QString filePath = path.filePath();
+    //QFile file(filePath);
+    QString zoneName(path.completeBaseName());
+    CResFile mprFile;
+    serializeMpr(zoneName, mprFile);
+    QByteArray data = mprFile.generateResData();
+    mprFile.saveToFile(path.filePath());
 }
 
 void CLandscape::draw(QOpenGLShaderProgram* program)

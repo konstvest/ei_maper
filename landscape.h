@@ -10,6 +10,7 @@
 #include <QVector>
 
 #include "sector.h"
+#include "res_file.h"
 
 enum ETerrainType
 {
@@ -126,6 +127,7 @@ public:
     bool isMprLoad() {return !m_aSector.isEmpty();}
     void unloadMpr();
     void readMap(QFileInfo& path);
+    void saveMapAs(const QFileInfo& path);
     void draw(QOpenGLShaderProgram* program);
     void drawWater(QOpenGLShaderProgram* program);
     bool projectPt(QVector3D& point);
@@ -139,6 +141,7 @@ private:
     CLandscape();
     ~CLandscape();
     bool readHeader(QDataStream& stream);
+    bool serializeMpr(const QString& zoneName, CResFile& mprFile);
 
 private:
     static CLandscape* m_pLand;

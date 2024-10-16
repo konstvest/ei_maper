@@ -256,6 +256,11 @@ void CResFile::saveToFile(QString path)
     }
 }
 
+void CResFile::addFiledata(const QString name, const QByteArray data)
+{
+    m_aFiles[name] = data;
+}
+
 CResFile::~CResFile()
 {
     for (auto& buf: m_aFiles.values())

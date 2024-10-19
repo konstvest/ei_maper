@@ -49,3 +49,4 @@ CMakeLists.txt.user*
 *.user
 *.stackdump
 bin
+/nvtt

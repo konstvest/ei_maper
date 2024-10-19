@@ -15,7 +15,7 @@
 enum ETerrainType
 {
     eTerrainBase = 0
-    , eTerrainWaterBase
+    , eTerrainWaterNoTexture
     , eTerrainGrass
     , eTerrainWater
     , eTerrainLast

@@ -566,47 +566,64 @@ QImage convert_DXT(QDataStream& stream, int width, int height, bool DXT3 = false
     return image;
 }
 
-int CTextureList::extractMmpToDxt1(QList<QImage>& outArrImage, const QStringList& inArrTextureName)
+int CTextureList::extractMmpToDxt1(QVector<QImage>& outArrImage, const QStringList& inArrTextureName)
 {
-    return 0;
-}
-
-int CTextureList::extractMmpToDxt1(QImage& outImage, const QString textureName)
-{
+    outArrImage.clear();
+    outArrImage.resize(inArrTextureName.size());
     QStringList arrPath;
 
     auto pOpt = dynamic_cast<COptStringList*>(m_pSettings->opt(eOptSetResource, "texPaths"));
     if(pOpt && !(pOpt->value().isEmpty()))
         arrPath = QStringList::fromVector(pOpt->value());
 
-    //for(auto& path: CResourceManager::getInstance()->arrTexturePath())
+    int nCount(0);
     for(auto& path: arrPath)
     {
+        if(nCount == inArrTextureName.size()) //all textures already found
+            break;
         CResFile res(path);
         QMap<QString, QByteArray> aFile = res.bufferOfFiles();
 
-        if(!aFile.contains(textureName))
-            continue;
-
-        QDataStream stream(aFile[textureName]);
-        util::formatStream(stream);
-
-        SMmpHeader header;
-        stream >> header;
-        if(header.m_signature != 0x00504D4D)
+        for(const auto& texName: inArrTextureName)
         {
-            Q_ASSERT("incorrect texture signature" && false);
-            return -1;
-        }
-        if(header.m_format == ETextureFormat::eMMP_DXT1)
-        {
+            if(!aFile.contains(texName))
+                continue;
+
+            QDataStream stream(aFile[texName]);
+            util::formatStream(stream);
+
+            SMmpHeader header;
+            stream >> header;
+            if(header.m_signature != 0x00504D4D)
+            {
+                Q_ASSERT("incorrect texture signature" && false);
+                return -1;
+            }
+            if(header.m_format != ETextureFormat::eMMP_DXT1)
+            {
+                ei::log(eLogWarning, "texture has a different format than dxt1 or dxt3");
+                continue;
+            }
+
             stream.device()->seek(header.size());
-            outImage =  convert_DXT(stream, header.m_width, header.m_height);
-            outImage = outImage.mirrored(false, true);
-            break;
+            QImage& img = outArrImage[inArrTextureName.indexOf(texName)];
+            img =  convert_DXT(stream, header.m_width, header.m_height);
+            img = img.mirrored(false, true);
+            ++nCount;
         }
     }
-    return 0;
+    return nCount == inArrTextureName.size();
+}
+
+int CTextureList::extractMmpToDxt1(QImage& outImage, const QString textureName)
+{
+    QVector<QImage> arrImage;
+    QStringList arrTexName;
+    arrTexName.append(textureName);
+    int res = extractMmpToDxt1(arrImage, arrTexName);
+    if(res == 0)
+        outImage = arrImage.front();
+    return res;
 }
 
 struct STexSpecified

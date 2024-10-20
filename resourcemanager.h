@@ -114,7 +114,7 @@ public:
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
     void initResource();
     const QList<QString>& textureList() const {return m_arrCellComboBox;}
-    int extractMmpToDxt1(QList<QImage>& outArrImage, const QStringList& inArrTextureName);
+    int extractMmpToDxt1(QVector<QImage>& outArrImage, const QStringList& inArrTextureName);
     int extractMmpToDxt1(QImage& outImage, const QString textureName);
 
 private:

@@ -28,7 +28,7 @@
 void testFunc()
 {
     ei::log(eLogDebug, "test func start");
-
+    //auto aaa = CResourceManager::getInstance()->tempFolder();
     ei::log(eLogDebug, "test func end");
 }
 

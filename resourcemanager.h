@@ -114,6 +114,8 @@ public:
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
     void initResource();
     const QList<QString>& textureList() const {return m_arrCellComboBox;}
+    int extractMmpToDxt1(QList<QImage>& outArrImage, const QStringList& inArrTextureName);
+    int extractMmpToDxt1(QImage& outImage, const QString textureName);
 
 private:
     CTextureList();
@@ -150,15 +152,22 @@ private:
     QMap<EObjParam, QMap<uint, QString>> m_propValueName;
 };
 
-class CResourceManager
-{
-public:
-    CResourceManager();
-    void loadResources();
-};
-
 bool isDIfferent(const QString& value);
 QString valueDifferent();
 
+
+class CNvttManager
+{
+public:
+    CNvttManager(QString appDir);
+    CNvttManager() = delete;
+    ~CNvttManager() {}
+    int dxtToBmp(QString pathToDxt, QString pathToBmp);
+    QString bmpFromTexture(QString textureName);
+
+private:
+    QString m_nvcompress;
+    bool m_bInit;
+};
 
 #endif // CRESOURCEMANAGER_H

@@ -2,6 +2,10 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QtMath>
+#include <QDir>
+#include <QProcess>
+#include <QStandardPaths>
+
 #include "res_file.h"
 #include "utils.h"
 #include "view.h"
@@ -10,6 +14,7 @@
 #include "log.h"
 
 CObjectList* CObjectList::m_pObjectContainer = nullptr;
+CTextureList* CTextureList::m_pTextureContainer = nullptr;
 
 CObjectList *CObjectList::getInstance()
 {
@@ -187,9 +192,6 @@ ei::CFigure *CObjectList::figureDefault()
     return m_aFigure["cannotDisplay.mod"];
 }
 
-
-
-CTextureList* CTextureList::m_pTextureContainer = nullptr;
 
 CTextureList *CTextureList::getInstance()
 {
@@ -505,6 +507,108 @@ void CTextureList::initResource()
     }
 }
 
+QImage convert_DXT(QDataStream& stream, int width, int height, bool DXT3 = false)
+{
+    QImage image(width, height, QImage::Format_RGBA8888);
+    uint16_t color[4][4] = {};
+
+    for (int i = 0; i < height / 4; i++) {
+        for (int j = 0; j < width / 4; j++) {
+            if (DXT3) {
+                for (int x = 0; x < 4; x++) {
+                    uint16_t row;
+                    stream >> row;
+                    for (int y = 0; y < 4; y++) {
+                        int alpha = (row & 15) * 17;
+                        row >>= 4;
+                        image.setPixel(j * 4 + y, i * 4 + x, QColor(0, 0, 0, alpha).rgba());
+                    }
+                }
+            }
+
+            uint16_t gen_c1, gen_c2;
+            stream >> gen_c1;
+            stream >> gen_c2;
+
+            color[0][0] = extractColor(gen_c1, 63488, 11);
+            color[0][1] = extractColor(gen_c1, 2016, 5);
+            color[0][2] = extractColor(gen_c1, 31, 0);
+
+            color[1][0] = extractColor(gen_c2, 63488, 11);
+            color[1][1] = extractColor(gen_c2, 2016, 5);
+            color[1][2] = extractColor(gen_c2, 31, 0);
+
+            if (gen_c1 > gen_c2 || DXT3) {
+                for (int k = 0; k < 3; k++) {
+                    color[2][k] = (2 * color[0][k] + color[1][k]) / 3;
+                    color[3][k] = (color[0][k] + 2 * color[1][k]) / 3;
+                }
+            } else {
+                for (int k = 0; k < 3; k++) {
+                    color[2][k] = (color[0][k] + color[1][k]) / 2;
+                    color[3][k] = 0;
+                }
+            }
+
+            for (int x = 0; x < 4; x++) {
+                uint8_t row;
+                stream >> row;
+                for (int y = 0; y < 4; y++) {
+                    int idx = row & 3;
+                    QColor pixelColor(color[idx][0], color[idx][1], color[idx][2], (DXT3 ? image.pixelColor(j * 4 + y, i * 4 + x).alpha() : 255));
+                    image.setPixel(j * 4 + y, i * 4 + x, pixelColor.rgba());
+                    row >>= 2;
+                }
+            }
+        }
+    }
+
+    return image;
+}
+
+int CTextureList::extractMmpToDxt1(QList<QImage>& outArrImage, const QStringList& inArrTextureName)
+{
+    return 0;
+}
+
+int CTextureList::extractMmpToDxt1(QImage& outImage, const QString textureName)
+{
+    QStringList arrPath;
+
+    auto pOpt = dynamic_cast<COptStringList*>(m_pSettings->opt(eOptSetResource, "texPaths"));
+    if(pOpt && !(pOpt->value().isEmpty()))
+        arrPath = QStringList::fromVector(pOpt->value());
+
+    //for(auto& path: CResourceManager::getInstance()->arrTexturePath())
+    for(auto& path: arrPath)
+    {
+        CResFile res(path);
+        QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+
+        if(!aFile.contains(textureName))
+            continue;
+
+        QDataStream stream(aFile[textureName]);
+        util::formatStream(stream);
+
+        SMmpHeader header;
+        stream >> header;
+        if(header.m_signature != 0x00504D4D)
+        {
+            Q_ASSERT("incorrect texture signature" && false);
+            return -1;
+        }
+        if(header.m_format == ETextureFormat::eMMP_DXT1)
+        {
+            stream.device()->seek(header.size());
+            outImage =  convert_DXT(stream, header.m_width, header.m_height);
+            outImage = outImage.mirrored(false, true);
+            break;
+        }
+    }
+    return 0;
+}
+
 struct STexSpecified
 {
     STexSpecified(): startPos(76){}
@@ -630,16 +734,6 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
     return texture;
 }
 
-CResourceManager::CResourceManager()
-{
-
-}
-
-void CResourceManager::loadResources()
-{
-    QSet<QString> aEmpty;
-    CTextureList::getInstance()->loadTexture(aEmpty);
-}
 
 bool isDIfferent(const QString &value)
 {
@@ -874,4 +968,52 @@ void CResourceStringList::initResourceString()
     map[49] = "Reserved";
     map[50] = "Reserved";
     m_propValueName[eObjParam_UNIT_STATS] = map;
+}
+
+CNvttManager::CNvttManager(QString appDir):
+    m_bInit(false)
+{
+    m_nvcompress = appDir + QDir::separator() + "nvtt" + QDir::separator() + "nvcompress.exe";
+    if(!QFile::exists(m_nvcompress))
+    {
+        ei::log(eLogFatal, "Cannot find nvcompress.exe for dxt converting");
+    }
+    m_bInit = true;
+}
+
+int CNvttManager::dxtToBmp(QString pathToDxt, QString pathToBmp)
+{
+    if(!m_bInit)
+    {
+        ei::log(eLogWarning, "Cannot convert dxt data. CNvttManager not initialized. Check nvcompress.exe");
+        return -1;
+    }
+    // nvcompress params
+    QStringList arguments;
+    arguments << "-d" << pathToDxt << pathToBmp;
+
+    QProcess process;
+    //process.start(m_nvcompress, arguments);
+    QString cmd = QString("\"%1\" \"%3\" \"%4\"").arg(m_nvcompress, pathToDxt, pathToBmp);
+    process.start(cmd);
+
+    // check if process running
+    if (!process.waitForStarted()) {
+        qDebug() << "Cannot initialise process!";
+        return -1;
+    }
+
+    if (!process.waitForFinished()) {
+        qDebug() << "process suspended";
+        return -1;
+    }
+
+    QString output = process.readAllStandardOutput();
+    ei::log(eLogDebug, "NVTT conversion: " + output);
+
+    QString errorOutput = process.readAllStandardError();
+    if (!errorOutput.isEmpty()) {
+        qDebug() << "conversion error: " << errorOutput;
+    }
+    return 0;
 }

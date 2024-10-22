@@ -7,6 +7,7 @@
 #include <QUndoStack>
 #include <QUndoView>
 #include <QPlainTextEdit>
+#include <QTableWidget>
 #include "types.h"
 
 namespace Ui {
@@ -81,6 +82,8 @@ private slots:
 
     void on_actionSave_landscape_MPR_as_triggered();
 
+    void on_actionMap_parameters_triggered();
+
 protected:
     void closeEvent(QCloseEvent* e);
 
@@ -94,6 +97,7 @@ private:
     QUndoView* m_undoView;
     CView* m_pView;
     SWindowTitle m_sWindowTitle;
+    QTableWidget* m_testTable;
 };
 
 #endif // MAIN_WINDOW_H

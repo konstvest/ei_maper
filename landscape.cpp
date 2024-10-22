@@ -23,9 +23,14 @@ void CLandscape::unloadMpr()
             delete ySec;
     }
     m_aSector.clear();
+    m_aMaterial.clear();
+    m_aTileTypes.clear();
+    m_aAnimTile.clear();
+    delete m_pPropForm;
 }
 
-CLandscape::CLandscape()
+CLandscape::CLandscape():
+    m_pPropForm(nullptr)
 {
     m_aSector.clear();
     m_aAnimTile.clear();
@@ -56,10 +61,14 @@ bool CLandscape::readHeader(QDataStream& stream)
     }
 
     int type;
-    for(uint i(0); i<m_header.nTileType; ++i)
+    for(uint i(0); i<m_header.nTile; ++i)
     {
         stream >> type;
-        m_aTileTypes.append(type);
+        if(type > 15)
+        {
+            ei::log(eLogWarning, "incorrect tile type at index: " + QString::number(i));
+        }
+        m_aTileTypes.append((ETileType)type);
     }
 
     SAnimTile animTile;
@@ -170,10 +179,15 @@ void CLandscape::readMap(QFileInfo& path)
         }
         m_aSector.append(xSec);
     }
+    m_pPropForm = new CTileForm();
+    m_pPropForm->fillTable(path.baseName(), m_header.nTexture);
+    m_pPropForm->setTileTypes(m_aTileTypes);
 }
 
 void CLandscape::saveMapAs(const QFileInfo& path)
 {
+    // TODO: check if source texture has correct textureSize and tileSize with map header
+
     //QString filePath = path.filePath();
     //QFile file(filePath);
     QString zoneName(path.completeBaseName());
@@ -246,6 +260,11 @@ void CLandscape::projectPosition(CNode* pNode)
         landPos -= pNode->minPosition();
     projectPt(landPos);
     pNode->setDrawPosition(landPos);
+}
+
+void CLandscape::openParams()
+{
+    m_pPropForm->show();
 }
 
 void CLandscape::projectPositions(QList<CNode*>& aNode)

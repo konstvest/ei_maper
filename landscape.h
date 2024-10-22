@@ -11,37 +11,9 @@
 
 #include "sector.h"
 #include "res_file.h"
-
-enum ETerrainType
-{
-    eTerrainBase = 0
-    , eTerrainWaterNoTexture
-    , eTerrainGrass
-    , eTerrainWater
-    , eTerrainLast
-};
+#include "tile_form.h"
 
 
-enum ETileType
-{
-    eGrass = 0
-    , eGround = 1
-    , eStone = 2
-    , eSand = 3
-    , eRock = 4
-    , eField = 5
-    , eWater = 6
-    , eRoad = 7
-    , eEmpty = 8
-    , eSnow = 9
-    , eIce = 10
-    , eDrygrass = 11
-    , eSnowballs = 12
-    , eLava = 13
-    , eSwamp = 14
-    , eHighrock = 15
-    , eLast = 16
-};
 
 
 struct SMaterial
@@ -78,7 +50,7 @@ struct SMapHeader
     uint   nYSector;
     uint   nTexture;
     uint   textureSize;
-    uint   nTileType;
+    uint   nTile;
     uint   tileSize;
     ushort nMaterial;
     uint   nAnimTile;
@@ -86,14 +58,14 @@ struct SMapHeader
     friend QDataStream& operator>> (QDataStream& is, SMapHeader& head)
     {
         return is >> head.signature >> head.maxZ >> head.nXSector >> head.nYSector  >>
-                     head.nTexture >> head.textureSize >> head.nTileType >> head.tileSize >>
+                     head.nTexture >> head.textureSize >> head.nTile >> head.tileSize >>
                      head.nMaterial >> head.nAnimTile;
     }
 
     friend QDataStream& operator<< (QDataStream& os, const SMapHeader& head)
     {
         return os << head.signature << head.maxZ  << head.nXSector << head.nYSector <<
-                     head.nTexture << head.textureSize << head.nTileType << head.tileSize <<
+                     head.nTexture << head.textureSize << head.nTile << head.tileSize <<
                      head.nMaterial << head.nAnimTile;
     }
 };
@@ -135,6 +107,7 @@ public:
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
     const QFileInfo& filePath() {return m_filePath;}
+    void openParams();
 
 
 private:
@@ -147,11 +120,12 @@ private:
     static CLandscape* m_pLand;
     SMapHeader m_header;
     QVector<SMaterial> m_aMaterial; //use pointers instead refs?
-    QVector<int> m_aTileTypes; //array using tyle type on current map
+    QVector<ETileType> m_aTileTypes; //array using tyle type on current map
     QVector<SAnimTile> m_aAnimTile;
     QVector<QVector<CSector*>> m_aSector;
     QOpenGLTexture* m_texture;
     QFileInfo m_filePath;
+    CTileForm* m_pPropForm;
 };
 
 #endif // LANDSCAPE_H

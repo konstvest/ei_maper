@@ -225,6 +225,37 @@ enum EWsType
     ,eWsTypeCount
 };
 
+enum ETerrainType
+{
+    eTerrainBase = 0
+    , eTerrainWaterNoTexture
+    , eTerrainGrass
+    , eTerrainWater
+    , eTerrainLast
+};
+
+
+enum ETileType
+{
+    eGrass = 0
+    , eGround = 1
+    , eStone = 2
+    , eSand = 3
+    , eRock = 4
+    , eField = 5
+    , eWater = 6
+    , eRoad = 7
+    , eEmpty = 8
+    , eSnow = 9
+    , eIce = 10
+    , eDrygrass = 11
+    , eSnowballs = 12
+    , eLava = 13
+    , eSwamp = 14
+    , eHighrock = 15
+    , eLast = 16
+};
+
 class CWorldSet
 {
 public:

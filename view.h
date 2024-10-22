@@ -103,6 +103,7 @@ public:
     QList<CNode*> selectedNodes();
     void setRandomComplection(const EObjParam param, const float min, const float max);
     void resetSelectedId();
+    void openMapParameters();
 
 protected:
     void initializeGL() override;

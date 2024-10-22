@@ -985,6 +985,24 @@ void CResourceStringList::initResourceString()
     map[49] = "Reserved";
     map[50] = "Reserved";
     m_propValueName[eObjParam_UNIT_STATS] = map;
+
+    m_tileType[ETileType::eGrass]     = "Grass";
+    m_tileType[ETileType::eGround]    = "Ground";
+    m_tileType[ETileType::eStone]     = "Stone";
+    m_tileType[ETileType::eSand]      = "Sand";
+    m_tileType[ETileType::eRock]      = "Rock";
+    m_tileType[ETileType::eField]     = "Field";
+    m_tileType[ETileType::eWater]     = "Water";
+    m_tileType[ETileType::eRoad]      = "Road";
+    m_tileType[ETileType::eEmpty]     = "Empty";
+    m_tileType[ETileType::eSnow]      = "Snow";
+    m_tileType[ETileType::eIce]       = "Ice";
+    m_tileType[ETileType::eDrygrass]  = "Drygrass";
+    m_tileType[ETileType::eSnowballs] = "Snowballs";
+    m_tileType[ETileType::eLava]      = "Lava";
+    m_tileType[ETileType::eSwamp]     = "Swamp";
+    m_tileType[ETileType::eHighrock]  = "Highrock";
+
 }
 
 CNvttManager::CNvttManager(QString appDir):

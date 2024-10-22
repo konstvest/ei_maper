@@ -1078,6 +1078,13 @@ void CView::resetSelectedId()
     // update tree view?
 }
 
+void CView::openMapParameters()
+{
+    if(!CLandscape::getInstance()->isMprLoad())
+        return;
+    CLandscape::getInstance()->openParams();
+}
+
 void CView::updateParameter(EObjParam propType)
 {
     return; // not all prop types can be updated for each node. Use direct updating for each operation separately.

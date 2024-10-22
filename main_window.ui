@@ -369,6 +369,8 @@
     <addaction name="actionChange_mod_e"/>
     <addaction name="menuUnit"/>
     <addaction name="actionReset_selected_IDs"/>
+    <addaction name="separator"/>
+    <addaction name="actionMap_parameters"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -556,6 +558,11 @@
   <action name="actionSave_landscape_MPR_as">
    <property name="text">
     <string>Save landscape (MPR) as...</string>
+   </property>
+  </action>
+  <action name="actionMap_parameters">
+   <property name="text">
+    <string>Map parameters</string>
    </property>
   </action>
  </widget>

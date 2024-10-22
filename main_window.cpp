@@ -8,7 +8,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QUndoView>
-#include <QImageReader>
 
 #include "resourcemanager.h"
 #include "landscape.h"
@@ -31,6 +30,8 @@ void testFunc()
     //auto aaa = CResourceManager::getInstance()->tempFolder();
     ei::log(eLogDebug, "test func end");
 }
+
+
 
 void MainWindow::on_toolButton_2_clicked()
 {
@@ -463,5 +464,11 @@ void MainWindow::on_action_About_triggered()
 void MainWindow::on_actionSave_landscape_MPR_as_triggered()
 {
     m_pView->saveLandAs();
+}
+
+
+void MainWindow::on_actionMap_parameters_triggered()
+{
+    m_pView->openMapParameters();
 }
 

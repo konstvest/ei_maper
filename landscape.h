@@ -94,6 +94,7 @@ class CNode;
 ///
 class CLandscape
 {
+    //TODO: change singletone to simple class to provide several landscape loading (in different tabs)
 public:
     static CLandscape* getInstance();
     bool isMprLoad() {return !m_aSector.isEmpty();}

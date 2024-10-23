@@ -57,6 +57,12 @@ public:
             QPixmap pixmap = icon.pixmap(rect.size());
             painter->drawPixmap(rect, pixmap);
         }
+        if (option.state & QStyle::State_Selected) {
+            // Настройка кисти и пера для рисования рамки
+            QPen pen(Qt::green, 4);  // Зеленая рамка толщиной 4 пикселя
+            painter->setPen(pen);
+            painter->drawRect(option.rect);
+        }
     }
 };
 

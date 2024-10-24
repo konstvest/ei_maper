@@ -104,6 +104,7 @@ void CTileForm::fillTable(QString mapName, int textureAtlasNumber)
             for(int row(0); row<m_nTilePerRow; ++row)
             {
                 QImage croppedImage = arrImage[i].copy(row*m_originalTilesize, col*m_originalTilesize, m_originalTilesize, m_originalTilesize);
+                croppedImage = croppedImage.mirrored(false, true);
                 QPixmap croppedPixmap = QPixmap::fromImage(croppedImage);
                 m_icoList.append(QIcon(croppedPixmap));
             }

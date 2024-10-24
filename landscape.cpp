@@ -136,7 +136,7 @@ QString genSectorSuffix(int x, int y)
     return name;
 }
 
-void CLandscape::readMap(QFileInfo& path)
+void CLandscape::readMap(const QFileInfo& path)
 {
     if (!path.exists())
         return;

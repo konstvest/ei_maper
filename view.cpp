@@ -270,7 +270,7 @@ void CView::draw()
     }
 }
 
-void CView::loadLandscape(QFileInfo& filePath)
+void CView::loadLandscape(const QFileInfo& filePath)
 {
     if(CLandscape::getInstance()->isMprLoad())
     {

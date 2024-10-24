@@ -9,13 +9,11 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include "types.h"
-//#include "landscape.h"
-//#include "primitives.h"
 
 struct SSecHeader
 {
     uint signature;
-    quint8 type;
+    quint8 type; // have liquids?
 
     friend QDataStream& operator>> (QDataStream& st, SSecHeader& head)
     {
@@ -33,7 +31,7 @@ struct SSecVertex
     qint8  xOffset;
     qint8  yOffset;
     ushort z;
-    uint packedNormal;
+    uint32_t packedNormal; // temp var to unpack normal
     QVector3D normal;
 
     friend QDataStream& operator>> (QDataStream& st, SSecVertex& vert)
@@ -45,8 +43,12 @@ struct SSecVertex
         return st;
     }
 
-    friend QDataStream& operator<< (QDataStream& st, const SSecVertex& vert)
+    friend QDataStream& operator<< (QDataStream& st, SSecVertex& vert)
     {
+        vert.packedNormal = 0;
+        vert.packedNormal = (uint32_t)(vert.normal.z())*1000 << 22;
+        vert.packedNormal |= (uint32_t)(vert.normal.x() * 1000 + 1000) << 11;
+        vert.packedNormal |= (uint32_t)(vert.normal.y() * 1000 + 1000);
         return st << vert.xOffset << vert.yOffset << vert.z << vert.packedNormal;
     }
 };
@@ -69,6 +71,38 @@ struct STile
     ushort m_rotation;
 };
 
+
+// nine vertices of tile
+/*
+6 _7 _8
+|\ |\ |
+|_\|_\|
+3 _4 _5
+|\ |\ |
+|_\|_\|
+0  1  2
+*/
+class CLandTile
+{
+public:
+    CLandTile();
+    CLandTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber);
+    ~CLandTile();
+    void resetVertices(QVector<SSecVertex>& arrVertex);
+    void generateDrawVertexData(QVector<SVertexData>& outData, int& curIndex);
+private:
+    void reset();
+private:
+    QVector<QVector<SSecVertex>> m_arrVertex; // matrix 3x3 of x,y offsets, z-altitude and normal
+    ushort m_x; // start X (left pos to right). max X tile is 2.0f + m_x for third vertex (m_x + 0.0f, m_x + 1.0f, m_x + 2.0f1)
+    ushort m_y; // start Y (bottom to top)
+    ushort m_index; // index in atlas, 0-63
+    ushort m_atlasTexIndex; // index of texture atlas
+    ushort m_rotNum; //number of rotation
+    float m_maxZ; // update for each tile when changing maximum altitude
+    int m_texAtlasNumber; // update for each tile when changing atlas number
+};
+
 ///
 /// \brief The CSector class realizes a part of the game resources, from which the landscape is assembled
 ///
@@ -87,16 +121,17 @@ public:
 private:
     void updatePosition();
     void makeVertexData(QVector<QVector<SSecVertex>>& aLandVertex, QVector<STile>& aLandTile, QVector<QVector<SSecVertex>>& aWaterVertex, QVector<STile>& aWaterTile, float maxZ, int texCount);
+    void generateVertexDataFromTile();
 
 
 private:
     QVector<short> m_aWaterAllow;
     UI2 m_index;
     QVector<SVertexData> m_aVertexData;
-    //QVector<SSpecificQuad> m_aQuad;
     QOpenGLBuffer m_vertexBuf;
     QOpenGLBuffer m_indexBuf;
     QMatrix4x4 m_modelMatrix;
+    QVector<QVector<CLandTile>> m_arrTile;
 
     QVector<SVertexData> m_aWaterData;
     QOpenGLBuffer m_waterVertexBuf;

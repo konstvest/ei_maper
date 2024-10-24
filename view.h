@@ -48,7 +48,7 @@ public:
     explicit CView(QWidget* parent=nullptr, const QGLWidget* pShareWidget=nullptr);
     ~CView();
 
-    void loadLandscape(QFileInfo& filePath);
+    void loadLandscape(const QFileInfo& filePath);
     void unloadLand();
     void saveLandAs();
     void loadMob(QFileInfo& filePath);

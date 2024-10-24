@@ -99,7 +99,7 @@ public:
     static CLandscape* getInstance();
     bool isMprLoad() {return !m_aSector.isEmpty();}
     void unloadMpr();
-    void readMap(QFileInfo& path);
+    void readMap(const QFileInfo& path);
     void saveMapAs(const QFileInfo& path);
     void draw(QOpenGLShaderProgram* program);
     void drawWater(QOpenGLShaderProgram* program);

@@ -426,8 +426,8 @@ void CSector::drawWater(QOpenGLShaderProgram *program)
 
 bool CSector::projectPt(QVector3D& point)
 {
-    float u,v,t;
     QVector3D origin(point.x()-m_index.x*32.0f, point.y()-m_index.y*32.0f, 0.0f);
+    float u,v,t;
     QVector3D dir(0.0f, 0.0f, 1.0f);
     //find suitable vertex data cut for projection, don't need to process all vertices
     float dif=0.0f;
@@ -448,6 +448,23 @@ bool CSector::projectPt(QVector3D& point)
         }
     }
 
+    return false;
+}
+
+bool CSector::pickTile(int& index, QVector3D& point)
+{
+    // convert pos to local coords
+    point.setX(point.x()-m_index.x*32.0f);
+    point.setY(point.y()-m_index.y*32.0f);
+    for(int row(0); row<m_arrTile.size(); ++row)
+        for(int col(0); col<m_arrTile[row].size(); ++col)
+        {
+            if(m_arrTile[row][col].pick(point))
+            {
+                index = m_arrTile[row][col].tileIndex();
+                return true;
+            }
+        }
     return false;
 }
 
@@ -676,6 +693,33 @@ void CLandTile::generateDrawVertexData(QVector<SVertexData>& outData, int& curIn
 
 }
 
+bool CLandTile::pick(const QVector3D& origin)
+{
+    float u,v,t;
+    QVector3D dir(0.0f, 0.0f, 1.0f);
+    //find suitable vertex data cut for projection, don't need to process all vertices
+
+    QVector3D pt1(pos(0, 0));
+    QVector3D pt2(pos(0, 2));
+    QVector3D pt3(pos(2, 0));
+    QVector3D pt4(pos(2, 2));
+
+    if (util::ptToTriangle(t, u, v, origin, dir, pt1, pt2, pt3) ||
+        util::ptToTriangle(t, u, v, origin, dir, pt3, pt2, pt4))
+    {
+        //qDebug() << m_index;
+        return true;
+    }
+
+
+    return false;
+}
+
+int CLandTile::tileIndex()
+{
+    return m_index + m_atlasTexIndex*64;
+}
+
 void CLandTile::reset()
 {
     m_index = 0;
@@ -685,4 +729,14 @@ void CLandTile::reset()
     m_arrVertex.resize(3);
     for(int i(0); i<3; ++i)
         m_arrVertex[i].resize(3);
+}
+
+QVector3D CLandTile::pos(int row, int col)
+{
+    const SSecVertex& vrt = m_arrVertex[row][col];
+    QVector3D pos;
+    pos.setX(m_x + col + vrt.xOffset/254.0f);
+    pos.setY(m_y + row + vrt.yOffset/254.0f);
+    pos.setZ(vrt.z * m_maxZ/65535.0f);
+    return pos;
 }

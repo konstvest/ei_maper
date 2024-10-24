@@ -169,7 +169,11 @@ void CSelect::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
 //        m_pView->viewParameters();
         break;
     }
-
+    case Qt::RightButton:
+    {
+        m_pView->pickTile(m_pView->getLandPos(pEvent->pos().x(), pEvent->pos().y()));
+        break;
+    }
     }
     m_lastPos = pEvent->pos();
 }

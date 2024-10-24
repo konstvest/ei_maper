@@ -107,6 +107,7 @@ public:
     bool projectPt(QVector<QVector3D>& aPoint);
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
+    void pickTile(QVector3D& point);
     const QFileInfo& filePath() {return m_filePath;}
     void openParams();
 

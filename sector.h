@@ -90,8 +90,11 @@ public:
     ~CLandTile();
     void resetVertices(QVector<SSecVertex>& arrVertex);
     void generateDrawVertexData(QVector<SVertexData>& outData, int& curIndex);
+    bool pick(const QVector3D& point);
+    int tileIndex();
 private:
     void reset();
+    QVector3D pos(int row, int col);
 private:
     QVector<QVector<SSecVertex>> m_arrVertex; // matrix 3x3 of x,y offsets, z-altitude and normal
     ushort m_x; // start X (left pos to right). max X tile is 2.0f + m_x for third vertex (m_x + 0.0f, m_x + 1.0f, m_x + 2.0f1)
@@ -116,7 +119,8 @@ public:
     void drawWater(QOpenGLShaderProgram* program);
     void setIndex(UI2& index) {m_index = index; updatePosition(); }
     const UI2& index() {return m_index;}
-    bool projectPt(QVector3D& point);
+    bool projectPt(QVector3D& origin);
+    bool pickTile(int& index, QVector3D& point);
 
 private:
     void updatePosition();

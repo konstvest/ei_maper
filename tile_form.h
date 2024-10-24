@@ -16,6 +16,7 @@ public:
     explicit CTileForm(QWidget *parent = nullptr);
     void fillTable(QString mapName, int textureAtlasNumber);
     void setTileTypes(const QVector<ETileType>& arrTileType) {m_tileTypes = arrTileType;}
+    void selectTile(ushort index);
     ~CTileForm();
 private:
     void resizeTable(float tilePercentage);

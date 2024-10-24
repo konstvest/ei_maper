@@ -5,7 +5,7 @@
 namespace util
 {
     bool pointIsInTriangle();
-    bool ptToTriangle(float& t, float& u, float& v, QVector3D& origin, QVector3D& dir, QVector3D& vert0, QVector3D& vert1, QVector3D& vert2, bool bTestCull = false);
+    bool ptToTriangle(float& t, float& u, float& v, const QVector3D& origin, QVector3D& dir, QVector3D& vert0, QVector3D& vert1, QVector3D& vert2, bool bTestCull = false);
 }
 
 

@@ -104,6 +104,7 @@ public:
     void setRandomComplection(const EObjParam param, const float min, const float max);
     void resetSelectedId();
     void openMapParameters();
+    void pickTile(QVector3D posOnLand);
 
 protected:
     void initializeGL() override;

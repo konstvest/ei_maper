@@ -262,6 +262,21 @@ void CLandscape::projectPosition(CNode* pNode)
     pNode->setDrawPosition(landPos);
 }
 
+void CLandscape::pickTile(QVector3D& point)
+{
+    int xIndex = int(point.x()/32.0f);
+    int yIndex = int(point.y()/32.0f);
+    point.setZ(-1.0f);
+    int ind;
+    if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
+    {
+        if(m_aSector[yIndex][xIndex]->pickTile(ind, point))
+        {
+            m_pPropForm->selectTile(ind);
+        }
+    }
+}
+
 void CLandscape::openParams()
 {
     m_pPropForm->show();

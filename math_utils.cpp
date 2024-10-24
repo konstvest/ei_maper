@@ -34,7 +34,7 @@ bool pointIsInTriangle(QVector3D& pos, QVector3D& pt1, QVector3D& pt2, QVector3D
 /// \param in. bTestCull
 /// \return true if it has an intersection with a triangle
 ///
-bool ptToTriangle(float& t, float& u, float& v, QVector3D& origin, QVector3D& dir, QVector3D& vert0, QVector3D& vert1, QVector3D& vert2, bool bTestCull)
+bool ptToTriangle(float& t, float& u, float& v, const QVector3D& origin, QVector3D& dir, QVector3D& vert0, QVector3D& vert1, QVector3D& vert2, bool bTestCull)
 {
     QVector3D edge1 = vert1-vert0;
     QVector3D edge2 = vert2-vert0;

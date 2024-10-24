@@ -141,6 +141,13 @@ void CTileForm::fillTable(QString mapName, int textureAtlasNumber)
     ui->tableTile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
+void CTileForm::selectTile(ushort index)
+{
+    int row = index/m_nTilePerRow;
+    int column = index%m_nTilePerRow;
+    ui->tableTile->setCurrentCell(row, column);
+}
+
 
 
 void CTileForm::on_tileScaleSlider_sliderMoved(int position)

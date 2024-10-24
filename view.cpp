@@ -1085,6 +1085,13 @@ void CView::openMapParameters()
     CLandscape::getInstance()->openParams();
 }
 
+void CView::pickTile(QVector3D posOnLand)
+{
+    if(!CLandscape::getInstance()->isMprLoad())
+        return;
+    CLandscape::getInstance()->pickTile(posOnLand);
+}
+
 void CView::updateParameter(EObjParam propType)
 {
     return; // not all prop types can be updated for each node. Use direct updating for each operation separately.

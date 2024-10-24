@@ -36,7 +36,8 @@ void testFunc()
 void MainWindow::on_toolButton_2_clicked()
 {
     ei::log(eLogDebug, "btn test start");
-
+    QFileInfo mpr("c:\\konst\\Проклятые Земли (Дополнение)\\Mods\\ferneo_mod\\Maps\\zone3g.mpr");
+    m_pView->loadLandscape(mpr);
     ei::log(eLogDebug, "btn test end");
 }
 

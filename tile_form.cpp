@@ -11,6 +11,7 @@ CTileForm::CTileForm(QWidget *parent) :
    ,ui(new Ui::CTileForm)
   ,m_nTilePerRow(8)
   ,m_nTextureAtlas(0)
+  ,m_tileRot(0)
 {
     ui->setupUi(this);
     ui->tileScaleSlider->setSliderPosition(100); // set 100% tile scaling by default. TODO: get from option
@@ -41,6 +42,13 @@ void CTileForm::resizeTable(float tilePercentage)
             ++iIco;
         }
     }
+}
+
+QPixmap CTileForm::tileWithRot(int index, int rot)
+{
+    QTransform transform;
+    transform.rotate(90*rot);
+    return m_icoList[index].pixmap(QSize(32, 32)).transformed(transform);
 }
 
 // Кастомный делегат для отображения иконки во всю ячейку
@@ -146,16 +154,30 @@ void CTileForm::selectTile(int index)
     int row = index/m_nTilePerRow;
     int column = index%m_nTilePerRow;
     ui->tableTile->setCurrentCell(row, column);
-    emit onSelect(m_icoList[index].pixmap(QSize(32, 32)));
+    emit onSelect(tileWithRot(index));
 }
 
-void CTileForm::getSelectedTile(QVector<int>& arrSelIndex)
+void CTileForm::getSelectedTile(QVector<int>& arrSelIndex, int& rotNum)
 {
     arrSelIndex.clear();
     for(const auto& index: ui->tableTile->selectionModel()->selectedIndexes())
     {
         arrSelIndex.append(index.row()*8+index.column());
     }
+    rotNum = m_tileRot;
+}
+
+void CTileForm::setTileRotation(ushort rot)
+{
+    m_tileRot = rot;
+    QVector<int> arrSelIndex;
+    for(const auto& index: ui->tableTile->selectionModel()->selectedIndexes())
+    {
+        arrSelIndex.append(index.row()*8+index.column());
+    }
+    if(arrSelIndex.isEmpty())
+        return;
+    emit onSelect(tileWithRot(arrSelIndex.back()));
 }
 
 
@@ -169,7 +191,7 @@ void CTileForm::onCellClicked(int row, int column)
 {
     int ind = column + m_nTilePerRow * row;
     ui->comboTileType->setCurrentIndex(m_tileTypes[ind]);
-    emit onSelect(m_icoList[ind].pixmap(QSize(32, 32)));
+    emit onSelect(tileWithRot(ind));
     //QCursor curs(m_icoList[ind].pixmap(QSize(32, 32)));
 }
 

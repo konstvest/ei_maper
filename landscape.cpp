@@ -281,7 +281,8 @@ void CLandscape::pickTile(QVector3D& point)
 void CLandscape::setTile(QVector3D& point)
 {
     QVector<int> indSelected;
-    m_pPropForm->getSelectedTile(indSelected);
+    int rot;
+    m_pPropForm->getSelectedTile(indSelected, rot);
     if(indSelected.isEmpty())
         return;
     int xIndex = int(point.x()/32.0f);
@@ -293,7 +294,7 @@ void CLandscape::setTile(QVector3D& point)
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
     {
         //m_aSector[yIndex][xIndex]->setTile(point, ind, rot);
-        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], 0);
+        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], rot);
 
     }
 }
@@ -301,6 +302,14 @@ void CLandscape::setTile(QVector3D& point)
 void CLandscape::openParams()
 {
     m_pPropForm->show();
+}
+
+void CLandscape::addTileRotation(int rot)
+{
+    int curRot = (m_pPropForm->tileRotation() + rot)%4;
+    if(curRot < 0)
+        curRot = 3;
+    m_pPropForm->setTileRotation(curRot);
 }
 
 void CLandscape::projectPositions(QList<CNode*>& aNode)

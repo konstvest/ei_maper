@@ -228,19 +228,9 @@ void CSelect::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
     if (pEvent->buttons() & Qt::MiddleButton)
     {
         // rotate around pivot
-        int senseX = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
+        int senseX = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseX"))->value();
         int senseY = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
         rotateAroundPivot(pOp->camera(), dx, dy, senseX, senseY);
-//        auto pOpt = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"));
-//        Q_ASSERT(pOpt);
-//        float coef = 12.0f-pOpt->value()/10.0f;
-//        float angle = float(dy)/coef;
-//        pOp->camera()->xRotate(angle);
-//        pOpt = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseX"));
-//        Q_ASSERT(pOpt);
-//        coef = 12.0f-pOpt->value()/10.0f;
-//        angle = float(dx)/coef;
-//        pOp->camera()->zRotate(angle);
         m_lastPos = pEvent->pos();
     }
     else if (pEvent->buttons() & Qt::LeftButton)
@@ -260,6 +250,11 @@ void CSelect::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
     if(mouseCoord.z() > -0.1f && mouseCoord.z() < 100.0f)
         text = util::makeString(mouseCoord, true);
     pOp->updateMouseCoords(text);
+}
+
+void CSelect::wheelEvent(COperation *pOp, QWheelEvent* pEvent)
+{
+    pOp->camera()->enlarge(pEvent->delta() > 0);
 }
 
 CMoveAxis::CMoveAxis(CView *pView, EOperateAxis ax)
@@ -1014,6 +1009,11 @@ void COperation::mouseMoveEvent(QMouseEvent *pEvent)
     current->mouseMoveEvent(this, pEvent);
 }
 
+void COperation::wheelEvent(QWheelEvent* pEvent)
+{
+    current->wheelEvent(this, pEvent);
+}
+
 void COperation::attachCam(CCamera *pCam)
 {
     m_pCam = pCam;
@@ -1076,6 +1076,7 @@ void CTileBrush::keyRelease(COperation* pOp, EKeyCode key)
 
 void CTileBrush::mousePressEvent(COperation* pOp, QMouseEvent* pEvent)
 {
+    Q_UNUSED(pOp);
     m_lastPos = pEvent->pos();
     m_lastLandPos = m_pView->getLandPos(pEvent->x(), pEvent->y());
     switch (pEvent->buttons()) {
@@ -1094,7 +1095,8 @@ void CTileBrush::mousePressEvent(COperation* pOp, QMouseEvent* pEvent)
 
 void CTileBrush::mouseReleaseEvent(COperation* pOp, QMouseEvent* pEvent)
 {
-
+    Q_UNUSED(pOp);
+    Q_UNUSED(pEvent);
 }
 
 void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
@@ -1104,7 +1106,7 @@ void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
 
     if (pEvent->buttons() & Qt::MiddleButton)
     {
-        int senseX = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
+        int senseX = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseX"))->value();
         int senseY = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
         rotateAroundPivot(pOp->camera(), dx, dy, senseX, senseY);
         m_lastPos = pEvent->pos();
@@ -1121,4 +1123,10 @@ void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
 
     }
     m_lastPos = pEvent->pos();
+}
+
+void CTileBrush::wheelEvent(COperation* pOp, QWheelEvent* pEvent)
+{
+    Q_UNUSED(pOp);
+    m_pView->addTileRotation(pEvent->delta() > 0 ? 1 : -1);
 }

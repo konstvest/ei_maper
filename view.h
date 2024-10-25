@@ -107,6 +107,7 @@ public:
     void openMapParameters();
     void pickTile(QVector3D posOnLand);
     void setTile(QVector3D posOnLand);
+    void addTileRotation(int step);
 
 protected:
     void initializeGL() override;

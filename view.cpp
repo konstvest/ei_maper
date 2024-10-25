@@ -95,7 +95,7 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     m_pOp.reset(new COperation(new CSelect(this)));
     m_pOp->attachCam(m_cam.get());
     m_cam->attachKeyManager(m_pOp->keyManager());
-    m_pOp->attachkMouseCoordFiled(pMouseCoord);
+    m_pOp->attachMouseCoordFiled(pMouseCoord);
     CLogger::getInstance()->attachSettings(pSettings);
 
     m_pTree = pTree;
@@ -1143,6 +1143,11 @@ void CView::setTile(QVector3D posOnLand)
     CLandscape::getInstance()->setTile(posOnLand);
 }
 
+void CView::addTileRotation(int step)
+{
+    CLandscape::getInstance()->addTileRotation(step);
+}
+
 void CView::updateParameter(EObjParam propType)
 {
     return; // not all prop types can be updated for each node. Use direct updating for each operation separately.
@@ -1434,7 +1439,7 @@ void CView::mouseReleaseEvent(QMouseEvent *event)
 
 void CView::wheelEvent(QWheelEvent* event)
 {
-    m_cam->enlarge(event->delta() > 0);
+    m_pOp->wheelEvent(event);
 }
 
 void CView::focusOutEvent(QFocusEvent *event)

@@ -34,6 +34,7 @@ class CState : public QObject //base state class - interface
     virtual void mousePressEvent(COperation *pOp, QMouseEvent* event) = 0;
     virtual void mouseReleaseEvent(COperation *pOp, QMouseEvent* event) = 0;
     virtual void mouseMoveEvent(COperation *pOp, QMouseEvent* event) = 0;
+    virtual void wheelEvent(COperation *pOp, QWheelEvent* event) = 0;
 
 protected:
     CView* m_pView;
@@ -56,11 +57,12 @@ public:
     void mousePressEvent(QMouseEvent* pEvent);
     void mouseReleaseEvent(QMouseEvent* pEvent);
     void mouseMoveEvent(QMouseEvent* pEvent);
+    void wheelEvent(QWheelEvent* pEvent);
 
     CKeyManager* keyManager() {return m_keyManager.get();}
     void attachCam(CCamera* pCam);
     CCamera* camera() {return m_pCam;}
-    void attachkMouseCoordFiled(QLineEdit* pMouseCoord) {m_pMouseCoord = pMouseCoord;}
+    void attachMouseCoordFiled(QLineEdit* pMouseCoord) {m_pMouseCoord = pMouseCoord;}
     void updateMouseCoords(const QString& pos);
 
 private:
@@ -79,10 +81,10 @@ public:
     void keyRelease(COperation* pOp, EKeyCode key) override;
     void execute(COperation *pOp, QVector3D& dir, CNode* pNode) override {Q_UNUSED(pOp);Q_UNUSED(dir);Q_UNUSED(pNode);}
     void axisOperate(COperation *pOp, CNode* pNode) override {Q_UNUSED(pOp);;Q_UNUSED(pNode);};
-    void mousePressEvent(COperation *pOp, QMouseEvent* event) override;
+    void mousePressEvent(COperation *pOp, QMouseEvent* pEvent) override;
     void mouseReleaseEvent(COperation *pOp, QMouseEvent* pEvent) override;
-    void mouseMoveEvent(COperation *pOp, QMouseEvent* event) override;
-
+    void mouseMoveEvent(COperation *pOp, QMouseEvent* pEvent) override;
+    void wheelEvent(COperation *pOp, QWheelEvent* pEvent) override;
 };
 
 class CMoveAxis : public CState
@@ -97,9 +99,10 @@ public:
     void keyRelease(COperation* pOp, EKeyCode key) override final;
     void execute(COperation* pOp, QVector3D& dir, CNode* pNode) override {Q_UNUSED(pOp);Q_UNUSED(dir);Q_UNUSED(pNode);};
     void axisOperate(COperation* pOp, CNode* pNode) override final;
-    void mousePressEvent(COperation *pOp, QMouseEvent* event) override final;
+    void mousePressEvent(COperation *pOp, QMouseEvent* pEvent) override final;
     void mouseReleaseEvent(COperation *pOp, QMouseEvent* pEvent) override final;
-    void mouseMoveEvent(COperation *pOp, QMouseEvent* event) override final;
+    void mouseMoveEvent(COperation *pOp, QMouseEvent* pEvent) override final;
+    void wheelEvent(COperation *pOp, QWheelEvent* pEvent) override final {Q_UNUSED(pOp);;Q_UNUSED(pEvent);};
 private:
     EOperateAxis axis;
     QString value;
@@ -116,9 +119,10 @@ public:
     void keyRelease(COperation* pOp, EKeyCode key) override;
     void execute(COperation* pOp, QVector3D& dir, CNode* pNode) override {Q_UNUSED(pOp);Q_UNUSED(dir);Q_UNUSED(pNode);};
     void axisOperate(COperation* pOp, CNode* pNode) override final;
-    void mousePressEvent(COperation *pOp, QMouseEvent* event) override final;
+    void mousePressEvent(COperation *pOp, QMouseEvent* pEvent) override final;
     void mouseReleaseEvent(COperation *pOp, QMouseEvent* pEvent) override final;
-    void mouseMoveEvent(COperation *pOp, QMouseEvent* event) override final;
+    void mouseMoveEvent(COperation *pOp, QMouseEvent* pEvent) override final;
+    void wheelEvent(COperation *pOp, QWheelEvent* pEvent) override final {Q_UNUSED(pOp);;Q_UNUSED(pEvent);};
 private:
     EOperateAxis axis;
     QString value;
@@ -134,9 +138,10 @@ public:
     void keyRelease(COperation* pOp, EKeyCode key) override final;
     void execute(COperation* pOp, QVector3D& dir, CNode* pNode) override {Q_UNUSED(pOp);Q_UNUSED(dir);Q_UNUSED(pNode);};
     void axisOperate(COperation* pOp, CNode* pNode) override;
-    void mousePressEvent(COperation *pOp, QMouseEvent* event) override final;
+    void mousePressEvent(COperation *pOp, QMouseEvent* pEvent) override final;
     void mouseReleaseEvent(COperation *pOp, QMouseEvent* pEvent) override final;
-    void mouseMoveEvent(COperation *pOp, QMouseEvent* event) override final;
+    void mouseMoveEvent(COperation *pOp, QMouseEvent* pEvent) override final;
+    void wheelEvent(COperation *pOp, QWheelEvent* pEvent) override final {Q_UNUSED(pOp);;Q_UNUSED(pEvent);};
 private:
     EOperateAxis axis;
     QString value;
@@ -155,6 +160,7 @@ public:
     void mousePressEvent(COperation *pOp, QMouseEvent* pEvent) override;
     void mouseReleaseEvent(COperation *pOp, QMouseEvent* pEvent) override;
     void mouseMoveEvent(COperation *pOp, QMouseEvent* pEvent) override;
+    void wheelEvent(COperation *pOp, QWheelEvent* pEvent) override final;
 private:
     QVector3D m_lastLandPos;
 };

@@ -112,7 +112,7 @@ public:
     const QFileInfo& filePath() {return m_filePath;}
     void openParams();
     CTileForm* tileForm() {return m_pPropForm;};
-
+    void addTileRotation(int rot);
 
 private:
     CLandscape();

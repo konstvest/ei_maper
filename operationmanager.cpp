@@ -68,6 +68,12 @@ void CSelect::keyPress(COperation *pOp, EKeyCode key)
         delete this;
         break;
     }
+    case eKey_M:
+    {
+        pOp->setCurrent(new CTileBrush(m_pView));
+        delete this;
+        break;
+    }
     case eKey_T:
     {
         if (pOp->keyManager()->isPressed(eKey_Ctrl))
@@ -120,7 +126,7 @@ void CSelect::keyPress(COperation *pOp, EKeyCode key)
             m_pView->addLogicPoint(true);
         break;
     }
-    case  eKey_U:
+    case eKey_U:
     {
         m_pView->execUnloadCommand();
         break;
@@ -171,7 +177,6 @@ void CSelect::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
     }
     case Qt::RightButton:
     {
-        m_pView->pickTile(m_pView->getLandPos(pEvent->pos().x(), pEvent->pos().y()));
         break;
     }
     }
@@ -202,6 +207,19 @@ void CSelect::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
     m_lastPos = pEvent->pos();
 }
 
+void rotateAroundPivot(CCamera* pCam, int dx, int dy, int senseX, int senseY)
+{
+    // rotate around pivot
+;
+    float coef = 12.0f-senseY/10.0f;
+    float angle = float(dy)/coef;
+    pCam->xRotate(angle);
+    coef = 12.0f-senseX/10.0f;
+    angle = float(dx)/coef;
+    pCam->zRotate(angle);
+
+}
+
 void CSelect::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
 {
     const int dx = pEvent->x() - m_lastPos.x();
@@ -210,16 +228,19 @@ void CSelect::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
     if (pEvent->buttons() & Qt::MiddleButton)
     {
         // rotate around pivot
-        auto pOpt = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"));
-        Q_ASSERT(pOpt);
-        float coef = 12.0f-pOpt->value()/10.0f;
-        float angle = float(dy)/coef;
-        pOp->camera()->xRotate(angle);
-        pOpt = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseX"));
-        Q_ASSERT(pOpt);
-        coef = 12.0f-pOpt->value()/10.0f;
-        angle = float(dx)/coef;
-        pOp->camera()->zRotate(angle);
+        int senseX = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
+        int senseY = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
+        rotateAroundPivot(pOp->camera(), dx, dy, senseX, senseY);
+//        auto pOpt = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"));
+//        Q_ASSERT(pOpt);
+//        float coef = 12.0f-pOpt->value()/10.0f;
+//        float angle = float(dy)/coef;
+//        pOp->camera()->xRotate(angle);
+//        pOpt = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseX"));
+//        Q_ASSERT(pOpt);
+//        coef = 12.0f-pOpt->value()/10.0f;
+//        angle = float(dx)/coef;
+//        pOp->camera()->zRotate(angle);
         m_lastPos = pEvent->pos();
     }
     else if (pEvent->buttons() & Qt::LeftButton)
@@ -1013,4 +1034,91 @@ CSelect::CSelect(CView *pView):
     else
         CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, T-Scale, R-Rotate, CTLR+Tab-change mode, CTRL+T-switch active Mob");
     CButtonConnector::getInstance()->pressButton(EButtonOpSelect);
+}
+
+CTileBrush::CTileBrush(CView* pView)
+    :CState(pView)
+{
+    qDebug()<< "CTileBrush init ";
+    CStatusConnector::getInstance()->updateStatus("brush.ico", "Esc - Cancel, LMB - draw selected tile. RMB - pick tile under cursor, Wheel - rotate tile");
+    CButtonConnector::getInstance()->pressButton(EButtonOpTilebrush);
+}
+
+void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
+{
+    switch (key) {
+    case eKey_Esc:
+    {
+        qDebug() << "exit CTileBrush operation";
+        m_pView->onRestoreCursor();
+        pOp->setCurrent(new CSelect(m_pView));
+        delete this;
+        break;
+    }
+    default:
+    {
+        pOp->keyManager()->press(key);
+        break;
+    }
+    }
+}
+
+void CTileBrush::keyRelease(COperation* pOp, EKeyCode key)
+{
+    switch (key) {
+    default:
+    {
+        pOp->keyManager()->release(key);
+        break;
+    }
+    }
+}
+
+void CTileBrush::mousePressEvent(COperation* pOp, QMouseEvent* pEvent)
+{
+    m_lastPos = pEvent->pos();
+    m_lastLandPos = m_pView->getLandPos(pEvent->x(), pEvent->y());
+    switch (pEvent->buttons()) {
+    case Qt::LeftButton:
+    {
+        m_pView->setTile(m_pView->getLandPos(pEvent->pos().x(), pEvent->pos().y()));
+        break;
+    }
+    case Qt::RightButton:
+    {
+        m_pView->pickTile(m_pView->getLandPos(pEvent->pos().x(), pEvent->pos().y()));
+        break;
+    }
+    }
+}
+
+void CTileBrush::mouseReleaseEvent(COperation* pOp, QMouseEvent* pEvent)
+{
+
+}
+
+void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
+{
+    const int dx = pEvent->x() - m_lastPos.x();
+    const int dy = pEvent->y() - m_lastPos.y();
+
+    if (pEvent->buttons() & Qt::MiddleButton)
+    {
+        int senseX = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
+        int senseY = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
+        rotateAroundPivot(pOp->camera(), dx, dy, senseX, senseY);
+        m_lastPos = pEvent->pos();
+    }
+    else if (pEvent->buttons() & Qt::LeftButton)
+    {
+        QVector3D landPos(m_pView->getLandPos(pEvent->x(), pEvent->y()));
+        if(landPos.distanceToPoint(m_lastLandPos) > 1.5)
+        {
+            qDebug() << "brush new";
+            m_pView->setTile(m_pView->getLandPos(pEvent->pos().x(), pEvent->pos().y()));
+            m_lastLandPos = landPos;
+        }
+
+    }
+    m_lastPos = pEvent->pos();
 }

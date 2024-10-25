@@ -368,6 +368,25 @@ void CSector::updatePosition()
     m_waterIndexBuf.release();
 }
 
+bool CSector::pickTile(int& outRow, int& outCol, QVector3D& point)
+{
+    // convert pos to local coords
+    point.setX(point.x()-m_index.x*32.0f);
+    point.setY(point.y()-m_index.y*32.0f);
+    for(int row(0); row<m_arrTile.size(); ++row)
+        for(int col(0); col<m_arrTile[row].size(); ++col)
+        {
+            if(m_arrTile[row][col].pick(point))
+            {
+                outRow = row;
+                outCol = col;
+                return true;
+            }
+        }
+    return false;
+}
+
+
 void CSector::draw(QOpenGLShaderProgram* program)
 {
 
@@ -451,7 +470,7 @@ bool CSector::projectPt(QVector3D& point)
     return false;
 }
 
-bool CSector::pickTile(int& index, QVector3D& point)
+bool CSector::pickTileIndex(int& index, QVector3D& point)
 {
     // convert pos to local coords
     point.setX(point.x()-m_index.x*32.0f);
@@ -466,6 +485,19 @@ bool CSector::pickTile(int& index, QVector3D& point)
             }
         }
     return false;
+}
+
+void CSector::setTile(QVector3D& point, int index, int rotNum)
+{
+    int row, col;
+
+    if(!pickTile(row, col, point))
+        return;
+
+    m_arrTile[row][col].setTile(index, rotNum);
+    generateVertexDataFromTile(); //todo
+    m_modelMatrix.setToIdentity(); // todo
+    updatePosition(); //todo
 }
 
 STile::STile(ushort packedData)
@@ -718,6 +750,13 @@ bool CLandTile::pick(const QVector3D& origin)
 int CLandTile::tileIndex()
 {
     return m_index + m_atlasTexIndex*64;
+}
+
+void CLandTile::setTile(int index, int rotNum)
+{
+    m_index = index%64;
+    m_atlasTexIndex = index/64;
+    m_rotNum = rotNum;
 }
 
 void CLandTile::reset()

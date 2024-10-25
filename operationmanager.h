@@ -142,4 +142,21 @@ private:
     QString value;
 };
 
+class CTileBrush: public CState
+{
+public:
+    CTileBrush() = delete;
+    CTileBrush(CView* pView);
+    ~CTileBrush() {}
+    void keyPress(COperation* pOp, EKeyCode key) override;
+    void keyRelease(COperation* pOp, EKeyCode key) override;
+    void execute(COperation *pOp, QVector3D& dir, CNode* pNode) override {Q_UNUSED(pOp);Q_UNUSED(dir);Q_UNUSED(pNode);}
+    void axisOperate(COperation *pOp, CNode* pNode) override {Q_UNUSED(pOp);;Q_UNUSED(pNode);};
+    void mousePressEvent(COperation *pOp, QMouseEvent* pEvent) override;
+    void mouseReleaseEvent(COperation *pOp, QMouseEvent* pEvent) override;
+    void mouseMoveEvent(COperation *pOp, QMouseEvent* pEvent) override;
+private:
+    QVector3D m_lastLandPos;
+};
+
 #endif // COPERATIONMANAGER_H

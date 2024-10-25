@@ -84,6 +84,8 @@ private slots:
 
     void on_actionMap_parameters_triggered();
 
+    void on_tileBrushButton_clicked();
+
 protected:
     void closeEvent(QCloseEvent* e);
 

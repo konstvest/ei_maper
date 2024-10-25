@@ -54,6 +54,7 @@ enum EButtonOp
     ,EButtonOpMove
     ,EButtonOpRotate
     ,EButtonOpScale
+    ,EButtonOpTilebrush
 };
 
 enum EReadState

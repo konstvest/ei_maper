@@ -177,11 +177,13 @@ void MainWindow::connectUiButtons()
     CButtonConnector::getInstance()->addButton(EButtonOpMove, m_ui->moveButton);
     CButtonConnector::getInstance()->addButton(EButtonOpRotate, m_ui->rotateButton);
     CButtonConnector::getInstance()->addButton(EButtonOpScale, m_ui->scaleButton);
+    CButtonConnector::getInstance()->addButton(EButtonOpTilebrush, m_ui->tileBrushButton);
     //disable buttons bcs operations works bad for mouse'moove' action without start point. op's starts work frommouse button position
     m_ui->selectButton->setEnabled(false);
     m_ui->moveButton->setEnabled(false);
     m_ui->rotateButton->setEnabled(false);
     m_ui->scaleButton->setEnabled(false);
+    m_ui->tileBrushButton->setEnabled(false);
 }
 
 bool MainWindow::isExitAllowed()
@@ -471,5 +473,11 @@ void MainWindow::on_actionSave_landscape_MPR_as_triggered()
 void MainWindow::on_actionMap_parameters_triggered()
 {
     m_pView->openMapParameters();
+}
+
+
+void MainWindow::on_tileBrushButton_clicked()
+{
+    CButtonConnector::getInstance()->clickButton(EButtonOpTilebrush);
 }
 

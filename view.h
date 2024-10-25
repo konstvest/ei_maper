@@ -34,6 +34,7 @@ class CMobParameters;
 class CRoundMobForm;
 class CTreeView;
 class IPropertyBase;
+class CTileForm;
 
 ///
 /// \brief The CView class is the main class for managing and editing 3D scene contents. It is also a link between read out *.mob files and their editing. It also controls the camera and current operations.
@@ -105,6 +106,7 @@ public:
     void resetSelectedId();
     void openMapParameters();
     void pickTile(QVector3D posOnLand);
+    void setTile(QVector3D posOnLand);
 
 protected:
     void initializeGL() override;
@@ -135,6 +137,8 @@ public slots:
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(const QSharedPointer<IPropertyBase>& prop);
     void collectObjectTreeData();
+    void onRestoreCursor();
+    void onChangeCursor(QPixmap ico);
 
     void execMobSwitch();
     void clearHistory();

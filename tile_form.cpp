@@ -141,11 +141,21 @@ void CTileForm::fillTable(QString mapName, int textureAtlasNumber)
     ui->tableTile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
-void CTileForm::selectTile(ushort index)
+void CTileForm::selectTile(int index)
 {
     int row = index/m_nTilePerRow;
     int column = index%m_nTilePerRow;
     ui->tableTile->setCurrentCell(row, column);
+    emit onSelect(m_icoList[index].pixmap(QSize(32, 32)));
+}
+
+void CTileForm::getSelectedTile(QVector<int>& arrSelIndex)
+{
+    arrSelIndex.clear();
+    for(const auto& index: ui->tableTile->selectionModel()->selectedIndexes())
+    {
+        arrSelIndex.append(index.row()*8+index.column());
+    }
 }
 
 
@@ -159,5 +169,7 @@ void CTileForm::onCellClicked(int row, int column)
 {
     int ind = column + m_nTilePerRow * row;
     ui->comboTileType->setCurrentIndex(m_tileTypes[ind]);
+    emit onSelect(m_icoList[ind].pixmap(QSize(32, 32)));
+    //QCursor curs(m_icoList[ind].pixmap(QSize(32, 32)));
 }
 

@@ -286,6 +286,7 @@ void CView::loadLandscape(const QFileInfo& filePath)
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
     m_lastModifiedLand = filePath.lastModified();
+    connect(CLandscape::getInstance()->tileForm(), SIGNAL(onSelect(QPixmap)), this, SLOT(onChangeCursor(QPixmap)));
     COptInt* pOpt = dynamic_cast<COptInt*>(settings()->opt("landCheckTime"));
     if (pOpt and pOpt->value() != 0)
     {
@@ -685,6 +686,49 @@ void CView::checkOpenGlError()
         ei::log(eLogFatal, "OpenGL error: " + QString::number(errCode));
 
     }
+}
+
+void CView::onChangeCursor(QPixmap ico)
+{
+    // Создаем базовое изображение для курсора (например, простой квадрат)
+    QPixmap baseCursorPixmap(42, 42);
+    baseCursorPixmap.fill(Qt::transparent);  // Прозрачный фон
+
+    QPainter painter(&baseCursorPixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // Устанавливаем цвет и толщину пера для стрелки
+    QPen pen(Qt::red);
+    pen.setWidth(2);
+    painter.setPen(pen);
+
+    // Рисуем стрелку в левом верхнем углу
+    painter.drawLine(2, 2, 10, 10);   // Линия тела стрелки
+    painter.drawLine(2, 2, 2, 6);    // Линия нижней части стрелки
+    painter.drawLine(2, 2, 6, 2);    // Линия верхней части стрелки
+
+    painter.end();
+
+    // Загружаем дополнительное изображение, которое нужно добавить к курсору
+    //QPixmap additionalPixmap(":/images/icon.png");
+
+    // Совмещаем оба изображения: рисуем дополнительное поверх базового
+    QPixmap combinedPixmap(baseCursorPixmap.size());
+    combinedPixmap.fill(Qt::transparent);
+
+    painter.begin(&combinedPixmap);
+    painter.drawPixmap(0, 0, baseCursorPixmap);  // Базовый курсор
+    painter.drawPixmap(10, 10, ico); // Дополнительное изображение
+    painter.end();
+
+    // Создаем новый курсор из объединенного изображения
+    QCursor customCursor(combinedPixmap, 0, 0);
+
+    // Устанавливаем новый курсор для виджета
+    setCursor(customCursor);
+
+//    QCursor curs(ico, 0, 0);
+//    setCursor(curs);
 }
 
 void CView::checkNewLandVersion()
@@ -1092,6 +1136,13 @@ void CView::pickTile(QVector3D posOnLand)
     CLandscape::getInstance()->pickTile(posOnLand);
 }
 
+void CView::setTile(QVector3D posOnLand)
+{
+    if(!CLandscape::getInstance()->isMprLoad())
+        return;
+    CLandscape::getInstance()->setTile(posOnLand);
+}
+
 void CView::updateParameter(EObjParam propType)
 {
     return; // not all prop types can be updated for each node. Use direct updating for each operation separately.
@@ -1340,6 +1391,11 @@ void CView::collectObjectTreeData()
     m_pTree->sortItems(0, Qt::SortOrder::AscendingOrder);
 }
 
+void CView::onRestoreCursor()
+{
+    unsetCursor();
+}
+
 void CView::moveCamToSelectedObjects()
 {
     CNode* pNode = nullptr;
@@ -1462,6 +1518,8 @@ void CView::changeOperation(EButtonOp type)
         m_pOp->changeState(new CRotateAxis(this, EOperateAxisZ)); break;
     case EButtonOpScale:
         m_pOp->changeState(new CScaleAxis(this, EOperateAxisZ)); break;
+    case EButtonOpTilebrush:
+        m_pOp->changeState(new CTileBrush(this)); break;
     }
 }
 

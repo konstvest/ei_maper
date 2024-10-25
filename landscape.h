@@ -108,8 +108,10 @@ public:
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
     void pickTile(QVector3D& point);
+    void setTile(QVector3D& point);
     const QFileInfo& filePath() {return m_filePath;}
     void openParams();
+    CTileForm* tileForm() {return m_pPropForm;};
 
 
 private:

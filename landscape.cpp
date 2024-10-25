@@ -1,4 +1,5 @@
 #include <QFileInfo>
+#include <QRandomGenerator>
 
 #include "landscape.h"
 #include "res_file.h"
@@ -270,10 +271,30 @@ void CLandscape::pickTile(QVector3D& point)
     int ind;
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
     {
-        if(m_aSector[yIndex][xIndex]->pickTile(ind, point))
+        if(m_aSector[yIndex][xIndex]->pickTileIndex(ind, point))
         {
             m_pPropForm->selectTile(ind);
         }
+    }
+}
+
+void CLandscape::setTile(QVector3D& point)
+{
+    QVector<int> indSelected;
+    m_pPropForm->getSelectedTile(indSelected);
+    if(indSelected.isEmpty())
+        return;
+    int xIndex = int(point.x()/32.0f);
+    int yIndex = int(point.y()/32.0f);
+    point.setZ(-1.0f);
+
+    //int ind = QRandomGenerator::global()->bounded(256); //todo: get selected data from table
+    //int rot = QRandomGenerator::global()->bounded(3);
+    if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
+    {
+        //m_aSector[yIndex][xIndex]->setTile(point, ind, rot);
+        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], 0);
+
     }
 }
 

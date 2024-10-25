@@ -16,10 +16,14 @@ public:
     explicit CTileForm(QWidget *parent = nullptr);
     void fillTable(QString mapName, int textureAtlasNumber);
     void setTileTypes(const QVector<ETileType>& arrTileType) {m_tileTypes = arrTileType;}
-    void selectTile(ushort index);
+    void selectTile(int index);
+    void getSelectedTile(QVector<int>& arrSelIndex);
     ~CTileForm();
 private:
     void resizeTable(float tilePercentage);
+
+signals:
+    void onSelect(QPixmap);
 
 private slots:
     void on_tileScaleSlider_sliderMoved(int position);

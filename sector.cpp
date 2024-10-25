@@ -747,7 +747,7 @@ bool CLandTile::pick(const QVector3D& origin)
     return false;
 }
 
-int CLandTile::tileIndex()
+int CLandTile::tileIndex() const
 {
     return m_index + m_atlasTexIndex*64;
 }

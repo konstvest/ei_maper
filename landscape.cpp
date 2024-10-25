@@ -268,12 +268,14 @@ void CLandscape::pickTile(QVector3D& point)
     int xIndex = int(point.x()/32.0f);
     int yIndex = int(point.y()/32.0f);
     point.setZ(-1.0f);
-    int ind;
+    int row, col;
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
     {
-        if(m_aSector[yIndex][xIndex]->pickTileIndex(ind, point))
+        if(m_aSector[yIndex][xIndex]->pickTile(row, col, point))
         {
-            m_pPropForm->selectTile(ind);
+            const CLandTile& tile = m_aSector[yIndex][xIndex]->arrTile()[row][col];
+            m_pPropForm->selectTile(tile.tileIndex());
+            m_pPropForm->setTileRotation(tile.tileRotation());
         }
     }
 }

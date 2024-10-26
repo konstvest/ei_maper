@@ -2,6 +2,7 @@
 #include "sector.h"
 #include "math_utils.h"
 #include "log.h"
+#include "utils.h"
 
 static const uint secSignature = 0xcf4bf774;
 static const int nVertex = 33; // vertices count by 1 side of sector
@@ -41,6 +42,8 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
         for(int row(0); row<nVertex; ++row)
         {
             stream >> sv;
+            SSecVertex snnnnn = sv;
+
             aLine.append(sv);
         }
         landVertex.append(aLine);
@@ -118,6 +121,125 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
 
     //makeVertexData(landVertex, aLandTiles, waterVertex, aWaterTiles, maxZ, texCount);
     generateVertexDataFromTile();
+}
+
+QByteArray CSector::serializeSector()
+{
+    QByteArray secData;
+    QDataStream secStream(&secData, QIODevice::WriteOnly);
+    util::formatStream(secStream);
+    SSecHeader header{secSignature, ETerrainType::eTerrainBase}; //todo
+    secStream << header;
+
+    //generate SSecVertex line by line
+    QVector<SSecVertex> arrVrt;
+    arrVrt.resize(nVertex*nVertex);
+    QVector<ushort> arrLandTilePacked;
+    arrLandTilePacked.resize(nTile*nTile);
+    for(int row(0); row<nTile; ++row)
+        for(int col(0); col<nTile; ++col)
+        {
+            //todo: extract water vertex data
+            const QVector<QVector<SSecVertex>>& arr = m_arrTile[row][col].arrVertex();
+            arrVrt[(row*2+0)*nVertex + col*2 + 0] = arr[0][0];
+            arrVrt[(row*2+0)*nVertex + col*2 + 1] = arr[0][1];
+            arrVrt[(row*2+1)*nVertex + col*2 + 0] = arr[1][0];
+            arrVrt[(row*2+1)*nVertex + col*2 + 1] = arr[1][1];
+            if(col == nTile-1)
+            { // last tile in row, write right side of tile
+                arrVrt[(row*2+0)*nVertex + col*2 + 2] = arr[0][2];
+                arrVrt[(row*2+1)*nVertex + col*2 + 2] = arr[1][2];
+            }
+            if(row == nTile-1)
+            { // last tile row, write top side
+                arrVrt[(row*2+2)*nVertex + col*2 + 0] = arr[2][0];
+                arrVrt[(row*2+2)*nVertex + col*2 + 1] = arr[2][1];
+                if(col == nTile-1)
+                { // last tile of sector, write right side of tile
+                    arrVrt[(row*2+0)*nVertex + col*2 + 2] = arr[0][2];
+                    arrVrt[(row*2+1)*nVertex + col*2 + 2] = arr[1][2];
+                    arrVrt[(row*2+2)*nVertex + col*2 + 2] = arr[2][2];
+                }
+            }
+            //tile data
+            arrLandTilePacked[row*nTile + col] = m_arrTile[row][col].packData();
+        }
+    for(auto& vrt: arrVrt)
+        secStream << vrt;
+
+    for(auto& tile: arrLandTilePacked)
+        secStream << tile;
+
+    return secData;
+//    QVector<QVector<SSecVertex>> waterVertex;
+//    if(header.type != eTerrainBase)
+//    {
+//        for (int column(0); column<nVertex; ++column)
+//        {
+//            aLine.clear();
+//            for(int row(0); row<nVertex; ++row)
+//            {
+//                stream >> sv;
+//                aLine.append(sv);
+//            }
+//            waterVertex.append(aLine);
+//        }
+//    }
+
+//    // convert filedata to tile-specific quads. x,y(0,0) is left down corner. Move to right by column then up by row
+//    m_arrTile.resize(nTile);
+//    QVector<SSecVertex> arrVertex;
+//    for(int i(0); i<nTile; ++i)
+//    {
+//        m_arrTile[i].resize(nTile);
+//    }
+
+//    QVector<STile> aLandTiles; //todo: remove
+//    ushort landTilePacked;
+//    for (int row(0); row<nTile; ++row)
+//    {
+//        aLine.clear();
+//        for(int col(0); col<nTile; ++col)
+//        {
+//            stream >> landTilePacked;
+//            STile tile(landTilePacked); //todo: remove
+//            aLandTiles.append(tile); //todo: remove
+//            m_arrTile[row][col] = CLandTile(landTilePacked, col*2, row*2, maxZ, texCount);
+
+//            arrVertex.clear();
+//            arrVertex.resize(9);
+//            // step for vertices = 2*step for tiles
+//            arrVertex[0] = landVertex[row*2][col*2];
+//            arrVertex[1] = landVertex[row*2][col*2+1];
+//            arrVertex[2] = landVertex[row*2][col*2+2];
+//            arrVertex[3] = landVertex[row*2+1][col*2];
+//            arrVertex[4] = landVertex[row*2+1][col*2+1];
+//            arrVertex[5] = landVertex[row*2+1][col*2+2];
+//            arrVertex[6] = landVertex[row*2+2][col*2];
+//            arrVertex[7] = landVertex[row*2+2][col*2+1];
+//            arrVertex[8] = landVertex[row*2+2][col*2+2];
+//            m_arrTile[row][col].resetVertices(arrVertex);
+//        }
+//    }
+
+//    QVector<STile> aWaterTiles;
+//    if(header.type != eTerrainBase)
+//    {
+//        ushort waterTilePacked;
+//        for(int i(0); i<nSecTile; ++i)
+//        {
+//            stream >> waterTilePacked;
+//            STile tile(waterTilePacked);
+//            aWaterTiles.append(tile);
+//        }
+
+//        short wa;
+//        for(int i(0); i<nSecTile; ++i)
+//        {
+//            stream >> wa;
+//            m_aWaterAllow.append(wa);
+//        }
+//    }
 }
 
 void SSpecificQuad::rotate(int step)
@@ -507,6 +629,13 @@ STile::STile(ushort packedData)
     m_rotation = (packedData >> 14) & 3; // 2 bits more
 }
 
+ushort STile::packData(ushort m_index, ushort m_texture, ushort m_rotation)
+{
+
+        return (m_index & 63) | ((m_texture & 255) << 6) | ((m_rotation & 3) << 14);
+
+}
+
 CLandTile::CLandTile()
 {
     reset();
@@ -757,6 +886,11 @@ void CLandTile::setTile(int index, int rotNum)
     m_index = index%64;
     m_atlasTexIndex = index/64;
     m_rotNum = rotNum;
+}
+
+ushort CLandTile::packData()
+{
+    return (m_index & 63) | ((m_atlasTexIndex & 255) << 6) | ((m_rotNum & 3) << 14);
 }
 
 void CLandTile::reset()

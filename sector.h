@@ -43,12 +43,22 @@ struct SSecVertex
         return st;
     }
 
+//    friend QDataStream& operator<< (QDataStream& st, SSecVertex& vert)
+//    {
+//        vert.packedNormal = 0;
+//        vert.packedNormal = (uint32_t)(vert.normal.z())*1000 << 22;
+//        vert.packedNormal |= (uint32_t)(vert.normal.x() * 1000 + 1000) << 11;
+//        vert.packedNormal |= (uint32_t)(vert.normal.y() * 1000 + 1000);
+//        return st << vert.xOffset << vert.yOffset << vert.z << vert.packedNormal;
+//    }
     friend QDataStream& operator<< (QDataStream& st, SSecVertex& vert)
     {
-        vert.packedNormal = 0;
-        vert.packedNormal = (uint32_t)(vert.normal.z())*1000 << 22;
-        vert.packedNormal |= (uint32_t)(vert.normal.x() * 1000 + 1000) << 11;
-        vert.packedNormal |= (uint32_t)(vert.normal.y() * 1000 + 1000);
+        uint32_t packedX = qBound(0, int((vert.normal.x() * 1000.0f) + 1000.0f), 2047) & 0x7FF;
+        uint32_t packedY = qBound(0, int((vert.normal.y() * 1000.0f) + 1000.0f), 2047) & 0x7FF;
+        uint32_t packedZ = qBound(0, int( vert.normal.z() * 1000.0f), 1023) & 0x3FF;
+
+        // Упаковываем компоненты в одно 32-битное число
+        vert.packedNormal = (packedZ << 22) | (packedX << 11) | packedY;
         return st << vert.xOffset << vert.yOffset << vert.z << vert.packedNormal;
     }
 };
@@ -65,7 +75,7 @@ struct STile
 {
     STile(){}
     STile(ushort packedData);
-    //void operator=(STile& tile) {m_index = tile.m_index; m_texture = tile.m_texture; m_rotation = tile.m_rotation;}
+    ushort packData(ushort m_index, ushort m_texture, ushort m_rotation);
     ushort m_index;
     ushort m_texture;
     ushort m_rotation;
@@ -94,6 +104,8 @@ public:
     int tileIndex() const;
     ushort tileRotation() const {return m_rotNum;}
     void setTile(int index, int rotNum);
+    const QVector<QVector<SSecVertex>>& arrVertex(){return m_arrVertex;}
+    ushort packData();
 private:
     void reset();
     QVector3D pos(int row, int col);
@@ -117,6 +129,7 @@ public:
     CSector();
     CSector(QDataStream& stream, float maxZ, int texCount);
     ~CSector();
+    QByteArray serializeSector();
     void draw(QOpenGLShaderProgram* program);
     void drawWater(QOpenGLShaderProgram* program);
     void setIndex(UI2& index) {m_index = index; updatePosition(); }

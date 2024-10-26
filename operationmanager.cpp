@@ -1114,9 +1114,8 @@ void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
     else if (pEvent->buttons() & Qt::LeftButton)
     {
         QVector3D landPos(m_pView->getLandPos(pEvent->x(), pEvent->y()));
-        if(landPos.distanceToPoint(m_lastLandPos) > 1.5)
+        if(landPos.distanceToPoint(m_lastLandPos) > 1.5) // avoid re-brushing single tile of each movement.
         {
-            qDebug() << "brush new";
             m_pView->setTile(m_pView->getLandPos(pEvent->pos().x(), pEvent->pos().y()));
             m_lastLandPos = landPos;
         }

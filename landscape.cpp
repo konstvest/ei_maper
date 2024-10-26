@@ -108,11 +108,9 @@ bool CLandscape::serializeMpr(const QString& zoneName, CResFile& mprFile)
     // end of header data
     mprFile.addFiledata(zoneName + ".mp", mpData);
 
-    //todo: write sectors data
-    for(int col(0); col<m_aSector.size(); ++col)
-
+    for(int row(0); row < m_aSector.size(); ++row)
     {
-        for(int row(0); row < m_aSector[col].size(); ++row)
+        for(int col(0); col<m_aSector[row].size(); ++col)
         {
             QByteArray secData = m_aSector[col][row]->serializeSector();
             QString secName = QString("%1%2%3.sec").arg(zoneName).arg(row, 3, 10, QChar('0')).arg(col, 3, 10, QChar('0'));

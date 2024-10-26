@@ -43,14 +43,6 @@ struct SSecVertex
         return st;
     }
 
-//    friend QDataStream& operator<< (QDataStream& st, SSecVertex& vert)
-//    {
-//        vert.packedNormal = 0;
-//        vert.packedNormal = (uint32_t)(vert.normal.z())*1000 << 22;
-//        vert.packedNormal |= (uint32_t)(vert.normal.x() * 1000 + 1000) << 11;
-//        vert.packedNormal |= (uint32_t)(vert.normal.y() * 1000 + 1000);
-//        return st << vert.xOffset << vert.yOffset << vert.z << vert.packedNormal;
-//    }
     friend QDataStream& operator<< (QDataStream& st, SSecVertex& vert)
     {
         uint32_t packedX = qBound(0, int((vert.normal.x() * 1000.0f) + 1000.0f), 2047) & 0x7FF;

@@ -42,8 +42,6 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
         for(int row(0); row<nVertex; ++row)
         {
             stream >> sv;
-            SSecVertex snnnnn = sv;
-
             aLine.append(sv);
         }
         landVertex.append(aLine);
@@ -171,75 +169,6 @@ QByteArray CSector::serializeSector()
         secStream << tile;
 
     return secData;
-//    QVector<QVector<SSecVertex>> waterVertex;
-//    if(header.type != eTerrainBase)
-//    {
-//        for (int column(0); column<nVertex; ++column)
-//        {
-//            aLine.clear();
-//            for(int row(0); row<nVertex; ++row)
-//            {
-//                stream >> sv;
-//                aLine.append(sv);
-//            }
-//            waterVertex.append(aLine);
-//        }
-//    }
-
-//    // convert filedata to tile-specific quads. x,y(0,0) is left down corner. Move to right by column then up by row
-//    m_arrTile.resize(nTile);
-//    QVector<SSecVertex> arrVertex;
-//    for(int i(0); i<nTile; ++i)
-//    {
-//        m_arrTile[i].resize(nTile);
-//    }
-
-//    QVector<STile> aLandTiles; //todo: remove
-//    ushort landTilePacked;
-//    for (int row(0); row<nTile; ++row)
-//    {
-//        aLine.clear();
-//        for(int col(0); col<nTile; ++col)
-//        {
-//            stream >> landTilePacked;
-//            STile tile(landTilePacked); //todo: remove
-//            aLandTiles.append(tile); //todo: remove
-//            m_arrTile[row][col] = CLandTile(landTilePacked, col*2, row*2, maxZ, texCount);
-
-//            arrVertex.clear();
-//            arrVertex.resize(9);
-//            // step for vertices = 2*step for tiles
-//            arrVertex[0] = landVertex[row*2][col*2];
-//            arrVertex[1] = landVertex[row*2][col*2+1];
-//            arrVertex[2] = landVertex[row*2][col*2+2];
-//            arrVertex[3] = landVertex[row*2+1][col*2];
-//            arrVertex[4] = landVertex[row*2+1][col*2+1];
-//            arrVertex[5] = landVertex[row*2+1][col*2+2];
-//            arrVertex[6] = landVertex[row*2+2][col*2];
-//            arrVertex[7] = landVertex[row*2+2][col*2+1];
-//            arrVertex[8] = landVertex[row*2+2][col*2+2];
-//            m_arrTile[row][col].resetVertices(arrVertex);
-//        }
-//    }
-
-//    QVector<STile> aWaterTiles;
-//    if(header.type != eTerrainBase)
-//    {
-//        ushort waterTilePacked;
-//        for(int i(0); i<nSecTile; ++i)
-//        {
-//            stream >> waterTilePacked;
-//            STile tile(waterTilePacked);
-//            aWaterTiles.append(tile);
-//        }
-
-//        short wa;
-//        for(int i(0); i<nSecTile; ++i)
-//        {
-//            stream >> wa;
-//            m_aWaterAllow.append(wa);
-//        }
-//    }
 }
 
 void SSpecificQuad::rotate(int step)
@@ -370,18 +299,6 @@ TODO: use 9 vertex, make quad via index array
             break;
         }
         }
-
-//        if(vertIndexQuad == 1 || vertIndexQuad == 2 || vertIndexQuad == 9 || vertIndexQuad == 10
-//            || vertIndexQuad == 4 || vertIndexQuad == 7 || vertIndexQuad == 12 || vertIndexQuad == 15)
-//            texC.setX((tCoord[0].x() + tCoord[1].x())/2.0f);
-//        else if(vertIndexQuad == 5 || vertIndexQuad == 6 || vertIndexQuad == 13 || vertIndexQuad == 14)
-//            texC.setX(tCoord[1].x());
-
-//        if(vertIndexQuad == 3 || vertIndexQuad == 2 || vertIndexQuad == 7 || vertIndexQuad == 6
-//            || vertIndexQuad == 8 || vertIndexQuad == 9 || vertIndexQuad == 12 || vertIndexQuad == 13)
-//            texC.setY((tCoord[0].y() + tCoord[1].y())/2.0f);
-//        else if(vertIndexQuad == 11 || vertIndexQuad == 10 || vertIndexQuad == 15 || vertIndexQuad == 14)
-//            texC.setY(tCoord[0].y());
 
         vrt.texCoord = texC;
     };
@@ -632,8 +549,7 @@ STile::STile(ushort packedData)
 ushort STile::packData(ushort m_index, ushort m_texture, ushort m_rotation)
 {
 
-        return (m_index & 63) | ((m_texture & 255) << 6) | ((m_rotation & 3) << 14);
-
+    return (m_index & 63) | ((m_texture & 255) << 6) | ((m_rotation & 3) << 14);
 }
 
 CLandTile::CLandTile()
@@ -680,8 +596,6 @@ void CLandTile::resetVertices(QVector<SSecVertex>& arrVertex)
 
     for(int i(0); i<arrVertex.size(); ++i)
     {
-        int row = i/3;
-        int col = i%3;
         m_arrVertex[i/3][i%3] = arrVertex[i];
     }
 }
@@ -734,91 +648,6 @@ void CLandTile::generateDrawVertexData(QVector<SVertexData>& outData, int& curIn
     tCoord[0] += QVector2D(4.0f/512.0f/texCount, 4.0f/512.0f/texCount); // cut a little piece from tile texture (dxt provide some "trash' on border)
     tCoord[1] -= QVector2D(4.0f/512.0f/texCount, 4.0f/512.0f/texCount); // cut a little piece from tile texture (dxt provide some "trash' on border)
 
-
-    auto calcCoord = [this, &tCoord](QVector2D& texCoord, QVector3D& position, float xOffset, float yOffset, float altitude, int ind)
-    {
-        // x offset
-        switch(ind)
-        {
-        case 0:
-        case 3:
-        case 8:
-        case 11:
-        {
-            texCoord.setX(tCoord[0].x());
-            position.setX(this->m_x + xOffset/254.0f); // start pos
-            break;
-        }
-        case 1:
-        case 2:
-        case 9:
-        case 10:
-        case 4:
-        case 7:
-        case 12:
-        case 15:
-        {
-            texCoord.setX((tCoord[0].x() + tCoord[1].x())/2.0f);
-            position.setX(this->m_x+1+xOffset/254.0f); // mid point, tile offset = 1
-            break;
-        }
-        case 5:
-        case 6:
-        case 13:
-        case 14:
-        {
-            texCoord.setX(tCoord[1].x());
-            position.setX(this->m_x+2+xOffset/254.0f); // right point, tile offset = 2
-            break;
-        }
-        default:
-        {
-            break;
-        }
-        }
-
-        // y offset
-        switch (ind)
-        {
-        case 0:
-        case 1:
-        case 4:
-        case 5:
-        {
-            texCoord.setY(tCoord[0].y());
-            position.setY(this->m_y + yOffset/254.0f); // start pos
-            break;
-        }
-        case 3:
-        case 2:
-        case 7:
-        case 6:
-        case 8:
-        case 9:
-        case 12:
-        case 13:
-        {
-            texCoord.setY((tCoord[0].y() + tCoord[1].y())/2.0f);
-            position.setY(this->m_y+1+yOffset/254.0f); // mid point, tile offset = 1
-            break;
-        }
-        case 11:
-        case 10:
-        case 15:
-        case 14:
-        {
-            texCoord.setY(tCoord[0].y());
-            position.setY(this->m_y+2+yOffset/254.0f); // top point, tile offset = 2
-            break;
-        }
-        default:
-        {
-            break;
-        }
-        }
-        position.setZ(altitude*this->m_maxZ/65535.0f);
-    };
-
     auto calcTexCoord = [&tCoord](QVector2D& texCoord, int row, int col)
     {
         float xStep = (tCoord[0].x() + tCoord[1].x())/2.0f - tCoord[0].x();
@@ -827,9 +656,6 @@ void CLandTile::generateDrawVertexData(QVector<SVertexData>& outData, int& curIn
         texCoord.setY(tCoord[1].y() - yStep * row);
     };
 
-    int i(0);
-    //QVector<int> indArr{0,1,4,3, 1,2,5,4, 3,4,7,6, 4,5,8,7}; // indices of quad vertices
-    //for(auto& ind: indArr)
     for(int row(0); row<3; ++row)
         for(int col(0); col<3; ++col)
         {
@@ -845,11 +671,7 @@ void CLandTile::generateDrawVertexData(QVector<SVertexData>& outData, int& curIn
             QVector2D test2;
             calcTexCoord(test2, indN.first, indN.second);
             calcTexCoord(outData[curIndex].texCoord, indN.first, indN.second);
-            //calcTexCoord(outData[curIndex].texCoord, 2-row, col);
-            //auto indN = getNewIndex(col, row, m_rotNum);
-            //calcTexCoord(outData[curIndex].texCoord, indN.second, indN.first);
             ++curIndex;
-            ++i;
         }
 
 }

@@ -4,17 +4,18 @@
 #include <QString>
 #include <QFileInfo>
 #include <QOpenGLShaderProgram>
+#include <QOpenGLTexture>
 #include <QList>
 #include <QFile>
 #include <QDataStream>
 #include <QVector>
 
-#include "sector.h"
+//#include "sector.h"
 #include "res_file.h"
 #include "tile_form.h"
 
 
-
+class CSector;
 
 struct SMaterial
 {

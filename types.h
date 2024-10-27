@@ -226,12 +226,12 @@ enum EWsType
     ,eWsTypeCount
 };
 
-enum ETerrainType
+enum ETerrainType : quint8
 {
-    eTerrainBase = 0
-    , eTerrainWaterNoTexture
-    , eTerrainGrass
-    , eTerrainWater
+    eTerrainBase = 0 // sector has only land tiles without water
+    , eTerrainWaterNoTexture // example of usage?
+    , eTerrainGrass // example of usage?
+    , eTerrainHasWater // mark sector contains water
     , eTerrainLast
 };
 

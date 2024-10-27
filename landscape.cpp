@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "resourcemanager.h"
 #include "node.h"
+#include "sector.h"
 
 CLandscape* CLandscape::m_pLand = nullptr;
 
@@ -65,7 +66,7 @@ bool CLandscape::readHeader(QDataStream& stream)
     for(uint i(0); i<m_header.nTile; ++i)
     {
         stream >> type;
-        if(type > 15)
+        if(type > 15 || type < 0)
         {
             ei::log(eLogWarning, "incorrect tile type at index: " + QString::number(i));
         }
@@ -112,8 +113,8 @@ bool CLandscape::serializeMpr(const QString& zoneName, CResFile& mprFile)
     {
         for(int col(0); col<m_aSector[row].size(); ++col)
         {
-            QByteArray secData = m_aSector[col][row]->serializeSector();
-            QString secName = QString("%1%2%3.sec").arg(zoneName).arg(row, 3, 10, QChar('0')).arg(col, 3, 10, QChar('0'));
+            QByteArray secData = m_aSector[row][col]->serializeSector();
+            QString secName = QString("%1%2%3.sec").arg(zoneName).arg(col, 3, 10, QChar('0')).arg(row, 3, 10, QChar('0'));
             mprFile.addFiledata(secName, secData);
         }
     }

@@ -10,22 +10,6 @@
 #include <QOpenGLTexture>
 #include "types.h"
 
-struct SSecHeader
-{
-    uint signature;
-    quint8 type; // have liquids?
-
-    friend QDataStream& operator>> (QDataStream& st, SSecHeader& head)
-    {
-        return st >> head.signature >> head.type;
-    }
-
-    friend QDataStream& operator<< (QDataStream& st, const SSecHeader& head)
-    {
-        return st << head.signature << head.type;
-    }
-};
-
 struct SSecVertex
 {
     qint8  xOffset;
@@ -55,7 +39,7 @@ struct SSecVertex
     }
 };
 
-struct SSpecificQuad
+struct SSpecificQuad //todo: delete
 {
     void addVertex(SVertexData* vertex) {m_aVertexPointer.append(vertex);}
     void rotate(int step = 0);
@@ -63,7 +47,7 @@ struct SSpecificQuad
     QVector<SVertexData*> m_aVertexPointer;
 };
 
-struct STile
+struct STile //todo: delete
 {
     STile(){}
     STile(ushort packedData);
@@ -84,12 +68,12 @@ struct STile
 |_\|_\|
 0  1  2
 */
-class CLandTile
+class CLandTile //todo: rename to CTile
 {
 public:
     CLandTile();
     CLandTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber);
-    ~CLandTile();
+    virtual ~CLandTile();
     void resetVertices(QVector<SSecVertex>& arrVertex);
     void generateDrawVertexData(QVector<SVertexData>& outData, int& curIndex);
     bool pick(const QVector3D& point);
@@ -98,10 +82,10 @@ public:
     void setTile(int index, int rotNum);
     const QVector<QVector<SSecVertex>>& arrVertex(){return m_arrVertex;}
     ushort packData();
-private:
+protected:
     void reset();
     QVector3D pos(int row, int col);
-private:
+protected:
     QVector<QVector<SSecVertex>> m_arrVertex; // matrix 3x3 of x,y offsets, z-altitude and normal
     ushort m_x; // start X (left pos to right). max X tile is 2.0f + m_x for third vertex (m_x + 0.0f, m_x + 1.0f, m_x + 2.0f1)
     ushort m_y; // start Y (bottom to top)
@@ -110,6 +94,18 @@ private:
     ushort m_rotNum; //number of rotation
     float m_maxZ; // update for each tile when changing maximum altitude
     int m_texAtlasNumber; // update for each tile when changing atlas number
+};
+
+class CWaterTile : public CLandTile
+{
+public:
+    CWaterTile();
+    CWaterTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber);
+    ~CWaterTile();
+    void setMaterialIndex(short matIndex) {m_materialIndex = matIndex;}
+    short materialIndex() {return m_materialIndex;}
+private:
+    short m_materialIndex;
 };
 
 ///
@@ -130,7 +126,7 @@ public:
     bool pickTileIndex(int& index, QVector3D& point);
     bool pickTile(int& row, int& col, QVector3D& point);
     void setTile(QVector3D& point, int index, int rotNum);
-    const QVector<QVector<CLandTile>>& arrTile() {return m_arrTile;};
+    const QVector<QVector<CLandTile>>& arrTile() {return m_arrLand;};
 
 private:
     void updatePosition();
@@ -139,15 +135,16 @@ private:
 
 
 private:
-    QVector<short> m_aWaterAllow;
     UI2 m_index;
-    QVector<SVertexData> m_aVertexData;
+    QMatrix4x4 m_modelMatrix;
+
+    QVector<QVector<CLandTile>> m_arrLand;
+    QVector<SVertexData> m_arrLandVrtData;
     QOpenGLBuffer m_vertexBuf;
     QOpenGLBuffer m_indexBuf;
-    QMatrix4x4 m_modelMatrix;
-    QVector<QVector<CLandTile>> m_arrTile;
 
-    QVector<SVertexData> m_aWaterData;
+    QVector<QVector<CWaterTile>> m_arrWater;
+    QVector<SVertexData> m_arrWaterVrtData;
     QOpenGLBuffer m_waterVertexBuf;
     QOpenGLBuffer m_waterIndexBuf;
 };

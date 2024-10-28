@@ -68,7 +68,7 @@ void CSelect::keyPress(COperation *pOp, EKeyCode key)
         delete this;
         break;
     }
-    case eKey_M:
+    case eKey_B:
     {
         pOp->setCurrent(new CTileBrush(m_pView));
         delete this;
@@ -245,7 +245,7 @@ void CSelect::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
         m_pView->drawSelectFrame(rect);
 
     }
-    QVector3D mouseCoord (m_pView->getLandPos(pEvent->x(), pEvent->y()));
+    QVector3D mouseCoord (m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
     QString text = "not defined";
     if(mouseCoord.z() > -0.1f && mouseCoord.z() < 100.0f)
         text = util::makeString(mouseCoord, true);
@@ -263,7 +263,7 @@ CMoveAxis::CMoveAxis(CView *pView, EOperateAxis ax)
     qDebug()<< "CMoveAxis init with: " << ax;
     axis = ax;
     m_lastPos = m_pView->mapFromGlobal(QCursor::pos());
-    lastLandPos = m_pView->getLandPos(m_lastPos.x(), m_lastPos.y());
+    lastLandPos = m_pView->getTerrainPos(m_lastPos.x(), m_lastPos.y());
     pView->operationSetBackup(EOperationAxisType::eMove);
     CStatusConnector::getInstance()->updateStatus("move.ico", "shift+Z(x,y) = exclude Z(x,y,) axis, X(y,z) - move X(y,z), Esc - Cancel, LMB - apply");
     CButtonConnector::getInstance()->pressButton(EButtonOpMove);
@@ -459,7 +459,7 @@ void CMoveAxis::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
 void CMoveAxis::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
 {
     Q_UNUSED(pOp);
-    QVector3D newPos = m_pView->getLandPos(pEvent->x(), pEvent->y());
+    QVector3D newPos = m_pView->getTerrainPos(pEvent->x(), pEvent->y());
     QVector3D moveDir = newPos - lastLandPos;
     switch (axis) {
     case EOperateAxisX:
@@ -1014,6 +1014,11 @@ void COperation::wheelEvent(QWheelEvent* pEvent)
     current->wheelEvent(this, pEvent);
 }
 
+EOperationMethod COperation::operationMethod()
+{
+    return current->operationMethod();
+}
+
 void COperation::attachCam(CCamera *pCam)
 {
     m_pCam = pCam;
@@ -1032,16 +1037,21 @@ CSelect::CSelect(CView *pView):
     if(CScene::getInstance()->getMode()==eEditModeLogic)
         CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, P-Add Patrol(trap zone), L-Add look(cast point), CTLR+Tab-change mode");
     else
-        CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, T-Scale, R-Rotate, CTLR+Tab-change mode, CTRL+T-switch active Mob");
+        CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, T-Scale, R-Rotate, B-Tile brush, CTLR+Tab-change mode, CTRL+T-switch active Mob");
     CButtonConnector::getInstance()->pressButton(EButtonOpSelect);
 }
 
 CTileBrush::CTileBrush(CView* pView)
     :CState(pView)
+    ,m_bDrawWater(true)
+    ,m_bDrawLand(true)
+    ,m_bEditLand(true)
 {
     qDebug()<< "CTileBrush init ";
     CStatusConnector::getInstance()->updateStatus("brush.ico", "Esc - Cancel, LMB - draw selected tile. RMB - pick tile under cursor, Wheel - rotate tile");
     CButtonConnector::getInstance()->pressButton(EButtonOpTilebrush);
+    m_pView->setDrawLand(m_bDrawLand);
+    m_pView->setDrawWater(m_bDrawWater);
 }
 
 void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
@@ -1053,6 +1063,23 @@ void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
         m_pView->onRestoreCursor();
         pOp->setCurrent(new CSelect(m_pView));
         delete this;
+        break;
+    }
+    case eKey_T:
+    { // change tile type editing (land/water)
+        m_bEditLand = !m_bEditLand;
+        break;
+    }
+    case eKey_M:
+    {
+        m_bDrawWater = !m_bDrawWater;
+        m_pView->setDrawWater(m_bDrawWater);
+        break;
+    }
+    case eKey_N:
+    {
+        m_bDrawLand = !m_bDrawLand;
+        m_pView->setDrawLand(m_bDrawLand);
         break;
     }
     default:
@@ -1078,16 +1105,16 @@ void CTileBrush::mousePressEvent(COperation* pOp, QMouseEvent* pEvent)
 {
     Q_UNUSED(pOp);
     m_lastPos = pEvent->pos();
-    m_lastLandPos = m_pView->getLandPos(pEvent->x(), pEvent->y());
+    m_lastLandPos = m_pView->getTerrainPos(pEvent->x(), pEvent->y(), m_bEditLand);
     switch (pEvent->buttons()) {
     case Qt::LeftButton:
     {
-        m_pView->setTile(m_pView->getLandPos(pEvent->pos().x(), pEvent->pos().y()));
+        m_pView->setTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), m_bEditLand), m_bEditLand);
         break;
     }
     case Qt::RightButton:
     {
-        m_pView->pickTile(m_pView->getLandPos(pEvent->pos().x(), pEvent->pos().y()));
+        m_pView->pickTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), m_bEditLand), m_bEditLand);
         break;
     }
     }
@@ -1113,10 +1140,10 @@ void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
     }
     else if (pEvent->buttons() & Qt::LeftButton)
     {
-        QVector3D landPos(m_pView->getLandPos(pEvent->x(), pEvent->y()));
+        QVector3D landPos(m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
         if(landPos.distanceToPoint(m_lastLandPos) > 1.5) // avoid re-brushing single tile of each movement.
         {
-            m_pView->setTile(m_pView->getLandPos(pEvent->pos().x(), pEvent->pos().y()));
+            m_pView->setTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y()));
             m_lastLandPos = landPos;
         }
 

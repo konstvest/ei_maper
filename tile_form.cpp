@@ -17,6 +17,8 @@ CTileForm::CTileForm(QWidget *parent) :
     ui->tileScaleSlider->setSliderPosition(100); // set 100% tile scaling by default. TODO: get from option
     ui->comboTileType->addItems(CResourceStringList::getInstance()->tileTypes().values());
     connect(ui->tableTile, SIGNAL(cellClicked(int,int)), this, SLOT(onCellClicked(int,int)));
+    connect(ui->comboMaterial, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectMaterial(int)));
+    connect(ui->comboAnimTile, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectAnimTile(int)));
 }
 
 
@@ -180,6 +182,26 @@ void CTileForm::setTileRotation(ushort rot)
     emit onSelect(tileWithRot(arrSelIndex.back()));
 }
 
+void CTileForm::setMaterial(const QVector<SMaterial>& arrMat)
+{
+    m_arrMaterial = arrMat;
+    ui->comboMaterial->clear();
+    for(int i(0); i<m_arrMaterial.size(); ++i)
+    {
+        ui->comboMaterial->addItem("Material " + QString::number(i));
+    }
+}
+
+void CTileForm::setAnimTile(const QVector<SAnimTile>& arrAnimTile)
+{
+    m_arrAnimTile = arrAnimTile;
+    ui->comboAnimTile->clear();
+    for(int i(0); i<m_arrAnimTile.size(); ++i)
+    {
+        ui->comboAnimTile->addItem("Anim tile " + QString::number(i));
+    }
+}
+
 
 
 void CTileForm::on_tileScaleSlider_sliderMoved(int position)
@@ -193,5 +215,42 @@ void CTileForm::onCellClicked(int row, int column)
     ui->comboTileType->setCurrentIndex(m_tileTypes[ind]);
     emit onSelect(tileWithRot(ind));
     //QCursor curs(m_icoList[ind].pixmap(QSize(32, 32)));
+}
+
+void CTileForm::onSelectMaterial(int index)
+{
+    const SMaterial& mat = m_arrMaterial[index];
+    QColor color;
+    color.setRedF(mat.R);
+    color.setGreenF(mat.G);
+    color.setBlueF(mat.B);
+    QPalette pal = palette();
+    pal.setColor(QPalette::Button, color);
+    ui->toolButtonColor->setAutoFillBackground(true);
+    ui->toolButtonColor->setPalette(pal);
+    ui->lineEdit->setText(QString::number(mat.A));
+    ui->lineEdit_2->setText(QString::number(mat.selfIllumination));
+    ui->lineEdit_3->setText(QString::number(mat.waveMultiplier));
+    ui->lineEdit_4->setText(QString::number(mat.warpSpeed));
+    ui->lineEdit_7->setText(QString::number(mat.type));
+}
+
+void CTileForm::onSelectAnimTile(int index)
+{
+    const SAnimTile& anmTile = m_arrAnimTile[index];
+    ui->lineEdit_5->setText(QString::number(anmTile.tileIndex));
+    ui->lineEdit_6->setText(QString::number(anmTile.nPhase));
+}
+
+
+void CTileForm::on_toolButtonAddAnimTile_clicked()
+{
+    m_arrAnimTile.append(SAnimTile{8, 4});
+}
+
+
+void CTileForm::on_toolButtonAddMaterial_clicked()
+{
+    m_arrMaterial[0].A = 0.1;
 }
 

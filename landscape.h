@@ -17,31 +17,7 @@
 
 class CSector;
 
-struct SMaterial
-{
-    ETerrainType type;
-    float R, G, B, A;
-    float selfIllumination;
-    float waveMultiplier;
-    float warpSpeed;
-    float reserved1;
-    float reserved2;
-    float reserved3;
 
-    friend QDataStream& operator<< (QDataStream& os, const SMaterial& mat)
-    {
-        return os << int(mat.type) << mat.R << mat.G << mat.B << mat.A <<
-                     mat.selfIllumination << mat.waveMultiplier << mat.warpSpeed <<
-                     mat.reserved1 << mat.reserved2 << mat.reserved3;
-    }
-
-    friend QDataStream& operator>> (QDataStream &is, SMaterial &mat)
-    {
-        return is >> (qint32&)mat.type >> mat.R >> mat.G >> mat.B >> mat.A >>
-                     mat.selfIllumination >> mat.waveMultiplier >> mat.warpSpeed >>
-                     mat.reserved1 >> mat.reserved2 >> mat.reserved3;
-    }
-};
 
 struct SMapHeader
 {
@@ -71,23 +47,6 @@ struct SMapHeader
     }
 };
 
-struct SAnimTile
-{
-    ushort tileIndex;
-    ushort nPhase;
-
-    friend QDataStream& operator>> (QDataStream& st, SAnimTile& tile)
-    {
-        return st >> tile.tileIndex >> tile.nPhase;
-    }
-
-    friend QDataStream& operator<< (QDataStream& st, SAnimTile& tile)
-    {
-        return st << tile.tileIndex << tile.nPhase;
-    }
-};
-
-
 class CNode;
 
 ///
@@ -108,8 +67,8 @@ public:
     bool projectPt(QVector<QVector3D>& aPoint);
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
-    void pickTile(QVector3D& point);
-    void setTile(QVector3D& point);
+    void pickTile(QVector3D& point, bool bLand = true);
+    void setTile(QVector3D& point, bool bLand = true);
     const QFileInfo& filePath() {return m_filePath;}
     void openParams();
     CTileForm* tileForm() {return m_pPropForm;};

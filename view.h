@@ -67,7 +67,7 @@ public:
     void drawSelectFrame(QRect& rect);
     void pickObject(QPoint mousePos, bool bAddToSelect);
     void pickObject(const QRect& rect, bool bAddToSelect);
-    QVector3D getLandPos(const int cursorPosX, const int cursorPosY);
+    QVector3D getTerrainPos(const int cursorPosX, const int cursorPosY, bool bLand = true);
     void changeOperation(EButtonOp type);
     void operationSetBackup(EOperationAxisType operationType);
     void operationRevert(EOperationAxisType operationType);
@@ -105,9 +105,11 @@ public:
     void setRandomComplection(const EObjParam param, const float min, const float max);
     void resetSelectedId();
     void openMapParameters();
-    void pickTile(QVector3D posOnLand);
-    void setTile(QVector3D posOnLand);
+    void pickTile(QVector3D posOnLand, bool bLand = true);
+    void setTile(QVector3D posOnLand, bool bLand = true);
     void addTileRotation(int step);
+    void setDrawWater(bool bDraw = true) {m_bDrawWater = bDraw;}
+    void setDrawLand(bool bDraw = true) {m_bDrawLand = bDraw;}
 
 protected:
     void initializeGL() override;
@@ -178,6 +180,8 @@ private:
     CRoundMobForm* m_pRoundForm;
     QTimer* m_mprModifyTimer;
     QDateTime m_lastModifiedLand;
+    bool m_bDrawLand;
+    bool m_bDrawWater;
 };
 
 #endif // MYGLWIDGET_H

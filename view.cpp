@@ -43,6 +43,8 @@ CView::CView(QWidget *parent, const QGLWidget *pShareWidget) : QGLWidget(parent,
   ,m_activeMob(nullptr)
   ,m_pTree(nullptr)
   ,m_pRoundForm(nullptr)
+  ,m_bDrawLand(true)
+  ,m_bDrawWater(true)
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -216,7 +218,7 @@ void CView::draw()
 //    m_landProgram.setUniformValue("u_lightColor", QVector4D(1.0, 1.0, 1.0, 1.0));
 //    m_landProgram.setUniformValue("u_highlight", false);
     auto pLand = CLandscape::getInstance();
-    if (pLand && pLand->isMprLoad())
+    if (pLand && pLand->isMprLoad() && m_bDrawLand)
         pLand->draw(&m_landProgram);
 
     // Bind shader pipeline for use
@@ -243,8 +245,9 @@ void CView::draw()
 
     if (pLand && pLand->isMprLoad())
     {
-        COptBool* pOpt = dynamic_cast<COptBool*>(settings()->opt("drawWater"));
-        if (pOpt and pOpt->value() == true)
+        //COptBool* pOpt = dynamic_cast<COptBool*>(settings()->opt("drawWater"));
+        //if (pOpt and pOpt->value() == true)
+        if(m_bDrawWater)
         {
             //turn to landshader again
             if (!m_landProgram.bind())
@@ -309,7 +312,7 @@ void CView::saveLandAs()
         return;
 
     const QFileInfo fileName = QFileDialog::getSaveFileName(this, "Save " + CLandscape::getInstance()->filePath().fileName() + " as... ", "" , tr("Landscape (*.mpr);;)"));
-    //const QFileInfo fileName("c:\\konst\\temp\\1\\testZone.mpr");
+    //QFileInfo fileName("c:\\konst\\Проклятые Земли (Дополнение)\\Mods\\ferneo_mod\\Maps\\zone1gTest.mpr");
 
     CLandscape::getInstance()->saveMapAs(fileName);
 //    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, fileName.baseName());
@@ -690,6 +693,8 @@ void CView::checkOpenGlError()
 
 void CView::onChangeCursor(QPixmap ico)
 {
+    if(m_pOp->operationMethod() != eOperationMethodTileBrush)
+        return;
     // Создаем базовое изображение для курсора (например, простой квадрат)
     QPixmap baseCursorPixmap(42, 42);
     baseCursorPixmap.fill(Qt::transparent);  // Прозрачный фон
@@ -1129,18 +1134,18 @@ void CView::openMapParameters()
     CLandscape::getInstance()->openParams();
 }
 
-void CView::pickTile(QVector3D posOnLand)
+void CView::pickTile(QVector3D posOnLand, bool bLand)
 {
     if(!CLandscape::getInstance()->isMprLoad())
         return;
-    CLandscape::getInstance()->pickTile(posOnLand);
+    CLandscape::getInstance()->pickTile(posOnLand, bLand);
 }
 
-void CView::setTile(QVector3D posOnLand)
+void CView::setTile(QVector3D posOnLand, bool bLand)
 {
     if(!CLandscape::getInstance()->isMprLoad())
         return;
-    CLandscape::getInstance()->setTile(posOnLand);
+    CLandscape::getInstance()->setTile(posOnLand, bLand);
 }
 
 void CView::addTileRotation(int step)
@@ -1483,8 +1488,13 @@ CNode* CView::pickObject(QList<CNode*>& aNode, int x, int y)
 }
 
 //clear buffer, draw only landscape, project point and return vector3D
-QVector3D CView::getLandPos(const int cursorPosX, const int cursorPosY)
+QVector3D CView::getTerrainPos(const int cursorPosX, const int cursorPosY, bool bLand)
 {
+    QVector3D point(0,0,0);
+    auto pLand = CLandscape::getInstance();
+    if(!pLand || !pLand->isMprLoad())
+        return point;
+
     QMatrix4x4 camMatrix = m_cam->viewMatrix();
     // Set modelview-projection matrix
 
@@ -1496,14 +1506,20 @@ QVector3D CView::getLandPos(const int cursorPosX, const int cursorPosY)
     m_landProgram.setUniformValue("u_projMmatrix", m_projection);
     m_landProgram.setUniformValue("u_viewMmatrix", camMatrix);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    auto pLand = CLandscape::getInstance();
-    if (pLand && pLand->isMprLoad())
-        pLand->draw(&m_landProgram);
 
+    if(bLand)
+        pLand->draw(&m_landProgram);
+    else
+    {
+        pLand->drawWater(&m_landProgram);
+    }
     const int posY (height() - cursorPosY);
     float z;
     glReadPixels(cursorPosX, posY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z );
-    QVector3D point (cursorPosX, posY, z);
+    //QVector3D point (cursorPosX, posY, z);
+    point.setX(cursorPosX);
+    point.setY(posY);
+    point.setZ(z);
 
     QMatrix4x4 view = m_cam->viewMatrix();
     GLint viewPort[4];
@@ -1899,7 +1915,7 @@ void CView::selectedObjectToClipboardBuffer()
     QJsonObject obj;
     obj.insert("Version", 2);
     auto pos = QWidget::mapFromGlobal(QCursor::pos());
-    auto posOnLand = getLandPos(pos.x(), pos.y());
+    auto posOnLand = getTerrainPos(pos.x(), pos.y());
     QJsonArray point;
     point.append(QJsonValue::fromVariant(posOnLand.x()));
     point.append(QJsonValue::fromVariant(posOnLand.y()));
@@ -1965,7 +1981,7 @@ void CView::clipboradObjectsToScene()
         oldMousePos = QVector3D(arrPoint[0].toVariant().toFloat(), arrPoint[1].toVariant().toFloat(), arrPoint[2].toVariant().toFloat());
 
     auto pos = QWidget::mapFromGlobal(QCursor::pos());
-    auto posOnLand = getLandPos(pos.x(), pos.y());
+    auto posOnLand = getTerrainPos(pos.x(), pos.y());
     auto mouseDif = posOnLand - oldMousePos;
     mouseDif.setZ(0.0f);
     m_pOp->changeState(new CMoveAxis(this, EOperateAxisXY));

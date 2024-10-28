@@ -27,13 +27,9 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
         ei::log(eLogFatal, "Incorrect sector signature");
         return;
     }
-    quint8 tempType;
-    stream >> tempType;
-    ETerrainType type = (ETerrainType)tempType;
-    if(type != ETerrainType::eTerrainBase && type != ETerrainType::eTerrainHasWater)
-    {
-        ei::log(eLogWarning, "unknown terrain type: " + QString::number(type));
-    }
+    quint8 secType;
+    stream >> secType;
+    const bool bWater = secType == 3;
     m_modelMatrix.setToIdentity();
     m_vertexBuf.create();
     m_indexBuf.create();
@@ -55,7 +51,7 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
     }
 
     QVector<QVector<SSecVertex>> waterVertex;
-    if(type == ETerrainType::eTerrainHasWater)
+    if(bWater)
     {
         for (int column(0); column<nVertex; ++column)
         {
@@ -105,7 +101,7 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
     }
 
     //QVector<STile> aWaterTiles;
-    if(type == ETerrainType::eTerrainHasWater)
+    if(bWater)
     {
         m_arrWater.resize(nTile);
         QVector<SSecVertex> arrVertex;
@@ -160,7 +156,7 @@ QByteArray CSector::serializeSector()
     util::formatStream(secStream);
     bool bWater = !m_arrWater.isEmpty();
     secStream << secSignature;
-    secStream << (bWater ? (quint8)ETerrainType::eTerrainHasWater : (quint8)ETerrainType::eTerrainBase);
+    secStream << (bWater ? quint8(3) : quint8(0));
 
     //generate SSecVertex line by line
     QVector<SSecVertex> arrVrt;
@@ -472,21 +468,41 @@ void CSector::updatePosition()
     m_waterIndexBuf.release();
 }
 
-bool CSector::pickTile(int& outRow, int& outCol, QVector3D& point)
+bool CSector::pickTile(int& outRow, int& outCol, QVector3D& point, bool bLand)
 {
+    if(!bLand && m_arrWater.isEmpty())
+        return false;
+
     // convert pos to local coords
     point.setX(point.x()-m_index.x*32.0f);
     point.setY(point.y()-m_index.y*32.0f);
-    for(int row(0); row<m_arrLand.size(); ++row)
-        for(int col(0); col<m_arrLand[row].size(); ++col)
-        {
-            if(m_arrLand[row][col].pick(point))
+
+    if(bLand)
+    {
+        for(int row(0); row<m_arrLand.size(); ++row)
+            for(int col(0); col<m_arrLand[row].size(); ++col)
             {
-                outRow = row;
-                outCol = col;
-                return true;
+                if(m_arrLand[row][col].pick(point))
+                {
+                    outRow = row;
+                    outCol = col;
+                    return true;
+                }
             }
-        }
+    }
+    else
+    {
+        for(int row(0); row<m_arrWater.size(); ++row)
+            for(int col(0); col<m_arrWater[row].size(); ++col)
+            {
+                if(m_arrLand[row][col].pick(point))
+                {
+                    outRow = row;
+                    outCol = col;
+                    return true;
+                }
+            }
+    }
     return false;
 }
 
@@ -574,32 +590,21 @@ bool CSector::projectPt(QVector3D& point)
     return false;
 }
 
-bool CSector::pickTileIndex(int& index, QVector3D& point)
-{
-    // convert pos to local coords
-    point.setX(point.x()-m_index.x*32.0f);
-    point.setY(point.y()-m_index.y*32.0f);
-    for(int row(0); row<m_arrLand.size(); ++row)
-        for(int col(0); col<m_arrLand[row].size(); ++col)
-        {
-            if(m_arrLand[row][col].pick(point))
-            {
-                index = m_arrLand[row][col].tileIndex();
-                return true;
-            }
-        }
-    return false;
-}
-
-void CSector::setTile(QVector3D& point, int index, int rotNum)
+void CSector::setTile(QVector3D& point, int index, int rotNum, bool bLand, int matIndex)
 {
     int row, col;
 
-    if(!pickTile(row, col, point))
+    if(!pickTile(row, col, point, bLand))
         return;
 
-    m_arrLand[row][col].setTile(index, rotNum);
-    generateVertexDataFromTile(); //todo
+    if(bLand)
+        m_arrLand[row][col].setTile(index, rotNum);
+    else
+    {
+        m_arrWater[row][col].setTile(index, rotNum);
+        m_arrWater[row][col].setMaterialIndex(short(matIndex));
+    }
+    generateVertexDataFromTile(); //todo: apply changes locally, stop re-generating all data
     m_modelMatrix.setToIdentity(); // todo
     updatePosition(); //todo
 }
@@ -815,4 +820,9 @@ CWaterTile::CWaterTile(ushort packedData, ushort x, ushort y, float maxZ, int at
 CWaterTile::~CWaterTile()
 {
     //CLandTile::~CLandTile();
+}
+
+int CWaterTile::tileIndex() const
+{
+    return m_index + ((m_atlasTexIndex > m_texAtlasNumber) ? ((m_texAtlasNumber-1)*64) : (m_atlasTexIndex*64));
 }

@@ -77,7 +77,7 @@ public:
     void resetVertices(QVector<SSecVertex>& arrVertex);
     void generateDrawVertexData(QVector<SVertexData>& outData, int& curIndex);
     bool pick(const QVector3D& point);
-    int tileIndex() const;
+    virtual int tileIndex() const;
     ushort tileRotation() const {return m_rotNum;}
     void setTile(int index, int rotNum);
     const QVector<QVector<SSecVertex>>& arrVertex(){return m_arrVertex;}
@@ -102,6 +102,7 @@ public:
     CWaterTile();
     CWaterTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber);
     ~CWaterTile();
+    int tileIndex() const override;
     void setMaterialIndex(short matIndex) {m_materialIndex = matIndex;}
     short materialIndex() {return m_materialIndex;}
 private:
@@ -123,10 +124,10 @@ public:
     void setIndex(UI2& index) {m_index = index; updatePosition(); }
     const UI2& index() {return m_index;}
     bool projectPt(QVector3D& origin);
-    bool pickTileIndex(int& index, QVector3D& point);
-    bool pickTile(int& row, int& col, QVector3D& point);
-    void setTile(QVector3D& point, int index, int rotNum);
+    bool pickTile(int& row, int& col, QVector3D& point, bool bLand = true);
+    void setTile(QVector3D& point, int index, int rotNum, bool bLand = true, int matIndex = 0);
     const QVector<QVector<CLandTile>>& arrTile() {return m_arrLand;};
+    const QVector<QVector<CWaterTile>>& arrWater() {return m_arrWater;};
 
 private:
     void updatePosition();

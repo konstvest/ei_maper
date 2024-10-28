@@ -17,6 +17,16 @@ class CKeyManager;
 class CCamera;
 class QLineEdit;
 
+
+enum EOperationMethod
+{
+    eOperationMethodSelect = 0
+    ,eOperationMethodMoveAxis
+    ,eOperationMethodRotateAxis
+    ,eOperationMethodScaleAxis
+    ,eOperationMethodTileBrush
+};
+
 ///
 /// \brief The CState class represents the base class for the keystroke response operation.
 ///
@@ -35,6 +45,7 @@ class CState : public QObject //base state class - interface
     virtual void mouseReleaseEvent(COperation *pOp, QMouseEvent* event) = 0;
     virtual void mouseMoveEvent(COperation *pOp, QMouseEvent* event) = 0;
     virtual void wheelEvent(COperation *pOp, QWheelEvent* event) = 0;
+    virtual EOperationMethod operationMethod() = 0;
 
 protected:
     CView* m_pView;
@@ -58,6 +69,7 @@ public:
     void mouseReleaseEvent(QMouseEvent* pEvent);
     void mouseMoveEvent(QMouseEvent* pEvent);
     void wheelEvent(QWheelEvent* pEvent);
+    EOperationMethod operationMethod();
 
     CKeyManager* keyManager() {return m_keyManager.get();}
     void attachCam(CCamera* pCam);
@@ -76,6 +88,7 @@ class CSelect: public CState
 {
 public:
     CSelect(CView* pView);
+    EOperationMethod operationMethod() override final {return eOperationMethodSelect;};
     ~CSelect() {}
     void keyPress(COperation* pOp, EKeyCode key) override;
     void keyRelease(COperation* pOp, EKeyCode key) override;
@@ -92,6 +105,7 @@ class CMoveAxis : public CState
     Q_OBJECT
 public:
     CMoveAxis() = delete;
+    EOperationMethod operationMethod() override final {return eOperationMethodMoveAxis;};
     CMoveAxis(CView* pView, EOperateAxis ax);
     ~CMoveAxis() {}
 
@@ -113,6 +127,7 @@ class CRotateAxis : public CState
 {
 public:
     CRotateAxis() = delete;
+    EOperationMethod operationMethod() override final {return eOperationMethodRotateAxis;};
     CRotateAxis(CView* pView, EOperateAxis ax);
     ~CRotateAxis() {}
     void keyPress(COperation* pOp, EKeyCode key) override;
@@ -132,6 +147,7 @@ class CScaleAxis : public CState
 {
 public:
     CScaleAxis() = delete;
+    EOperationMethod operationMethod() override final {return eOperationMethodScaleAxis;};
     CScaleAxis(CView* pView, EOperateAxis ax);
     ~CScaleAxis() {}
     void keyPress(COperation* pOp, EKeyCode key) override final;
@@ -151,6 +167,7 @@ class CTileBrush: public CState
 {
 public:
     CTileBrush() = delete;
+    EOperationMethod operationMethod() override final {return eOperationMethodTileBrush;};
     CTileBrush(CView* pView);
     ~CTileBrush() {}
     void keyPress(COperation* pOp, EKeyCode key) override;
@@ -163,6 +180,9 @@ public:
     void wheelEvent(COperation *pOp, QWheelEvent* pEvent) override final;
 private:
     QVector3D m_lastLandPos;
+    bool m_bDrawWater;
+    bool m_bDrawLand;
+    bool m_bEditLand;
 };
 
 #endif // COPERATIONMANAGER_H

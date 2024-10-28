@@ -22,6 +22,10 @@ public:
     void getSelectedTile(QVector<int>& arrSelIndex, int& rotNum);
     void setTileRotation(ushort rot);
     const int& tileRotation() {return m_tileRot;}
+    void setMaterial(const QVector<SMaterial>& arrMat);
+    void setAnimTile(const QVector<SAnimTile>& arrAnimTile);
+    const QVector<SAnimTile>& animTile() {return m_arrAnimTile;};
+    const QVector<SMaterial>& material() {return m_arrMaterial;};
 private:
     void resizeTable(float tilePercentage);
     QPixmap tileWithRot(int index, int rot);
@@ -33,6 +37,12 @@ signals:
 private slots:
     void on_tileScaleSlider_sliderMoved(int position);
     void onCellClicked(int row, int column);
+    void onSelectMaterial(int index);
+    void onSelectAnimTile(int index);
+
+    void on_toolButtonAddAnimTile_clicked();
+
+    void on_toolButtonAddMaterial_clicked();
 
 private:
     Ui::CTileForm *ui;
@@ -42,6 +52,8 @@ private:
     int m_originalTilesize;
     QVector<ETileType> m_tileTypes;
     int m_tileRot;
+    QVector<SMaterial> m_arrMaterial;
+    QVector<SAnimTile> m_arrAnimTile;
 };
 
 #endif // TILE_FORM_H

@@ -994,7 +994,7 @@ void CResourceStringList::initResourceString()
     m_tileType[ETileType::eField]     = "Field";
     m_tileType[ETileType::eWater]     = "Water";
     m_tileType[ETileType::eRoad]      = "Road";
-    m_tileType[ETileType::eEmpty]     = "Empty";
+    m_tileType[ETileType::eUndefined] = "Undefined";
     m_tileType[ETileType::eSnow]      = "Snow";
     m_tileType[ETileType::eIce]       = "Ice";
     m_tileType[ETileType::eDrygrass]  = "Drygrass";

@@ -89,6 +89,11 @@ bool CLandscape::serializeMpr(const QString& zoneName, CResFile& mprFile)
     util::formatStream(mpStream);
 
     //write map header data (*.mp)
+    m_aAnimTile = m_pPropForm->animTile();
+    m_aMaterial = m_pPropForm->material();
+
+    m_header.nAnimTile = m_aAnimTile.size();
+    m_header.nMaterial = m_aMaterial.size();
     mpStream << m_header;
     for(auto& mat: m_aMaterial)
     {
@@ -192,6 +197,8 @@ void CLandscape::readMap(const QFileInfo& path)
     m_pPropForm = new CTileForm();
     m_pPropForm->fillTable(path.baseName(), m_header.nTexture);
     m_pPropForm->setTileTypes(m_aTileTypes);
+    m_pPropForm->setMaterial(m_aMaterial);
+    m_pPropForm->setAnimTile(m_aAnimTile);
 }
 
 void CLandscape::saveMapAs(const QFileInfo& path)
@@ -272,7 +279,7 @@ void CLandscape::projectPosition(CNode* pNode)
     pNode->setDrawPosition(landPos);
 }
 
-void CLandscape::pickTile(QVector3D& point)
+void CLandscape::pickTile(QVector3D& point, bool bLand)
 {
     int xIndex = int(point.x()/32.0f);
     int yIndex = int(point.y()/32.0f);
@@ -280,20 +287,29 @@ void CLandscape::pickTile(QVector3D& point)
     int row, col;
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
     {
-        if(m_aSector[yIndex][xIndex]->pickTile(row, col, point))
+        if(m_aSector[yIndex][xIndex]->pickTile(row, col, point, bLand))
         {
-            const CLandTile& tile = m_aSector[yIndex][xIndex]->arrTile()[row][col];
-            m_pPropForm->selectTile(tile.tileIndex());
-            m_pPropForm->setTileRotation(tile.tileRotation());
+            if(bLand)
+            {
+                const CLandTile& tile = m_aSector[yIndex][xIndex]->arrTile()[row][col];
+                m_pPropForm->selectTile(tile.tileIndex());
+                m_pPropForm->setTileRotation(tile.tileRotation());
+            }
+            else
+            {
+                const CWaterTile& tile = m_aSector[yIndex][xIndex]->arrWater()[row][col];
+                m_pPropForm->selectTile(tile.tileIndex());
+                m_pPropForm->setTileRotation(tile.tileRotation());
+            }
         }
     }
 }
 
-void CLandscape::setTile(QVector3D& point)
+void CLandscape::setTile(QVector3D& point, bool bLand)
 {
     QVector<int> indSelected;
     int rot;
-    m_pPropForm->getSelectedTile(indSelected, rot);
+    m_pPropForm->getSelectedTile(indSelected, rot); //todo: get material index
     if(indSelected.isEmpty())
         return;
     int xIndex = int(point.x()/32.0f);
@@ -305,7 +321,7 @@ void CLandscape::setTile(QVector3D& point)
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
     {
         //m_aSector[yIndex][xIndex]->setTile(point, ind, rot);
-        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], rot);
+        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], rot, bLand, 0); // todo: material index
 
     }
 }

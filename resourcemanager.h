@@ -142,6 +142,8 @@ public:
     void operator=(CResourceStringList const&)  = delete;
     bool getPropList(QMap<uint, QString>& map, const EObjParam propType);
     const QMap<ETileType, QString>& tileTypes() {return m_tileType;}
+    const QMap<ETerrainType, QString>& materialType() {return m_materialType;}
+    const char* noLiquidIndexName() {return "-1 (No liquid)";}
 
 private:
     CResourceStringList();
@@ -152,6 +154,7 @@ private:
     static CResourceStringList* m_pResourceStringContainer;
     QMap<EObjParam, QMap<uint, QString>> m_propValueName;
     QMap<ETileType, QString> m_tileType;
+    QMap<ETerrainType, QString> m_materialType;
 };
 
 bool isDIfferent(const QString& value);

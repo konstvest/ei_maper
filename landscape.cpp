@@ -69,6 +69,7 @@ bool CLandscape::readHeader(QDataStream& stream)
         if(type > 15 || type < 0)
         {
             ei::log(eLogWarning, "incorrect tile type at index: " + QString::number(i));
+            m_arrIncorectTiles.append(i);
         }
         m_aTileTypes.append((ETileType)type);
     }
@@ -191,6 +192,10 @@ void CLandscape::readMap(const QFileInfo& path)
             CSector* sector = new CSector(secStream, m_header.maxZ, texCount);
             sector->setIndex(secIndex);
             xSec.append(sector);
+            if(sector->existsTileIndices(m_arrIncorectTiles))
+            {
+                qDebug() << "sector (" << x << "," << y << ")";
+            }
         }
         m_aSector.append(xSec);
     }
@@ -300,6 +305,7 @@ void CLandscape::pickTile(QVector3D& point, bool bLand)
                 const CWaterTile& tile = m_aSector[yIndex][xIndex]->arrWater()[row][col];
                 m_pPropForm->selectTile(tile.tileIndex());
                 m_pPropForm->setTileRotation(tile.tileRotation());
+                m_pPropForm->setActiveMatIndex(tile.materialIndex());
             }
         }
     }

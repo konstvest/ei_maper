@@ -141,7 +141,7 @@ public slots:
     void onParamChange(const QSharedPointer<IPropertyBase>& prop);
     void collectObjectTreeData();
     void onRestoreCursor();
-    void onChangeCursor(QPixmap ico);
+    void onChangeCursorTile(QPixmap ico);
 
     void execMobSwitch();
     void clearHistory();

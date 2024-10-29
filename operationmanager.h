@@ -182,7 +182,6 @@ private:
     QVector3D m_lastLandPos;
     bool m_bDrawWater;
     bool m_bDrawLand;
-    bool m_bEditLand;
 };
 
 #endif // COPERATIONMANAGER_H

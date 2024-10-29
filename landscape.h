@@ -90,6 +90,7 @@ private:
     QOpenGLTexture* m_texture;
     QFileInfo m_filePath;
     CTileForm* m_pPropForm;
+    QVector<int> m_arrIncorectTiles;
 };
 
 #endif // LANDSCAPE_H

@@ -41,6 +41,12 @@ enum EEditMode
     ,eCount
 };
 
+enum ETileEditMode
+{
+    eTileEditModeLand = 0
+    ,eTileEditModeWater
+};
+
 enum EOperationType
 {
     EOperationTypeObjects = 1
@@ -228,11 +234,8 @@ enum EWsType
 
 enum ETerrainType : quint8
 {
-    eTerrainBase = 0 // sector has only land tiles without water
-    , eTerrainDisableWater // example of usage?
-    , eTerrainGrass // example of usage?
-    , eTerrainWater // mark sector contains water
-    , eTerrainLast
+    eTerrainNoWater = 1 // ..001 ?
+    ,eTerrainWater = 3  // ..011 ?
 };
 
 

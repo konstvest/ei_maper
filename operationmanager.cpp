@@ -12,6 +12,7 @@
 #include "scene.h"
 #include "undo.h"
 #include "round_mob_form.h"
+#include "scene.h"
 
 void strToOperValue(QVector3D& vec, const EOperateAxis axis, const QString& value)
 {
@@ -1045,7 +1046,6 @@ CTileBrush::CTileBrush(CView* pView)
     :CState(pView)
     ,m_bDrawWater(true)
     ,m_bDrawLand(true)
-    ,m_bEditLand(true)
 {
     qDebug()<< "CTileBrush init ";
     CStatusConnector::getInstance()->updateStatus("brush.ico", "Esc - Cancel, LMB - draw selected tile. RMB - pick tile under cursor, Wheel - rotate tile");
@@ -1067,7 +1067,7 @@ void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
     }
     case eKey_T:
     { // change tile type editing (land/water)
-        m_bEditLand = !m_bEditLand;
+        CScene::getInstance()->switchTileEditMode();
         break;
     }
     case eKey_M:
@@ -1076,7 +1076,7 @@ void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
         m_pView->setDrawWater(m_bDrawWater);
         break;
     }
-    case eKey_N:
+    case eKey_J:
     {
         m_bDrawLand = !m_bDrawLand;
         m_pView->setDrawLand(m_bDrawLand);
@@ -1105,16 +1105,18 @@ void CTileBrush::mousePressEvent(COperation* pOp, QMouseEvent* pEvent)
 {
     Q_UNUSED(pOp);
     m_lastPos = pEvent->pos();
-    m_lastLandPos = m_pView->getTerrainPos(pEvent->x(), pEvent->y(), m_bEditLand);
+    bool bLand = CScene::getInstance()->isLandTileEditMode();
+    m_lastLandPos = m_pView->getTerrainPos(pEvent->x(), pEvent->y(), bLand);
+
     switch (pEvent->buttons()) {
     case Qt::LeftButton:
     {
-        m_pView->setTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), m_bEditLand), m_bEditLand);
+        m_pView->setTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
         break;
     }
     case Qt::RightButton:
     {
-        m_pView->pickTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), m_bEditLand), m_bEditLand);
+        m_pView->pickTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
         break;
     }
     }
@@ -1140,10 +1142,11 @@ void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
     }
     else if (pEvent->buttons() & Qt::LeftButton)
     {
+        bool bLand = CScene::getInstance()->isLandTileEditMode();
         QVector3D landPos(m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
         if(landPos.distanceToPoint(m_lastLandPos) > 1.5) // avoid re-brushing single tile of each movement.
         {
-            m_pView->setTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y()));
+            m_pView->setTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
             m_lastLandPos = landPos;
         }
 

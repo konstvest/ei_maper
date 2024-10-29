@@ -1,5 +1,6 @@
 #include <QStyledItemDelegate>
 #include <QPainter>
+#include <QKeyEvent>
 
 #include "tile_form.h"
 #include "ui_tile_form.h"
@@ -19,6 +20,14 @@ CTileForm::CTileForm(QWidget *parent) :
     connect(ui->tableTile, SIGNAL(cellClicked(int,int)), this, SLOT(onCellClicked(int,int)));
     connect(ui->comboMaterial, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectMaterial(int)));
     connect(ui->comboAnimTile, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectAnimTile(int)));
+    KeyPressEventFilter *filter = new KeyPressEventFilter(ui->tableTile);
+    connect(filter, SIGNAL(setQuick(int,int,int)), this, SLOT(onSetQuick(int,int,int)));
+    ui->tableTile->installEventFilter(filter);
+    ui->tableTile->verticalHeader()->setVisible(false);
+    ui->tableQuick->verticalHeader()->setVisible(false);
+    ui->tableQuick->setRowCount(1);
+    ui->tableQuick->setColumnCount(8);
+    ui->tabWidget->setCurrentIndex(0);
 }
 
 
@@ -44,6 +53,31 @@ void CTileForm::resizeTable(float tilePercentage)
             ++iIco;
         }
     }
+
+    ui->tableQuick->setRowHeight(0, scaledSize);
+    for(int col(0); col<m_nTilePerRow; ++col)
+       ui->tableQuick->setColumnWidth(col, scaledSize);
+
+    auto setNewTableSize = [](QTableWidget* pTable)
+    {
+        //pTable->resizeColumnsToContents();
+        //pTable->resizeRowsToContents();
+        int width = pTable->verticalHeader()->width() + pTable->frameWidth() * 2;
+        for (int i = 0; i < pTable->columnCount(); ++i) {
+            width += pTable->columnWidth(i);
+        }
+
+        int height = pTable->horizontalHeader()->height() + pTable->frameWidth() * 2;
+        for (int i = 0; i < pTable->rowCount(); ++i) {
+            height += pTable->rowHeight(i);
+        }
+
+        pTable->setFixedSize(width, height);
+
+    };
+
+    //setNewTableSize(ui->tableTile);
+    //setNewTableSize(ui->tableQuick);
 }
 
 QPixmap CTileForm::tileWithRot(int index, int rot)
@@ -54,7 +88,12 @@ QPixmap CTileForm::tileWithRot(int index, int rot)
 }
 
 // Кастомный делегат для отображения иконки во всю ячейку
-class IconDelegate : public QStyledItemDelegate {
+class IconDelegate : public QStyledItemDelegate
+{
+public:
+    ~IconDelegate()
+    {
+    }
 public:
     using QStyledItemDelegate::QStyledItemDelegate;
 
@@ -69,7 +108,7 @@ public:
         }
         if (option.state & QStyle::State_Selected) {
             // Настройка кисти и пера для рисования рамки
-            QPen pen(Qt::green, 4);  // Зеленая рамка толщиной 4 пикселя
+            QPen pen(Qt::green, 2);  // Зеленая рамка толщиной 4 пикселя
             painter->setPen(pen);
             painter->drawRect(option.rect);
         }
@@ -121,34 +160,40 @@ void CTileForm::fillTable(QString mapName, int textureAtlasNumber)
         }
     }
 
-    int scaledSize = m_originalTilesize*ui->tileScaleSlider->value()/100.0f;
+    //int scaledSize = m_originalTilesize*ui->tileScaleSlider->value()/100.0f;
     int iIco(0);
     for(int row(0); row<nRow; ++row)
     {
-        ui->tableTile->setRowHeight(row, scaledSize);
+        //ui->tableTile->setRowHeight(row, scaledSize);
         for(int col(0); col<m_nTilePerRow; ++col)
         {
-            ui->tableTile->setColumnWidth(col, scaledSize);
+            //ui->tableTile->setColumnWidth(col, scaledSize);
             QTableWidgetItem *item = new QTableWidgetItem;
-            QIcon scaledIco = m_icoList[iIco].pixmap(QSize(m_originalTilesize, m_originalTilesize)).scaled(scaledSize, scaledSize, Qt::KeepAspectRatio);
-            item->setIcon(scaledIco);
+            //QIcon scaledIco = m_icoList[iIco].pixmap(QSize(m_originalTilesize, m_originalTilesize)).scaled(scaledSize, scaledSize, Qt::KeepAspectRatio);
+            //item->setIcon(scaledIco);
+            item->setIcon(m_icoList[iIco]);
             item->setText(""); // Очищаем текст
             item->setTextAlignment(Qt::AlignCenter); // Центрируем иконку
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
             ui->tableTile->setItem(row, col, item);
             ++iIco;
         }
     }
 
     // Применяем кастомный делегат для столбца с иконками
-    IconDelegate *delegate = new IconDelegate(ui->tableTile);
+    //IconDelegate *delegate = new IconDelegate(ui->tableTile);
     for(int i(0); i<m_nTilePerRow; ++i)
-        ui->tableTile->setItemDelegateForColumn(i, delegate);
+    {
+        ui->tableTile->setItemDelegateForColumn(i, new IconDelegate(ui->tableTile));
+        ui->tableQuick->setItemDelegateForColumn(i, new IconDelegate(ui->tableQuick)); // table of quick items
+    }
     // Автоматическое изменение размера ячеек по содержимому
     //m_testTable->resizeColumnsToContents();
     //m_testTable->resizeRowsToContents();
 
     // Политика изменения размеров таблицы при изменении размеров окна
-    ui->tableTile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    //ui->tableTile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    resizeTable(float(ui->tileScaleSlider->value())/100.0f);
 }
 
 void CTileForm::selectTile(int index)
@@ -156,7 +201,13 @@ void CTileForm::selectTile(int index)
     int row = index/m_nTilePerRow;
     int column = index%m_nTilePerRow;
     ui->tableTile->setCurrentCell(row, column);
+    ui->comboTileType->setCurrentIndex(m_tileTypes[index]);
     emit onSelect(tileWithRot(index));
+}
+
+void CTileForm::setActiveMatIndex(int index)
+{
+    ui->comboActiveLiquidMaterial->setCurrentText(index == -1 ? (CResourceStringList::getInstance()->noLiquidIndexName()) : QString::number(index));
 }
 
 void CTileForm::getSelectedTile(QVector<int>& arrSelIndex, int& rotNum)
@@ -186,10 +237,15 @@ void CTileForm::setMaterial(const QVector<SMaterial>& arrMat)
 {
     m_arrMaterial = arrMat;
     ui->comboMaterial->clear();
+    ui->comboActiveLiquidMaterial->clear();
     for(int i(0); i<m_arrMaterial.size(); ++i)
     {
-        ui->comboMaterial->addItem("Material " + QString::number(i));
+        ui->comboMaterial->addItem(QString::number(i));
+        ui->comboActiveLiquidMaterial->addItem(QString::number(i));
     }
+    ui->comboActiveLiquidMaterial->insertItem(0, CResourceStringList::getInstance()->noLiquidIndexName());
+    if(ui->comboActiveLiquidMaterial->count() > 1)
+        ui->comboActiveLiquidMaterial->setCurrentText("0");
 }
 
 void CTileForm::setAnimTile(const QVector<SAnimTile>& arrAnimTile)
@@ -198,7 +254,7 @@ void CTileForm::setAnimTile(const QVector<SAnimTile>& arrAnimTile)
     ui->comboAnimTile->clear();
     for(int i(0); i<m_arrAnimTile.size(); ++i)
     {
-        ui->comboAnimTile->addItem("Anim tile " + QString::number(i));
+        ui->comboAnimTile->addItem(QString::number(i));
     }
 }
 
@@ -228,18 +284,26 @@ void CTileForm::onSelectMaterial(int index)
     pal.setColor(QPalette::Button, color);
     ui->toolButtonColor->setAutoFillBackground(true);
     ui->toolButtonColor->setPalette(pal);
-    ui->lineEdit->setText(QString::number(mat.A));
-    ui->lineEdit_2->setText(QString::number(mat.selfIllumination));
-    ui->lineEdit_3->setText(QString::number(mat.waveMultiplier));
-    ui->lineEdit_4->setText(QString::number(mat.warpSpeed));
-    ui->lineEdit_7->setText(QString::number(mat.type));
+    ui->sliderOpacity->setValue(mat.A*100); // set opacity in percentage (0->100%)
+    ui->sliderIllumination->setValue(mat.selfIllumination*100);
+    ui->sliderWaveMultiplier->setValue(mat.waveMultiplier*100);
+    ui->sliderWarpSpeed->setValue(mat.warpSpeed*100);
+    ui->comboMaterialType->clear();
+    ui->comboMaterialType->addItems(CResourceStringList::getInstance()->materialType().values());
+    ui->comboMaterialType->setCurrentText(CResourceStringList::getInstance()->materialType()[mat.type]);
 }
 
 void CTileForm::onSelectAnimTile(int index)
 {
     const SAnimTile& anmTile = m_arrAnimTile[index];
-    ui->lineEdit_5->setText(QString::number(anmTile.tileIndex));
-    ui->lineEdit_6->setText(QString::number(anmTile.nPhase));
+    ui->lineEditAnimTileIndex->setText(QString::number(anmTile.tileIndex));
+    ui->lineEditAnimTilePhaseN->setText(QString::number(anmTile.nPhase));
+}
+
+void CTileForm::onSetQuick(int ind, int row, int col)
+{
+    int textureInd = col + m_nTilePerRow * row;
+    qDebug() << textureInd;
 }
 
 
@@ -252,5 +316,20 @@ void CTileForm::on_toolButtonAddAnimTile_clicked()
 void CTileForm::on_toolButtonAddMaterial_clicked()
 {
     m_arrMaterial[0].A = 0.1;
+}
+
+
+void CTileForm::on_toolButton_clicked()
+{
+    int index = ui->lineEditAnimTileIndex->text().toInt();
+    int count = ui->lineEditAnimTilePhaseN->text().toInt();
+    int row = index/m_nTilePerRow;
+    int col = index%m_nTilePerRow;
+
+    ui->tabWidget->setCurrentIndex(0);
+    QTableWidgetSelectionRange range(row, col, (index+count-1)/m_nTilePerRow, (index+count-1)%m_nTilePerRow);
+    ui->tableTile->clearSelection();
+    ui->tableTile->setRangeSelected(range, true);
+    ui->tableTile->scrollToItem(ui->tableTile->item(row, col));
 }
 

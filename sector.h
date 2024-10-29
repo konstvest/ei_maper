@@ -104,7 +104,7 @@ public:
     ~CWaterTile();
     int tileIndex() const override;
     void setMaterialIndex(short matIndex) {m_materialIndex = matIndex;}
-    short materialIndex() {return m_materialIndex;}
+    short materialIndex() const {return m_materialIndex;}
 private:
     short m_materialIndex;
 };
@@ -128,6 +128,7 @@ public:
     void setTile(QVector3D& point, int index, int rotNum, bool bLand = true, int matIndex = 0);
     const QVector<QVector<CLandTile>>& arrTile() {return m_arrLand;};
     const QVector<QVector<CWaterTile>>& arrWater() {return m_arrWater;};
+    bool existsTileIndices(const QVector<int>& arrInd); // function for find incorrect\coorrupt tile indices
 
 private:
     void updatePosition();

@@ -289,7 +289,7 @@ void CView::loadLandscape(const QFileInfo& filePath)
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
     m_lastModifiedLand = filePath.lastModified();
-    connect(CLandscape::getInstance()->tileForm(), SIGNAL(onSelect(QPixmap)), this, SLOT(onChangeCursor(QPixmap)));
+    connect(CLandscape::getInstance()->tileForm(), SIGNAL(onSelect(QPixmap)), this, SLOT(onChangeCursorTile(QPixmap)));
     COptInt* pOpt = dynamic_cast<COptInt*>(settings()->opt("landCheckTime"));
     if (pOpt and pOpt->value() != 0)
     {
@@ -300,6 +300,9 @@ void CView::loadLandscape(const QFileInfo& filePath)
 
 void CView::unloadLand()
 {
+    if(!CLandscape::getInstance()->isMprLoad())
+        return;
+
     m_mprModifyTimer->stop();
     CLandscape::getInstance()->unloadMpr();
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, "");
@@ -691,7 +694,7 @@ void CView::checkOpenGlError()
     }
 }
 
-void CView::onChangeCursor(QPixmap ico)
+void CView::onChangeCursorTile(QPixmap ico)
 {
     if(m_pOp->operationMethod() != eOperationMethodTileBrush)
         return;
@@ -703,7 +706,7 @@ void CView::onChangeCursor(QPixmap ico)
     painter.setRenderHint(QPainter::Antialiasing);
 
     // Устанавливаем цвет и толщину пера для стрелки
-    QPen pen(Qt::red);
+    QPen pen(CScene::getInstance()->isLandTileEditMode() ? Qt::red : Qt::green);
     pen.setWidth(2);
     painter.setPen(pen);
 
@@ -939,6 +942,9 @@ void CView::openActiveMobEditParams()
 
 void CView::unloadMob(QString mobName)
 {
+    if(m_aMob.isEmpty())
+        return;
+
     ei::log(eLogInfo, "unloading mob " + mobName);
     CMob* pMob = nullptr;
     if(mobName.isEmpty())
@@ -1726,6 +1732,9 @@ void CView::operationApply(EOperationAxisType operationType)
 
 void CView::moveTo(QVector3D &dir)
 {
+    if(nullptr == m_activeMob)
+        return;
+
     QVector3D pos;
     for (auto& node : CScene::getInstance()->getMode() == eEditModeLogic ? m_activeMob->logicNodes() : m_activeMob->nodes())
     {
@@ -1782,6 +1791,9 @@ void CView::rotateTo(QVector3D &rot)
 
 void CView::scaleTo(QVector3D &scale)
 {
+    if(nullptr == m_activeMob)
+        return;
+
     QVector3D constitution;
     for (auto& node : m_activeMob->nodes())
     {

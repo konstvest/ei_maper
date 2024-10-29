@@ -609,6 +609,21 @@ void CSector::setTile(QVector3D& point, int index, int rotNum, bool bLand, int m
     updatePosition(); //todo
 }
 
+bool CSector::existsTileIndices(const QVector<int>& arrInd)
+{
+    bool bRes = false;
+    for(int row(0); row<m_arrLand.size(); ++row)
+        for(int col(0); col<m_arrLand[row].size(); ++col)
+        {
+            if(arrInd.contains(m_arrLand[row][col].tileIndex()))
+            {
+                qDebug() << "tile row: " << row << " col: " << col << " has invalid index of tile:" << m_arrLand[row][col].tileIndex();
+                bRes = true;
+            }
+        }
+    return bRes;
+}
+
 STile::STile(ushort packedData)
 {
     m_index = packedData & 63; //first 6 bits

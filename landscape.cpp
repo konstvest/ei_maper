@@ -327,7 +327,7 @@ void CLandscape::setTile(QVector3D& point, bool bLand)
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
     {
         //m_aSector[yIndex][xIndex]->setTile(point, ind, rot);
-        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], rot, bLand, 0); // todo: material index
+        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], rot, bLand, m_pPropForm->activeMaterialindex()); // todo: material index
 
     }
 }

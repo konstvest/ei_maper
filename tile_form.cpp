@@ -205,6 +205,14 @@ void CTileForm::selectTile(int index)
     emit onSelect(tileWithRot(index));
 }
 
+int CTileForm::activeMaterialindex()
+{
+    QString index = ui->comboActiveLiquidMaterial->currentText();
+    if(index.contains("-1"))
+        return -1;
+    return index.toInt();
+}
+
 void CTileForm::setActiveMatIndex(int index)
 {
     ui->comboActiveLiquidMaterial->setCurrentText(index == -1 ? (CResourceStringList::getInstance()->noLiquidIndexName()) : QString::number(index));

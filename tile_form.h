@@ -54,6 +54,7 @@ public:
     void fillTable(QString mapName, int textureAtlasNumber);
     void setTileTypes(const QVector<ETileType>& arrTileType) {m_tileTypes = arrTileType;}
     void selectTile(int index);
+    int activeMaterialindex();
     void setActiveMatIndex(int index);
     void getSelectedTile(QVector<int>& arrSelIndex, int& rotNum);
     void setTileRotation(ushort rot);

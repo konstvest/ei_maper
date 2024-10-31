@@ -331,13 +331,19 @@ void CTileForm::on_toolButton_clicked()
 {
     int index = ui->lineEditAnimTileIndex->text().toInt();
     int count = ui->lineEditAnimTilePhaseN->text().toInt();
+    if(count == 0)
+        return;
     int row = index/m_nTilePerRow;
     int col = index%m_nTilePerRow;
 
     ui->tabWidget->setCurrentIndex(0);
-    QTableWidgetSelectionRange range(row, col, (index+count-1)/m_nTilePerRow, (index+count-1)%m_nTilePerRow);
     ui->tableTile->clearSelection();
-    ui->tableTile->setRangeSelected(range, true);
+    for(int i(0); i<count; ++i)
+    {
+        int cRow = (index+i)/m_nTilePerRow;
+        int cCol = (index+i)%m_nTilePerRow;
+        ui->tableTile->item(cRow, cCol)->setSelected(true);
+    }
     ui->tableTile->scrollToItem(ui->tableTile->item(row, col));
 }
 

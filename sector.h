@@ -76,7 +76,8 @@ public:
     virtual ~CLandTile();
     void resetVertices(QVector<SSecVertex>& arrVertex);
     void generateDrawVertexData(QVector<SVertexData>& outData, int& curIndex);
-    bool pick(const QVector3D& point);
+    bool isProjectPoint(QVector3D& outPoint);
+    bool isProjectTile(QVector3D& outPoint);
     virtual int tileIndex() const;
     ushort tileRotation() const {return m_rotNum;}
     void setTile(int index, int rotNum);

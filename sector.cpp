@@ -482,7 +482,7 @@ bool CSector::pickTile(int& outRow, int& outCol, QVector3D& point, bool bLand)
         for(int row(0); row<m_arrLand.size(); ++row)
             for(int col(0); col<m_arrLand[row].size(); ++col)
             {
-                if(m_arrLand[row][col].pick(point))
+                if(m_arrLand[row][col].isProjectTile(point))
                 {
                     outRow = row;
                     outCol = col;
@@ -495,7 +495,7 @@ bool CSector::pickTile(int& outRow, int& outCol, QVector3D& point, bool bLand)
         for(int row(0); row<m_arrWater.size(); ++row)
             for(int col(0); col<m_arrWater[row].size(); ++col)
             {
-                if(m_arrLand[row][col].pick(point))
+                if(m_arrLand[row][col].isProjectPoint(point))
                 {
                     outRow = row;
                     outCol = col;
@@ -565,27 +565,17 @@ void CSector::drawWater(QOpenGLShaderProgram *program)
 
 bool CSector::projectPt(QVector3D& point)
 {
-    QVector3D origin(point.x()-m_index.x*32.0f, point.y()-m_index.y*32.0f, 0.0f);
-    float u,v,t;
-    QVector3D dir(0.0f, 0.0f, 1.0f);
-    //find suitable vertex data cut for projection, don't need to process all vertices
-    float dif=0.0f;
-    for(int i(0); i < m_arrLandVrtData.size(); i+=4)
-    {
-        dif = origin.x() - m_arrLandVrtData[i].position.x();
-        if (dif < -1.0f || dif > 2.0f)
-            continue;
-        dif = origin.y() - m_arrLandVrtData[i].position.y();
-        if (dif < -1.0f || dif > 2.0f)
-            continue;
+    QVector3D origin(point.x()-m_index.x*32.0f, point.y()-m_index.y*32.0f, 0.0f); // point in sector local coords
 
-        if (util::ptToTriangle(t, u, v, origin, dir, m_arrLandVrtData[i].position, m_arrLandVrtData[i+1].position, m_arrLandVrtData[i+3].position)
-                || util::ptToTriangle(t, u, v, origin, dir, m_arrLandVrtData[i+3].position, m_arrLandVrtData[i+1].position, m_arrLandVrtData[i+2].position))
+    for(int row(0); row<m_arrLand.size(); ++row)
+        for(int col(0); col<m_arrLand[row].size(); ++col)
         {
-            point = QVector3D(point.x(), point.y(), point.z() + t);
-            return true;
+            if(m_arrLand[row][col].isProjectPoint(origin))
+            {
+                point.setZ(point.z() + origin.z());
+                return true;
+            }
         }
-    }
 
     return false;
 }
@@ -761,7 +751,29 @@ void CLandTile::generateDrawVertexData(QVector<SVertexData>& outData, int& curIn
 
 }
 
-bool CLandTile::pick(const QVector3D& origin)
+bool CLandTile::isProjectPoint(QVector3D& outPoint)
+{
+    float u,v,t;
+    QVector3D dir(0.0f, 0.0f, 1.0f);
+    QVector<int> arrTriangleId = {0, 1, 3, 3, 1, 4, 1, 2, 4, 4, 2, 5, 3, 4, 6, 6, 4, 7, 4, 5, 7, 7, 5, 8};
+    QVector3D pt1;
+    QVector3D pt2;
+    QVector3D pt3;
+    for(int i(0); i<arrTriangleId.size(); i+=3)
+    {
+        pt1 = pos(arrTriangleId[(i+0)]/3, arrTriangleId[(i+0)]%3);
+        pt2 = pos(arrTriangleId[(i+1)]/3, arrTriangleId[(i+1)]%3);
+        pt3 = pos(arrTriangleId[(i+2)]/3, arrTriangleId[(i+2)]%3);
+        if (util::ptToTriangle(t, u, v, outPoint, dir, pt1, pt2, pt3))
+        {
+            outPoint.setZ(outPoint.z() + t);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CLandTile::isProjectTile(QVector3D& outPoint)
 {
     float u,v,t;
     QVector3D dir(0.0f, 0.0f, 1.0f);
@@ -772,10 +784,10 @@ bool CLandTile::pick(const QVector3D& origin)
     QVector3D pt3(pos(2, 0));
     QVector3D pt4(pos(2, 2));
 
-    if (util::ptToTriangle(t, u, v, origin, dir, pt1, pt2, pt3) ||
-        util::ptToTriangle(t, u, v, origin, dir, pt3, pt2, pt4))
+    if (util::ptToTriangle(t, u, v, outPoint, dir, pt1, pt2, pt3) ||
+        util::ptToTriangle(t, u, v, outPoint, dir, pt3, pt2, pt4))
     {
-        //qDebug() << m_index;
+        outPoint.setZ(outPoint.z() + t);
         return true;
     }
 

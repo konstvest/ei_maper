@@ -309,6 +309,13 @@ void CView::unloadLand()
     ei::log(eLogInfo, "Landscape unloaded");
 }
 
+void CView::saveLand()
+{
+    auto pLand = CLandscape::getInstance();
+    if(pLand->isMprLoad())
+        pLand->save();
+}
+
 void CView::saveLandAs()
 {
     if(!CLandscape::getInstance()->isMprLoad())
@@ -741,6 +748,7 @@ void CView::onChangeCursorTile(QPixmap ico)
 
 void CView::checkNewLandVersion()
 {
+    return; //todo: set option to auto-check changes in mpr. Dont re-upload when save by ourselfes
     // Dont use QFileSystemWatcher because it spams signals several time for 1 MapEd save
     QFileInfo landPath(CLandscape::getInstance()->filePath());
     landPath.refresh();

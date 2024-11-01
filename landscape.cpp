@@ -206,6 +206,11 @@ void CLandscape::readMap(const QFileInfo& path)
     m_pPropForm->setAnimTile(m_aAnimTile);
 }
 
+void CLandscape::save()
+{
+    saveMapAs(m_filePath);
+}
+
 void CLandscape::saveMapAs(const QFileInfo& path)
 {
     // TODO: check if source texture has correct textureSize and tileSize with map header

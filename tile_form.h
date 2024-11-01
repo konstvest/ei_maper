@@ -67,6 +67,9 @@ private:
     void resizeTable(float tilePercentage);
     QPixmap tileWithRot(int index, int rot);
     QPixmap tileWithRot(int index) {return tileWithRot(index, m_tileRot);};
+    void updateMaterialData();
+    void updateAnimTileData();
+    bool isGetMaterial(SMaterial& mat);
 
 signals:
     void onSelect(QPixmap);
@@ -77,12 +80,23 @@ private slots:
     void onSelectMaterial(int index);
     void onSelectAnimTile(int index);
     void onSetQuick(int ind, int row, int col);
+    void onSelectMaterialType(int index);
 
     void on_toolButtonAddAnimTile_clicked();
-
     void on_toolButtonAddMaterial_clicked();
+    void on_buttonOnAnimTileShow_clicked();
+    void on_toolButtonDelMaterial_clicked();
+    void on_toolButtonDelAnimTile_clicked();
 
-    void on_toolButton_clicked();
+    void on_comboMaterialType_currentIndexChanged(int index);
+
+    void on_sliderOpacity_sliderReleased();
+
+    void on_sliderIllumination_sliderReleased();
+
+    void on_sliderWaveMultiplier_sliderReleased();
+
+    void on_sliderWarpSpeed_sliderReleased();
 
 private:
     Ui::CTileForm *ui;

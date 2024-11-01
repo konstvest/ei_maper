@@ -51,6 +51,7 @@ public:
 
     void loadLandscape(const QFileInfo& filePath);
     void unloadLand();
+    void saveLand();
     void saveLandAs();
     void loadMob(QFileInfo& filePath);
     void saveMobAs();

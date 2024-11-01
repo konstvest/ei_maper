@@ -87,6 +87,42 @@ QPixmap CTileForm::tileWithRot(int index, int rot)
     return m_icoList[index].pixmap(QSize(32, 32)).transformed(transform);
 }
 
+void CTileForm::updateMaterialData()
+{
+    ui->comboMaterialType->blockSignals(true); // block backward updating material data from ui
+
+    ui->comboMaterial->clear();
+    ui->comboActiveLiquidMaterial->clear();
+    for(int i(0); i<m_arrMaterial.size(); ++i)
+    {
+        ui->comboMaterial->addItem(QString::number(i));
+        ui->comboActiveLiquidMaterial->addItem(QString::number(i));
+    }
+    ui->comboActiveLiquidMaterial->insertItem(0, CResourceStringList::getInstance()->noLiquidIndexName());
+    if(ui->comboActiveLiquidMaterial->count() > 1)
+        ui->comboActiveLiquidMaterial->setCurrentText("0");
+
+    ui->comboMaterialType->blockSignals(false);
+}
+
+void CTileForm::updateAnimTileData()
+{
+    ui->comboAnimTile->clear();
+    for(int i(0); i<m_arrAnimTile.size(); ++i)
+    {
+        ui->comboAnimTile->addItem(QString::number(i));
+    }
+}
+
+bool CTileForm::isGetMaterial(SMaterial& mat)
+{
+    if(ui->comboMaterial->count() == 0)
+        return false;
+
+    mat = m_arrMaterial[ui->comboMaterial->currentIndex()];
+    return true;
+}
+
 // Кастомный делегат для отображения иконки во всю ячейку
 class IconDelegate : public QStyledItemDelegate
 {
@@ -244,29 +280,14 @@ void CTileForm::setTileRotation(ushort rot)
 void CTileForm::setMaterial(const QVector<SMaterial>& arrMat)
 {
     m_arrMaterial = arrMat;
-    ui->comboMaterial->clear();
-    ui->comboActiveLiquidMaterial->clear();
-    for(int i(0); i<m_arrMaterial.size(); ++i)
-    {
-        ui->comboMaterial->addItem(QString::number(i));
-        ui->comboActiveLiquidMaterial->addItem(QString::number(i));
-    }
-    ui->comboActiveLiquidMaterial->insertItem(0, CResourceStringList::getInstance()->noLiquidIndexName());
-    if(ui->comboActiveLiquidMaterial->count() > 1)
-        ui->comboActiveLiquidMaterial->setCurrentText("0");
+    updateMaterialData();
 }
 
 void CTileForm::setAnimTile(const QVector<SAnimTile>& arrAnimTile)
 {
     m_arrAnimTile = arrAnimTile;
-    ui->comboAnimTile->clear();
-    for(int i(0); i<m_arrAnimTile.size(); ++i)
-    {
-        ui->comboAnimTile->addItem(QString::number(i));
-    }
+    updateAnimTileData();
 }
-
-
 
 void CTileForm::on_tileScaleSlider_sliderMoved(int position)
 {
@@ -283,6 +304,9 @@ void CTileForm::onCellClicked(int row, int column)
 
 void CTileForm::onSelectMaterial(int index)
 {
+    if(index == -1)
+        return; // avoid select invalid material after cleaning combobox
+
     const SMaterial& mat = m_arrMaterial[index];
     QColor color;
     color.setRedF(mat.R);
@@ -296,13 +320,18 @@ void CTileForm::onSelectMaterial(int index)
     ui->sliderIllumination->setValue(mat.selfIllumination*100);
     ui->sliderWaveMultiplier->setValue(mat.waveMultiplier*100);
     ui->sliderWarpSpeed->setValue(mat.warpSpeed*100);
+    ui->comboMaterialType->blockSignals(true);
     ui->comboMaterialType->clear();
     ui->comboMaterialType->addItems(CResourceStringList::getInstance()->materialType().values());
     ui->comboMaterialType->setCurrentText(CResourceStringList::getInstance()->materialType()[mat.type]);
+    ui->comboMaterialType->blockSignals(false);
 }
 
 void CTileForm::onSelectAnimTile(int index)
 {
+    if(index == -1)
+        return; // avoid select invalid anim tile after cleaning combobox
+
     const SAnimTile& anmTile = m_arrAnimTile[index];
     ui->lineEditAnimTileIndex->setText(QString::number(anmTile.tileIndex));
     ui->lineEditAnimTilePhaseN->setText(QString::number(anmTile.nPhase));
@@ -314,20 +343,30 @@ void CTileForm::onSetQuick(int ind, int row, int col)
     qDebug() << textureInd;
 }
 
+void CTileForm::onSelectMaterialType(int index)
+{
+    Q_UNUSED(index);
+    qDebug() << ui->comboMaterialType->currentText();
+}
+
 
 void CTileForm::on_toolButtonAddAnimTile_clicked()
 {
-    m_arrAnimTile.append(SAnimTile{8, 4});
+    m_arrAnimTile.append(SAnimTile{0, 0});
+    updateAnimTileData();
+    ui->comboAnimTile->setCurrentIndex(ui->comboAnimTile->count()-1);
 }
 
 
 void CTileForm::on_toolButtonAddMaterial_clicked()
 {
-    m_arrMaterial[0].A = 0.1;
+    m_arrMaterial.append(SMaterial{ETerrainType::eTerrainWater, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,0.0f,0.0f});
+    updateMaterialData();
+    ui->comboMaterial->setCurrentIndex(ui->comboMaterial->count()-1);
 }
 
 
-void CTileForm::on_toolButton_clicked()
+void CTileForm::on_buttonOnAnimTileShow_clicked()
 {
     int index = ui->lineEditAnimTileIndex->text().toInt();
     int count = ui->lineEditAnimTilePhaseN->text().toInt();
@@ -345,5 +384,71 @@ void CTileForm::on_toolButton_clicked()
         ui->tableTile->item(cRow, cCol)->setSelected(true);
     }
     ui->tableTile->scrollToItem(ui->tableTile->item(row, col));
+}
+
+
+void CTileForm::on_toolButtonDelMaterial_clicked()
+{
+    if(ui->comboMaterial->count() == 0)
+        return;
+
+    m_arrMaterial.removeAt(ui->comboMaterial->currentIndex());
+    updateMaterialData();
+}
+
+
+void CTileForm::on_toolButtonDelAnimTile_clicked()
+{
+    if(ui->comboAnimTile->count() == 0)
+        return;
+
+    m_arrAnimTile.removeAt(ui->comboAnimTile->currentIndex());
+    updateAnimTileData();
+}
+
+
+void CTileForm::on_comboMaterialType_currentIndexChanged(int index)
+{
+    Q_UNUSED(index);
+    if(ui->comboMaterial->count() == 0)
+        return;
+
+    m_arrMaterial[ui->comboMaterial->currentIndex()].type = CResourceStringList::getInstance()->materialType().key(ui->comboMaterialType->currentText());
+}
+
+
+void CTileForm::on_sliderOpacity_sliderReleased()
+{
+    if(ui->comboMaterial->count() == 0)
+        return;
+
+    m_arrMaterial[ui->comboMaterial->currentIndex()].A = ui->sliderOpacity->value()/100.0f;
+}
+
+
+void CTileForm::on_sliderIllumination_sliderReleased()
+{
+    if(ui->comboMaterial->count() == 0)
+        return;
+
+    m_arrMaterial[ui->comboMaterial->currentIndex()].selfIllumination = ui->sliderIllumination->value()/100.0f;
+}
+
+
+void CTileForm::on_sliderWaveMultiplier_sliderReleased()
+{
+    if(ui->comboMaterial->count() == 0)
+        return;
+
+    m_arrMaterial[ui->comboMaterial->currentIndex()].waveMultiplier = ui->sliderWaveMultiplier->value()/100.0f;
+}
+
+
+void CTileForm::on_sliderWarpSpeed_sliderReleased()
+{
+    if(ui->comboMaterial->count() == 0)
+        return;
+
+    m_arrMaterial[ui->comboMaterial->currentIndex()].warpSpeed = ui->sliderWarpSpeed->value()/100.0f;
 }
 

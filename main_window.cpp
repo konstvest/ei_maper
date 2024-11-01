@@ -481,3 +481,9 @@ void MainWindow::on_tileBrushButton_clicked()
     CButtonConnector::getInstance()->clickButton(EButtonOpTilebrush);
 }
 
+
+void MainWindow::on_actionSave_landscape_MPR_triggered()
+{
+    m_pView->saveLand();
+}
+

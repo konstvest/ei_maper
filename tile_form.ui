@@ -336,7 +336,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QToolButton" name="toolButton">
+              <widget class="QToolButton" name="buttonOnAnimTileShow">
                <property name="minimumSize">
                 <size>
                  <width>22</width>
@@ -366,7 +366,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="label_8">
              <property name="text">
-              <string>Index</string>
+              <string>Start tile index</string>
              </property>
             </widget>
            </item>

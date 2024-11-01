@@ -86,6 +86,8 @@ private slots:
 
     void on_tileBrushButton_clicked();
 
+    void on_actionSave_landscape_MPR_triggered();
+
 protected:
     void closeEvent(QCloseEvent* e);
 

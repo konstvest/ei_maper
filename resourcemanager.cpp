@@ -1003,8 +1003,8 @@ void CResourceStringList::initResourceString()
     m_tileType[ETileType::eSwamp]     = "Swamp";
     m_tileType[ETileType::eHighrock]  = "Highrock";
 
-    m_materialType[ETerrainType::eTerrainNoWater] = "Liquid (Water) disabled";
-    m_materialType[ETerrainType::eTerrainWater] = "Liquid (Water)";
+    m_materialType[ETerrainType::eTerrainNoWater] = "Liquid type 1";
+    m_materialType[ETerrainType::eTerrainWater] = "Liquid type 3";
 
 }
 

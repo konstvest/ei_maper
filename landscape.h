@@ -60,6 +60,7 @@ public:
     bool isMprLoad() {return !m_aSector.isEmpty();}
     void unloadMpr();
     void readMap(const QFileInfo& path);
+    void save();
     void saveMapAs(const QFileInfo& path);
     void draw(QOpenGLShaderProgram* program);
     void drawWater(QOpenGLShaderProgram* program);

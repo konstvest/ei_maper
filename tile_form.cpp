@@ -7,6 +7,8 @@
 #include "resourcemanager.h"
 #include "log.h"
 
+#include "layout_components/tablemanager.h"
+
 CTileForm::CTileForm(QWidget *parent) :
     QWidget(parent)
    ,ui(new Ui::CTileForm)
@@ -28,6 +30,21 @@ CTileForm::CTileForm(QWidget *parent) :
     ui->tableQuick->setRowCount(1);
     ui->tableQuick->setColumnCount(8);
     ui->tabWidget->setCurrentIndex(0);
+
+    QSharedPointer<IPropertyBase> prop;
+    prop.reset(new prop3D(EObjParam::eObjParamUnknow));
+    m_pColorButton.reset(new CColorButtonItem(prop));
+    connect(m_pColorButton.get(), SIGNAL(onColorChange(QSharedPointer<IPropertyBase>)), this, SLOT(onColorSelect(QSharedPointer<IPropertyBase>)));
+
+    ui->formLayout->setWidget(2, QFormLayout::FieldRole, m_pColorButton.get());
+
+    prop.reset(new propUint(EObjParam::eObjParamUnknow));
+    m_pIndexText.reset(new CValueItem(prop));
+    ui->formLayout_2->setWidget(1, QFormLayout::FieldRole, m_pIndexText.get());
+    connect(m_pIndexText.get(), SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onIndexSet(QSharedPointer<IPropertyBase>)));
+    m_pPhaseNumText.reset(new CValueItem(prop));
+    ui->formLayout_2->setWidget(2, QFormLayout::FieldRole, m_pPhaseNumText.get());
+    connect(m_pPhaseNumText.get(), SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onPhaseNumSet(QSharedPointer<IPropertyBase>)));
 }
 
 
@@ -308,14 +325,6 @@ void CTileForm::onSelectMaterial(int index)
         return; // avoid select invalid material after cleaning combobox
 
     const SMaterial& mat = m_arrMaterial[index];
-    QColor color;
-    color.setRedF(mat.R);
-    color.setGreenF(mat.G);
-    color.setBlueF(mat.B);
-    QPalette pal = palette();
-    pal.setColor(QPalette::Button, color);
-    ui->toolButtonColor->setAutoFillBackground(true);
-    ui->toolButtonColor->setPalette(pal);
     ui->sliderOpacity->setValue(mat.A*100); // set opacity in percentage (0->100%)
     ui->sliderIllumination->setValue(mat.selfIllumination*100);
     ui->sliderWaveMultiplier->setValue(mat.waveMultiplier*100);
@@ -324,6 +333,8 @@ void CTileForm::onSelectMaterial(int index)
     ui->comboMaterialType->clear();
     ui->comboMaterialType->addItems(CResourceStringList::getInstance()->materialType().values());
     ui->comboMaterialType->setCurrentText(CResourceStringList::getInstance()->materialType()[mat.type]);
+    QVector3D clr(mat.R, mat.G, mat.B);
+    m_pColorButton->renewColor(clr);
     ui->comboMaterialType->blockSignals(false);
 }
 
@@ -333,8 +344,8 @@ void CTileForm::onSelectAnimTile(int index)
         return; // avoid select invalid anim tile after cleaning combobox
 
     const SAnimTile& anmTile = m_arrAnimTile[index];
-    ui->lineEditAnimTileIndex->setText(QString::number(anmTile.tileIndex));
-    ui->lineEditAnimTilePhaseN->setText(QString::number(anmTile.nPhase));
+    m_pIndexText->renewValue(QString::number(anmTile.tileIndex));
+    m_pPhaseNumText->renewValue(QString::number(anmTile.nPhase));
 }
 
 void CTileForm::onSetQuick(int ind, int row, int col)
@@ -347,6 +358,38 @@ void CTileForm::onSelectMaterialType(int index)
 {
     Q_UNUSED(index);
     qDebug() << ui->comboMaterialType->currentText();
+}
+
+void CTileForm::onColorSelect(QSharedPointer<IPropertyBase> prop)
+{
+    if(ui->comboMaterial->count() == 0)
+        return;
+
+    SMaterial& mat = m_arrMaterial[ui->comboMaterial->currentIndex()];
+    const auto& clr = dynamic_cast<prop3D*>(prop.get())->value();
+    mat.R = clr.x();
+    mat.G = clr.y();
+    mat.B = clr.z();
+}
+
+void CTileForm::onIndexSet(QSharedPointer<IPropertyBase> prop)
+{
+    if(ui->comboAnimTile->count() == 0)
+        return;
+
+    SAnimTile& tile = m_arrAnimTile[ui->comboAnimTile->currentIndex()];
+    const auto& value = dynamic_cast<propUint*>(prop.get())->value();
+    tile.tileIndex = value;
+}
+
+void CTileForm::onPhaseNumSet(QSharedPointer<IPropertyBase> prop)
+{
+    if(ui->comboAnimTile->count() == 0)
+        return;
+
+    SAnimTile& tile = m_arrAnimTile[ui->comboAnimTile->currentIndex()];
+    const auto& value = dynamic_cast<propUint*>(prop.get())->value();
+    tile.nPhase = value;
 }
 
 
@@ -368,8 +411,8 @@ void CTileForm::on_toolButtonAddMaterial_clicked()
 
 void CTileForm::on_buttonOnAnimTileShow_clicked()
 {
-    int index = ui->lineEditAnimTileIndex->text().toInt();
-    int count = ui->lineEditAnimTilePhaseN->text().toInt();
+    int index = dynamic_cast<const propUint*>(m_pIndexText->value().get())->value();
+    int count = dynamic_cast<const propUint*>(m_pPhaseNumText->value().get())->value();
     if(count == 0)
         return;
     int row = index/m_nTilePerRow;
@@ -450,5 +493,18 @@ void CTileForm::on_sliderWarpSpeed_sliderReleased()
         return;
 
     m_arrMaterial[ui->comboMaterial->currentIndex()].warpSpeed = ui->sliderWarpSpeed->value()/100.0f;
+}
+
+
+void CTileForm::on_buttonApply_clicked()
+{
+    emit applyChangesSignal();
+    close();
+}
+
+
+void CTileForm::on_buttonCancel_clicked()
+{
+    close();
 }
 

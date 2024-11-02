@@ -5,10 +5,14 @@
 #include <QTableWidget>
 #include <QKeyEvent>
 #include "types.h"
+#include "property.h"
 
 namespace Ui {
 class CTileForm;
 }
+
+class CColorButtonItem;
+class CValueItem;
 
 class KeyPressEventFilter : public QObject
 {
@@ -73,6 +77,7 @@ private:
 
 signals:
     void onSelect(QPixmap);
+    void applyChangesSignal();
 
 private slots:
     void on_tileScaleSlider_sliderMoved(int position);
@@ -81,22 +86,22 @@ private slots:
     void onSelectAnimTile(int index);
     void onSetQuick(int ind, int row, int col);
     void onSelectMaterialType(int index);
+    void onColorSelect(QSharedPointer<IPropertyBase> prop);
+    void onIndexSet(QSharedPointer<IPropertyBase> prop);
+    void onPhaseNumSet(QSharedPointer<IPropertyBase> prop);
 
     void on_toolButtonAddAnimTile_clicked();
     void on_toolButtonAddMaterial_clicked();
     void on_buttonOnAnimTileShow_clicked();
     void on_toolButtonDelMaterial_clicked();
     void on_toolButtonDelAnimTile_clicked();
-
     void on_comboMaterialType_currentIndexChanged(int index);
-
     void on_sliderOpacity_sliderReleased();
-
     void on_sliderIllumination_sliderReleased();
-
     void on_sliderWaveMultiplier_sliderReleased();
-
     void on_sliderWarpSpeed_sliderReleased();
+    void on_buttonApply_clicked();
+    void on_buttonCancel_clicked();
 
 private:
     Ui::CTileForm *ui;
@@ -108,6 +113,9 @@ private:
     int m_tileRot;
     QVector<SMaterial> m_arrMaterial;
     QVector<SAnimTile> m_arrAnimTile;
+    QSharedPointer<CColorButtonItem> m_pColorButton;
+    QSharedPointer<CValueItem> m_pIndexText;
+    QSharedPointer<CValueItem> m_pPhaseNumText;
 };
 
 #endif // TILE_FORM_H

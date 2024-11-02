@@ -90,9 +90,6 @@ bool CLandscape::serializeMpr(const QString& zoneName, CResFile& mprFile)
     util::formatStream(mpStream);
 
     //write map header data (*.mp)
-    m_aAnimTile = m_pPropForm->animTile();
-    m_aMaterial = m_pPropForm->material();
-
     m_header.nAnimTile = m_aAnimTile.size();
     m_header.nMaterial = m_aMaterial.size();
     mpStream << m_header;
@@ -339,7 +336,15 @@ void CLandscape::setTile(QVector3D& point, bool bLand)
 
 void CLandscape::openParams()
 {
+    m_pPropForm->setMaterial(m_aMaterial);
+    m_pPropForm->setAnimTile(m_aAnimTile);
     m_pPropForm->show();
+}
+
+void CLandscape::updateMaterial()
+{
+    m_aMaterial = m_pPropForm->material();
+    m_aAnimTile = m_pPropForm->animTile();
 }
 
 void CLandscape::addTileRotation(int rot)

@@ -290,6 +290,7 @@ void CView::loadLandscape(const QFileInfo& filePath)
     m_timer->start();
     m_lastModifiedLand = filePath.lastModified();
     connect(CLandscape::getInstance()->tileForm(), SIGNAL(onSelect(QPixmap)), this, SLOT(onChangeCursorTile(QPixmap)));
+    connect(CLandscape::getInstance()->tileForm(), SIGNAL(applyChangesSignal()), this, SLOT(onMapMaterialUpdate()));
     COptInt* pOpt = dynamic_cast<COptInt*>(settings()->opt("landCheckTime"));
     if (pOpt and pOpt->value() != 0)
     {
@@ -743,7 +744,12 @@ void CView::onChangeCursorTile(QPixmap ico)
     setCursor(customCursor);
 
 //    QCursor curs(ico, 0, 0);
-//    setCursor(curs);
+    //    setCursor(curs);
+}
+
+void CView::onMapMaterialUpdate()
+{
+    CLandscape::getInstance()->updateMaterial();
 }
 
 void CView::checkNewLandVersion()

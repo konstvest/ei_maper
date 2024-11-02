@@ -72,6 +72,7 @@ public:
     void setTile(QVector3D& point, bool bLand = true);
     const QFileInfo& filePath() {return m_filePath;}
     void openParams();
+    void updateMaterial();
     CTileForm* tileForm() {return m_pPropForm;};
     void addTileRotation(int rot);
 

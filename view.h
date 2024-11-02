@@ -143,6 +143,7 @@ public slots:
     void collectObjectTreeData();
     void onRestoreCursor();
     void onChangeCursorTile(QPixmap ico);
+    void onMapMaterialUpdate();
 
     void execMobSwitch();
     void clearHistory();

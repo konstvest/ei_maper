@@ -172,7 +172,7 @@ bool ei::CFigure::readData(QDataStream& stream)
 {
     //check signature
     if(!readSignature(stream)){   // 0x38474946 == FIG8
-        qDebug() << "Unknown fig signature";
+        //todo: process FIG1 signature
         return false;
     }
 

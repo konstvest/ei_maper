@@ -232,12 +232,6 @@ CResFile::CResFile(const QByteArray& data)
 void CResFile::saveToFile(QString path)
 {
     QFile file(path);
-    if (file.exists())
-    {
-        qDebug() << file.fileName() << " already exists";
-        return;
-    }
-
     try
     {
         file.open(QIODevice::WriteOnly);

@@ -298,13 +298,13 @@ void CLandscape::pickTile(QVector3D& point, bool bLand)
         {
             if(bLand)
             {
-                const CLandTile& tile = m_aSector[yIndex][xIndex]->arrTile()[row][col];
+                const CTile& tile = m_aSector[yIndex][xIndex]->arrTile()[row][col];
                 m_pPropForm->selectTile(tile.tileIndex());
                 m_pPropForm->setTileRotation(tile.tileRotation());
             }
             else
             {
-                const CWaterTile& tile = m_aSector[yIndex][xIndex]->arrWater()[row][col];
+                const CTile& tile = m_aSector[yIndex][xIndex]->arrWater()[row][col];
                 m_pPropForm->selectTile(tile.tileIndex());
                 m_pPropForm->setTileRotation(tile.tileRotation());
                 m_pPropForm->setActiveMatIndex(tile.materialIndex());

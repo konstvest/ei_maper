@@ -68,12 +68,12 @@ struct STile //todo: delete
 |_\|_\|
 0  1  2
 */
-class CLandTile //todo: rename to CTile
+class CTile
 {
 public:
-    CLandTile();
-    CLandTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber);
-    virtual ~CLandTile();
+    CTile();
+    CTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber);
+    virtual ~CTile();
     void resetVertices(QVector<SSecVertex>& arrVertex);
     void generateDrawVertexData(QVector<SVertexData>& outData, int& curIndex);
     bool isProjectPoint(QVector3D& outPoint);
@@ -82,6 +82,8 @@ public:
     ushort tileRotation() const {return m_rotNum;}
     void setTile(int index, int rotNum);
     const QVector<QVector<SSecVertex>>& arrVertex(){return m_arrVertex;}
+    void setMaterialIndex(short matIndex) {m_materialIndex = matIndex;}
+    short materialIndex() const {return m_materialIndex;}
     ushort packData();
 protected:
     void reset();
@@ -95,19 +97,7 @@ protected:
     ushort m_rotNum; //number of rotation
     float m_maxZ; // update for each tile when changing maximum altitude
     int m_texAtlasNumber; // update for each tile when changing atlas number
-};
-
-class CWaterTile : public CLandTile
-{
-public:
-    CWaterTile();
-    CWaterTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber);
-    ~CWaterTile();
-    int tileIndex() const override;
-    void setMaterialIndex(short matIndex) {m_materialIndex = matIndex;}
-    short materialIndex() const {return m_materialIndex;}
-private:
-    short m_materialIndex;
+    short m_materialIndex; // only for liquid tiles. ind == 1 is equal to disabled liquid
 };
 
 ///
@@ -127,8 +117,8 @@ public:
     bool projectPt(QVector3D& origin);
     bool pickTile(int& row, int& col, QVector3D& point, bool bLand = true);
     void setTile(QVector3D& point, int index, int rotNum, bool bLand = true, int matIndex = 0);
-    const QVector<QVector<CLandTile>>& arrTile() {return m_arrLand;};
-    const QVector<QVector<CWaterTile>>& arrWater() {return m_arrWater;};
+    const QVector<QVector<CTile>>& arrTile() {return m_arrLand;};
+    const QVector<QVector<CTile>>& arrWater() {return m_arrWater;};
     bool existsTileIndices(const QVector<int>& arrInd); // function for find incorrect\coorrupt tile indices
 
 private:
@@ -141,12 +131,12 @@ private:
     UI2 m_index;
     QMatrix4x4 m_modelMatrix;
 
-    QVector<QVector<CLandTile>> m_arrLand;
+    QVector<QVector<CTile>> m_arrLand;
     QVector<SVertexData> m_arrLandVrtData;
     QOpenGLBuffer m_vertexBuf;
     QOpenGLBuffer m_indexBuf;
 
-    QVector<QVector<CWaterTile>> m_arrWater;
+    QVector<QVector<CTile>> m_arrWater;
     QVector<SVertexData> m_arrWaterVrtData;
     QOpenGLBuffer m_waterVertexBuf;
     QOpenGLBuffer m_waterIndexBuf;

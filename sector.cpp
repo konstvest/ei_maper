@@ -82,7 +82,7 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
             stream >> tilePacked;
             STile tile(tilePacked); //todo: remove
             aLandTiles.append(tile); //todo: remove
-            m_arrLand[row][col] = CLandTile(tilePacked, col*2, row*2, maxZ, texCount);
+            m_arrLand[row][col] = CTile(tilePacked, col*2, row*2, maxZ, texCount);
 
             arrVertex.clear();
             arrVertex.resize(9);
@@ -115,7 +115,7 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
             for(int col(0); col<nTile; ++col)
             {
                 stream >> tilePacked;
-                m_arrWater[row][col] = CWaterTile(tilePacked, col*2, row*2, maxZ, texCount);
+                m_arrWater[row][col] = CTile(tilePacked, col*2, row*2, maxZ, texCount);
 
                 arrVertex.clear();
                 arrVertex.resize(9);
@@ -627,12 +627,13 @@ ushort STile::packData(ushort m_index, ushort m_texture, ushort m_rotation)
     return (m_index & 63) | ((m_texture & 255) << 6) | ((m_rotation & 3) << 14);
 }
 
-CLandTile::CLandTile()
+CTile::CTile():
+    m_materialIndex(-1)
 {
     reset();
 }
 
-CLandTile::CLandTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber):
+CTile::CTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber):
     m_x(x)
   ,m_y(y)
   ,m_maxZ(maxZ)
@@ -646,7 +647,7 @@ CLandTile::CLandTile(ushort packedData, ushort x, ushort y, float maxZ, int atla
     m_rotNum = (packedData >> 14) & 3; // 2 bits more
 }
 
-CLandTile::~CLandTile()
+CTile::~CTile()
 {
 
 }
@@ -661,7 +662,7 @@ u|   |\ |\ |
 m|   |_\|_\|
 n|   0  1  2 ROW---->
 */
-void CLandTile::resetVertices(QVector<SSecVertex>& arrVertex)
+void CTile::resetVertices(QVector<SSecVertex>& arrVertex)
 {
     if(arrVertex.size() != 9)
     {
@@ -710,7 +711,7 @@ ind num:   0 1 2 3    4 5 6 7     8 9 10 11  12 13 14 15
 quat ind: {0,1,4,3}, {1,2,5,4}, {3,4,7, 6},  {4, 5, 8, 7}
 1 tile -> 16 tex coords with the same indexes
 */
-void CLandTile::generateDrawVertexData(QVector<SVertexData>& outData, int& curIndex)
+void CTile::generateDrawVertexData(QVector<SVertexData>& outData, int& curIndex)
 {
     QVector<QVector2D> tCoord; // store x,y min and x,y max
     tCoord.resize(2);
@@ -751,7 +752,7 @@ void CLandTile::generateDrawVertexData(QVector<SVertexData>& outData, int& curIn
 
 }
 
-bool CLandTile::isProjectPoint(QVector3D& outPoint)
+bool CTile::isProjectPoint(QVector3D& outPoint)
 {
     float u,v,t;
     QVector3D dir(0.0f, 0.0f, 1.0f);
@@ -773,7 +774,7 @@ bool CLandTile::isProjectPoint(QVector3D& outPoint)
     return false;
 }
 
-bool CLandTile::isProjectTile(QVector3D& outPoint)
+bool CTile::isProjectTile(QVector3D& outPoint)
 {
     float u,v,t;
     QVector3D dir(0.0f, 0.0f, 1.0f);
@@ -795,24 +796,25 @@ bool CLandTile::isProjectTile(QVector3D& outPoint)
     return false;
 }
 
-int CLandTile::tileIndex() const
+int CTile::tileIndex() const
 {
-    return m_index + m_atlasTexIndex*64;
+    int atlasIndex = m_atlasTexIndex >= m_texAtlasNumber ? (m_texAtlasNumber-1) : m_atlasTexIndex;
+    return m_index + (atlasIndex*64);
 }
 
-void CLandTile::setTile(int index, int rotNum)
+void CTile::setTile(int index, int rotNum)
 {
     m_index = index%64;
     m_atlasTexIndex = index/64;
     m_rotNum = rotNum;
 }
 
-ushort CLandTile::packData()
+ushort CTile::packData()
 {
     return (m_index & 63) | ((m_atlasTexIndex & 255) << 6) | ((m_rotNum & 3) << 14);
 }
 
-void CLandTile::reset()
+void CTile::reset()
 {
     m_index = 0;
     m_atlasTexIndex = 0;
@@ -823,7 +825,7 @@ void CLandTile::reset()
         m_arrVertex[i].resize(3);
 }
 
-QVector3D CLandTile::pos(int row, int col)
+QVector3D CTile::pos(int row, int col)
 {
     const SSecVertex& vrt = m_arrVertex[row][col];
     QVector3D pos;
@@ -831,25 +833,4 @@ QVector3D CLandTile::pos(int row, int col)
     pos.setY(m_y + row + vrt.yOffset/254.0f);
     pos.setZ(vrt.z * m_maxZ/65535.0f);
     return pos;
-}
-
-CWaterTile::CWaterTile() : CLandTile()
-{
-
-}
-
-CWaterTile::CWaterTile(ushort packedData, ushort x, ushort y, float maxZ, int atlasNumber):
-    CLandTile(packedData, x, y, maxZ, atlasNumber)
-{
-
-}
-
-CWaterTile::~CWaterTile()
-{
-    //CLandTile::~CLandTile();
-}
-
-int CWaterTile::tileIndex() const
-{
-    return m_index + ((m_atlasTexIndex > m_texAtlasNumber) ? ((m_texAtlasNumber-1)*64) : (m_atlasTexIndex*64));
 }

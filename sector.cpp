@@ -495,7 +495,7 @@ bool CSector::pickTile(int& outRow, int& outCol, QVector3D& point, bool bLand)
         for(int row(0); row<m_arrWater.size(); ++row)
             for(int col(0); col<m_arrWater[row].size(); ++col)
             {
-                if(m_arrLand[row][col].isProjectPoint(point))
+                if(m_arrWater[row][col].isProjectPoint(point))
                 {
                     outRow = row;
                     outCol = col;

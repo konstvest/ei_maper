@@ -108,9 +108,12 @@ public:
     void openMapParameters();
     void pickTile(QVector3D posOnLand, bool bLand = true);
     void setTile(QVector3D posOnLand, bool bLand = true);
+    void updatePreviewTile(QVector3D posOnLand, bool bLand = true);
     void addTileRotation(int step);
     void setDrawWater(bool bDraw = true) {m_bDrawWater = bDraw;}
     void setDrawLand(bool bDraw = true) {m_bDrawLand = bDraw;}
+    bool isPreviewTile() const {return m_bPreviewTile;}
+    void setPreviewTile(bool bDraw = true) {m_bPreviewTile = bDraw;}
 
 protected:
     void initializeGL() override;
@@ -184,6 +187,7 @@ private:
     QDateTime m_lastModifiedLand;
     bool m_bDrawLand;
     bool m_bDrawWater;
+    bool m_bPreviewTile;
 };
 
 #endif // MYGLWIDGET_H

@@ -16,8 +16,7 @@
 
 
 class CSector;
-
-
+class CPreviewTile;
 
 struct SMapHeader
 {
@@ -64,12 +63,14 @@ public:
     void saveMapAs(const QFileInfo& path);
     void draw(QOpenGLShaderProgram* program);
     void drawWater(QOpenGLShaderProgram* program);
+    void drawTilePreview(QOpenGLShaderProgram* program);
     bool projectPt(QVector3D& point);
     bool projectPt(QVector<QVector3D>& aPoint);
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
     void pickTile(QVector3D& point, bool bLand = true);
     void setTile(QVector3D& point, bool bLand = true);
+    void updateTilePreview(QVector3D& point, bool bLand = true);
     const QFileInfo& filePath() {return m_filePath;}
     void openParams();
     void updateMaterial();
@@ -93,6 +94,7 @@ private:
     QFileInfo m_filePath;
     CTileForm* m_pPropForm;
     QVector<int> m_arrIncorectTiles;
+    QSharedPointer<CPreviewTile> m_pPreviewTile;
 };
 
 #endif // LANDSCAPE_H

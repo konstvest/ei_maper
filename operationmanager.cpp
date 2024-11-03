@@ -1061,6 +1061,7 @@ void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
     {
         qDebug() << "exit CTileBrush operation";
         m_pView->onRestoreCursor();
+        m_pView->setPreviewTile(false);
         pOp->setCurrent(new CSelect(m_pView));
         delete this;
         break;
@@ -1142,11 +1143,28 @@ void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
     }
     else if (pEvent->buttons() & Qt::LeftButton)
     {
+        if(!m_pView->isPreviewTile())
+            m_pView->setPreviewTile(false);
+
         bool bLand = CScene::getInstance()->isLandTileEditMode();
         QVector3D landPos(m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
-        if(landPos.distanceToPoint(m_lastLandPos) > 1.5) // avoid re-brushing single tile of each movement.
+        if(landPos.distanceToPoint(m_lastLandPos) > 1.0f) // avoid re-brushing single tile of each movement.
         {
             m_pView->setTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
+            m_lastLandPos = landPos;
+        }
+
+    }
+    else
+    {// just moving mouse. Set tile preview mode
+        if(!m_pView->isPreviewTile())
+            m_pView->setPreviewTile();
+
+        bool bLand = CScene::getInstance()->isLandTileEditMode();
+        QVector3D landPos(m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
+        if(landPos.distanceToPoint(m_lastLandPos) > 1.0f) // avoid re-brushing single tile of each movement.
+        {
+            m_pView->updatePreviewTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
             m_lastLandPos = landPos;
         }
 
@@ -1158,4 +1176,6 @@ void CTileBrush::wheelEvent(COperation* pOp, QWheelEvent* pEvent)
 {
     Q_UNUSED(pOp);
     m_pView->addTileRotation(pEvent->delta() > 0 ? 1 : -1);
+    bool bLand = CScene::getInstance()->isLandTileEditMode();
+    m_pView->updatePreviewTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
 }

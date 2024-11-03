@@ -14,6 +14,8 @@ CSector::~CSector()
 {
     m_vertexBuf.destroy();
     m_indexBuf.destroy();
+    m_waterVertexBuf.destroy();
+    m_waterIndexBuf.destroy();
 }
 
 CSector::CSector(QDataStream& stream, float maxZ, int texCount)
@@ -27,14 +29,17 @@ CSector::CSector(QDataStream& stream, float maxZ, int texCount)
         ei::log(eLogFatal, "Incorrect sector signature");
         return;
     }
-    quint8 secType;
-    stream >> secType;
-    const bool bWater = secType == 3;
-    m_modelMatrix.setToIdentity();
+    //init opengl buffers
     m_vertexBuf.create();
     m_indexBuf.create();
     m_waterVertexBuf.create();
     m_waterIndexBuf.create();
+    m_modelMatrix.setToIdentity();
+
+    //continue read *.sec data
+    quint8 secType;
+    stream >> secType;
+    const bool bWater = secType == 3;
     m_arrLand.clear();
     SSecVertex sv;
     QVector<QVector<SSecVertex>> landVertex;
@@ -421,7 +426,7 @@ void CSector::generateVertexDataFromTile()
     uint vertSize = m_arrLand.size() * m_arrLand.front().size()*16; // 9 vertices, 16 indices per tile
     //m_aVertexData.clear(); // to recalc textures ?
     bool bWater = !m_arrWater.isEmpty();
-    m_arrLandVrtData.resize(vertSize);
+    m_arrLandVrtData.resize(vertSize); // todo: check size. vrt size == tile count * 9 (verts per tile)
     if(bWater)
         m_arrWaterVrtData.resize(vertSize);
     int curIndex(0), waterIndex(0);
@@ -458,14 +463,17 @@ void CSector::updatePosition()
     m_indexBuf.release();
 
     //water section
-    //m_modelMatrix.translate(QVector3D(m_index.x*32.0f, m_index.y*32.0f, .0f));
-    m_waterVertexBuf.bind();
-    m_waterVertexBuf.allocate(m_arrWaterVrtData.data(), m_arrWaterVrtData.count()*int(sizeof(SVertexData)));
-    m_waterVertexBuf.release();
+    if(!m_arrWaterVrtData.isEmpty())
+    {
+        //m_modelMatrix.translate(QVector3D(m_index.x*32.0f, m_index.y*32.0f, .0f));
+        m_waterVertexBuf.bind();
+        m_waterVertexBuf.allocate(m_arrWaterVrtData.data(), m_arrWaterVrtData.count()*int(sizeof(SVertexData)));
+        m_waterVertexBuf.release();
 
-    m_waterIndexBuf.bind();
-    m_waterIndexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
-    m_waterIndexBuf.release();
+        m_waterIndexBuf.bind();
+        m_waterIndexBuf.allocate(aInd.data(), aInd.count() * int(sizeof(ushort)));
+        m_waterIndexBuf.release();
+    }
 }
 
 bool CSector::pickTile(int& outRow, int& outCol, QVector3D& point, bool bLand)
@@ -532,7 +540,8 @@ void CSector::draw(QOpenGLShaderProgram* program)
     program->setAttributeBuffer(textureLocation, GL_FLOAT, offset, 2, int(sizeof(SVertexData)));
 
     m_indexBuf.bind();
-    glDrawElements(GL_QUADS, m_arrLandVrtData.count(), GL_UNSIGNED_SHORT, nullptr);
+    constexpr int indexNum = 256*16; // numTiles * index per tile
+    glDrawElements(GL_QUADS, indexNum, GL_UNSIGNED_SHORT, nullptr);
 
 }
 
@@ -833,4 +842,68 @@ QVector3D CTile::pos(int row, int col)
     pos.setY(m_y + row + vrt.yOffset/254.0f);
     pos.setZ(vrt.z * m_maxZ/65535.0f);
     return pos;
+}
+
+CPreviewTile::CPreviewTile():
+    m_vertexBuf(QOpenGLBuffer::VertexBuffer)
+   ,m_indexBuf(QOpenGLBuffer::IndexBuffer)
+{
+    m_vertexBuf.create();
+    m_indexBuf.create();
+    //m_modelMatrix.setToIdentity();
+}
+
+CPreviewTile::~CPreviewTile()
+{
+    m_vertexBuf.destroy();
+    m_indexBuf.destroy();
+}
+
+void CPreviewTile::updateTile(const CTile& tile, int tIndex, int rotation, int mIndex, int xSector, int ySector)
+{
+    m_arrLandVrtData.clear();
+    m_arrLandVrtData.resize(9);
+    CTile previewTile = tile;
+    previewTile.setTile(tIndex, rotation);
+    previewTile.setMaterialIndex(mIndex);
+
+    int curIndex(0);
+    previewTile.generateDrawVertexData(m_arrLandVrtData, curIndex);
+    m_modelMatrix.setToIdentity();
+    m_modelMatrix.translate(QVector3D(xSector*32.0f, ySector*32.0f, .0f));
+
+    m_vertexBuf.bind();
+    m_vertexBuf.allocate(m_arrLandVrtData.data(), m_arrLandVrtData.count()*int(sizeof(SVertexData)));
+    m_vertexBuf.release();
+
+    QVector<ushort> arrTileInd{0,1,4,3, 1,2,5,4, 3,4,7,6, 4,5,8,7}; // indices of quad vertices
+    m_indexBuf.bind();
+    m_indexBuf.allocate(arrTileInd.data(), arrTileInd.size() * sizeof(ushort));
+    m_indexBuf.release();
+}
+
+void CPreviewTile::draw(QOpenGLShaderProgram* program)
+{
+    if (m_arrLandVrtData.count() == 0)
+        return;
+
+    program->setUniformValue("u_modelMmatrix", m_modelMatrix);
+
+    int offset = 0;
+    m_vertexBuf.bind();
+    int vertLoc = program->attributeLocation("a_position");
+    program->enableAttributeArray(vertLoc);
+    program->setAttributeBuffer(vertLoc, GL_FLOAT, offset, 3, int(sizeof(SVertexData)));
+
+    offset += int(sizeof(QVector3D));
+    int normLoc = program->attributeLocation("a_normal");
+    program->enableAttributeArray(normLoc);
+    program->setAttributeBuffer(normLoc, GL_FLOAT, offset, 3, int(sizeof(SVertexData)));
+
+    offset+=int(sizeof(QVector3D)); // size of normal
+    int textureLocation = program->attributeLocation("a_texture");
+    program->enableAttributeArray(textureLocation);
+    program->setAttributeBuffer(textureLocation, GL_FLOAT, offset, 2, int(sizeof(SVertexData)));
+    m_indexBuf.bind();
+    glDrawElements(GL_QUADS, 16, GL_UNSIGNED_SHORT, nullptr); // 16 indices for tile
 }

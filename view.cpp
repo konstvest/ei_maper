@@ -45,6 +45,7 @@ CView::CView(QWidget *parent, const QGLWidget *pShareWidget) : QGLWidget(parent,
   ,m_pRoundForm(nullptr)
   ,m_bDrawLand(true)
   ,m_bDrawWater(true)
+  ,m_bPreviewTile(false)
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -218,6 +219,9 @@ void CView::draw()
 //    m_landProgram.setUniformValue("u_lightColor", QVector4D(1.0, 1.0, 1.0, 1.0));
 //    m_landProgram.setUniformValue("u_highlight", false);
     auto pLand = CLandscape::getInstance();
+    if (pLand && pLand->isMprLoad() && m_bPreviewTile) // draw preview tile on top
+        pLand->drawTilePreview(&m_landProgram);
+
     if (pLand && pLand->isMprLoad() && m_bDrawLand)
         pLand->draw(&m_landProgram);
 
@@ -243,21 +247,17 @@ void CView::draw()
             node->draw(true, &m_program);
     }
 
-    if (pLand && pLand->isMprLoad())
+    if (pLand && pLand->isMprLoad() && m_bDrawWater)
     {
-        //COptBool* pOpt = dynamic_cast<COptBool*>(settings()->opt("drawWater"));
-        //if (pOpt and pOpt->value() == true)
-        if(m_bDrawWater)
-        {
-            //turn to landshader again
-            if (!m_landProgram.bind())
-                close();
+        //turn to landshader again
+        if (!m_landProgram.bind())
+            close();
 
-            m_landProgram.setUniformValue("transparency", 0.3f);
-            pLand->drawWater(&m_landProgram);
-            m_landProgram.setUniformValue("transparency", 0.0f);
-        }
+        m_landProgram.setUniformValue("transparency", 0.3f);
+        pLand->drawWater(&m_landProgram);
+        m_landProgram.setUniformValue("transparency", 0.0f);
     }
+
 
     //draw selection frame using m_program shader
     if (!m_program.bind())
@@ -1166,6 +1166,13 @@ void CView::setTile(QVector3D posOnLand, bool bLand)
     if(!CLandscape::getInstance()->isMprLoad())
         return;
     CLandscape::getInstance()->setTile(posOnLand, bLand);
+}
+
+void CView::updatePreviewTile(QVector3D posOnLand, bool bLand)
+{
+    if(!CLandscape::getInstance()->isMprLoad())
+        return;
+    CLandscape::getInstance()->updateTilePreview(posOnLand, bLand);
 }
 
 void CView::addTileRotation(int step)

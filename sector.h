@@ -92,12 +92,28 @@ protected:
     QVector<QVector<SSecVertex>> m_arrVertex; // matrix 3x3 of x,y offsets, z-altitude and normal
     ushort m_x; // start X (left pos to right). max X tile is 2.0f + m_x for third vertex (m_x + 0.0f, m_x + 1.0f, m_x + 2.0f1)
     ushort m_y; // start Y (bottom to top)
+
     ushort m_index; // index in atlas, 0-63
     ushort m_atlasTexIndex; // index of texture atlas
     ushort m_rotNum; //number of rotation
     float m_maxZ; // update for each tile when changing maximum altitude
     int m_texAtlasNumber; // update for each tile when changing atlas number
     short m_materialIndex; // only for liquid tiles. ind == 1 is equal to disabled liquid
+};
+
+class CPreviewTile
+{
+public:
+    CPreviewTile();
+    ~CPreviewTile();
+    void updateTile(const CTile& tile, int tIndex, int rotation, int mIndex, int xSector, int ySector);
+    void draw(QOpenGLShaderProgram* program);
+
+private:
+    QVector<SVertexData> m_arrLandVrtData;
+    QOpenGLBuffer m_vertexBuf;
+    QOpenGLBuffer m_indexBuf;
+    QMatrix4x4 m_modelMatrix;
 };
 
 ///

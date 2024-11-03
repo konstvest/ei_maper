@@ -38,6 +38,7 @@ CLandscape::CLandscape():
     m_aAnimTile.clear();
     m_aMaterial.clear();
     m_aTileTypes.clear();
+    m_pPreviewTile.reset(new CPreviewTile());
 }
 
 CLandscape::~CLandscape()
@@ -239,6 +240,13 @@ void CLandscape::drawWater(QOpenGLShaderProgram *program)
             ySec->drawWater(program);
 }
 
+void CLandscape::drawTilePreview(QOpenGLShaderProgram* program)
+{
+    m_texture->bind(0);
+    program->setUniformValue("qt_Texture0", 0);
+    m_pPreviewTile->draw(program);
+}
+
 bool CLandscape::projectPt(QVector3D& point)
 {
     int xIndex = int(point.x()/32.0f);
@@ -331,6 +339,37 @@ void CLandscape::setTile(QVector3D& point, bool bLand)
         //m_aSector[yIndex][xIndex]->setTile(point, ind, rot);
         m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], rot, bLand, m_pPropForm->activeMaterialindex()); // todo: material index
 
+    }
+}
+
+void CLandscape::updateTilePreview(QVector3D& point, bool bLand)
+{
+    QVector<int> indSelected;
+    int rot;
+    m_pPropForm->getSelectedTile(indSelected, rot); //todo: get material index
+    if(indSelected.isEmpty())
+        return;
+
+    if(point.x() < 0.0f || point.y() < 0.0f)
+        return; // dont try to pick tile from negative land value
+
+    int tIndex = indSelected.back();
+    int mIndex = m_pPropForm->activeMaterialindex();
+    int xIndex = int(point.x()/32.0f); // check negative values
+    int yIndex = int(point.y()/32.0f);
+    point.setZ(-1.0f);
+    int row, col;
+    if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
+    {
+        if(m_aSector[yIndex][xIndex]->pickTile(row, col, point, bLand))
+        {
+            const CTile& tile = bLand ? m_aSector[yIndex][xIndex]->arrTile()[row][col] : m_aSector[yIndex][xIndex]->arrWater()[row][col];
+            m_pPreviewTile->updateTile(tile, tIndex, rot, mIndex, xIndex, yIndex);
+        }
+        else
+        {
+            Q_ASSERT("cannot pick tile" && false);
+        }
     }
 }
 

@@ -5,6 +5,9 @@
 #include <QDir>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QJsonParseError>
+#include <QJsonObject>
+#include <QJsonArray>
 
 #include "res_file.h"
 #include "utils.h"
@@ -15,6 +18,7 @@
 
 CObjectList* CObjectList::m_pObjectContainer = nullptr;
 CTextureList* CTextureList::m_pTextureContainer = nullptr;
+CSessionDataManager* CSessionDataManager::m_pSessionDataManger = nullptr;
 
 CObjectList *CObjectList::getInstance()
 {
@@ -788,6 +792,11 @@ bool CResourceStringList::getPropList(QMap<uint, QString>& map, const EObjParam 
     return true;
 }
 
+const char* CResourceStringList::noLiquidIndexName()
+{
+    return "-1 (No liquid)";
+}
+
 //todo: move string outside hard code to localization file
 void CResourceStringList::initResourceString()
 {
@@ -1054,4 +1063,123 @@ int CNvttManager::dxtToBmp(QString pathToDxt, QString pathToBmp)
         qDebug() << "conversion error: " << errorOutput;
     }
     return 0;
+}
+
+CSessionDataManager* CSessionDataManager::getInstance()
+{
+    if(nullptr == m_pSessionDataManger)
+        m_pSessionDataManger = new CSessionDataManager();
+    return m_pSessionDataManger;
+}
+
+void CSessionDataManager::getLastSession(QString& mprPath, QVector<QString>& arrMobPath)
+{
+    mprPath.clear();
+    arrMobPath.clear();
+
+    QFile sessionFile(sessionDataFile());
+    if(!sessionFile.open(QIODevice::ReadOnly))
+        return;
+
+    if(sessionFile.size() == 0)
+        return;
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(sessionFile.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        ei::log(eLogWarning, "Error parsing last session file:" + parseError.errorString());
+        sessionFile.close();
+        return;
+    }
+    sessionFile.close();
+
+
+    QJsonObject obj = doc.object();
+    if(!obj.contains("Last Session"))
+        return;
+
+    QJsonObject lastSession = obj["Last Session"].toObject();
+    if(!lastSession.contains("MPR"))
+        return;
+
+    mprPath = lastSession["MPR"].toString();
+
+    if(!lastSession.contains("arrMOB"))
+        return;
+
+    QJsonArray arrMob = lastSession["arrMOB"].toArray();
+    for(auto it = arrMob.begin(); it < arrMob.end(); ++it)
+        arrMobPath.append(it->toString());
+
+    return;
+}
+
+void CSessionDataManager::updateLastSession(const QString& mprPath, const QVector<QString>& arrMobPath)
+{
+    QFile sessionFile(sessionDataFile());
+    QJsonObject lastSession;
+    if(!mprPath.isEmpty())
+    {
+        lastSession.insert("MPR", mprPath);
+    }
+    if(!arrMobPath.isEmpty())
+    {
+        QJsonArray arrMob;
+        for(const auto& mobPath : arrMobPath)
+            arrMob.append(mobPath);
+        lastSession.insert("arrMob", arrMob);
+    }
+
+    QJsonObject jsonObj;
+    if(sessionFile.exists())
+    {
+        if (!sessionFile.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            ei::log(eLogWarning, "Cannot read session file" + sessionFile.errorString());
+            return;
+        }
+
+        QByteArray jsonData = sessionFile.readAll();
+        QJsonParseError parseError;
+        QJsonDocument doc = QJsonDocument::fromJson(jsonData, &parseError);
+
+        if (parseError.error != QJsonParseError::NoError)
+        {
+            ei::log(eLogWarning, "Error parsing last session file:" + parseError.errorString());
+            sessionFile.close();
+            return;
+        }
+        sessionFile.close();
+        jsonObj = doc.object();
+    }
+    if(jsonObj.contains("Last Session"))
+        jsonObj["Last Session"] = lastSession;
+    else
+        jsonObj.insert("Last session", lastSession);
+
+    QJsonDocument jsonDdoc;
+    jsonDdoc.setObject(jsonObj);
+
+    sessionFile.open(QIODevice::WriteOnly | QIODevice::Text);
+    sessionFile.resize(0);
+    sessionFile.write(jsonDdoc.toJson(QJsonDocument::Indented));
+    sessionFile.close();
+
+
+    return;
+}
+
+CSessionDataManager::CSessionDataManager()
+{
+
+}
+
+QString CSessionDataManager::sessionDataFile()
+{
+    return QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("ei_maper_session.json");
+}
+
+QString CSessionDataManager::copyPasteFile()
+{
+    return QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json");
 }

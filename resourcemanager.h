@@ -143,7 +143,7 @@ public:
     bool getPropList(QMap<uint, QString>& map, const EObjParam propType);
     const QMap<ETileType, QString>& tileTypes() {return m_tileType;}
     const QMap<ETerrainType, QString>& materialType() {return m_materialType;}
-    const char* noLiquidIndexName() {return "-1 (No liquid)";}
+    const char* noLiquidIndexName();
 
 private:
     CResourceStringList();
@@ -173,6 +173,22 @@ public:
 private:
     QString m_nvcompress;
     bool m_bInit;
+};
+
+class CSessionDataManager
+{
+public:
+    static CSessionDataManager* getInstance();
+    void getLastSession(QString& mprPath, QVector<QString>& arrMobPath);
+    void updateLastSession(const QString& mprPath, const QVector<QString>& arrMobPath);
+private:
+    CSessionDataManager();
+    ~CSessionDataManager();
+    QString sessionDataFile();
+    QString copyPasteFile();
+
+private:
+    static CSessionDataManager* m_pSessionDataManger;
 };
 
 #endif // CRESOURCEMANAGER_H

@@ -2303,85 +2303,60 @@ void CView::applyRoundMob()
 
 void CView::saveRecent()
 {
-    QJsonObject recentFilesObj;
-    if(CLandscape::getInstance()->isMprLoad())
-    {
-        recentFilesObj.insert("MPR", CLandscape::getInstance()->filePath().absoluteFilePath());
-    }
-    QJsonArray arrMob;
+    auto pLand = CLandscape::getInstance();
+    if(!pLand->isMprLoad())
+        return;
+
+    QString mprPath(pLand->filePath().absoluteFilePath());
+    QVector<QString> arrMobPath;
+
     for(auto& mob: m_aMob)
     {
-        QJsonObject mobObj;
-        mobObj.insert("MOB", mob->filePath().absoluteFilePath());
-        mobObj.insert("isActive", mob == m_activeMob);
-        arrMob.append(mobObj);
+        if(mob == m_activeMob)
+            continue;
+        arrMobPath.append(mob->filePath().absoluteFilePath());
     }
-    recentFilesObj.insert("arrMOB", arrMob);
-
-    QJsonDocument doc(recentFilesObj);
-
-    if (!m_recentOpenedFile_file.open(QIODevice::WriteOnly))
-    {
-        Q_ASSERT("Couldn't open option file." && false);
-    }
-    else
-    {
-        m_recentOpenedFile_file.write(doc.toJson(QJsonDocument::JsonFormat::Indented));
-        m_recentOpenedFile_file.close();
-    }
+    if(m_activeMob)
+        arrMobPath.append(m_activeMob->filePath().absoluteFilePath());
+    CSessionDataManager::getInstance()->updateLastSession(mprPath, arrMobPath);
 }
 
 void CView::openRecent()
 {
-    if (!m_recentOpenedFile_file.open(QIODevice::ReadOnly))
+    QString mprPath;
+    QVector<QString> arrMobPath;
+    CSessionDataManager::getInstance()->getLastSession(mprPath, arrMobPath);
+
+    if(mprPath.isEmpty())
+        return;
+    QFileInfo mprFile(mprPath);
+    if(!mprFile.exists())
     {
-        Q_ASSERT("Couldn't open recent file." && false);
+        ei::log(eLogWarning, "Cannot find MPR file: " + mprFile.absoluteFilePath());
         return;
     }
-
-    if (m_recentOpenedFile_file.size() == 0)
-    {
-        qDebug() << "empty recent file";
-        return;
-    }
-
-    QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(m_recentOpenedFile_file.readAll(), &parseError);
-    m_recentOpenedFile_file.close();
-    //todo: check if has no error
-    QJsonObject obj = doc.object();
-    QString keyExist("MPR");
-    bool isMpr = obj.contains(keyExist);
-    if(!isMpr)
-        return; //dont load mobs if mpr doesnt exists;
-
-    QFileInfo filePath(obj["MPR"].toString());
-    QUndoCommand* loadMpr = new COpenCommand(this, filePath);
+    QUndoCommand* loadMpr = new COpenCommand(this, mprFile);
     m_pUndoStack->push(loadMpr);
 
-    if(!obj.contains("arrMOB"))
+    for(const auto& mobPath: arrMobPath)
+    {
+        QFileInfo mobFile(mobPath);
+        if(!mobFile.exists())
+        {
+            ei::log(eLogWarning, "Cannot find MOB file: " + mobFile.absoluteFilePath());
+            continue;
+        }
+        COpenCommand* pLoadCommand = new COpenCommand(this, mobFile);
+        m_pUndoStack->push(pLoadCommand);
+        CRoundMobCommand* pRound = new CRoundMobCommand(this);
+        m_pUndoStack->push(pRound);
+    }
+
+    if(arrMobPath.isEmpty())
         return;
 
-    QJsonArray arrMob = obj["arrMOB"].toArray();
-    for(auto it = arrMob.begin(); it < arrMob.end(); ++it)
-    {
-        QJsonObject mobObj = it->toObject();
-        QFileInfo filePath(mobObj["MOB"].toString());
-        COpenCommand* pLoadCommand = new COpenCommand(this, filePath);
-        m_pUndoStack->push(pLoadCommand);
-        if(mobObj["isActive"].toBool(false))
-        {
-            CRoundMobCommand* pRound = new CRoundMobCommand(this);
-            m_pUndoStack->push(pRound);
-            if(m_activeMob->mobName() != filePath.fileName())
-            {
-                auto pChangeMobCommand = new CChangeActiveMobCommand(this, filePath.fileName());
-                m_pUndoStack->push(pChangeMobCommand);
-            }
-
-            //changeCurrentMob(filePath.fileName()); //dont use undo for changing mob bcs have no 'current mob'
-        }
-    }
+//    auto pChangeMobCommand = new CChangeActiveMobCommand(this, arrMobPath.back());
+//    m_pUndoStack->push(pChangeMobCommand);
 }
 
 bool CView::isRecentAvailable()

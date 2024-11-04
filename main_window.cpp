@@ -95,8 +95,8 @@ MainWindow::MainWindow(QWidget* parent) :
     CTextureList::getInstance()->attachSettings(m_settings.get());
     CObjectList::getInstance()->attachSettings(m_settings.get());
     m_createDialog.get()->attach(m_pView, m_undoStack);
-    if(m_pView->isRecentAvailable())
-        m_ui->actionOpen_recent->setEnabled(true);
+//    if(m_pView->isRecentAvailable())
+//        m_ui->actionOpen_recent->setEnabled(true);
 }
 
 MainWindow::~MainWindow()

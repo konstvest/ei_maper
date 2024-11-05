@@ -1,6 +1,7 @@
 #include <QStyledItemDelegate>
 #include <QPainter>
 #include <QKeyEvent>
+#include <QScrollBar>
 
 #include "tile_form.h"
 #include "ui_tile_form.h"
@@ -17,19 +18,25 @@ CTileForm::CTileForm(QWidget *parent) :
   ,m_tileRot(0)
 {
     ui->setupUi(this);
-    ui->tileScaleSlider->setSliderPosition(100); // set 100% tile scaling by default. TODO: get from option
     ui->comboTileType->addItems(CResourceStringList::getInstance()->tileTypes().values());
     connect(ui->tableTile, SIGNAL(cellClicked(int,int)), this, SLOT(onCellClicked(int,int)));
     connect(ui->comboMaterial, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectMaterial(int)));
     connect(ui->comboAnimTile, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectAnimTile(int)));
     KeyPressEventFilter *filter = new KeyPressEventFilter(ui->tableTile);
     connect(filter, SIGNAL(setQuick(int,int,int)), this, SLOT(onSetQuick(int,int,int)));
+    ui->tabWidget->setCurrentIndex(0);
+
     ui->tableTile->installEventFilter(filter);
     ui->tableTile->verticalHeader()->setVisible(false);
+    ui->tableTile->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->tableTile->horizontalHeader()->setStretchLastSection(true);
+
     ui->tableQuick->verticalHeader()->setVisible(false);
     ui->tableQuick->setRowCount(1);
     ui->tableQuick->setColumnCount(8);
-    ui->tabWidget->setCurrentIndex(0);
+    ui->tableQuick->horizontalHeader()->setStretchLastSection(true);
+    ui->tableQuick->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->tableQuick->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     QSharedPointer<IPropertyBase> prop;
     prop.reset(new prop3D(EObjParam::eObjParamUnknow));
@@ -53,48 +60,36 @@ CTileForm::~CTileForm()
     delete ui;
 }
 
-void CTileForm::resizeTable(float tilePercentage)
+void CTileForm::fitTable()
 {
+    int tableWidth = ui->tableTile->width();
+    if(ui->tableTile->verticalScrollBar()->isVisible())
+        tableWidth -= ui->tableTile->verticalScrollBar()->width();
+    int cellWidth = tableWidth/8;
+
     int iIco(0);
-    int scaledSize = m_originalTilesize*tilePercentage;
     int nRow = m_nTilePerRow * m_nTextureAtlas;
     for(int row(0); row<nRow; ++row)
     {
-        ui->tableTile->setRowHeight(row, scaledSize);
+        ui->tableTile->setRowHeight(row, cellWidth);
         for(int col(0); col<m_nTilePerRow; ++col)
         {
-            ui->tableTile->setColumnWidth(col, scaledSize);
+            ui->tableTile->setColumnWidth(col, cellWidth);
             QTableWidgetItem *item = ui->tableTile->item(row, col);
-            QIcon scaledIco = m_icoList[iIco].pixmap(QSize(m_originalTilesize, m_originalTilesize)).scaled(scaledSize, scaledSize, Qt::KeepAspectRatio);
+            QIcon scaledIco = m_icoList[iIco].pixmap(QSize(m_originalTilesize, m_originalTilesize)).scaled(cellWidth, cellWidth, Qt::KeepAspectRatio);
             item->setIcon(scaledIco);
             ++iIco;
         }
     }
 
-    ui->tableQuick->setRowHeight(0, scaledSize);
-    for(int col(0); col<m_nTilePerRow; ++col)
-       ui->tableQuick->setColumnWidth(col, scaledSize);
-
-    auto setNewTableSize = [](QTableWidget* pTable)
+    //quick panel
+    int quickColWidth = ui->tableQuick->width()/8;
+    ui->tableQuick->setRowHeight(0, quickColWidth);
+    for(int i(0); i<8; ++i)
     {
-        //pTable->resizeColumnsToContents();
-        //pTable->resizeRowsToContents();
-        int width = pTable->verticalHeader()->width() + pTable->frameWidth() * 2;
-        for (int i = 0; i < pTable->columnCount(); ++i) {
-            width += pTable->columnWidth(i);
-        }
-
-        int height = pTable->horizontalHeader()->height() + pTable->frameWidth() * 2;
-        for (int i = 0; i < pTable->rowCount(); ++i) {
-            height += pTable->rowHeight(i);
-        }
-
-        pTable->setFixedSize(width, height);
-
-    };
-
-    //setNewTableSize(ui->tableTile);
-    //setNewTableSize(ui->tableQuick);
+        ui->tableQuick->setColumnWidth(i, quickColWidth);
+    }
+    ui->tableQuick->setFixedHeight(ui->tableQuick->horizontalHeader()->height()+quickColWidth);
 }
 
 QPixmap CTileForm::tileWithRot(int index, int rot)
@@ -213,40 +208,27 @@ void CTileForm::fillTable(QString mapName, int textureAtlasNumber)
         }
     }
 
-    //int scaledSize = m_originalTilesize*ui->tileScaleSlider->value()/100.0f;
     int iIco(0);
     for(int row(0); row<nRow; ++row)
     {
-        //ui->tableTile->setRowHeight(row, scaledSize);
         for(int col(0); col<m_nTilePerRow; ++col)
         {
-            //ui->tableTile->setColumnWidth(col, scaledSize);
             QTableWidgetItem *item = new QTableWidgetItem;
-            //QIcon scaledIco = m_icoList[iIco].pixmap(QSize(m_originalTilesize, m_originalTilesize)).scaled(scaledSize, scaledSize, Qt::KeepAspectRatio);
-            //item->setIcon(scaledIco);
             item->setIcon(m_icoList[iIco]);
-            item->setText(""); // Очищаем текст
-            item->setTextAlignment(Qt::AlignCenter); // Центрируем иконку
+            item->setText("");
+            item->setTextAlignment(Qt::AlignCenter);
             item->setFlags(item->flags() & ~Qt::ItemIsEditable);
             ui->tableTile->setItem(row, col, item);
             ++iIco;
         }
     }
 
-    // Применяем кастомный делегат для столбца с иконками
-    //IconDelegate *delegate = new IconDelegate(ui->tableTile);
+    // set custom icon delegate
     for(int i(0); i<m_nTilePerRow; ++i)
     {
         ui->tableTile->setItemDelegateForColumn(i, new IconDelegate(ui->tableTile));
         ui->tableQuick->setItemDelegateForColumn(i, new IconDelegate(ui->tableQuick)); // table of quick items
     }
-    // Автоматическое изменение размера ячеек по содержимому
-    //m_testTable->resizeColumnsToContents();
-    //m_testTable->resizeRowsToContents();
-
-    // Политика изменения размеров таблицы при изменении размеров окна
-    //ui->tableTile->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    resizeTable(float(ui->tileScaleSlider->value())/100.0f);
 }
 
 void CTileForm::selectTile(int index)
@@ -304,11 +286,6 @@ void CTileForm::setAnimTile(const QVector<SAnimTile>& arrAnimTile)
 {
     m_arrAnimTile = arrAnimTile;
     updateAnimTileData();
-}
-
-void CTileForm::on_tileScaleSlider_sliderMoved(int position)
-{
-    resizeTable(float(position)/100.0f);
 }
 
 void CTileForm::onCellClicked(int row, int column)
@@ -506,5 +483,17 @@ void CTileForm::on_buttonApply_clicked()
 void CTileForm::on_buttonCancel_clicked()
 {
     close();
+}
+
+void CTileForm::resizeEvent(QResizeEvent* event)
+{
+    fitTable();
+    QWidget::resizeEvent(event);
+}
+
+void CTileForm::showEvent(QShowEvent* event)
+{
+    fitTable();
+    QWidget::showEvent(event);
 }
 

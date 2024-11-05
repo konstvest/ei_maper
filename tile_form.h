@@ -67,8 +67,9 @@ public:
     void setAnimTile(const QVector<SAnimTile>& arrAnimTile);
     const QVector<SAnimTile>& animTile() {return m_arrAnimTile;};
     const QVector<SMaterial>& material() {return m_arrMaterial;};
+
 private:
-    void resizeTable(float tilePercentage);
+    void fitTable();
     QPixmap tileWithRot(int index, int rot);
     QPixmap tileWithRot(int index) {return tileWithRot(index, m_tileRot);};
     void updateMaterialData();
@@ -80,7 +81,6 @@ signals:
     void applyChangesSignal();
 
 private slots:
-    void on_tileScaleSlider_sliderMoved(int position);
     void onCellClicked(int row, int column);
     void onSelectMaterial(int index);
     void onSelectAnimTile(int index);
@@ -102,6 +102,10 @@ private slots:
     void on_sliderWarpSpeed_sliderReleased();
     void on_buttonApply_clicked();
     void on_buttonCancel_clicked();
+
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private:
     Ui::CTileForm *ui;

@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget* parent) :
     CIconManager::getInstance()->init();
 
     m_settings.reset(new CSettings());
-    m_selector.reset(new CSelectForm());
+    m_selector.reset(new CSelectForm(this));
     m_createDialog.reset(new CCreateObjectForm());
     m_randomizeForm.reset(new CRandomizeForm());
     m_settings->attachMainWindow(this);

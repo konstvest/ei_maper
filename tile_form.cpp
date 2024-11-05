@@ -11,13 +11,14 @@
 #include "layout_components/tablemanager.h"
 
 CTileForm::CTileForm(QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent, Qt::Window | Qt::WindowStaysOnTopHint)
    ,ui(new Ui::CTileForm)
   ,m_nTilePerRow(8)
   ,m_nTextureAtlas(0)
   ,m_tileRot(0)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_ShowWithoutActivating);
     ui->comboTileType->addItems(CResourceStringList::getInstance()->tileTypes().values());
     connect(ui->tableTile, SIGNAL(cellClicked(int,int)), this, SLOT(onCellClicked(int,int)));
     connect(ui->comboMaterial, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectMaterial(int)));

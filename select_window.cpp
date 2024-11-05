@@ -9,12 +9,13 @@
 #include "scene.h"
 
 CSelectForm::CSelectForm(QWidget *parent) :
-    QWidget(parent)
+    QWidget(parent, Qt::Window | Qt::WindowStaysOnTopHint)
     ,ui(new Ui::CSelectForm)
     ,m_pView(nullptr)
     ,m_selected_num(0)
 {
     ui->setupUi(this);
+    setAttribute(Qt::WA_ShowWithoutActivating);
     init();
 }
 

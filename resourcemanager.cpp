@@ -1155,7 +1155,7 @@ void CSessionDataManager::updateLastSession(const QString& mprPath, const QVecto
     if(jsonObj.contains("Last Session"))
         jsonObj["Last Session"] = lastSession;
     else
-        jsonObj.insert("Last session", lastSession);
+        jsonObj.insert("Last Session", lastSession);
 
     QJsonDocument jsonDdoc;
     jsonDdoc.setObject(jsonObj);

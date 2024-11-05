@@ -155,8 +155,9 @@ void MainWindow::initShortcuts()
     m_ui->actionOpen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 
     m_ui->actionSave->setShortcut(QKeySequence(Qt::CTRL + eKey_S));
-    m_ui->actionSave_all_MOB_s->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + eKey_S));
-    m_ui->actionSave_as->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + eKey_S));
+    //m_ui->actionSave_all_MOB_s->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + eKey_S));
+    //m_ui->actionSave_as->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + eKey_S));
+    m_ui->actionSave_landscape_MPR->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + eKey_S));
 
     m_ui->actionSelect_All->setShortcut(QKeySequence(Qt::CTRL + eKey_A));
     m_ui->actionClose_all->setShortcut(QKeySequence(Qt::CTRL + eKey_Q));
@@ -406,12 +407,6 @@ void MainWindow::on_actionChange_mod_e_triggered()
 void MainWindow::on_actionCopy_IDs_to_clipboard_triggered()
 {
     m_pView->copySelectedIDsToClipboard();
-}
-
-
-void MainWindow::on_actionSwitch_active_MOB_triggered()
-{
-    m_pView->roundActiveMob();
 }
 
 

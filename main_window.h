@@ -68,24 +68,15 @@ private slots:
     void on_actionReset_cam_position_triggered();
     void on_actionChange_mod_e_triggered();
     void on_actionCopy_IDs_to_clipboard_triggered();
-    void on_actionSwitch_active_MOB_triggered();
     void on_actionOpen_2_triggered();
     void on_actionOpen_recent_triggered();
-
     void on_actionReset_logic_paths_triggered();
-
     void on_actionRandomize_parameter_triggered();
-
     void on_actionReset_selected_IDs_triggered();
-
     void on_action_About_triggered();
-
     void on_actionSave_landscape_MPR_as_triggered();
-
     void on_actionMap_parameters_triggered();
-
     void on_tileBrushButton_clicked();
-
     void on_actionSave_landscape_MPR_triggered();
 
 protected:

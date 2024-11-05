@@ -565,12 +565,12 @@
   </action>
   <action name="actionSave_landscape_MPR">
    <property name="text">
-    <string>Save landscape (MPR)</string>
+    <string>Save MPR</string>
    </property>
   </action>
   <action name="actionSave_landscape_MPR_as">
    <property name="text">
-    <string>Save landscape (MPR) as...</string>
+    <string>Save MPR as...</string>
    </property>
   </action>
   <action name="actionMap_parameters">

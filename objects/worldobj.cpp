@@ -19,8 +19,8 @@ CWorldObj::CWorldObj():
     ,m_bShadow(true)
     ,m_questInfo()
 {
-    CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("cannotDisplay"));
-    CObjectBase::setTexture(CTextureList::getInstance()->texture("cannotDisplay"));
+    //CObjectBase::updateFigure(CObjectList::getInstance()->getFigure("cannotDisplay"));
+    //CObjectBase::setTexture(CTextureList::getInstance()->texture("cannotDisplay"));
 }
 
 CWorldObj::CWorldObj(const CWorldObj &wo):

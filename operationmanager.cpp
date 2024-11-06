@@ -1052,6 +1052,7 @@ CTileBrush::CTileBrush(CView* pView)
     CButtonConnector::getInstance()->pressButton(EButtonOpTilebrush);
     m_pView->setDrawLand(m_bDrawLand);
     m_pView->setDrawWater(m_bDrawWater);
+    m_pView->setPreviewTile(true);
     m_pView->showOutliner(false);
 }
 
@@ -1118,6 +1119,7 @@ void CTileBrush::mousePressEvent(COperation* pOp, QMouseEvent* pEvent)
     m_lastPos = pEvent->pos();
     bool bLand = CScene::getInstance()->isLandTileEditMode();
     m_lastLandPos = m_pView->getTerrainPos(pEvent->x(), pEvent->y(), bLand);
+    //m_lastLandPos = QVector3D(0.0f, 0.0f, 0.0f);// make sure that next mouse move apply tile brushing
 
     switch (pEvent->buttons()) {
     case Qt::LeftButton:
@@ -1137,6 +1139,17 @@ void CTileBrush::mouseReleaseEvent(COperation* pOp, QMouseEvent* pEvent)
 {
     Q_UNUSED(pOp);
     Q_UNUSED(pEvent);
+//    if (pEvent->button() == Qt::LeftButton) {
+//        qDebug() << "Left button was released";
+//    }
+    if(!m_pView->isPreviewTile()) // if we finished brushing, we will come here
+    {
+        bool bLand = CScene::getInstance()->isLandTileEditMode();
+        QVector3D landPos(m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
+        m_pView->updatePreviewTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
+        m_lastLandPos = landPos;
+        m_pView->setPreviewTile();
+    }
 }
 
 void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
@@ -1153,7 +1166,7 @@ void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
     }
     else if (pEvent->buttons() & Qt::LeftButton)
     {
-        if(!m_pView->isPreviewTile())
+        if(m_pView->isPreviewTile())
             m_pView->setPreviewTile(false);
 
         bool bLand = CScene::getInstance()->isLandTileEditMode();
@@ -1167,8 +1180,8 @@ void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
     }
     else
     {// just moving mouse. Set tile preview mode
-        if(!m_pView->isPreviewTile())
-            m_pView->setPreviewTile();
+//        if(!m_pView->isPreviewTile())
+//            m_pView->setPreviewTile();
 
         bool bLand = CScene::getInstance()->isLandTileEditMode();
         QVector3D landPos(m_pView->getTerrainPos(pEvent->x(), pEvent->y()));

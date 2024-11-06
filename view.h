@@ -114,6 +114,7 @@ public:
     void setDrawLand(bool bDraw = true) {m_bDrawLand = bDraw;}
     bool isPreviewTile() const {return m_bPreviewTile;}
     void setPreviewTile(bool bDraw = true) {m_bPreviewTile = bDraw;}
+    void showOutliner(bool bShow = true);
 
 protected:
     void initializeGL() override;
@@ -157,6 +158,7 @@ signals:
     void updateMsg(QString msg);
     void unloadMob(CMob*);
     void updateMainWindowTitle(eTitleTypeData, QString);
+    void showOutlinerSignal(bool bShow);
 
 private:
     int m_height; //for redraw window

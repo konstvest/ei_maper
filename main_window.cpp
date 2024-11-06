@@ -32,12 +32,10 @@ void testFunc()
 }
 
 
-
 void MainWindow::on_toolButton_2_clicked()
 {
     ei::log(eLogDebug, "btn test start");
-    QFileInfo mpr("c:\\konst\\Проклятые Земли (Дополнение)\\Mods\\ferneo_mod\\Maps\\zone3g.mpr");
-    m_pView->loadLandscape(mpr);
+
     ei::log(eLogDebug, "btn test end");
 }
 
@@ -85,6 +83,7 @@ MainWindow::MainWindow(QWidget* parent) :
     initShortcuts();
     QObject::connect(m_pView, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
     QObject::connect(CScene::getInstance(), SIGNAL(modeChanged()), m_pView, SLOT(viewParameters()));
+    QObject::connect(m_pView, SIGNAL(showOutlinerSignal(bool)), this, SLOT(showOutliner(bool)));
 
 
 //    m_ui->progressBar->setValue(0);
@@ -216,6 +215,20 @@ void MainWindow::closeAll()
         m_pView->unloadMob("");
         m_pView->unloadLand();
         m_undoStack->clear();
+    }
+}
+
+void MainWindow::showOutliner(bool bShow)
+{
+    if(bShow)
+    {
+        m_ui->treeWidget->show();
+        m_ui->tableWidget->show();
+    }
+    else
+    {
+        m_ui->treeWidget->hide();
+        m_ui->tableWidget->hide();
     }
 }
 

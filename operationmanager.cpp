@@ -1048,10 +1048,11 @@ CTileBrush::CTileBrush(CView* pView)
     ,m_bDrawLand(true)
 {
     qDebug()<< "CTileBrush init ";
-    CStatusConnector::getInstance()->updateStatus("brush.ico", "Esc - Cancel, LMB - draw selected tile. RMB - pick tile under cursor, Wheel - rotate tile");
+    CStatusConnector::getInstance()->updateStatus("brush.ico", "Esc - Cancel, LMB - draw selected tile. RMB - pick tile under cursor, Wheel - rotate tile, M/J - draw land/water");
     CButtonConnector::getInstance()->pressButton(EButtonOpTilebrush);
     m_pView->setDrawLand(m_bDrawLand);
     m_pView->setDrawWater(m_bDrawWater);
+    m_pView->showOutliner(false);
 }
 
 void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
@@ -1062,6 +1063,7 @@ void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
         qDebug() << "exit CTileBrush operation";
         m_pView->onRestoreCursor();
         m_pView->setPreviewTile(false);
+        m_pView->showOutliner(true);
         pOp->setCurrent(new CSelect(m_pView));
         delete this;
         break;
@@ -1071,13 +1073,13 @@ void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
         CScene::getInstance()->switchTileEditMode();
         break;
     }
-    case eKey_M:
+    case eKey_J:
     {
         m_bDrawWater = !m_bDrawWater;
         m_pView->setDrawWater(m_bDrawWater);
         break;
     }
-    case eKey_J:
+    case eKey_M:
     {
         m_bDrawLand = !m_bDrawLand;
         m_pView->setDrawLand(m_bDrawLand);

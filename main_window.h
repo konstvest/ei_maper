@@ -45,6 +45,7 @@ private:
     void closeAll();
 
 private slots:
+    void showOutliner(bool bShow);
     void on_actionExit_triggered();
     void on_actionOpen_triggered();
     void on_actionSettings_triggered();

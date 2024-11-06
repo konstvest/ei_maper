@@ -282,10 +282,8 @@ void CView::loadLandscape(const QFileInfo& filePath)
         return;
     }
 
-    ei::log(eLogInfo, "Start read landscape");
     CLandscape::getInstance()->readMap(filePath);
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, filePath.baseName());
-    ei::log(eLogInfo, "End read landscape");
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
     m_lastModifiedLand = filePath.lastModified();
@@ -297,6 +295,7 @@ void CView::loadLandscape(const QFileInfo& filePath)
         m_mprModifyTimer->setInterval(pOpt->value());
         m_mprModifyTimer->start();
     }
+    saveRecent();
 }
 
 void CView::unloadLand()
@@ -1178,6 +1177,11 @@ void CView::updatePreviewTile(QVector3D posOnLand, bool bLand)
 void CView::addTileRotation(int step)
 {
     CLandscape::getInstance()->addTileRotation(step);
+}
+
+void CView::showOutliner(bool bShow)
+{
+    emit showOutlinerSignal(bShow);
 }
 
 void CView::updateParameter(EObjParam propType)
@@ -2252,7 +2256,10 @@ void CView::undo_roundActiveMob()
 
 void CView::execUnloadCommand()
 {
-    if(m_activeMob == nullptr && CLandscape::getInstance()->isMprLoad())
+    if(!CLandscape::getInstance()->isMprLoad())
+        return;
+
+    if(m_activeMob == nullptr)
     {
         unloadLand();
         return;
@@ -2260,6 +2267,7 @@ void CView::execUnloadCommand()
 
     CCloseActiveMobCommand* pCommand = new CCloseActiveMobCommand(this);
     m_pUndoStack->push(pCommand);
+    saveRecent();
 
 }
 

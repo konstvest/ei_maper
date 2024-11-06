@@ -157,6 +157,7 @@ void CLandscape::readMap(const QFileInfo& path)
 
     m_filePath = path;
 
+    ei::log(eLogInfo, "Start read terrain: " + m_filePath.absoluteFilePath());
     CResFile map(path.filePath());
     QMap<QString, QByteArray> aTmp =  map.bufferOfFiles();  // map contains DIfferentCaseName
     QMap<QString, QByteArray> aComponent;
@@ -202,6 +203,7 @@ void CLandscape::readMap(const QFileInfo& path)
     m_pPropForm->setTileTypes(m_aTileTypes);
     m_pPropForm->setMaterial(m_aMaterial);
     m_pPropForm->setAnimTile(m_aAnimTile);
+    ei::log(eLogInfo, "End read terrain");
 }
 
 void CLandscape::save()

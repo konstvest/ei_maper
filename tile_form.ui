@@ -34,7 +34,7 @@
         <number>0</number>
        </property>
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,1">
+        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,1">
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <property name="topMargin">
@@ -76,12 +76,26 @@
           </layout>
          </item>
          <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Quick access tiles table (hotkey 1-8)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QTableWidget" name="tableQuick">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>Available texture tiles table</string>
            </property>
           </widget>
          </item>

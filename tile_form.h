@@ -25,24 +25,8 @@ signals:
     void setQuick(int ind, int row, int col);
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *event) override
-    {
-        if (event->type() == QEvent::KeyPress)
-        {
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-            if (keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return)
-            {
-                qDebug() << "Enter key pressed";
-                emit setQuick(0, m_pTable->currentRow(), m_pTable->currentColumn());
-                return true; // блокируем дальнейшую обработку
-            } else if (keyEvent->key() == Qt::Key_Delete)
-            {
-                qDebug() << "Delete key pressed";
-                return true;
-            }
-        }
-        return QObject::eventFilter(obj, event);
-    }
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
 private:
     QTableWidget* m_pTable;
 };
@@ -58,6 +42,7 @@ public:
     void fillTable(QString mapName, int textureAtlasNumber);
     void setTileTypes(const QVector<ETileType>& arrTileType) {m_tileTypes = arrTileType;}
     void selectTile(int index);
+    void selectQuickAccessTile(int index);
     int activeMaterialindex();
     void setActiveMatIndex(int index);
     void getSelectedTile(QVector<int>& arrSelIndex, int& rotNum);
@@ -75,6 +60,7 @@ private:
     void updateMaterialData();
     void updateAnimTileData();
     bool isGetMaterial(SMaterial& mat);
+    void updateQuickTable();
 
 signals:
     void onSelect(QPixmap);
@@ -82,6 +68,7 @@ signals:
 
 private slots:
     void onCellClicked(int row, int column);
+    void onQuickCellClicked(int row, int column);
     void onSelectMaterial(int index);
     void onSelectAnimTile(int index);
     void onSetQuick(int ind, int row, int col);
@@ -120,6 +107,7 @@ private:
     QSharedPointer<CColorButtonItem> m_pColorButton;
     QSharedPointer<CValueItem> m_pIndexText;
     QSharedPointer<CValueItem> m_pPhaseNumText;
+    QVector<int> m_arrQuickTile;
 };
 
 #endif // TILE_FORM_H

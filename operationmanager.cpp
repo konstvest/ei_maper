@@ -1085,6 +1085,14 @@ void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
         m_pView->setDrawLand(m_bDrawLand);
         break;
     }
+    case eKey_1 ... eKey_8:
+    {
+        m_pView->pickQuickAccessTile(key-eKey_1);
+        bool bLand = CScene::getInstance()->isLandTileEditMode();
+
+        m_pView->updatePreviewTile(m_pView->getTerrainPos(bLand), bLand);
+        break;
+    }
     default:
     {
         pOp->keyManager()->press(key);

@@ -21,6 +21,7 @@ CTileForm::CTileForm(QWidget *parent) :
     setAttribute(Qt::WA_ShowWithoutActivating);
     ui->comboTileType->addItems(CResourceStringList::getInstance()->tileTypes().values());
     connect(ui->tableTile, SIGNAL(cellClicked(int,int)), this, SLOT(onCellClicked(int,int)));
+    connect(ui->tableQuick, SIGNAL(cellClicked(int,int)), this, SLOT(onQuickCellClicked(int,int)));
     connect(ui->comboMaterial, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectMaterial(int)));
     connect(ui->comboAnimTile, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectAnimTile(int)));
     KeyPressEventFilter *filter = new KeyPressEventFilter(ui->tableTile);
@@ -53,6 +54,7 @@ CTileForm::CTileForm(QWidget *parent) :
     m_pPhaseNumText.reset(new CValueItem(prop));
     ui->formLayout_2->setWidget(2, QFormLayout::FieldRole, m_pPhaseNumText.get());
     connect(m_pPhaseNumText.get(), SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onPhaseNumSet(QSharedPointer<IPropertyBase>)));
+    m_arrQuickTile.resize(8);
 }
 
 
@@ -89,8 +91,11 @@ void CTileForm::fitTable()
     for(int i(0); i<8; ++i)
     {
         ui->tableQuick->setColumnWidth(i, quickColWidth);
+        QTableWidgetItem *item = ui->tableTile->item(0, i);
+        QIcon scaledIco = m_icoList[m_arrQuickTile[i]].pixmap(QSize(m_originalTilesize, m_originalTilesize)).scaled(cellWidth, cellWidth, Qt::KeepAspectRatio);
+        item->setIcon(scaledIco);
     }
-    ui->tableQuick->setFixedHeight(ui->tableQuick->horizontalHeader()->height()+quickColWidth);
+    ui->tableQuick->setFixedHeight(ui->tableQuick->horizontalHeader()->height()+quickColWidth + 2); // 2 pixel is select border
 }
 
 QPixmap CTileForm::tileWithRot(int index, int rot)
@@ -134,6 +139,20 @@ bool CTileForm::isGetMaterial(SMaterial& mat)
 
     mat = m_arrMaterial[ui->comboMaterial->currentIndex()];
     return true;
+}
+
+void CTileForm::updateQuickTable()
+{
+    //quick panel
+    int quickColWidth = ui->tableQuick->width()/8;
+    for(int i(0); i<8; ++i)
+    {
+        QTableWidgetItem *item = ui->tableQuick->item(0, i);
+        item->setText("");
+        item->setTextAlignment(Qt::AlignCenter);
+        QIcon scaledIco = m_icoList[m_arrQuickTile[i]].pixmap(QSize(m_originalTilesize, m_originalTilesize)).scaled(quickColWidth, quickColWidth, Qt::KeepAspectRatio);
+        item->setIcon(scaledIco);
+    }
 }
 
 // Кастомный делегат для отображения иконки во всю ячейку
@@ -230,15 +249,32 @@ void CTileForm::fillTable(QString mapName, int textureAtlasNumber)
         ui->tableTile->setItemDelegateForColumn(i, new IconDelegate(ui->tableTile));
         ui->tableQuick->setItemDelegateForColumn(i, new IconDelegate(ui->tableQuick)); // table of quick items
     }
+    for(int i(0); i<m_arrQuickTile.size(); ++i)
+    {
+        m_arrQuickTile[i] = i;
+        QTableWidgetItem *item = new QTableWidgetItem;
+        item->setIcon(m_icoList[m_arrQuickTile[i]]);
+        item->setText("");
+        item->setTextAlignment(Qt::AlignCenter);
+        //item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+        ui->tableQuick->setItem(0, i, item);
+    }
 }
 
 void CTileForm::selectTile(int index)
 {
     int row = index/m_nTilePerRow;
     int column = index%m_nTilePerRow;
+    ui->tableQuick->clearSelection();
     ui->tableTile->setCurrentCell(row, column);
     ui->comboTileType->setCurrentIndex(m_tileTypes[index]);
     emit onSelect(tileWithRot(index));
+}
+
+void CTileForm::selectQuickAccessTile(int index)
+{
+    ui->tableQuick->selectColumn(index);
+    onQuickCellClicked(0, index);
 }
 
 int CTileForm::activeMaterialindex()
@@ -261,6 +297,9 @@ void CTileForm::getSelectedTile(QVector<int>& arrSelIndex, int& rotNum)
     {
         arrSelIndex.append(index.row()*8+index.column());
     }
+    if(arrSelIndex.isEmpty())
+        for(const auto& index: ui->tableQuick->selectionModel()->selectedIndexes())
+            arrSelIndex.append(m_arrQuickTile[index.column()]);
     rotNum = m_tileRot;
 }
 
@@ -293,8 +332,17 @@ void CTileForm::onCellClicked(int row, int column)
 {
     int ind = column + m_nTilePerRow * row;
     ui->comboTileType->setCurrentIndex(m_tileTypes[ind]);
+    ui->tableQuick->clearSelection();
     emit onSelect(tileWithRot(ind));
     //QCursor curs(m_icoList[ind].pixmap(QSize(32, 32)));
+}
+
+void CTileForm::onQuickCellClicked(int row, int column)
+{
+    Q_UNUSED(row); // always is 0
+    ui->comboTileType->setCurrentIndex(m_arrQuickTile[column]);
+    ui->tableTile->clearSelection();
+    emit onSelect(tileWithRot(m_arrQuickTile[column]));
 }
 
 void CTileForm::onSelectMaterial(int index)
@@ -329,7 +377,8 @@ void CTileForm::onSelectAnimTile(int index)
 void CTileForm::onSetQuick(int ind, int row, int col)
 {
     int textureInd = col + m_nTilePerRow * row;
-    qDebug() << textureInd;
+    m_arrQuickTile[ind] = textureInd;
+    updateQuickTable();
 }
 
 void CTileForm::onSelectMaterialType(int index)
@@ -498,3 +547,28 @@ void CTileForm::showEvent(QShowEvent* event)
     QWidget::showEvent(event);
 }
 
+
+bool KeyPressEventFilter::eventFilter(QObject* obj, QEvent* event)
+{
+    if (event->type() == QEvent::KeyPress && m_pTable->underMouse())
+    {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        auto keyCode = EKeyCode(keyEvent->nativeVirtualKey());
+        switch (keyCode)
+        {
+        case eKey_1 ... eKey_8:
+        {
+            int id = keyCode-eKey_1;
+            emit setQuick(id, m_pTable->currentRow(), m_pTable->currentColumn());
+            return true;
+            //break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+
+    }
+    return QObject::eventFilter(obj, event);
+}

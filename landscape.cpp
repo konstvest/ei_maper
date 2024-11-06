@@ -396,6 +396,11 @@ void CLandscape::addTileRotation(int rot)
     m_pPropForm->setTileRotation(curRot);
 }
 
+void CLandscape::pickQuickAccessTile(int index)
+{
+    m_pPropForm->selectQuickAccessTile(index);
+}
+
 void CLandscape::projectPositions(QList<CNode*>& aNode)
 {
     for(auto& node: aNode)

@@ -76,6 +76,7 @@ public:
     void updateMaterial();
     CTileForm* tileForm() {return m_pPropForm;};
     void addTileRotation(int rot);
+    void pickQuickAccessTile(int index);
 
 private:
     CLandscape();

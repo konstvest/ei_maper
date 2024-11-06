@@ -68,6 +68,7 @@ public:
     void drawSelectFrame(QRect& rect);
     void pickObject(QPoint mousePos, bool bAddToSelect);
     void pickObject(const QRect& rect, bool bAddToSelect);
+    QVector3D getTerrainPos(bool bLand = true);
     QVector3D getTerrainPos(const int cursorPosX, const int cursorPosY, bool bLand = true);
     void changeOperation(EButtonOp type);
     void operationSetBackup(EOperationAxisType operationType);
@@ -108,6 +109,7 @@ public:
     void openMapParameters();
     void pickTile(QVector3D posOnLand, bool bLand = true);
     void setTile(QVector3D posOnLand, bool bLand = true);
+    void updatePreviewTile(bool bLand = true);
     void updatePreviewTile(QVector3D posOnLand, bool bLand = true);
     void addTileRotation(int step);
     void setDrawWater(bool bDraw = true) {m_bDrawWater = bDraw;}
@@ -115,6 +117,7 @@ public:
     bool isPreviewTile() const {return m_bPreviewTile;}
     void setPreviewTile(bool bDraw = true) {m_bPreviewTile = bDraw;}
     void showOutliner(bool bShow = true);
+    void pickQuickAccessTile(int index);
 
 protected:
     void initializeGL() override;

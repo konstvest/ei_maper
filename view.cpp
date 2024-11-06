@@ -840,6 +840,13 @@ void CView::pickObject(const QRect &rect, bool bAddToSelect)
     m_selectFrame->reset();
 }
 
+QVector3D CView::getTerrainPos(bool bLand)
+{
+    QPoint globalCursorPos = QCursor::pos();
+    QPoint localCursorPos = mapFromGlobal(globalCursorPos);
+    return getTerrainPos(localCursorPos.x(), localCursorPos.y(), bLand);
+}
+
 void CView::loadMob(QFileInfo &filePath)
 {
     m_pProgress->reset();
@@ -1167,6 +1174,13 @@ void CView::setTile(QVector3D posOnLand, bool bLand)
     CLandscape::getInstance()->setTile(posOnLand, bLand);
 }
 
+void CView::updatePreviewTile(bool bLand)
+{
+    if(!CLandscape::getInstance()->isMprLoad())
+        return;
+
+}
+
 void CView::updatePreviewTile(QVector3D posOnLand, bool bLand)
 {
     if(!CLandscape::getInstance()->isMprLoad())
@@ -1182,6 +1196,13 @@ void CView::addTileRotation(int step)
 void CView::showOutliner(bool bShow)
 {
     emit showOutlinerSignal(bShow);
+}
+
+void CView::pickQuickAccessTile(int index)
+{
+    if(!CLandscape::getInstance()->isMprLoad())
+        return;
+    CLandscape::getInstance()->pickQuickAccessTile(index);
 }
 
 void CView::updateParameter(EObjParam propType)

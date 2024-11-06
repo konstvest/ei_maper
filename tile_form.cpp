@@ -91,7 +91,7 @@ void CTileForm::fitTable()
     for(int i(0); i<8; ++i)
     {
         ui->tableQuick->setColumnWidth(i, quickColWidth);
-        QTableWidgetItem *item = ui->tableTile->item(0, i);
+        QTableWidgetItem *item = ui->tableQuick->item(0, i);
         QIcon scaledIco = m_icoList[m_arrQuickTile[i]].pixmap(QSize(m_originalTilesize, m_originalTilesize)).scaled(cellWidth, cellWidth, Qt::KeepAspectRatio);
         item->setIcon(scaledIco);
     }

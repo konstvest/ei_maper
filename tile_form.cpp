@@ -11,7 +11,7 @@
 #include "layout_components/tablemanager.h"
 
 CTileForm::CTileForm(QWidget *parent) :
-    QWidget(parent, Qt::Window | Qt::WindowStaysOnTopHint)
+    QWidget(parent, Qt::Window)
    ,ui(new Ui::CTileForm)
   ,m_nTilePerRow(8)
   ,m_nTextureAtlas(0)
@@ -213,7 +213,7 @@ void CTileForm::fillTable(QString mapName, int textureAtlasNumber)
     ui->tableTile->setRowCount(nRow); // Задаем количество строк (например, 5 строк)
     ui->tableTile->setColumnCount(m_nTilePerRow); // Одна колонка для иконок
 
-
+    m_icoList.clear();
     for(int i(0); i<textureAtlasNumber; ++i)
     {
         for(int col(0); col<m_nTilePerRow; ++col)

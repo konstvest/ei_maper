@@ -60,7 +60,7 @@ public:
     void unloadActiveMob();
     void openActiveMobEditParams();
     void unloadMob(QString mobName);
-    void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, CTreeView* pTree);
+    void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, CTreeView* pTree, CTileForm* pTileForm);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
     int select(const SSelect& selectParam, bool bAddToSelect = false);
     CMob* mob(QString mobName);
@@ -193,6 +193,7 @@ private:
     bool m_bDrawLand;
     bool m_bDrawWater;
     bool m_bPreviewTile;
+    CTileForm* m_pTileForm;
 };
 
 #endif // MYGLWIDGET_H

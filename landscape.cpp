@@ -28,7 +28,7 @@ void CLandscape::unloadMpr()
     m_aMaterial.clear();
     m_aTileTypes.clear();
     m_aAnimTile.clear();
-    delete m_pPropForm;
+    m_pPreviewTile.clear();
 }
 
 CLandscape::CLandscape():
@@ -38,7 +38,6 @@ CLandscape::CLandscape():
     m_aAnimTile.clear();
     m_aMaterial.clear();
     m_aTileTypes.clear();
-    m_pPreviewTile.reset(new CPreviewTile());
 }
 
 CLandscape::~CLandscape()
@@ -198,11 +197,12 @@ void CLandscape::readMap(const QFileInfo& path)
         }
         m_aSector.append(xSec);
     }
-    m_pPropForm = new CTileForm();
+
     m_pPropForm->fillTable(path.baseName(), m_header.nTexture);
     m_pPropForm->setTileTypes(m_aTileTypes);
     m_pPropForm->setMaterial(m_aMaterial);
     m_pPropForm->setAnimTile(m_aAnimTile);
+    m_pPreviewTile.reset(new CPreviewTile());
     ei::log(eLogInfo, "End read terrain");
 }
 
@@ -244,6 +244,8 @@ void CLandscape::drawWater(QOpenGLShaderProgram *program)
 
 void CLandscape::drawTilePreview(QOpenGLShaderProgram* program)
 {
+    if(m_pPreviewTile.isNull())
+        return;
     m_texture->bind(0);
     program->setUniformValue("qt_Texture0", 0);
     m_pPreviewTile->draw(program);
@@ -330,6 +332,10 @@ void CLandscape::setTile(QVector3D& point, bool bLand)
     m_pPropForm->getSelectedTile(indSelected, rot); //todo: get material index
     if(indSelected.isEmpty())
         return;
+
+    if(point.x() < 0.0f || point.y() < 0.0f)
+        return; // dont try to set tile from negative land value
+
     int xIndex = int(point.x()/32.0f);
     int yIndex = int(point.y()/32.0f);
     point.setZ(-1.0f);
@@ -370,16 +376,17 @@ void CLandscape::updateTilePreview(QVector3D& point, bool bLand)
         }
         else
         {
-            Q_ASSERT("cannot pick tile" && false);
+            ei::log(eLogWarning, "Cannot pick tile at position (land == " + QString::number(bLand) + "): " + QString("%1,%2,%3").arg(point.x()).arg(point.y()).arg(point.z()));
+            //Q_ASSERT("cannot pick tile" && false);
         }
     }
 }
 
-void CLandscape::openParams()
+void CLandscape::updateMaterialParams()
 {
     m_pPropForm->setMaterial(m_aMaterial);
     m_pPropForm->setAnimTile(m_aAnimTile);
-    m_pPropForm->show();
+    //m_pPropForm->show();
 }
 
 void CLandscape::updateMaterial()

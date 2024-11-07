@@ -19,6 +19,7 @@ class CSelectForm;
 class CCreateObjectForm;
 class CView;
 class CRandomizeForm;
+class CTileForm;
 
 struct SWindowTitle
 {
@@ -89,6 +90,7 @@ private:
     QSharedPointer<CSelectForm> m_selector;
     QSharedPointer<CCreateObjectForm> m_createDialog;
     QSharedPointer<CRandomizeForm> m_randomizeForm;
+    QSharedPointer<CTileForm> m_pTileForm;
     QUndoStack* m_undoStack;
     QUndoView* m_undoView;
     CView* m_pView;

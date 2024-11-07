@@ -72,11 +72,12 @@ public:
     void setTile(QVector3D& point, bool bLand = true);
     void updateTilePreview(QVector3D& point, bool bLand = true);
     const QFileInfo& filePath() {return m_filePath;}
-    void openParams();
+    void updateMaterialParams();
     void updateMaterial();
     CTileForm* tileForm() {return m_pPropForm;};
     void addTileRotation(int rot);
     void pickQuickAccessTile(int index);
+    void attachTileForm(CTileForm* pForm) {m_pPropForm = pForm;}
 
 private:
     CLandscape();

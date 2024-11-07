@@ -52,6 +52,7 @@ MainWindow::MainWindow(QWidget* parent) :
     m_selector.reset(new CSelectForm(this));
     m_createDialog.reset(new CCreateObjectForm());
     m_randomizeForm.reset(new CRandomizeForm());
+    m_pTileForm.reset(new CTileForm(this));
     m_settings->attachMainWindow(this);
     m_ui->setupUi(this); //init CView core also
 
@@ -79,7 +80,7 @@ MainWindow::MainWindow(QWidget* parent) :
     createUndoView();
     CStatusConnector::getInstance()->attach(m_ui->statusIco, m_ui->statusBar);
     connectUiButtons();
-    m_pView->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText, m_ui->treeWidget);
+    m_pView->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText, m_ui->treeWidget, m_pTileForm.get());
     initShortcuts();
     QObject::connect(m_pView, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
     QObject::connect(CScene::getInstance(), SIGNAL(modeChanged()), m_pView, SLOT(viewParameters()));

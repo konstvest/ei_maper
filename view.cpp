@@ -85,7 +85,7 @@ CView::~CView()
 }
 
 
-void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, CTreeView *pTree) //todo: use signal\slots
+void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, CTreeView *pTree, CTileForm* pTileForm) //todo: use signal\slots
 {
     m_pSettings = pSettings;
     m_cam->attachSettings(pSettings);
@@ -103,6 +103,8 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
 
     m_pTree = pTree;
     m_pTree->attachView(this);
+    m_pTileForm = pTileForm;
+    CLandscape::getInstance()->attachTileForm(pTileForm);
 }
 
 void CView::updateWindow()
@@ -287,14 +289,15 @@ void CView::loadLandscape(const QFileInfo& filePath)
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
     m_lastModifiedLand = filePath.lastModified();
-    connect(CLandscape::getInstance()->tileForm(), SIGNAL(onSelect(QPixmap)), this, SLOT(onChangeCursorTile(QPixmap)));
-    connect(CLandscape::getInstance()->tileForm(), SIGNAL(applyChangesSignal()), this, SLOT(onMapMaterialUpdate()));
+    connect(m_pTileForm, SIGNAL(onSelect(QPixmap)), this, SLOT(onChangeCursorTile(QPixmap)));
+    connect(m_pTileForm, SIGNAL(applyChangesSignal()), this, SLOT(onMapMaterialUpdate()));
     COptInt* pOpt = dynamic_cast<COptInt*>(settings()->opt("landCheckTime"));
     if (pOpt and pOpt->value() != 0)
     {
         m_mprModifyTimer->setInterval(pOpt->value());
         m_mprModifyTimer->start();
     }
+    CLandscape::getInstance()->updateMaterialParams();
     saveRecent();
 }
 
@@ -1157,7 +1160,9 @@ void CView::openMapParameters()
 {
     if(!CLandscape::getInstance()->isMprLoad())
         return;
-    CLandscape::getInstance()->openParams();
+
+    CLandscape::getInstance()->updateMaterialParams();
+    m_pTileForm->show();
 }
 
 void CView::pickTile(QVector3D posOnLand, bool bLand)

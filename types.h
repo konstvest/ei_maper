@@ -536,7 +536,7 @@ enum eTitleTypeData
     eTitleTypeDataUnknown = 0
     ,eTitleTypeDataMpr
     ,eTitleTypeDataActiveMob
-    ,eTitleTypeDataDurtyFlag
+    ,eTitleTypeDataDirtyFlag
     ,eTitleTypeDataCount
 };
 

@@ -193,7 +193,7 @@ bool MainWindow::isExitAllowed()
     bool bCloseAllowed = true;
     foreach(pMob, m_pView->mobs())
     {
-        if(!pMob->isDurty())
+        if(!pMob->isDirty())
             continue;
 
         QMessageBox::StandardButton reply;
@@ -363,7 +363,7 @@ void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
         m_sWindowTitle.mpr = data;
         break;
     }
-    case eTitleTypeData::eTitleTypeDataDurtyFlag:
+    case eTitleTypeData::eTitleTypeDataDirtyFlag:
     {
         m_sWindowTitle.durty = !data.isEmpty();
         break;

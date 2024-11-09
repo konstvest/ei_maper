@@ -61,8 +61,8 @@ public:
     void setScript(const QString& script) {m_script = script;}
     void setQuestMob(bool bQuest = true) {m_mobType = bQuest ? eEMobTypeQuest : eEMobTypeBase;}
     bool isQuestMob() {return m_mobType == EMobType::eEMobTypeQuest;}
-    void setDurty(bool bDurty = true) {m_bDurty = bDurty;}
-    bool isDurty() {return m_bDurty;}
+    void setDirty(bool bDurty = true) {m_bDirty = bDurty;}
+    bool isDirty() {return m_bDirty;}
     void generateDiplomacyTable();
     void clearDiplomacyTable();
     void setRanges(bool bMain, const QVector<SRange>& range);
@@ -125,7 +125,7 @@ private:
     QList<CNode*> m_aDeletedNode;
     QList<CNode*> m_aLogicNode;
     EMobType m_mobType;
-    bool m_bDurty;
+    bool m_bDirty;
     uint m_activeRangeId;
 };
 

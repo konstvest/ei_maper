@@ -31,7 +31,7 @@
 CMob::CMob():
     m_view(nullptr)
   ,m_pProgress(nullptr)
-  ,m_bDurty(false)
+  ,m_bDirty(false)
   ,m_activeRangeId(0)
 {
     m_aNode.clear();
@@ -1094,7 +1094,7 @@ void CMob::autoFixDuplicateId(QVector<uint>& arrId)
             pNode->setMapId(freeId);
             ei::log(eLogInfo, "duplicate id changed from: " + QString::number(mapId) + " to: " + QString::number(freeId));
             arrId.removeOne(mapId);
-            setDurty();
+            setDirty();
         }
     }
 }

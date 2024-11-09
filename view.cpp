@@ -565,7 +565,7 @@ void CView::changeCurrentMob(CMob *pMob)
 {
     m_activeMob = pMob;
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
-    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, (nullptr == pMob || !pMob->isDurty()) ? "" : "*");
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, (nullptr == pMob || !pMob->isDirty()) ? "" : "*");
     collectObjectTreeData();
 }
 
@@ -886,7 +886,7 @@ void CView::saveActiveMob()
     QSet<uint> aId;
     m_activeMob->checkUniqueId(aId);
     m_activeMob->save();
-    m_activeMob->setDurty(false);
+    m_activeMob->setDirty(false);
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
 }
 
@@ -898,7 +898,7 @@ void CView::saveAllMob()
     {
         pMob->checkUniqueId(aId);
         pMob->save();
-        pMob->setDurty(false);
+        pMob->setDirty(false);
     }
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
 }
@@ -915,7 +915,7 @@ void CView::unloadActiveMob()
         if(m_activeMob != pMob)
             continue;
 
-        if(pMob->isDurty())
+        if(pMob->isDirty())
         {
             QMessageBox::StandardButton reply;
             reply = QMessageBox::question(this, "Unload MOB", pMob->mobName() + " has unsaved changes.\nDo you want to save changes?", QMessageBox::Save|QMessageBox::No|QMessageBox::Cancel);
@@ -1152,7 +1152,7 @@ void CView::resetSelectedId()
     CResetIdCommand* pReset = new CResetIdCommand(this, reconnectId);
     QObject::connect(pReset, SIGNAL(updateParam()), this, SLOT(viewParameters()));
     m_pUndoStack->push(pReset);
-    m_activeMob->setDurty();
+    m_activeMob->setDirty();
     // update tree view?
 }
 
@@ -1877,7 +1877,7 @@ void CView::resetUnitLogicPaths()
         pUnit->clearPaths();
     }
     m_activeMob->logicNodesUpdate();
-    m_activeMob->setDurty();
+    m_activeMob->setDirty();
 }
 
 void CView::deleteSelectedNodes()
@@ -2082,10 +2082,10 @@ void CView::unHideAll()
 void CView::setDurty(CMob* pMob)
 {
     if(pMob && pMob != m_activeMob)
-        pMob->setDurty();
+        pMob->setDirty();
     else
     {
-        m_activeMob->setDurty(true);
+        m_activeMob->setDirty(true);
         emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "*");
     }
 }

@@ -1065,6 +1065,8 @@ void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
         m_pView->onRestoreCursor();
         m_pView->setPreviewTile(false);
         m_pView->showOutliner(true);
+        m_pView->setDrawLand(true);
+        m_pView->setDrawWater(true);
         pOp->setCurrent(new CSelect(m_pView));
         delete this;
         break;

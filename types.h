@@ -359,6 +359,11 @@ struct SVertexData
     QVector2D texCoord;
 };
 
+struct STileLocation
+{
+    int xSec, ySec, row, col;
+};
+
 template <class T> class TValue {
 public:
     TValue(){m_bInit = false;}

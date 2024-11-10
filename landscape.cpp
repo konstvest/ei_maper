@@ -28,12 +28,11 @@ void CLandscape::unloadMpr()
     m_aMaterial.clear();
     m_aTileTypes.clear();
     m_aAnimTile.clear();
-    m_pPreviewTile.clear();
+
 }
 
 CLandscape::CLandscape():
-    m_pPropForm(nullptr)
-  ,m_bDirty(false)
+  m_bDirty(false)
 {
     m_aSector.clear();
     m_aAnimTile.clear();
@@ -199,11 +198,6 @@ void CLandscape::readMap(const QFileInfo& path)
         m_aSector.append(xSec);
     }
 
-    m_pPropForm->fillTable(path.baseName(), m_header.nTexture);
-    m_pPropForm->setTileTypes(m_aTileTypes);
-    m_pPropForm->setMaterial(m_aMaterial);
-    m_pPropForm->setAnimTile(m_aAnimTile);
-    m_pPreviewTile.reset(new CPreviewTile());
     ei::log(eLogInfo, "End read terrain");
 }
 
@@ -241,15 +235,6 @@ void CLandscape::drawWater(QOpenGLShaderProgram *program)
     for (auto& xSec: m_aSector)
         for(auto& ySec: xSec)
             ySec->drawWater(program);
-}
-
-void CLandscape::drawTilePreview(QOpenGLShaderProgram* program)
-{
-    if(m_pPreviewTile.isNull())
-        return;
-    m_texture->bind(0);
-    program->setUniformValue("qt_Texture0", 0);
-    m_pPreviewTile->draw(program);
 }
 
 bool CLandscape::projectPt(QVector3D& point)
@@ -299,111 +284,30 @@ void CLandscape::projectPosition(CNode* pNode)
     pNode->setDrawPosition(landPos);
 }
 
-void CLandscape::pickTile(QVector3D& point, bool bLand)
+bool CLandscape::pickTile(QVector3D& point, CTile*& pTileOut, STileLocation& tileLoc, bool bLand)
 {
     int xIndex = int(point.x()/32.0f);
     int yIndex = int(point.y()/32.0f);
     point.setZ(-1.0f);
     int row, col;
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
-    {
         if(m_aSector[yIndex][xIndex]->pickTile(row, col, point, bLand))
         {
+            tileLoc = STileLocation{xIndex, yIndex, row, col};
             if(bLand)
-            {
-                const CTile& tile = m_aSector[yIndex][xIndex]->arrTile()[row][col];
-                m_pPropForm->selectTile(tile.tileIndex());
-                m_pPropForm->setTileRotation(tile.tileRotation());
-            }
+                pTileOut = &(m_aSector[yIndex][xIndex]->arrTileEdit()[row][col]);
             else
-            {
-                const CTile& tile = m_aSector[yIndex][xIndex]->arrWater()[row][col];
-                m_pPropForm->selectTile(tile.tileIndex());
-                m_pPropForm->setTileRotation(tile.tileRotation());
-                m_pPropForm->setActiveMatIndex(tile.materialIndex());
-            }
+                pTileOut = &(m_aSector[yIndex][xIndex]->arrWaterEdit()[row][col]);
+
+            return true;
         }
-    }
+
+    return false;
 }
 
-void CLandscape::setTile(QVector3D& point, bool bLand)
+void CLandscape::updateSectorDrawData(int xSec, int ySec)
 {
-    QVector<int> indSelected;
-    int rot;
-    m_pPropForm->getSelectedTile(indSelected, rot);
-    if(indSelected.isEmpty())
-        return;
-
-    if(point.x() < 0.0f || point.y() < 0.0f)
-        return; // dont try to set tile from negative land value
-
-    int xIndex = int(point.x()/32.0f);
-    int yIndex = int(point.y()/32.0f);
-    point.setZ(-1.0f);
-
-    if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
-    {
-        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], rot, bLand, m_pPropForm->activeMaterialindex());
-
-    }
-}
-
-void CLandscape::updateTilePreview(QVector3D& point, bool bLand)
-{
-    QVector<int> indSelected;
-    int rot;
-    m_pPropForm->getSelectedTile(indSelected, rot); //todo: get material index
-    if(indSelected.isEmpty())
-        return;
-
-    if(point.x() < 0.0f || point.y() < 0.0f)
-        return; // dont try to pick tile from negative land value
-
-    int tIndex = indSelected.back();
-    int mIndex = m_pPropForm->activeMaterialindex();
-    int xIndex = int(point.x()/32.0f); // check negative values
-    int yIndex = int(point.y()/32.0f);
-    point.setZ(-1.0f);
-    int row, col;
-    if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
-    {
-        if(m_aSector[yIndex][xIndex]->pickTile(row, col, point, bLand))
-        {
-            const CTile& tile = bLand ? m_aSector[yIndex][xIndex]->arrTile()[row][col] : m_aSector[yIndex][xIndex]->arrWater()[row][col];
-            m_pPreviewTile->updateTile(tile, tIndex, rot, mIndex, xIndex, yIndex);
-        }
-        else
-        {
-            ei::log(eLogWarning, "Cannot pick tile at position (land == " + QString::number(bLand) + "): " + QString("%1,%2,%3").arg(point.x()).arg(point.y()).arg(point.z()));
-            //Q_ASSERT("cannot pick tile" && false);
-        }
-    }
-}
-
-void CLandscape::updateMaterialParams()
-{
-    m_pPropForm->setMaterial(m_aMaterial);
-    m_pPropForm->setAnimTile(m_aAnimTile);
-    //m_pPropForm->show();
-}
-
-void CLandscape::updateMaterial()
-{
-    m_aMaterial = m_pPropForm->material();
-    m_aAnimTile = m_pPropForm->animTile();
-}
-
-void CLandscape::addTileRotation(int rot)
-{
-    int curRot = (m_pPropForm->tileRotation() + rot)%4;
-    if(curRot < 0)
-        curRot = 3;
-    m_pPropForm->setTileRotation(curRot);
-}
-
-void CLandscape::pickQuickAccessTile(int index)
-{
-    m_pPropForm->selectQuickAccessTile(index);
+    m_aSector[ySec][xSec]->updateDrawData();
 }
 
 void CLandscape::projectPositions(QList<CNode*>& aNode)

@@ -35,6 +35,8 @@ class CRoundMobForm;
 class CTreeView;
 class IPropertyBase;
 class CTileForm;
+class CPreviewTile;
+class CLandscape;
 
 ///
 /// \brief The CView class is the main class for managing and editing 3D scene contents. It is also a link between read out *.mob files and their editing. It also controls the camera and current operations.
@@ -109,7 +111,6 @@ public:
     void openMapParameters();
     void pickTile(QVector3D posOnLand, bool bLand = true);
     void setTile(QVector3D posOnLand, bool bLand = true);
-    void updatePreviewTile(bool bLand = true);
     void updatePreviewTile(QVector3D posOnLand, bool bLand = true);
     void addTileRotation(int step);
     void setDrawWater(bool bDraw = true) {m_bDrawWater = bDraw;}
@@ -140,6 +141,8 @@ private:
     void onParamChangeLogic(CNode* pNode, const QSharedPointer<IPropertyBase>& prop);
     void logOpenGlData();
     void checkOpenGlError();
+    void drawTilePreview(QOpenGLShaderProgram* program);
+    void updateTileForm();
 
 public slots:
     void updateWindow();
@@ -194,6 +197,8 @@ private:
     bool m_bDrawWater;
     bool m_bPreviewTile;
     CTileForm* m_pTileForm;
+    QSharedPointer<CPreviewTile> m_pPreviewTile;
+    CLandscape* m_pLand;
 };
 
 #endif // MYGLWIDGET_H

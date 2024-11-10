@@ -32,6 +32,7 @@
 #include "round_mob_form.h"
 #include "layout_components/tree_view.h"
 #include "property.h"
+#include "tile.h"
 
 class CLogic;
 
@@ -64,6 +65,7 @@ CView::CView(QWidget *parent, const QGLWidget *pShareWidget) : QGLWidget(parent,
     QLocale a = application->inputMethod()->locale();
     QString lang = a.languageToString(a.language());
     a.setDefault(QLocale::English);
+    m_pLand = CLandscape::getInstance();
 }
 
 void CView::updateReadState(EReadState state)
@@ -104,7 +106,6 @@ void CView::attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStac
     m_pTree = pTree;
     m_pTree->attachView(this);
     m_pTileForm = pTileForm;
-    CLandscape::getInstance()->attachTileForm(pTileForm);
 }
 
 void CView::updateWindow()
@@ -220,12 +221,11 @@ void CView::draw()
 //    m_landProgram.setUniformValue("u_lightPower", 5.0f);
 //    m_landProgram.setUniformValue("u_lightColor", QVector4D(1.0, 1.0, 1.0, 1.0));
 //    m_landProgram.setUniformValue("u_highlight", false);
-    auto pLand = CLandscape::getInstance();
-    if (pLand && pLand->isMprLoad() && m_bPreviewTile) // draw preview tile on top
-        pLand->drawTilePreview(&m_landProgram);
+    if (m_pLand && m_pLand->isMprLoad() && m_bPreviewTile) // draw preview tile on top
+        drawTilePreview(&m_landProgram);
 
-    if (pLand && pLand->isMprLoad() && m_bDrawLand)
-        pLand->draw(&m_landProgram);
+    if (m_pLand && m_pLand->isMprLoad() && m_bDrawLand)
+        m_pLand->draw(&m_landProgram);
 
     // Bind shader pipeline for use
     if (!m_program.bind())
@@ -249,14 +249,14 @@ void CView::draw()
             node->draw(true, &m_program);
     }
 
-    if (pLand && pLand->isMprLoad() && m_bDrawWater)
+    if (m_pLand && m_pLand->isMprLoad() && m_bDrawWater)
     {
         //turn to landshader again
         if (!m_landProgram.bind())
             close();
 
         m_landProgram.setUniformValue("transparency", 0.3f);
-        pLand->drawWater(&m_landProgram);
+        m_pLand->drawWater(&m_landProgram);
         m_landProgram.setUniformValue("transparency", 0.0f);
     }
 
@@ -265,7 +265,7 @@ void CView::draw()
     if (!m_program.bind())
         close();
 
-    if (pLand && pLand->isMprLoad() && !m_aMob.isEmpty())
+    if (m_pLand && m_pLand->isMprLoad() && !m_aMob.isEmpty())
     {
         QMatrix4x4 mtrx;
         mtrx.setToIdentity();
@@ -277,14 +277,14 @@ void CView::draw()
 
 void CView::loadLandscape(const QFileInfo& filePath)
 {
-    if(CLandscape::getInstance()->isMprLoad())
+    if(m_pLand->isMprLoad())
     {
         QMessageBox::warning(this, "Warning","Landscape already loaded. Please close before opening new zone (*mpr)");
         //LOG_FATAL("ahtung"); //test logging critial error
         return;
     }
 
-    CLandscape::getInstance()->readMap(filePath);
+    m_pLand->readMap(filePath);
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, filePath.baseName());
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
@@ -297,40 +297,41 @@ void CView::loadLandscape(const QFileInfo& filePath)
         m_mprModifyTimer->setInterval(pOpt->value());
         m_mprModifyTimer->start();
     }
-    CLandscape::getInstance()->updateMaterialParams();
+    m_pPreviewTile.reset(new CPreviewTile());
+    updateTileForm();
     saveRecent();
 }
 
 void CView::unloadLand()
 {
-    if(!CLandscape::getInstance()->isMprLoad())
+    if(!m_pLand->isMprLoad())
         return;
 
     m_mprModifyTimer->stop();
-    CLandscape::getInstance()->unloadMpr();
+    m_pLand->unloadMpr();
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, "");
+    m_pPreviewTile.clear();
     ei::log(eLogInfo, "Landscape unloaded");
 }
 
 void CView::saveLand()
 {
-    auto pLand = CLandscape::getInstance();
-    if(pLand->isMprLoad())
+    if(m_pLand->isMprLoad())
     {
-        pLand->save();
+        m_pLand->save();
         emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMprDirtyFlag, "");
     }
 }
 
 void CView::saveLandAs()
 {
-    if(!CLandscape::getInstance()->isMprLoad())
+    if(!m_pLand->isMprLoad())
         return;
 
-    const QFileInfo fileName = QFileDialog::getSaveFileName(this, "Save " + CLandscape::getInstance()->filePath().fileName() + " as... ", "" , tr("Landscape (*.mpr);;)"));
+    const QFileInfo fileName = QFileDialog::getSaveFileName(this, "Save " + m_pLand->filePath().fileName() + " as... ", "" , tr("Landscape (*.mpr);;)"));
     //QFileInfo fileName("c:\\konst\\Проклятые Земли (Дополнение)\\Mods\\ferneo_mod\\Maps\\zone1gTest.mpr");
 
-    CLandscape::getInstance()->saveMapAs(fileName);
+    m_pLand->saveMapAs(fileName);
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, fileName.baseName());
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMprDirtyFlag, "");
 }
@@ -707,6 +708,24 @@ void CView::checkOpenGlError()
     }
 }
 
+void CView::drawTilePreview(QOpenGLShaderProgram* program)
+{
+    if(m_pPreviewTile.isNull())
+        return;
+
+    m_pLand->glTexture()->bind(0); // todo: update preview tile texture after mpr loaded
+    program->setUniformValue("qt_Texture0", 0);
+    m_pPreviewTile->draw(program);
+}
+
+void CView::updateTileForm()
+{
+    m_pTileForm->fillTable(m_pLand->filePath().baseName(), m_pLand->textureNum());
+    m_pTileForm->setTileTypes(m_pLand->tileTypes());
+    m_pTileForm->setMaterial(m_pLand->materials());
+    m_pTileForm->setAnimTile(m_pLand->animTiles());
+}
+
 void CView::onChangeCursorTile(QPixmap ico)
 {
     if(m_pOp->operationMethod() != eOperationMethodTileBrush)
@@ -754,14 +773,19 @@ void CView::onChangeCursorTile(QPixmap ico)
 
 void CView::onMapMaterialUpdate()
 {
-    CLandscape::getInstance()->updateMaterial();
+    if(!m_pLand->isMprLoad())
+        return;
+
+    m_pLand->setMaterials(m_pTileForm->material());
+    m_pLand->setAnimTils(m_pTileForm->animTile());
+    m_pLand->setTileTypes(m_pTileForm->tileTypes());
 }
 
 void CView::checkNewLandVersion()
 {
     return; //todo: set option to auto-check changes in mpr. Dont re-upload when save by ourselfes
     // Dont use QFileSystemWatcher because it spams signals several time for 1 MapEd save
-    QFileInfo landPath(CLandscape::getInstance()->filePath());
+    QFileInfo landPath(m_pLand->filePath());
     landPath.refresh();
     QDateTime lastM = landPath.lastModified();
     if (lastM > m_lastModifiedLand)
@@ -1159,46 +1183,87 @@ void CView::resetSelectedId()
     // update tree view?
 }
 
+
 void CView::openMapParameters()
 {
-    if(!CLandscape::getInstance()->isMprLoad())
+    if(!m_pLand->isMprLoad())
         return;
 
-    CLandscape::getInstance()->updateMaterialParams();
+    if(m_pTileForm->isVisible())
+    {
+        m_pTileForm->show();
+        return; // dont update params if window already opened
+    }
+
+    updateTileForm();
     m_pTileForm->show();
 }
 
 void CView::pickTile(QVector3D posOnLand, bool bLand)
 {
-    if(!CLandscape::getInstance()->isMprLoad())
+    if(!m_pLand->isMprLoad())
         return;
-    CLandscape::getInstance()->pickTile(posOnLand, bLand);
+
+    CTile* pTile = nullptr;
+    STileLocation tileLoc;
+    if(!m_pLand->pickTile(posOnLand, pTile, tileLoc, bLand))
+        return;
+
+    m_pTileForm->selectTile(pTile->tileIndex());
+    m_pTileForm->setTileRotation(pTile->tileRotation());
+    if(!bLand)
+        m_pTileForm->setActiveMatIndex(pTile->materialIndex());
 }
 
 void CView::setTile(QVector3D posOnLand, bool bLand)
 {
-    if(!CLandscape::getInstance()->isMprLoad())
-        return;
-    CLandscape::getInstance()->setTile(posOnLand, bLand);
-}
-
-void CView::updatePreviewTile(bool bLand)
-{
-    if(!CLandscape::getInstance()->isMprLoad())
+    if(!m_pLand->isMprLoad())
         return;
 
+    CTile* pTile = nullptr;
+    STileLocation tileLoc;
+    if(!m_pLand->pickTile(posOnLand, pTile, tileLoc, bLand))
+        return;
+
+    //todo: create undo/redo command here
+    int index, rotNum, matIndex;
+    m_pTileForm->getSelectedTile(index, rotNum);
+    if(index < 0)
+        return;
+
+    matIndex = m_pTileForm->activeMaterialindex();
+    pTile->setTile(index, rotNum);
+    if(!bLand)
+        pTile->setMaterialIndex(matIndex);
+
+    m_pLand->updateSectorDrawData(tileLoc.xSec, tileLoc.ySec);
 }
 
 void CView::updatePreviewTile(QVector3D posOnLand, bool bLand)
 {
-    if(!CLandscape::getInstance()->isMprLoad())
+    if(!m_pLand->isMprLoad())
         return;
-    CLandscape::getInstance()->updateTilePreview(posOnLand, bLand);
+
+    CTile* pTile = nullptr;
+    STileLocation tileLoc;
+    if(!m_pLand->pickTile(posOnLand, pTile, tileLoc, bLand))
+        return;
+
+    int index, rotNum, matIndex;
+    m_pTileForm->getSelectedTile(index, rotNum);
+    if(index < 0)
+        return;
+
+    matIndex = m_pTileForm->activeMaterialindex();
+    m_pPreviewTile->updateTile(*pTile, index, rotNum, matIndex, tileLoc.xSec, tileLoc.ySec);
 }
 
 void CView::addTileRotation(int step)
 {
-    CLandscape::getInstance()->addTileRotation(step);
+    int curRot = (m_pTileForm->tileRotation() + step)%4;
+    if(curRot < 0)
+        curRot = 3;
+    m_pTileForm->setTileRotation(curRot);
 }
 
 void CView::showOutliner(bool bShow)
@@ -1208,9 +1273,10 @@ void CView::showOutliner(bool bShow)
 
 void CView::pickQuickAccessTile(int index)
 {
-    if(!CLandscape::getInstance()->isMprLoad())
+    if(!m_pLand->isMprLoad())
         return;
-    CLandscape::getInstance()->pickQuickAccessTile(index);
+
+    m_pTileForm->selectQuickAccessTile(index);
 }
 
 void CView::updateParameter(EObjParam propType)
@@ -1551,8 +1617,7 @@ CNode* CView::pickObject(QList<CNode*>& aNode, int x, int y)
 QVector3D CView::getTerrainPos(const int cursorPosX, const int cursorPosY, bool bLand)
 {
     QVector3D point(0,0,0);
-    auto pLand = CLandscape::getInstance();
-    if(!pLand || !pLand->isMprLoad())
+    if(!m_pLand || !m_pLand->isMprLoad())
         return point;
 
     QMatrix4x4 camMatrix = m_cam->viewMatrix();
@@ -1568,10 +1633,10 @@ QVector3D CView::getTerrainPos(const int cursorPosX, const int cursorPosY, bool 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if(bLand)
-        pLand->draw(&m_landProgram);
+        m_pLand->draw(&m_landProgram);
     else
     {
-        pLand->drawWater(&m_landProgram);
+        m_pLand->drawWater(&m_landProgram);
     }
     const int posY (height() - cursorPosY);
     float z;
@@ -2285,7 +2350,7 @@ void CView::undo_roundActiveMob()
 
 void CView::execUnloadCommand()
 {
-    if(!CLandscape::getInstance()->isMprLoad())
+    if(!m_pLand->isMprLoad())
         return;
 
     if(m_activeMob == nullptr)
@@ -2340,11 +2405,10 @@ void CView::applyRoundMob()
 
 void CView::saveRecent()
 {
-    auto pLand = CLandscape::getInstance();
-    if(!pLand->isMprLoad())
+    if(!m_pLand->isMprLoad())
         return;
 
-    QString mprPath(pLand->filePath().absoluteFilePath());
+    QString mprPath(m_pLand->filePath().absoluteFilePath());
     QVector<QString> arrMobPath;
 
     for(auto& mob: m_aMob)

@@ -45,13 +45,15 @@ public:
     void selectQuickAccessTile(int index);
     int activeMaterialindex();
     void setActiveMatIndex(int index);
-    void getSelectedTile(QVector<int>& arrSelIndex, int& rotNum);
+    void getSelectedTile(int& index, int& rotNum);
+    void getSelectedTiles(QVector<int>& arrSelIndex, int& rotNum);
     void setTileRotation(ushort rot);
     const int& tileRotation() {return m_tileRot;}
     void setMaterial(const QVector<SMaterial>& arrMat);
     void setAnimTile(const QVector<SAnimTile>& arrAnimTile);
     const QVector<SAnimTile>& animTile() {return m_arrAnimTile;};
     const QVector<SMaterial>& material() {return m_arrMaterial;};
+    const QVector<ETileType>& tileTypes() {return m_tileTypes;}
 
 private:
     void fitTable();

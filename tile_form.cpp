@@ -290,12 +290,29 @@ void CTileForm::setActiveMatIndex(int index)
     ui->comboActiveLiquidMaterial->setCurrentText(index == -1 ? (CResourceStringList::getInstance()->noLiquidIndexName()) : QString::number(index));
 }
 
-void CTileForm::getSelectedTile(QVector<int>& arrSelIndex, int& rotNum)
+void CTileForm::getSelectedTile(int& index, int& rotNum)
+{
+    index = -1;
+    rotNum = m_tileRot;
+    auto arrSel = ui->tableTile->selectionModel()->selectedIndexes();
+    if(!arrSel.isEmpty())
+    {
+        index = arrSel.last().row()*m_nTilePerRow + arrSel.last().column();
+        return;
+    }
+
+    arrSel = ui->tableQuick->selectionModel()->selectedIndexes();
+    if(!arrSel.isEmpty())
+        index = m_arrQuickTile[arrSel.last().column()];
+
+}
+
+void CTileForm::getSelectedTiles(QVector<int>& arrSelIndex, int& rotNum)
 {
     arrSelIndex.clear();
     for(const auto& index: ui->tableTile->selectionModel()->selectedIndexes())
     {
-        arrSelIndex.append(index.row()*8+index.column());
+        arrSelIndex.append(index.row()*m_nTilePerRow+index.column());
     }
     if(arrSelIndex.isEmpty())
         for(const auto& index: ui->tableQuick->selectionModel()->selectedIndexes())
@@ -340,7 +357,7 @@ void CTileForm::onCellClicked(int row, int column)
 void CTileForm::onQuickCellClicked(int row, int column)
 {
     Q_UNUSED(row); // always is 0
-    ui->comboTileType->setCurrentIndex(m_arrQuickTile[column]);
+    ui->comboTileType->setCurrentIndex(m_tileTypes[m_arrQuickTile[column]]);
     ui->tableTile->clearSelection();
     emit onSelect(tileWithRot(m_arrQuickTile[column]));
 }

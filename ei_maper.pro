@@ -60,6 +60,7 @@ SOURCES += \
     objects/sound.cpp \
     objects/torch.cpp \
     objects/unit.cpp \
+    tile.cpp \
     tile_form.cpp \
     types.cpp \
     undo.cpp \
@@ -113,6 +114,7 @@ HEADERS += \
     objects/sound.h \
     objects/torch.h \
     objects/unit.h \
+    tile.h \
     tile_form.h \
     undo.h \
     unitstat_form.h \

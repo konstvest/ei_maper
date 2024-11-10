@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
+#include <QOpenGLBuffer>
 #include <QList>
 #include <QFile>
 #include <QDataStream>
@@ -16,7 +17,7 @@
 
 
 class CSector;
-class CPreviewTile;
+class CTile;
 
 struct SMapHeader
 {
@@ -68,16 +69,17 @@ public:
     bool projectPt(QVector<QVector3D>& aPoint);
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
-    void pickTile(QVector3D& point, bool bLand = true);
-    void setTile(QVector3D& point, bool bLand = true);
-    void updateTilePreview(QVector3D& point, bool bLand = true);
+    bool pickTile(QVector3D& point, CTile*& pTileOut, STileLocation& tileLoc, bool bLand = true);
     const QFileInfo& filePath() {return m_filePath;}
-    void updateMaterialParams();
-    void updateMaterial();
-    CTileForm* tileForm() {return m_pPropForm;};
-    void addTileRotation(int rot);
-    void pickQuickAccessTile(int index);
-    void attachTileForm(CTileForm* pForm) {m_pPropForm = pForm;}
+    QOpenGLTexture* glTexture() const {return m_texture;}
+    uint textureNum() const {return m_header.nTexture;}
+    const QVector<SMaterial>& materials() const {return m_aMaterial;}
+    void setMaterials(const QVector<SMaterial>& arrMat) {m_aMaterial = arrMat;}
+    const QVector<ETileType>& tileTypes() const {return m_aTileTypes;}
+    void setTileTypes(const QVector<ETileType>& arrType) {m_aTileTypes = arrType;}
+    const QVector<SAnimTile>& animTiles() const {return m_aAnimTile;}
+    void setAnimTils(const QVector<SAnimTile>& arrAnimTile) {m_aAnimTile = arrAnimTile;}
+    void updateSectorDrawData(int xSec, int ySec);
 
 private:
     CLandscape();
@@ -94,10 +96,10 @@ private:
     QVector<QVector<CSector*>> m_aSector;
     QOpenGLTexture* m_texture;
     QFileInfo m_filePath;
-    CTileForm* m_pPropForm;
     QVector<int> m_arrIncorectTiles;
-    QSharedPointer<CPreviewTile> m_pPreviewTile;
     bool m_bDirty;
 };
+
+
 
 #endif // LANDSCAPE_H

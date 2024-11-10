@@ -24,6 +24,7 @@ class CTileForm;
 struct SWindowTitle
 {
     QString mpr;
+    bool mprDirty{false};
     QString activeMob;
     bool durty{false};
 };

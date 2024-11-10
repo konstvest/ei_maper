@@ -97,6 +97,7 @@ private:
     CTileForm* m_pPropForm;
     QVector<int> m_arrIncorectTiles;
     QSharedPointer<CPreviewTile> m_pPreviewTile;
+    bool m_bDirty;
 };
 
 #endif // LANDSCAPE_H

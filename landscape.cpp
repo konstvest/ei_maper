@@ -33,6 +33,7 @@ void CLandscape::unloadMpr()
 
 CLandscape::CLandscape():
     m_pPropForm(nullptr)
+  ,m_bDirty(false)
 {
     m_aSector.clear();
     m_aAnimTile.clear();
@@ -329,7 +330,7 @@ void CLandscape::setTile(QVector3D& point, bool bLand)
 {
     QVector<int> indSelected;
     int rot;
-    m_pPropForm->getSelectedTile(indSelected, rot); //todo: get material index
+    m_pPropForm->getSelectedTile(indSelected, rot);
     if(indSelected.isEmpty())
         return;
 
@@ -340,12 +341,9 @@ void CLandscape::setTile(QVector3D& point, bool bLand)
     int yIndex = int(point.y()/32.0f);
     point.setZ(-1.0f);
 
-    //int ind = QRandomGenerator::global()->bounded(256); //todo: get selected data from table
-    //int rot = QRandomGenerator::global()->bounded(3);
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
     {
-        //m_aSector[yIndex][xIndex]->setTile(point, ind, rot);
-        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], rot, bLand, m_pPropForm->activeMaterialindex()); // todo: material index
+        m_aSector[yIndex][xIndex]->setTile(point, indSelected[QRandomGenerator::global()->bounded(indSelected.size())], rot, bLand, m_pPropForm->activeMaterialindex());
 
     }
 }

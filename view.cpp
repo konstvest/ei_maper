@@ -316,7 +316,10 @@ void CView::saveLand()
 {
     auto pLand = CLandscape::getInstance();
     if(pLand->isMprLoad())
+    {
         pLand->save();
+        emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMprDirtyFlag, "");
+    }
 }
 
 void CView::saveLandAs()
@@ -328,8 +331,8 @@ void CView::saveLandAs()
     //QFileInfo fileName("c:\\konst\\Проклятые Земли (Дополнение)\\Mods\\ferneo_mod\\Maps\\zone1gTest.mpr");
 
     CLandscape::getInstance()->saveMapAs(fileName);
-//    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, fileName.baseName());
-//    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, fileName.baseName());
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMprDirtyFlag, "");
 }
 
 int CView::select(const SSelect &selectParam, bool bAddToSelect)
@@ -565,7 +568,7 @@ void CView::changeCurrentMob(CMob *pMob)
 {
     m_activeMob = pMob;
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, nullptr == pMob ? "" : pMob->mobName());
-    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, (nullptr == pMob || !pMob->isDirty()) ? "" : "*");
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDirtyFlag, (nullptr == pMob || !pMob->isDirty()) ? "" : "*");
     collectObjectTreeData();
 }
 
@@ -875,7 +878,7 @@ void CView::saveMobAs()
 
     m_activeMob->setFileName(fileName);
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataActiveMob, fileName.baseName());
-    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDirtyFlag, "");
 }
 
 void CView::saveActiveMob()
@@ -887,7 +890,7 @@ void CView::saveActiveMob()
     m_activeMob->checkUniqueId(aId);
     m_activeMob->save();
     m_activeMob->setDirty(false);
-    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDirtyFlag, "");
 }
 
 void CView::saveAllMob()
@@ -900,7 +903,7 @@ void CView::saveAllMob()
         pMob->save();
         pMob->setDirty(false);
     }
-    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "");
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDirtyFlag, "");
 }
 
 void CView::unloadActiveMob()
@@ -2086,7 +2089,7 @@ void CView::setDurty(CMob* pMob)
     else
     {
         m_activeMob->setDirty(true);
-        emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDurtyFlag, "*");
+        emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataDirtyFlag, "*");
     }
 }
 

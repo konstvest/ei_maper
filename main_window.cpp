@@ -363,6 +363,11 @@ void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
         m_sWindowTitle.mpr = data;
         break;
     }
+    case eTitleTypeData::eTitleTypeDataMprDirtyFlag:
+    {
+        m_sWindowTitle.mprDirty = !data.isEmpty();
+        break;
+    }
     case eTitleTypeData::eTitleTypeDataDirtyFlag:
     {
         m_sWindowTitle.durty = !data.isEmpty();
@@ -374,13 +379,17 @@ void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
     }
     QString title = "ei_maper";
     if(!m_sWindowTitle.mpr.isEmpty())
+    {
         title += QString(" MPR: (%1)").arg(m_sWindowTitle.mpr);
+        if(m_sWindowTitle.mprDirty)
+            title += "*";
+    }
 
     if(!m_sWindowTitle.activeMob.isEmpty())
     {
         title += QString(" Active MOB: (%1)").arg(m_sWindowTitle.activeMob);
         if(m_sWindowTitle.durty) //show durty flag only if mob is loaded. if it will be possible to edit mpr, move flag outside this block
-            title += " *";
+            title += "*";
     }
 
 

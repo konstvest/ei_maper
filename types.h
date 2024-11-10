@@ -535,6 +535,7 @@ enum eTitleTypeData
 {
     eTitleTypeDataUnknown = 0
     ,eTitleTypeDataMpr
+    ,eTitleTypeDataMprDirtyFlag
     ,eTitleTypeDataActiveMob
     ,eTitleTypeDataDirtyFlag
     ,eTitleTypeDataCount

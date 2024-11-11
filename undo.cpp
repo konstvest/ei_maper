@@ -668,6 +668,7 @@ void CBrushTileCommand::undo()
 
 void CBrushTileCommand::redo()
 {
+    setText("Brush tiles ("+QString::number(m_arrTileBrushNew.size())+")");
     m_pView->setTile(m_arrTileBrushNew);
 }
 
@@ -681,7 +682,7 @@ bool CBrushTileCommand::mergeWith(const QUndoCommand* command)
             m_arrTileBrushNew[otherCmd->m_tileLoc] = otherCmd->m_tileInfoNew;
             m_arrTileBrushOld[otherCmd->m_tileLoc] = otherCmd->m_tileInfoOld;
         }
-
+        setText("Brush tiles ("+QString::number(m_arrTileBrushNew.size())+")");
         return true;
     }
     return false;

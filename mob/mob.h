@@ -62,7 +62,7 @@ public:
     void setQuestMob(bool bQuest = true) {m_mobType = bQuest ? eEMobTypeQuest : eEMobTypeBase;}
     bool isQuestMob() {return m_mobType == EMobType::eEMobTypeQuest;}
     void setDirty(bool bDurty = true) {m_bDirty = bDurty;}
-    bool isDirty() {return m_bDirty;}
+    bool isDirty() const {return m_bDirty;}
     void generateDiplomacyTable();
     void clearDiplomacyTable();
     void setRanges(bool bMain, const QVector<SRange>& range);

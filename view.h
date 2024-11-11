@@ -87,6 +87,7 @@ public:
     void unHideAll();
     CMob* currentMob() {return m_activeMob;}
     QOpenGLShaderProgram& shaderObject() {return m_program;}
+    void setDirtyMpr();
     void setDurty(CMob* pMob = nullptr);
     void resetCamPosition();
     void addLogicPoint(bool bLookPoint = false);
@@ -120,6 +121,7 @@ public:
     void showOutliner(bool bShow = true);
     void pickQuickAccessTile(int index);
     void endTileBrushGroup();
+    bool isExitAllowed();
 
 protected:
     void initializeGL() override;

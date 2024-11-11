@@ -189,24 +189,7 @@ void MainWindow::connectUiButtons()
 
 bool MainWindow::isExitAllowed()
 {
-    CMob* pMob = nullptr;
-    bool bCloseAllowed = true;
-    foreach(pMob, m_pView->mobs())
-    {
-        if(!pMob->isDirty())
-            continue;
-
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Exit", pMob->mobName() + " has unsaved changes.\nDo you want to save changes?", QMessageBox::Save|QMessageBox::No|QMessageBox::Cancel);
-        if(reply == QMessageBox::Save)
-            pMob->save();
-        else if(reply == QMessageBox::Cancel)
-        {
-            bCloseAllowed = false;
-            break;
-        }
-    }
-    return bCloseAllowed;
+    return m_pView->isExitAllowed();
 }
 
 void MainWindow::closeAll()

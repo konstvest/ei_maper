@@ -670,6 +670,7 @@ void CBrushTileCommand::redo()
 {
     setText("Brush tiles ("+QString::number(m_arrTileBrushNew.size())+")");
     m_pView->setTile(m_arrTileBrushNew);
+    m_pView->setDirtyMpr();
 }
 
 bool CBrushTileCommand::mergeWith(const QUndoCommand* command)

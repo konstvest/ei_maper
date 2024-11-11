@@ -28,7 +28,7 @@ void CLandscape::unloadMpr()
     m_aMaterial.clear();
     m_aTileTypes.clear();
     m_aAnimTile.clear();
-
+    m_bDirty = false;
 }
 
 CLandscape::CLandscape():
@@ -217,6 +217,7 @@ void CLandscape::saveMapAs(const QFileInfo& path)
     serializeMpr(zoneName, mprFile);
     QByteArray data = mprFile.generateResData();
     mprFile.saveToFile(path.filePath());
+    m_bDirty = false;
 }
 
 void CLandscape::draw(QOpenGLShaderProgram* program)

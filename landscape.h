@@ -81,6 +81,8 @@ public:
     const QVector<SAnimTile>& animTiles() const {return m_aAnimTile;}
     void setAnimTils(const QVector<SAnimTile>& arrAnimTile) {m_aAnimTile = arrAnimTile;}
     void updateSectorDrawData(int xSec, int ySec);
+    void setDirty(bool bDirty) {m_bDirty = bDirty;}
+    bool isDirty() const {return m_bDirty;}
 
 private:
     CLandscape();

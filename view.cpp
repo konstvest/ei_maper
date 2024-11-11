@@ -287,6 +287,7 @@ void CView::loadLandscape(const QFileInfo& filePath)
 
     m_pLand->readMap(filePath);
     emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMpr, filePath.baseName());
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMprDirtyFlag, m_pLand->isDirty() ? "*" : "");
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
     m_lastModifiedLand = filePath.lastModified();
@@ -307,6 +308,17 @@ void CView::unloadLand()
 {
     if(!m_pLand->isMprLoad())
         return;
+
+    if(m_pLand->isDirty())
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Unload MPR", m_pLand->filePath().baseName() + " has unsaved changes.\nDo you want to save changes?", QMessageBox::Save|QMessageBox::No|QMessageBox::Cancel);
+        if(reply == QMessageBox::Save)
+            m_pLand->save();
+        else if(reply == QMessageBox::Cancel)
+            return;
+
+    }
 
     m_mprModifyTimer->stop();
     m_pLand->unloadMpr();
@@ -1298,6 +1310,42 @@ void CView::endTileBrushGroup()
     m_tileBrushCommandId = (m_tileBrushCommandId+1)%9;
 }
 
+bool CView::isExitAllowed()
+{
+    bool bCloseAllowed = true;
+    CMob* pMob = nullptr;
+    foreach(pMob, m_aMob)
+    {
+        if(!pMob->isDirty())
+            continue;
+
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Exit", pMob->mobName() + " has unsaved changes.\nDo you want to save changes?", QMessageBox::Save|QMessageBox::No|QMessageBox::Cancel);
+        if(reply == QMessageBox::Save)
+            pMob->save();
+        else if(reply == QMessageBox::Cancel)
+        {
+            bCloseAllowed = false;
+            break;
+        }
+    }
+    if(!bCloseAllowed)
+        return bCloseAllowed;
+
+    if(m_pLand && m_pLand->isDirty())
+    {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Exit", m_pLand->filePath().baseName() + " has unsaved changes.\nDo you want to save changes?", QMessageBox::Save|QMessageBox::No|QMessageBox::Cancel);
+        if(reply == QMessageBox::Save)
+            m_pLand->save();
+        else if(reply == QMessageBox::Cancel)
+        {
+            bCloseAllowed = false;
+        }
+    }
+    return bCloseAllowed;
+}
+
 void CView::updateParameter(EObjParam propType)
 {
     return; // not all prop types can be updated for each node. Use direct updating for each operation separately.
@@ -2164,6 +2212,12 @@ void CView::unHideAll()
             pNode->setState(ENodeState::eDraw);
     }
 
+}
+
+void CView::setDirtyMpr()
+{
+    m_pLand->setDirty(true);
+    emit updateMainWindowTitle(eTitleTypeData::eTitleTypeDataMprDirtyFlag, "*");
 }
 
 void CView::setDurty(CMob* pMob)

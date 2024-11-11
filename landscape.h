@@ -70,6 +70,7 @@ public:
     void projectPositions(QList<CNode*>& aNode);
     void projectPosition(CNode* pNode);
     bool pickTile(QVector3D& point, CTile*& pTileOut, STileLocation& tileLoc, bool bLand = true);
+    void setTile(const QMap<STileLocation, STileInfo>& arrTileInfo);
     const QFileInfo& filePath() {return m_filePath;}
     QOpenGLTexture* glTexture() const {return m_texture;}
     uint textureNum() const {return m_header.nTexture;}

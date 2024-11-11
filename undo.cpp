@@ -648,3 +648,41 @@ void CResetIdCommand::redo()
     }
     emit updateParam();
 }
+
+CBrushTileCommand::CBrushTileCommand(CView* pView, STileInfo tileInfoNew, STileLocation tileLoc, STileInfo tileInfoOld, short tileBrushCommandId, QUndoCommand* parent):
+    QUndoCommand(parent)
+  ,m_pView(pView)
+  ,m_tileInfoNew(tileInfoNew)
+  ,m_tileLoc(tileLoc)
+  ,m_tileInfoOld(tileInfoOld)
+  ,m_tileBrushCommandId(tileBrushCommandId)
+{
+    m_arrTileBrushNew[tileLoc] = tileInfoNew;
+    m_arrTileBrushOld[tileLoc] = tileInfoOld;
+}
+
+void CBrushTileCommand::undo()
+{
+    m_pView->setTile(m_arrTileBrushOld);
+}
+
+void CBrushTileCommand::redo()
+{
+    m_pView->setTile(m_arrTileBrushNew);
+}
+
+bool CBrushTileCommand::mergeWith(const QUndoCommand* command)
+{
+    const CBrushTileCommand* otherCmd = dynamic_cast<const CBrushTileCommand*>(command);
+    if (otherCmd && otherCmd->m_tileInfoNew == m_tileInfoNew && m_tileBrushCommandId == otherCmd->m_tileBrushCommandId)
+    {
+        if(!m_arrTileBrushNew.contains(otherCmd->m_tileLoc))
+        {
+            m_arrTileBrushNew[otherCmd->m_tileLoc] = otherCmd->m_tileInfoNew;
+            m_arrTileBrushOld[otherCmd->m_tileLoc] = otherCmd->m_tileInfoOld;
+        }
+
+        return true;
+    }
+    return false;
+}

@@ -119,6 +119,7 @@ public:
     void setPreviewTile(bool bDraw = true) {m_bPreviewTile = bDraw;}
     void showOutliner(bool bShow = true);
     void pickQuickAccessTile(int index);
+    void endTileBrushGroup();
 
 protected:
     void initializeGL() override;
@@ -154,6 +155,7 @@ public slots:
     void onRestoreCursor();
     void onChangeCursorTile(QPixmap ico);
     void onMapMaterialUpdate();
+    void setTile(QMap<STileLocation, STileInfo>& arrTileData);
 
     void execMobSwitch();
     void clearHistory();
@@ -199,6 +201,7 @@ private:
     CTileForm* m_pTileForm;
     QSharedPointer<CPreviewTile> m_pPreviewTile;
     CLandscape* m_pLand;
+    short m_tileBrushCommandId;
 };
 
 #endif // MYGLWIDGET_H

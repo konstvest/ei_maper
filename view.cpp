@@ -47,6 +47,7 @@ CView::CView(QWidget *parent, const QGLWidget *pShareWidget) : QGLWidget(parent,
   ,m_bDrawLand(true)
   ,m_bDrawWater(true)
   ,m_bPreviewTile(false)
+  ,m_tileBrushCommandId(0)
 {
     setFocusPolicy(Qt::ClickFocus);
 
@@ -1225,18 +1226,31 @@ void CView::setTile(QVector3D posOnLand, bool bLand)
     if(!m_pLand->pickTile(posOnLand, pTile, tileLoc, bLand))
         return;
 
-    //todo: create undo/redo command here
     int index, rotNum, matIndex;
     m_pTileForm->getSelectedTile(index, rotNum);
     if(index < 0)
         return;
 
     matIndex = m_pTileForm->activeMaterialindex();
-    pTile->setTile(index, rotNum);
-    if(!bLand)
-        pTile->setMaterialIndex(matIndex);
 
-    m_pLand->updateSectorDrawData(tileLoc.xSec, tileLoc.ySec);
+    STileInfo tileInfoNew{index, rotNum, matIndex};
+    STileInfo tileInfoOld{pTile->tileIndex(), pTile->tileRotation(), pTile->materialIndex()};
+    CBrushTileCommand* pReset = new CBrushTileCommand(this, tileInfoNew, tileLoc, tileInfoOld, m_tileBrushCommandId);
+    m_pUndoStack->push(pReset);
+
+//    pTile->setTile(index, rotNum);
+//    if(!bLand)
+//        pTile->setMaterialIndex(matIndex);
+
+//    m_pLand->updateSectorDrawData(tileLoc.xSec, tileLoc.ySec);
+}
+
+void CView::setTile(QMap<STileLocation, STileInfo>& arrTileData)
+{
+    if(!m_pLand->isMprLoad())
+        return;
+
+    m_pLand->setTile(arrTileData);
 }
 
 void CView::updatePreviewTile(QVector3D posOnLand, bool bLand)
@@ -1277,6 +1291,11 @@ void CView::pickQuickAccessTile(int index)
         return;
 
     m_pTileForm->selectQuickAccessTile(index);
+}
+
+void CView::endTileBrushGroup()
+{
+    m_tileBrushCommandId = (m_tileBrushCommandId+1)%9;
 }
 
 void CView::updateParameter(EObjParam propType)

@@ -359,9 +359,30 @@ struct SVertexData
     QVector2D texCoord;
 };
 
+struct STileInfo
+{
+    int index, rotNum, matIndex;
+    bool operator==(const STileInfo& other) const
+    {
+        return index == other.index &&
+               rotNum == other.rotNum &&
+               matIndex == other.matIndex;
+    }
+
+};
+
 struct STileLocation
 {
     int xSec, ySec, row, col;
+    bool bLand;
+    bool operator<(const STileLocation& other) const
+    {
+        if (xSec != other.xSec) return xSec < other.xSec;
+        if (ySec != other.ySec) return ySec < other.ySec;
+        if (row != other.row) return row < other.row;
+        if (col != other.col) return col < other.col;
+        return bLand < other.bLand;
+    }
 };
 
 template <class T> class TValue {

@@ -48,6 +48,8 @@ public:
     bool projectPt(QVector3D& origin);
     bool pickTile(int& row, int& col, QVector3D& point, bool bLand = true);
     void setTile(QVector3D& point, int index, int rotNum, bool bLand = true, int matIndex = 0);
+    //void setTile(const STileLocation tileLoc, const STileInfo tileInfo);
+    void setTile(const QMap<STileLocation, STileInfo>& arrTileInfo);
     const QVector<QVector<CTile>>& arrTile() const {return m_arrLand;};
     QVector<QVector<CTile>>& arrTileEdit() {return m_arrLand;};
     const QVector<QVector<CTile>>& arrWater() const {return m_arrWater;};

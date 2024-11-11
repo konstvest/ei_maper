@@ -1141,9 +1141,9 @@ void CTileBrush::mouseReleaseEvent(COperation* pOp, QMouseEvent* pEvent)
 {
     Q_UNUSED(pOp);
     Q_UNUSED(pEvent);
-//    if (pEvent->button() == Qt::LeftButton) {
-//        qDebug() << "Left button was released";
-//    }
+    if (pEvent->button() == Qt::LeftButton) {
+        m_pView->endTileBrushGroup();
+    }
     if(!m_pView->isPreviewTile()) // if we finished brushing, we will come here
     {
         bool bLand = CScene::getInstance()->isLandTileEditMode();

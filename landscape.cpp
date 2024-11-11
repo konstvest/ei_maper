@@ -293,7 +293,7 @@ bool CLandscape::pickTile(QVector3D& point, CTile*& pTileOut, STileLocation& til
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
         if(m_aSector[yIndex][xIndex]->pickTile(row, col, point, bLand))
         {
-            tileLoc = STileLocation{xIndex, yIndex, row, col};
+            tileLoc = STileLocation{xIndex, yIndex, row, col, bLand};
             if(bLand)
                 pTileOut = &(m_aSector[yIndex][xIndex]->arrTileEdit()[row][col]);
             else
@@ -303,6 +303,34 @@ bool CLandscape::pickTile(QVector3D& point, CTile*& pTileOut, STileLocation& til
         }
 
     return false;
+}
+
+void CLandscape::setTile(const QMap<STileLocation, STileInfo>& arrTileInfo)
+{
+    int xSec(-1), ySec(-1);
+    QMap<STileLocation, STileInfo> arrSecTileInfo;
+    for(auto& tile: arrTileInfo.toStdMap())
+    {
+        if(xSec != tile.first.xSec)
+        {
+            if(xSec != -1 && ySec != -1 && !arrSecTileInfo.isEmpty())
+                m_aSector[ySec][xSec]->setTile(arrSecTileInfo);
+            xSec = tile.first.xSec;
+            arrSecTileInfo.clear();
+        }
+        if(ySec != tile.first.ySec)
+        {
+            if(xSec != -1 && ySec != -1 && !arrSecTileInfo.isEmpty())
+                m_aSector[ySec][xSec]->setTile(arrSecTileInfo);
+            ySec = tile.first.ySec;
+            arrSecTileInfo.clear();
+        }
+
+        arrSecTileInfo[tile.first] = tile.second;
+    }
+    //draw last tile data
+    if(!arrSecTileInfo.isEmpty())
+        m_aSector[ySec][xSec]->setTile(arrSecTileInfo);
 }
 
 void CLandscape::updateSectorDrawData(int xSec, int ySec)

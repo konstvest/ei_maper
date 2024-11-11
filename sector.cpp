@@ -619,6 +619,37 @@ void CSector::setTile(QVector3D& point, int index, int rotNum, bool bLand, int m
     updatePosition(); //todo
 }
 
+//void CSector::setTile(const STileLocation tileLoc, const STileInfo tileInfo)
+//{
+//    CTile* pTile = nullptr;
+//    if(tileLoc.bLand)
+//        pTile = &(m_arrLand[tileLoc.row][tileLoc.col]);
+//    else
+//    {
+//        pTile = &(m_arrWater[tileLoc.row][tileLoc.col]);
+//        pTile->setMaterialIndex(tileInfo.matIndex);
+//    }
+//    pTile->setTile(tileInfo.index, tileInfo.rotNum);
+//    updateDrawData();
+//}
+
+void CSector::setTile(const QMap<STileLocation, STileInfo>& arrTileInfo)
+{
+    CTile* pTile = nullptr;
+    for(auto& tile: arrTileInfo.toStdMap())
+    {
+        if(tile.first.bLand)
+            pTile = &(m_arrLand[tile.first.row][tile.first.col]);
+        else
+        {
+            pTile = &(m_arrWater[tile.first.row][tile.first.col]);
+            pTile->setMaterialIndex(tile.second.matIndex);
+        }
+        pTile->setTile(tile.second.index, tile.second.rotNum);
+    }
+    updateDrawData();
+}
+
 bool CSector::existsTileIndices(const QVector<int>& arrInd)
 {
     bool bRes = false;

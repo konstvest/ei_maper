@@ -794,6 +794,11 @@ void CView::onMapMaterialUpdate()
     m_pLand->setTileTypes(m_pTileForm->tileTypes());
 }
 
+void CView::onRestoreTileData()
+{
+
+}
+
 void CView::checkNewLandVersion()
 {
     return; //todo: set option to auto-check changes in mpr. Dont re-upload when save by ourselfes

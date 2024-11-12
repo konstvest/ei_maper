@@ -289,6 +289,12 @@ bool CLandscape::pickTile(QVector3D& point, CTile*& pTileOut, STileLocation& til
 {
     int xIndex = int(point.x()/32.0f);
     int yIndex = int(point.y()/32.0f);
+    if(yIndex < 0 || yIndex > m_aSector.size()
+        || xIndex < 0 || xIndex > m_aSector.first().size())
+    {
+        return false;
+    }
+
     point.setZ(-1.0f);
     int row, col;
     if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())

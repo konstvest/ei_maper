@@ -73,6 +73,7 @@ private slots:
     void onQuickCellClicked(int row, int column);
     void onSelectMaterial(int index);
     void onSelectAnimTile(int index);
+    void onSelectTileType(int index);
     void onSetQuick(int ind, int row, int col);
     void onSelectMaterialType(int index);
     void onColorSelect(QSharedPointer<IPropertyBase> prop);

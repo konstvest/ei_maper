@@ -24,6 +24,7 @@ CTileForm::CTileForm(QWidget *parent) :
     connect(ui->tableQuick, SIGNAL(cellClicked(int,int)), this, SLOT(onQuickCellClicked(int,int)));
     connect(ui->comboMaterial, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectMaterial(int)));
     connect(ui->comboAnimTile, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectAnimTile(int)));
+    connect(ui->comboTileType, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectTileType(int)));
     KeyPressEventFilter *filter = new KeyPressEventFilter(ui->tableTile);
     connect(filter, SIGNAL(setQuick(int,int,int)), this, SLOT(onSetQuick(int,int,int)));
     ui->tabWidget->setCurrentIndex(0);
@@ -348,7 +349,9 @@ void CTileForm::setAnimTile(const QVector<SAnimTile>& arrAnimTile)
 void CTileForm::onCellClicked(int row, int column)
 {
     int ind = column + m_nTilePerRow * row;
+    ui->comboTileType->blockSignals(true);
     ui->comboTileType->setCurrentIndex(m_tileTypes[ind]);
+    ui->comboTileType->blockSignals(false);
     ui->tableQuick->clearSelection();
     emit onSelect(tileWithRot(ind));
     //QCursor curs(m_icoList[ind].pixmap(QSize(32, 32)));
@@ -389,6 +392,14 @@ void CTileForm::onSelectAnimTile(int index)
     const SAnimTile& anmTile = m_arrAnimTile[index];
     m_pIndexText->renewValue(QString::number(anmTile.tileIndex));
     m_pPhaseNumText->renewValue(QString::number(anmTile.nPhase));
+}
+
+void CTileForm::onSelectTileType(int index)
+{
+    //qDebug() << CResourceStringList::getInstance()->tileTypes().key(ui->comboTileType->currentText());
+    int ind, rotNum;
+    getSelectedTile(ind, rotNum);
+    m_tileTypes[ind] = ETileType(index);
 }
 
 void CTileForm::onSetQuick(int ind, int row, int col)
@@ -560,7 +571,7 @@ void CTileForm::resizeEvent(QResizeEvent* event)
 
 void CTileForm::showEvent(QShowEvent* event)
 {
-    fitTable();
+    //fitTable();
     QWidget::showEvent(event);
 }
 

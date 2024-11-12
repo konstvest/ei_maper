@@ -157,6 +157,7 @@ public slots:
     void onRestoreCursor();
     void onChangeCursorTile(QPixmap ico);
     void onMapMaterialUpdate();
+    void onRestoreTileData();
     void setTile(QMap<STileLocation, STileInfo>& arrTileData);
 
     void execMobSwitch();

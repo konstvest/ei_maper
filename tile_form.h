@@ -57,11 +57,11 @@ public:
     const QVector<ETileType>& tileTypes() {return m_tileTypes;}
     const QVector<int> quickTileSet() const {return m_arrQuickTile;}
     void setQuickTileSet(const QVector<int>& arrIndices);
+    QPixmap tileWithRot(int index) {return tileWithRot(index, m_tileRot);};
 
 private:
     void fitTable();
     QPixmap tileWithRot(int index, int rot);
-    QPixmap tileWithRot(int index) {return tileWithRot(index, m_tileRot);};
     void updateMaterialData();
     void updateAnimTileData();
     bool isGetMaterial(SMaterial& mat);

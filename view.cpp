@@ -291,7 +291,6 @@ void CView::loadLandscape(const QFileInfo& filePath)
     m_timer->setInterval(15); //"fps" for drawing
     m_timer->start();
     m_lastModifiedLand = filePath.lastModified();
-    connect(m_pTileForm, SIGNAL(onSelect(QPixmap)), this, SLOT(onChangeCursorTile(QPixmap)));
     connect(m_pTileForm, SIGNAL(applyChangesSignal()), this, SLOT(onMapMaterialUpdate()));
     COptInt* pOpt = dynamic_cast<COptInt*>(settings()->opt("landCheckTime"));
     if (pOpt and pOpt->value() != 0)
@@ -300,7 +299,7 @@ void CView::loadLandscape(const QFileInfo& filePath)
         m_mprModifyTimer->start();
     }
     m_pPreviewTile.reset(new CPreviewTile());
-    updateTileForm();
+    updateTileForm(true);
 }
 
 void CView::unloadLand()
@@ -730,9 +729,10 @@ void CView::drawTilePreview(QOpenGLShaderProgram* program)
     m_pPreviewTile->draw(program);
 }
 
-void CView::updateTileForm()
+void CView::updateTileForm(bool bGenerateNewTable)
 {
-    m_pTileForm->fillTable(m_pLand->filePath().baseName(), m_pLand->textureNum());
+    if(bGenerateNewTable)
+        m_pTileForm->fillTable(m_pLand->filePath().baseName(), m_pLand->textureNum());
     m_pTileForm->setTileTypes(m_pLand->tileTypes());
     m_pTileForm->setMaterial(m_pLand->materials());
     m_pTileForm->setAnimTile(m_pLand->animTiles());
@@ -1230,6 +1230,8 @@ void CView::pickTile(QVector3D posOnLand, bool bLand)
     m_pTileForm->setTileRotation(pTile->tileRotation());
     if(!bLand)
         m_pTileForm->setActiveMatIndex(pTile->materialIndex());
+
+    m_pPreviewTile->updateTile(*pTile, pTile->tileIndex(), pTile->tileRotation(), pTile->materialIndex(), tileLoc.xSec, tileLoc.ySec);
 }
 
 void CView::setTile(QVector3D posOnLand, bool bLand)
@@ -1279,6 +1281,7 @@ void CView::updatePreviewTile(QVector3D posOnLand, bool bLand)
     if(!m_pLand->pickTile(posOnLand, pTile, tileLoc, bLand))
         return;
 
+    onChangeCursorTile(m_pTileForm->tileWithRot(pTile->tileIndex()));
     int index, rotNum, matIndex;
     m_pTileForm->getSelectedTile(index, rotNum);
     if(index < 0)

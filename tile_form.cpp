@@ -331,7 +331,7 @@ void CTileForm::selectTile(int index)
     ui->tableQuick->clearSelection();
     ui->tableTile->setCurrentCell(row, column);
     ui->comboTileType->setCurrentIndex(m_tileTypes[index]);
-    emit onSelect(tileWithRot(index));
+    //emit onSelect(tileWithRot(index));
 }
 
 void CTileForm::selectQuickAccessTile(int index)

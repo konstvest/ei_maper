@@ -144,7 +144,7 @@ private:
     void logOpenGlData();
     void checkOpenGlError();
     void drawTilePreview(QOpenGLShaderProgram* program);
-    void updateTileForm();
+    void updateTileForm(bool bGenerateNewTable = false);
     void saveSession();
 
 

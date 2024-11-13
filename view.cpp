@@ -2546,9 +2546,6 @@ void CView::loadSession()
         m_pUndoStack->push(pRound);
     }
 
-    if(arrMobPath.isEmpty())
-        return;
-
     QVector3D pos, pivot, rot;
     if(pManager->getCameraData(pos, pivot, rot))
     {

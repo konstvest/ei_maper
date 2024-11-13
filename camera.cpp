@@ -50,6 +50,21 @@ void CCamera::reset()
     }
 }
 
+void CCamera::getLocation(QVector3D& pos, QVector3D& pivot, QVector3D& rot)
+{
+    pos = m_pos;
+    pivot = m_pivot;
+    rot = QVector3D(m_xRot, 0, m_zRot);
+}
+
+void CCamera::setLocation(const QVector3D& pos, const QVector3D& pivot, const QVector3D& rot)
+{
+    m_pos = pos;
+    m_pivot = pivot;
+    m_xRot = rot.x();
+    m_zRot = rot.z();
+}
+
 void CCamera::xRotate(float& angle)
 {
     m_xRot += angle;

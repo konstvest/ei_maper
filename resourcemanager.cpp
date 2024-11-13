@@ -1114,59 +1114,166 @@ void CSessionDataManager::getLastSession(QString& mprPath, QVector<QString>& arr
     return;
 }
 
-void CSessionDataManager::updateLastSession(const QString& mprPath, const QVector<QString>& arrMobPath)
+void CSessionDataManager::addZoneData(const QString& mprPath, const QVector<QString>& arrMobPath)
 {
-    QFile sessionFile(sessionDataFile());
-    QJsonObject lastSession;
-    if(!mprPath.isEmpty())
-    {
-        lastSession.insert("MPR", mprPath);
-    }
+    if(mprPath.isEmpty())
+        return;
+
+    QJsonObject zone;
+    zone.insert("mpr", mprPath);
     if(!arrMobPath.isEmpty())
     {
         QJsonArray arrMob;
         for(const auto& mobPath : arrMobPath)
             arrMob.append(mobPath);
-        lastSession.insert("arrMob", arrMob);
+
+        zone.insert("mob list", arrMob);
     }
 
-    QJsonObject jsonObj;
-    if(sessionFile.exists())
-    {
-        if (!sessionFile.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            ei::log(eLogWarning, "Cannot read session file" + sessionFile.errorString());
-            return;
-        }
+    m_lastSession["zone"] = zone;
+}
 
-        QByteArray jsonData = sessionFile.readAll();
-        QJsonParseError parseError;
-        QJsonDocument doc = QJsonDocument::fromJson(jsonData, &parseError);
+bool CSessionDataManager::getZoneData(QString& mprPath, QVector<QString>& arrMobPath)
+{
+    if(!m_lastSession.contains("zone"))
+        return false;
 
-        if (parseError.error != QJsonParseError::NoError)
-        {
-            ei::log(eLogWarning, "Error parsing last session file:" + parseError.errorString());
-            sessionFile.close();
-            return;
-        }
-        sessionFile.close();
-        jsonObj = doc.object();
-    }
-    if(jsonObj.contains("Last Session"))
-        jsonObj["Last Session"] = lastSession;
-    else
-        jsonObj.insert("Last Session", lastSession);
+    QJsonObject zone = m_lastSession["zone"].toObject();
+    if(!zone.contains("mpr"))
+        return false;
 
+    mprPath = zone["mpr"].toString();
+
+    if(!zone.contains("mob list"))
+        return true;
+
+    QJsonArray arrMob = zone["mob list"].toArray();
+    for(auto it = arrMob.begin(); it < arrMob.end(); ++it)
+        arrMobPath.append(it->toString());
+
+    return true;
+}
+
+void CSessionDataManager::addCameraData(const QVector3D& position, const QVector3D& pivot, const QVector3D& rotation)
+{
+    QJsonObject camera;
+    QJsonArray vec;
+    vec.append(position.x());
+    vec.append(position.y());
+    vec.append(position.z());
+    camera.insert("position", vec);
+
+    QJsonArray piv;
+    piv.append(pivot.x());
+    piv.append(pivot.y());
+    piv.append(pivot.z());
+    camera.insert("pivot", piv);
+
+    QJsonArray rot;
+    rot.append(rotation.x());
+    rot.append(rotation.y());
+    rot.append(rotation.z());
+    camera.insert("rotation", rot);
+    m_lastSession["camera"] = camera;
+}
+
+bool CSessionDataManager::getCameraData(QVector3D& position, QVector3D& pivot, QVector3D& rotation)
+{
+    if(!m_lastSession.contains("camera"))
+        return false;
+
+    QJsonObject camera = m_lastSession["camera"].toObject();
+    if(!camera.contains("position"))
+        return false;
+
+    QJsonArray pos = camera["position"].toArray();
+    if(pos.size() != 3)
+        return false;
+
+    position.setX(pos[0].toDouble());
+    position.setY(pos[1].toDouble());
+    position.setZ(pos[2].toDouble());
+
+    if(!camera.contains("pivot"))
+        return false;
+
+    QJsonArray piv = camera["pivot"].toArray();
+    if(piv.size() != 3)
+        return false;
+
+    pivot.setX(piv[0].toDouble());
+    pivot.setY(piv[1].toDouble());
+    pivot.setZ(piv[2].toDouble());
+
+    if(!camera.contains("rotation"))
+        return false;
+    QJsonArray rot = camera["rotation"].toArray();
+    if(rot.size() != 3)
+        return false;
+
+    rotation.setX(rot[0].toDouble());
+    rotation.setY(rot[1].toDouble());
+    rotation.setZ(rot[2].toDouble());
+    return true;
+}
+
+void CSessionDataManager::addQuickTileIndices(const QVector<int>& arrInd)
+{
+    QJsonArray arr;
+    for(auto& ind: arrInd)
+        arr.append(ind);
+    m_lastSession["quick tile indices"] = arr;
+}
+
+bool CSessionDataManager::getdQuickTileIndices(QVector<int>& arrInd)
+{
+    if(!m_lastSession.contains("quick tile indices"))
+        return false;
+
+    QJsonArray arr = m_lastSession["quick tile indices"].toArray();
+    arrInd.clear();
+    for(int i(0); i<arr.size(); ++i)
+        arrInd.append(arr[i].toInt());
+
+    return true;
+}
+
+void CSessionDataManager::saveSession()
+{
+    QFile sessionFile(sessionDataFile());
     QJsonDocument jsonDdoc;
-    jsonDdoc.setObject(jsonObj);
-
+    jsonDdoc.setObject(m_lastSession);
     sessionFile.open(QIODevice::WriteOnly | QIODevice::Text);
     sessionFile.resize(0);
     sessionFile.write(jsonDdoc.toJson(QJsonDocument::Indented));
     sessionFile.close();
+}
+
+void CSessionDataManager::reset()
+{
+    m_lastSession = QJsonObject();
+}
+
+void CSessionDataManager::loadSession()
+{
+    QFile sessionFile(sessionDataFile());
+    if(!sessionFile.open(QIODevice::ReadOnly))
+        return;
+
+    if(sessionFile.size() == 0)
+        return;
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(sessionFile.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        ei::log(eLogWarning, "Error parsing last session file:" + parseError.errorString());
+        sessionFile.close();
+        return;
+    }
+    sessionFile.close();
 
 
-    return;
+    m_lastSession = doc.object();
 }
 
 CSessionDataManager::CSessionDataManager()
@@ -1177,9 +1284,4 @@ CSessionDataManager::CSessionDataManager()
 QString CSessionDataManager::sessionDataFile()
 {
     return QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("ei_maper_session.json");
-}
-
-QString CSessionDataManager::copyPasteFile()
-{
-    return QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("copy_paste_buffer.json");
 }

@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QImage>
 #include <QOpenGLTexture>
+#include <QJsonObject>
 #include "figure.h"
 #include "types.h"
 
@@ -180,15 +181,24 @@ class CSessionDataManager
 public:
     static CSessionDataManager* getInstance();
     void getLastSession(QString& mprPath, QVector<QString>& arrMobPath);
-    void updateLastSession(const QString& mprPath, const QVector<QString>& arrMobPath);
+    void addZoneData(const QString& mprPath, const QVector<QString>& arrMobPath);
+    bool getZoneData(QString& mprPath, QVector<QString>& arrMobPath);
+    void addCameraData(const QVector3D& position, const QVector3D& pivot, const QVector3D& rotation);
+    bool getCameraData(QVector3D& position, QVector3D& pivot, QVector3D& rotation);
+    void addQuickTileIndices(const QVector<int>& arrInd);
+    bool getdQuickTileIndices(QVector<int>& arrInd);
+    void saveSession();
+    void reset();
+    void loadSession();
+
 private:
     CSessionDataManager();
     ~CSessionDataManager();
     QString sessionDataFile();
-    QString copyPasteFile();
 
 private:
     static CSessionDataManager* m_pSessionDataManger;
+    QJsonObject m_lastSession;
 };
 
 #endif // CRESOURCEMANAGER_H

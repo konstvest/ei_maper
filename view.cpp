@@ -301,7 +301,6 @@ void CView::loadLandscape(const QFileInfo& filePath)
     }
     m_pPreviewTile.reset(new CPreviewTile());
     updateTileForm();
-    saveRecent();
 }
 
 void CView::unloadLand()
@@ -1315,7 +1314,7 @@ void CView::endTileBrushGroup()
     m_tileBrushCommandId = (m_tileBrushCommandId+1)%9;
 }
 
-bool CView::isExitAllowed()
+bool CView::onExit()
 {
     bool bCloseAllowed = true;
     CMob* pMob = nullptr;
@@ -1347,6 +1346,10 @@ bool CView::isExitAllowed()
         {
             bCloseAllowed = false;
         }
+    }
+    if(bCloseAllowed)
+    {
+        saveSession();
     }
     return bCloseAllowed;
 }
@@ -2439,8 +2442,6 @@ void CView::execUnloadCommand()
 
     CCloseActiveMobCommand* pCommand = new CCloseActiveMobCommand(this);
     m_pUndoStack->push(pCommand);
-    saveRecent();
-
 }
 
 void CView::iterateRoundMob()
@@ -2481,7 +2482,7 @@ void CView::applyRoundMob()
     m_pUndoStack->push(pChangeMobCommand);
 }
 
-void CView::saveRecent()
+void CView::saveSession()
 {
     if(!m_pLand->isMprLoad())
         return;
@@ -2497,17 +2498,31 @@ void CView::saveRecent()
     }
     if(m_activeMob)
         arrMobPath.append(m_activeMob->filePath().absoluteFilePath());
-    CSessionDataManager::getInstance()->updateLastSession(mprPath, arrMobPath);
+
+    auto pManager = CSessionDataManager::getInstance();
+    pManager->reset();
+    pManager->addZoneData(mprPath, arrMobPath);
+    QVector3D pos, pivot, rot;
+    m_cam->getLocation(pos, pivot, rot);
+    pManager->addCameraData(pos, pivot, rot);
+    pManager->addQuickTileIndices(m_pTileForm->quickTileSet());
+    pManager->saveSession();
 }
 
-void CView::openRecent()
+void CView::loadSession()
 {
+    auto pManager = CSessionDataManager::getInstance();
+    pManager->reset();
+    pManager->loadSession();
+
     QString mprPath;
     QVector<QString> arrMobPath;
-    CSessionDataManager::getInstance()->getLastSession(mprPath, arrMobPath);
+    if(!pManager->getZoneData(mprPath, arrMobPath))
+        return;
 
     if(mprPath.isEmpty())
         return;
+
     QFileInfo mprFile(mprPath);
     if(!mprFile.exists())
     {
@@ -2534,8 +2549,18 @@ void CView::openRecent()
     if(arrMobPath.isEmpty())
         return;
 
-//    auto pChangeMobCommand = new CChangeActiveMobCommand(this, arrMobPath.back());
-//    m_pUndoStack->push(pChangeMobCommand);
+    QVector3D pos, pivot, rot;
+    if(pManager->getCameraData(pos, pivot, rot))
+    {
+        m_cam->moveTo(pos);
+        m_cam->setLocation(pos, pivot, rot);
+    }
+
+    QVector<int> arrQuickInd;
+    if(pManager->getdQuickTileIndices(arrQuickInd))
+    {
+        m_pTileForm->setQuickTileSet(arrQuickInd);
+    }
 }
 
 bool CView::isRecentAvailable()

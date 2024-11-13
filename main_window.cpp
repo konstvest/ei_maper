@@ -189,7 +189,7 @@ void MainWindow::connectUiButtons()
 
 bool MainWindow::isExitAllowed()
 {
-    return m_pView->isExitAllowed();
+    return m_pView->onExit();
 }
 
 void MainWindow::closeAll()
@@ -242,7 +242,6 @@ void MainWindow::on_actionOpen_triggered()
     {
         QUndoCommand* loadMpr = new COpenCommand(m_pView, fileName);
         m_undoStack->push(loadMpr);
-        m_pView->saveRecent();
     }
     else if(fileName.fileName().toLower().endsWith(".mob"))
     {
@@ -256,7 +255,6 @@ void MainWindow::on_actionOpen_triggered()
         m_undoStack->push(pLoadCommand);
         CRoundMobCommand* pRound = new CRoundMobCommand(m_pView);
         m_undoStack->push(pRound);
-        m_pView->saveRecent();
     }
 }
 
@@ -435,8 +433,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
 void MainWindow::on_actionOpen_recent_triggered()
 {
-    closeAll();
-    m_pView->openRecent();
+    m_pView->loadSession();
 }
 
 

@@ -99,8 +99,6 @@ public:
     void execUnloadCommand();
     void iterateRoundMob();
     void applyRoundMob();
-    void saveRecent();
-    void openRecent();
     bool isRecentAvailable();
     int renameActiveMobUnits(QMap<QString, QString>& mapName);
     void moveCamToSelectedObjects();
@@ -121,7 +119,8 @@ public:
     void showOutliner(bool bShow = true);
     void pickQuickAccessTile(int index);
     void endTileBrushGroup();
-    bool isExitAllowed();
+    void loadSession();
+    bool onExit();
 
 protected:
     void initializeGL() override;
@@ -146,6 +145,8 @@ private:
     void checkOpenGlError();
     void drawTilePreview(QOpenGLShaderProgram* program);
     void updateTileForm();
+    void saveSession();
+
 
 public slots:
     void updateWindow();

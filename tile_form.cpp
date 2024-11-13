@@ -408,6 +408,17 @@ void CTileForm::setAnimTile(const QVector<SAnimTile>& arrAnimTile)
     updateAnimTileData();
 }
 
+void CTileForm::setQuickTileSet(const QVector<int>& arrIndices)
+{
+    if(arrIndices.size() != m_arrQuickTile.size())
+    {
+        ei::log(eLogWarning, "Cannot apply quick tile set");
+        return;
+    }
+    m_arrQuickTile = arrIndices;
+    updateQuickTable();
+}
+
 void CTileForm::onCellClicked(int row, int column)
 {
     int ind = column + m_nTilePerRow * row;

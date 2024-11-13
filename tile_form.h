@@ -55,6 +55,8 @@ public:
     const QVector<SAnimTile>& animTile() {return m_arrAnimTile;};
     const QVector<SMaterial>& material() {return m_arrMaterial;};
     const QVector<ETileType>& tileTypes() {return m_tileTypes;}
+    const QVector<int> quickTileSet() const {return m_arrQuickTile;}
+    void setQuickTileSet(const QVector<int>& arrIndices);
 
 private:
     void fitTable();

@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTableWidget>
 #include <QKeyEvent>
+#include <QMenu>
 #include "types.h"
 #include "property.h"
 
@@ -63,6 +64,7 @@ private:
     void updateAnimTileData();
     bool isGetMaterial(SMaterial& mat);
     void updateQuickTable();
+    void addAnimTileData(int start, int size);
 
 signals:
     void onSelect(QPixmap);
@@ -70,6 +72,7 @@ signals:
 
 private slots:
     void onSelectFinish();
+    void onAddAnimTileFromTable();
     void onCellClicked(int row, int column);
     void onQuickCellClicked(int row, int column);
     void onSelectMaterial(int index);
@@ -124,29 +127,46 @@ public:
     {
         setSelectionMode(QAbstractItemView::ContiguousSelection);
         connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &CCustomSelectionTable::onSelectionChanged);
+        setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(this, &CCustomSelectionTable::customContextMenuRequested, this, &CCustomSelectionTable::showContextMenu);
     }
     const QModelIndex& lastSelectedIndex() const {return m_endIndex;}
 
 protected:
     void mousePressEvent(QMouseEvent *event) override
     {
-        m_startIndex = indexAt(event->pos());
-        m_endIndex = m_startIndex;
-        clearSelection();
+        if(event->button() == Qt::RightButton)
+        {
+            return;
+        }
+        if(event->button() == Qt::LeftButton)
+        {
+            m_startIndex = indexAt(event->pos());
+            m_endIndex = m_startIndex;
+            clearSelection();
+        }
+
         QTableWidget::mousePressEvent(event);
     }
 
     void mouseMoveEvent(QMouseEvent *event) override
     {
-        QModelIndex endIndex = indexAt(event->pos());
-        if (m_startIndex.isValid() && endIndex.isValid())
+        if(event->buttons() & Qt::LeftButton)
         {
-            m_endIndex = endIndex;
-            selectToIndex(m_startIndex, endIndex);
+            QModelIndex endIndex = indexAt(event->pos());
+            if (m_startIndex.isValid() && endIndex.isValid())
+            {
+                m_endIndex = endIndex;
+                selectToIndex(m_startIndex, endIndex);
+            }
         }
     }
     void mouseReleaseEvent(QMouseEvent *event) override
     {
+        if(event->button() == Qt::RightButton)
+        {
+            return;
+        }
         if (event->button() == Qt::LeftButton && selectionInProgress)
         {
             emit selectionFinished();
@@ -155,8 +175,28 @@ protected:
         QTableWidget::mouseReleaseEvent(event);
     }
 
+    void showContextMenu(const QPoint &pos) {
+        // Проверяем, есть ли выделенные ячейки
+        if (!selectedIndexes().isEmpty()) {
+            // Создаём контекстное меню
+            QMenu contextMenu(this);
+
+            // Добавляем действия в меню
+            QAction *action1 = new QAction("Add Animated tile range", this);
+
+            connect(action1, &QAction::triggered, this, [this]()
+            {
+                emit addAnimatedTileFromTableSignal();
+            });
+
+            contextMenu.addAction(action1);
+            contextMenu.exec(mapToGlobal(pos));
+        }
+    }
+
 signals:
     void selectionFinished();
+    void addAnimatedTileFromTableSignal();
 
 private slots:
     void onSelectionChanged()

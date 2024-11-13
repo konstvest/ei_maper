@@ -2,6 +2,7 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QScrollBar>
+#include <QShortcut>
 
 #include "tile_form.h"
 #include "ui_tile_form.h"
@@ -26,6 +27,7 @@ CTileForm::CTileForm(QWidget *parent) :
     connect(ui->comboAnimTile, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectAnimTile(int)));
     connect(ui->comboTileType, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectTileType(int)));
     connect(ui->tableTile, SIGNAL(selectionFinished()), this, SLOT(onSelectFinish()));
+    connect(ui->tableTile, SIGNAL(addAnimatedTileFromTableSignal()), this, SLOT(onAddAnimTileFromTable()));
     KeyPressEventFilter *filter = new KeyPressEventFilter(ui->tableTile);
     connect(filter, SIGNAL(setQuick(int,int,int)), this, SLOT(onSetQuick(int,int,int)));
     ui->tabWidget->setCurrentIndex(0);
@@ -57,6 +59,13 @@ CTileForm::CTileForm(QWidget *parent) :
     ui->formLayout_2->setWidget(2, QFormLayout::FieldRole, m_pPhaseNumText.get());
     connect(m_pPhaseNumText.get(), SIGNAL(onParamChange(QSharedPointer<IPropertyBase>)), this, SLOT(onPhaseNumSet(QSharedPointer<IPropertyBase>)));
     m_arrQuickTile.resize(8);
+
+    QTabWidget* pTab = ui->tabWidget;
+    QShortcut *nextTabShortcut = new QShortcut(QKeySequence("Ctrl+Tab"), this);
+            connect(nextTabShortcut, &QShortcut::activated, this, [pTab]() {
+                int nextIndex = (pTab->currentIndex() + 1) % pTab->count();
+                pTab->setCurrentIndex(nextIndex);
+            });
 }
 
 
@@ -157,6 +166,15 @@ void CTileForm::updateQuickTable()
     }
 }
 
+void CTileForm::addAnimTileData(int start, int size)
+{
+    m_arrAnimTile.append(SAnimTile{ushort(start), ushort(size)});
+    updateAnimTileData();
+    ui->comboAnimTile->setCurrentIndex(ui->comboAnimTile->count()-1);
+    ui->tabWidget->setCurrentIndex(1);
+    m_pIndexText->setFocus();
+}
+
 void CTileForm::onSelectFinish()
 {
 //    for(auto& item: ui->tableTile->selectedItems())
@@ -171,6 +189,33 @@ void CTileForm::onSelectFinish()
     ui->comboTileType->blockSignals(false);
     ui->tableQuick->clearSelection();
     emit onSelect(tileWithRot(ind));
+}
+
+void CTileForm::onAddAnimTileFromTable()
+{
+    QVector<int> aInd;
+    for(auto& item: ui->tableTile->selectedItems())
+    {
+        aInd.append(item->row() * m_nTilePerRow + item->column());
+    }
+    if(aInd.isEmpty())
+        return;
+    if(aInd.size() == 1)
+    {
+        addAnimTileData(aInd.first(), 1);
+        return;
+    }
+
+    std::sort(aInd.begin(), aInd.end());
+    for(int i(1); i<aInd.size(); ++i)
+    {
+        if(aInd[i] - aInd[i-1] != 1)
+        {
+            ei::log(eLogWarning, "Cannot create animated tile range with current selection range");
+            return;
+        }
+    }
+    addAnimTileData(aInd.first(), aInd.size());
 }
 
 // Кастомный делегат для отображения иконки во всю ячейку

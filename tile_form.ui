@@ -100,7 +100,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QTableWidget" name="tableTile"/>
+          <widget class="CCustomSelectionTable" name="tableTile"/>
          </item>
         </layout>
        </item>
@@ -421,6 +421,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CCustomSelectionTable</class>
+   <extends>QTableWidget</extends>
+   <header>tile_form.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

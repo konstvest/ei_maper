@@ -69,6 +69,7 @@ signals:
     void applyChangesSignal();
 
 private slots:
+    void onSelectFinish();
     void onCellClicked(int row, int column);
     void onQuickCellClicked(int row, int column);
     void onSelectMaterial(int index);
@@ -111,6 +112,95 @@ private:
     QSharedPointer<CValueItem> m_pIndexText;
     QSharedPointer<CValueItem> m_pPhaseNumText;
     QVector<int> m_arrQuickTile;
+};
+
+class CCustomSelectionTable : public QTableWidget
+{
+    Q_OBJECT
+
+public:
+    CCustomSelectionTable(QWidget *parent = nullptr)
+        : QTableWidget(parent)
+    {
+        setSelectionMode(QAbstractItemView::ContiguousSelection);
+        connect(selectionModel(), &QItemSelectionModel::selectionChanged, this, &CCustomSelectionTable::onSelectionChanged);
+    }
+    const QModelIndex& lastSelectedIndex() const {return m_endIndex;}
+
+protected:
+    void mousePressEvent(QMouseEvent *event) override
+    {
+        m_startIndex = indexAt(event->pos());
+        m_endIndex = m_startIndex;
+        clearSelection();
+        QTableWidget::mousePressEvent(event);
+    }
+
+    void mouseMoveEvent(QMouseEvent *event) override
+    {
+        QModelIndex endIndex = indexAt(event->pos());
+        if (m_startIndex.isValid() && endIndex.isValid())
+        {
+            m_endIndex = endIndex;
+            selectToIndex(m_startIndex, endIndex);
+        }
+    }
+    void mouseReleaseEvent(QMouseEvent *event) override
+    {
+        if (event->button() == Qt::LeftButton && selectionInProgress)
+        {
+            emit selectionFinished();
+            selectionInProgress = false;
+        }
+        QTableWidget::mouseReleaseEvent(event);
+    }
+
+signals:
+    void selectionFinished();
+
+private slots:
+    void onSelectionChanged()
+    {
+        selectionInProgress = true;
+    }
+
+private:
+    QModelIndex m_startIndex, m_endIndex;
+    bool selectionInProgress = false;
+
+    void selectToIndex(const QModelIndex &startIndex, const QModelIndex &endIndex)
+    {
+        int startRow = startIndex.row();
+        int startColumn = startIndex.column();
+        int endRow = endIndex.row();
+        int endColumn = endIndex.column();
+
+        QItemSelection selection;
+
+        if (startRow < endRow) {
+            for (int row = startRow; row <= endRow; ++row) {
+                int beginColumn = (row == startRow) ? startColumn : 0;
+                int finishColumn = (row == endRow) ? endColumn : columnCount() - 1;
+
+                selection.select(model()->index(row, beginColumn), model()->index(row, finishColumn));
+            }
+        }
+        else if (startRow > endRow) {
+            for (int row = startRow; row >= endRow; --row) {
+                int beginColumn = (row == startRow) ? startColumn : columnCount() - 1;
+                int finishColumn = (row == endRow) ? endColumn : 0;
+
+                selection.select(model()->index(row, finishColumn), model()->index(row, beginColumn));
+            }
+        }
+        else {
+            int beginColumn = qMin(startColumn, endColumn);
+            int finishColumn = qMax(startColumn, endColumn);
+            selection.select(model()->index(startRow, beginColumn), model()->index(startRow, finishColumn));
+        }
+
+        selectionModel()->select(selection, QItemSelectionModel::ClearAndSelect);
+    }
 };
 
 #endif // TILE_FORM_H

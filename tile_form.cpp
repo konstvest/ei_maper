@@ -20,11 +20,12 @@ CTileForm::CTileForm(QWidget *parent) :
     ui->setupUi(this);
     setAttribute(Qt::WA_ShowWithoutActivating);
     ui->comboTileType->addItems(CResourceStringList::getInstance()->tileTypes().values());
-    connect(ui->tableTile, SIGNAL(cellClicked(int,int)), this, SLOT(onCellClicked(int,int)));
+    //connect(ui->tableTile, SIGNAL(cellClicked(int,int)), this, SLOT(onCellClicked(int,int)));
     connect(ui->tableQuick, SIGNAL(cellClicked(int,int)), this, SLOT(onQuickCellClicked(int,int)));
     connect(ui->comboMaterial, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectMaterial(int)));
     connect(ui->comboAnimTile, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectAnimTile(int)));
     connect(ui->comboTileType, SIGNAL(currentIndexChanged(int)), this, SLOT(onSelectTileType(int)));
+    connect(ui->tableTile, SIGNAL(selectionFinished()), this, SLOT(onSelectFinish()));
     KeyPressEventFilter *filter = new KeyPressEventFilter(ui->tableTile);
     connect(filter, SIGNAL(setQuick(int,int,int)), this, SLOT(onSetQuick(int,int,int)));
     ui->tabWidget->setCurrentIndex(0);
@@ -154,6 +155,22 @@ void CTileForm::updateQuickTable()
         QIcon scaledIco = m_icoList[m_arrQuickTile[i]].pixmap(QSize(m_originalTilesize, m_originalTilesize)).scaled(quickColWidth, quickColWidth, Qt::KeepAspectRatio);
         item->setIcon(scaledIco);
     }
+}
+
+void CTileForm::onSelectFinish()
+{
+//    for(auto& item: ui->tableTile->selectedItems())
+//    {
+//        qDebug() << item->row() << "col: " << item->column();
+//    }
+    auto last = ui->tableTile->lastSelectedIndex();
+
+    int ind = m_nTilePerRow * last.row() + last.column();
+    ui->comboTileType->blockSignals(true);
+    ui->comboTileType->setCurrentIndex(m_tileTypes[ind]);
+    ui->comboTileType->blockSignals(false);
+    ui->tableQuick->clearSelection();
+    emit onSelect(tileWithRot(ind));
 }
 
 // Кастомный делегат для отображения иконки во всю ячейку
@@ -571,7 +588,7 @@ void CTileForm::resizeEvent(QResizeEvent* event)
 
 void CTileForm::showEvent(QShowEvent* event)
 {
-    //fitTable();
+    fitTable();
     QWidget::showEvent(event);
 }
 

@@ -12,6 +12,7 @@ CScene *CScene::getInstance()
 
 CScene::CScene():
     m_editMode(eEditModeObjects)
+  ,m_bLandEditMode(true)
 {
 
 }

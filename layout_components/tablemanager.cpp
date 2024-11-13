@@ -509,12 +509,19 @@ CColorButtonItem::CColorButtonItem(const QSharedPointer<IPropertyBase>& prop)
         m_pValue.reset(new prop3D(prop->type(), 0.0f, 0.0f, 0.0f)); //todo: display value dif
     }
     const auto& clr = dynamic_cast<prop3D*>(m_pValue.get())->value();
-    QColor color;
-    color.setRedF(clr.x());
-    color.setGreenF(clr.y());
-    color.setBlueF(clr.z());
-    updateColor(color);
+    setColor(clr);
     QObject::connect(this, SIGNAL(clicked()), this, SLOT(applyColor()));
+}
+
+CColorButtonItem::~CColorButtonItem()
+{
+}
+
+void CColorButtonItem::renewColor(const QVector3D& prop)
+{
+    m_pValue.reset(new prop3D(EObjParam::eObjParam_LIGHT_COLOR, prop.x(), prop.y(), prop.z()));
+    const auto& clr = dynamic_cast<prop3D*>(m_pValue.get())->value();
+    setColor(clr);
 }
 
 void CColorButtonItem::updateColor(const QColor &color)
@@ -524,6 +531,16 @@ void CColorButtonItem::updateColor(const QColor &color)
     setAutoFillBackground(true);
     setPalette(pal);
     update();
+}
+
+void CColorButtonItem::setColor(QVector3D clr)
+{
+    QColor color;
+    color.setRedF(clr.x());
+    color.setGreenF(clr.y());
+    color.setBlueF(clr.z());
+    updateColor(color);
+
 }
 
 bool CValueItem::applyChanges(const QString& text)
@@ -536,6 +553,18 @@ bool CValueItem::applyChanges(const QString& text)
     }
     //todo: validate data. return value if checks failed
     return false;
+}
+
+void CValueItem::renewValue(QString value)
+{
+    if(!value.isEmpty())
+    {
+        setText(value);
+    }
+    m_pValue->resetFromString(value);
+
+    m_filter.reset(new CLineEditEventFilter(this, text())); // create text backuper with old text
+    this->installEventFilter(m_filter.get());
 }
 
 void CValueItem::onTextChangeEnd()
@@ -605,13 +634,15 @@ CValueItem::CValueItem(const QSharedPointer<IPropertyBase>& prop):
     setPlaceholderText("undefined/different");
     //setFrame(false); //with frames look nicer
 
+    QString value;
+
     if(m_pValue->isInit())
     {
-        setText(m_pValue->toString());
+        //setText(m_pValue->toString());
+        value = m_pValue->toString();
     }
-    m_filter.reset(new CLineEditEventFilter(this, text())); // create text backuper with old text
-    this->installEventFilter(m_filter.get());
     QObject::connect(this, SIGNAL(editingFinished()), this, SLOT(onTextChangeEnd()));
+    renewValue(value);
 }
 
 

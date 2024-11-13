@@ -19,6 +19,8 @@ public:
 
     const EEditMode& getMode() {return m_editMode;}
     void changeMode(EEditMode mode);
+    void switchTileEditMode() {m_bLandEditMode = !m_bLandEditMode;};
+    bool isLandTileEditMode() {return m_bLandEditMode;}
 
 signals:
     void modeChanged();
@@ -30,6 +32,7 @@ private:
 private:
     static CScene* m_pScene;
     EEditMode m_editMode;
+    bool m_bLandEditMode;
 
 };
 

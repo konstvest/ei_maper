@@ -8,7 +8,6 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QUndoView>
-#include <QImageReader>
 
 #include "resourcemanager.h"
 #include "landscape.h"
@@ -28,9 +27,10 @@
 void testFunc()
 {
     ei::log(eLogDebug, "test func start");
-
+    //auto aaa = CResourceManager::getInstance()->tempFolder();
     ei::log(eLogDebug, "test func end");
 }
+
 
 void MainWindow::on_toolButton_2_clicked()
 {
@@ -49,9 +49,10 @@ MainWindow::MainWindow(QWidget* parent) :
     CIconManager::getInstance()->init();
 
     m_settings.reset(new CSettings());
-    m_selector.reset(new CSelectForm());
+    m_selector.reset(new CSelectForm(this));
     m_createDialog.reset(new CCreateObjectForm());
     m_randomizeForm.reset(new CRandomizeForm());
+    m_pTileForm.reset(new CTileForm(this));
     m_settings->attachMainWindow(this);
     m_ui->setupUi(this); //init CView core also
 
@@ -79,10 +80,11 @@ MainWindow::MainWindow(QWidget* parent) :
     createUndoView();
     CStatusConnector::getInstance()->attach(m_ui->statusIco, m_ui->statusBar);
     connectUiButtons();
-    m_pView->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText, m_ui->treeWidget);
+    m_pView->attach(m_settings.get(), m_ui->tableWidget, m_undoStack, m_ui->progressBar, m_ui->mousePosText, m_ui->treeWidget, m_pTileForm.get());
     initShortcuts();
     QObject::connect(m_pView, SIGNAL(updateMainWindowTitle(eTitleTypeData,QString)), this, SLOT(updateWindowTitle(eTitleTypeData,QString)));
     QObject::connect(CScene::getInstance(), SIGNAL(modeChanged()), m_pView, SLOT(viewParameters()));
+    QObject::connect(m_pView, SIGNAL(showOutlinerSignal(bool)), this, SLOT(showOutliner(bool)));
 
 
 //    m_ui->progressBar->setValue(0);
@@ -93,8 +95,8 @@ MainWindow::MainWindow(QWidget* parent) :
     CTextureList::getInstance()->attachSettings(m_settings.get());
     CObjectList::getInstance()->attachSettings(m_settings.get());
     m_createDialog.get()->attach(m_pView, m_undoStack);
-    if(m_pView->isRecentAvailable())
-        m_ui->actionOpen_recent->setEnabled(true);
+//    if(m_pView->isRecentAvailable())
+//        m_ui->actionOpen_recent->setEnabled(true);
 }
 
 MainWindow::~MainWindow()
@@ -153,8 +155,9 @@ void MainWindow::initShortcuts()
     m_ui->actionOpen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 
     m_ui->actionSave->setShortcut(QKeySequence(Qt::CTRL + eKey_S));
-    m_ui->actionSave_all_MOB_s->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + eKey_S));
-    m_ui->actionSave_as->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + eKey_S));
+    //m_ui->actionSave_all_MOB_s->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + eKey_S));
+    //m_ui->actionSave_as->setShortcut(QKeySequence(Qt::CTRL + Qt::ALT + eKey_S));
+    m_ui->actionSave_landscape_MPR->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + eKey_S));
 
     m_ui->actionSelect_All->setShortcut(QKeySequence(Qt::CTRL + eKey_A));
     m_ui->actionClose_all->setShortcut(QKeySequence(Qt::CTRL + eKey_Q));
@@ -175,33 +178,18 @@ void MainWindow::connectUiButtons()
     CButtonConnector::getInstance()->addButton(EButtonOpMove, m_ui->moveButton);
     CButtonConnector::getInstance()->addButton(EButtonOpRotate, m_ui->rotateButton);
     CButtonConnector::getInstance()->addButton(EButtonOpScale, m_ui->scaleButton);
+    CButtonConnector::getInstance()->addButton(EButtonOpTilebrush, m_ui->tileBrushButton);
     //disable buttons bcs operations works bad for mouse'moove' action without start point. op's starts work frommouse button position
     m_ui->selectButton->setEnabled(false);
     m_ui->moveButton->setEnabled(false);
     m_ui->rotateButton->setEnabled(false);
     m_ui->scaleButton->setEnabled(false);
+    m_ui->tileBrushButton->setEnabled(false);
 }
 
 bool MainWindow::isExitAllowed()
 {
-    CMob* pMob = nullptr;
-    bool bCloseAllowed = true;
-    foreach(pMob, m_pView->mobs())
-    {
-        if(!pMob->isDurty())
-            continue;
-
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Exit", pMob->mobName() + " has unsaved changes.\nDo you want to save changes?", QMessageBox::Save|QMessageBox::No|QMessageBox::Cancel);
-        if(reply == QMessageBox::Save)
-            pMob->save();
-        else if(reply == QMessageBox::Cancel)
-        {
-            bCloseAllowed = false;
-            break;
-        }
-    }
-    return bCloseAllowed;
+    return m_pView->onExit();
 }
 
 void MainWindow::closeAll()
@@ -211,6 +199,20 @@ void MainWindow::closeAll()
         m_pView->unloadMob("");
         m_pView->unloadLand();
         m_undoStack->clear();
+    }
+}
+
+void MainWindow::showOutliner(bool bShow)
+{
+    if(bShow)
+    {
+        m_ui->treeWidget->show();
+        m_ui->tableWidget->show();
+    }
+    else
+    {
+        m_ui->treeWidget->hide();
+        m_ui->tableWidget->hide();
     }
 }
 
@@ -240,7 +242,6 @@ void MainWindow::on_actionOpen_triggered()
     {
         QUndoCommand* loadMpr = new COpenCommand(m_pView, fileName);
         m_undoStack->push(loadMpr);
-        m_pView->saveRecent();
     }
     else if(fileName.fileName().toLower().endsWith(".mob"))
     {
@@ -254,7 +255,6 @@ void MainWindow::on_actionOpen_triggered()
         m_undoStack->push(pLoadCommand);
         CRoundMobCommand* pRound = new CRoundMobCommand(m_pView);
         m_undoStack->push(pRound);
-        m_pView->saveRecent();
     }
 }
 
@@ -344,7 +344,12 @@ void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
         m_sWindowTitle.mpr = data;
         break;
     }
-    case eTitleTypeData::eTitleTypeDataDurtyFlag:
+    case eTitleTypeData::eTitleTypeDataMprDirtyFlag:
+    {
+        m_sWindowTitle.mprDirty = !data.isEmpty();
+        break;
+    }
+    case eTitleTypeData::eTitleTypeDataDirtyFlag:
     {
         m_sWindowTitle.durty = !data.isEmpty();
         break;
@@ -355,13 +360,17 @@ void MainWindow::updateWindowTitle(eTitleTypeData type, QString data)
     }
     QString title = "ei_maper";
     if(!m_sWindowTitle.mpr.isEmpty())
+    {
         title += QString(" MPR: (%1)").arg(m_sWindowTitle.mpr);
+        if(m_sWindowTitle.mprDirty)
+            title += "*";
+    }
 
     if(!m_sWindowTitle.activeMob.isEmpty())
     {
         title += QString(" Active MOB: (%1)").arg(m_sWindowTitle.activeMob);
         if(m_sWindowTitle.durty) //show durty flag only if mob is loaded. if it will be possible to edit mpr, move flag outside this block
-            title += " *";
+            title += "*";
     }
 
 
@@ -405,12 +414,6 @@ void MainWindow::on_actionCopy_IDs_to_clipboard_triggered()
 }
 
 
-void MainWindow::on_actionSwitch_active_MOB_triggered()
-{
-    m_pView->roundActiveMob();
-}
-
-
 void MainWindow::on_actionOpen_2_triggered()
 {
     m_settings->onShow(eOptSetResource);
@@ -430,8 +433,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
 
 void MainWindow::on_actionOpen_recent_triggered()
 {
-    closeAll();
-    m_pView->openRecent();
+    m_pView->loadSession();
 }
 
 
@@ -456,6 +458,30 @@ void MainWindow::on_actionReset_selected_IDs_triggered()
 
 void MainWindow::on_action_About_triggered()
 {
-    QMessageBox::information(this, "About","Mob editor for Evil Islands game v0.2\n\nAuthor: konstvest\nHome page: https://github.com/konstvest/ei_maper\nLicense: GNU GPL-3.0");
+    QMessageBox::information(this, "About","Map editor for Evil Islands game v0.3\n\nAuthor: konstvest\nHome page: https://github.com/konstvest/ei_maper\nLicense: GNU GPL-3.0");
+}
+
+
+void MainWindow::on_actionSave_landscape_MPR_as_triggered()
+{
+    m_pView->saveLandAs();
+}
+
+
+void MainWindow::on_actionMap_parameters_triggered()
+{
+    m_pView->openMapParameters();
+}
+
+
+void MainWindow::on_tileBrushButton_clicked()
+{
+    CButtonConnector::getInstance()->clickButton(EButtonOpTilebrush);
+}
+
+
+void MainWindow::on_actionSave_landscape_MPR_triggered()
+{
+    m_pView->saveLand();
 }
 

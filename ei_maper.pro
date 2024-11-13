@@ -60,6 +60,8 @@ SOURCES += \
     objects/sound.cpp \
     objects/torch.cpp \
     objects/unit.cpp \
+    tile.cpp \
+    tile_form.cpp \
     types.cpp \
     undo.cpp \
     unitstat_form.cpp \
@@ -112,6 +114,8 @@ HEADERS += \
     objects/sound.h \
     objects/torch.h \
     objects/unit.h \
+    tile.h \
+    tile_form.h \
     undo.h \
     unitstat_form.h \
     view.h \
@@ -140,6 +144,7 @@ FORMS += \
         settings.ui \
         mob/mob_parameters.ui \
         mob/range_dialog.ui \
+        tile_form.ui \
         unitstat_form.ui
 
 LIBS += -lglu32 -lopengl32

@@ -120,6 +120,19 @@
          </widget>
         </item>
         <item>
+         <widget class="QToolButton" name="tileBrushButton">
+          <property name="minimumSize">
+           <size>
+            <width>32</width>
+            <height>32</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Bru</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -317,6 +330,9 @@
     <addaction name="actionSave_all_MOB_s"/>
     <addaction name="actionSave_as"/>
     <addaction name="separator"/>
+    <addaction name="actionSave_landscape_MPR"/>
+    <addaction name="actionSave_landscape_MPR_as"/>
+    <addaction name="separator"/>
     <addaction name="actionClose_all"/>
     <addaction name="actionExit"/>
    </widget>
@@ -366,6 +382,8 @@
     <addaction name="actionChange_mod_e"/>
     <addaction name="menuUnit"/>
     <addaction name="actionReset_selected_IDs"/>
+    <addaction name="separator"/>
+    <addaction name="actionMap_parameters"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -516,10 +534,10 @@
   </action>
   <action name="actionOpen_recent">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
-    <string>Open &amp;recent</string>
+    <string>Open &amp;last session</string>
    </property>
   </action>
   <action name="actionReset_logic_paths">
@@ -543,6 +561,21 @@
   <action name="action_About">
    <property name="text">
     <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionSave_landscape_MPR">
+   <property name="text">
+    <string>Save MPR</string>
+   </property>
+  </action>
+  <action name="actionSave_landscape_MPR_as">
+   <property name="text">
+    <string>Save MPR as...</string>
+   </property>
+  </action>
+  <action name="actionMap_parameters">
+   <property name="text">
+    <string>Map parameters</string>
    </property>
   </action>
  </widget>

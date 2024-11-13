@@ -34,6 +34,9 @@ class CMobParameters;
 class CRoundMobForm;
 class CTreeView;
 class IPropertyBase;
+class CTileForm;
+class CPreviewTile;
+class CLandscape;
 
 ///
 /// \brief The CView class is the main class for managing and editing 3D scene contents. It is also a link between read out *.mob files and their editing. It also controls the camera and current operations.
@@ -48,8 +51,10 @@ public:
     explicit CView(QWidget* parent=nullptr, const QGLWidget* pShareWidget=nullptr);
     ~CView();
 
-    void loadLandscape(QFileInfo& filePath);
+    void loadLandscape(const QFileInfo& filePath);
     void unloadLand();
+    void saveLand();
+    void saveLandAs();
     void loadMob(QFileInfo& filePath);
     void saveMobAs();
     void saveActiveMob();
@@ -57,7 +62,7 @@ public:
     void unloadActiveMob();
     void openActiveMobEditParams();
     void unloadMob(QString mobName);
-    void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, CTreeView* pTree);
+    void attach(CSettings* pSettings, QTableWidget* pParam, QUndoStack* pStack, CProgressView* pProgress, QLineEdit* pMouseCoord, CTreeView* pTree, CTileForm* pTileForm);
     CSettings* settings() {Q_ASSERT(m_pSettings); return m_pSettings;}
     int select(const SSelect& selectParam, bool bAddToSelect = false);
     CMob* mob(QString mobName);
@@ -65,7 +70,8 @@ public:
     void drawSelectFrame(QRect& rect);
     void pickObject(QPoint mousePos, bool bAddToSelect);
     void pickObject(const QRect& rect, bool bAddToSelect);
-    QVector3D getLandPos(const int cursorPosX, const int cursorPosY);
+    QVector3D getTerrainPos(bool bLand = true);
+    QVector3D getTerrainPos(const int cursorPosX, const int cursorPosY, bool bLand = true);
     void changeOperation(EButtonOp type);
     void operationSetBackup(EOperationAxisType operationType);
     void operationRevert(EOperationAxisType operationType);
@@ -81,6 +87,7 @@ public:
     void unHideAll();
     CMob* currentMob() {return m_activeMob;}
     QOpenGLShaderProgram& shaderObject() {return m_program;}
+    void setDirtyMpr();
     void setDurty(CMob* pMob = nullptr);
     void resetCamPosition();
     void addLogicPoint(bool bLookPoint = false);
@@ -92,8 +99,6 @@ public:
     void execUnloadCommand();
     void iterateRoundMob();
     void applyRoundMob();
-    void saveRecent();
-    void openRecent();
     bool isRecentAvailable();
     int renameActiveMobUnits(QMap<QString, QString>& mapName);
     void moveCamToSelectedObjects();
@@ -102,6 +107,20 @@ public:
     QList<CNode*> selectedNodes();
     void setRandomComplection(const EObjParam param, const float min, const float max);
     void resetSelectedId();
+    void openMapParameters();
+    void pickTile(QVector3D posOnLand, bool bLand = true);
+    void setTile(QVector3D posOnLand, bool bLand = true);
+    void updatePreviewTile(QVector3D posOnLand, bool bLand = true);
+    void addTileRotation(int step);
+    void setDrawWater(bool bDraw = true) {m_bDrawWater = bDraw;}
+    void setDrawLand(bool bDraw = true) {m_bDrawLand = bDraw;}
+    bool isPreviewTile() const {return m_bPreviewTile;}
+    void setPreviewTile(bool bDraw = true) {m_bPreviewTile = bDraw;}
+    void showOutliner(bool bShow = true);
+    void pickQuickAccessTile(int index);
+    void endTileBrushGroup();
+    void loadSession();
+    bool onExit();
 
 protected:
     void initializeGL() override;
@@ -124,6 +143,10 @@ private:
     void onParamChangeLogic(CNode* pNode, const QSharedPointer<IPropertyBase>& prop);
     void logOpenGlData();
     void checkOpenGlError();
+    void drawTilePreview(QOpenGLShaderProgram* program);
+    void updateTileForm();
+    void saveSession();
+
 
 public slots:
     void updateWindow();
@@ -132,6 +155,11 @@ public slots:
     void updateReadState(EReadState state); //get signal from reading texture/objects/map/mob
     void onParamChange(const QSharedPointer<IPropertyBase>& prop);
     void collectObjectTreeData();
+    void onRestoreCursor();
+    void onChangeCursorTile(QPixmap ico);
+    void onMapMaterialUpdate();
+    void onRestoreTileData();
+    void setTile(QMap<STileLocation, STileInfo>& arrTileData);
 
     void execMobSwitch();
     void clearHistory();
@@ -142,6 +170,7 @@ signals:
     void updateMsg(QString msg);
     void unloadMob(CMob*);
     void updateMainWindowTitle(eTitleTypeData, QString);
+    void showOutlinerSignal(bool bShow);
 
 private:
     int m_height; //for redraw window
@@ -170,6 +199,13 @@ private:
     CRoundMobForm* m_pRoundForm;
     QTimer* m_mprModifyTimer;
     QDateTime m_lastModifiedLand;
+    bool m_bDrawLand;
+    bool m_bDrawWater;
+    bool m_bPreviewTile;
+    CTileForm* m_pTileForm;
+    QSharedPointer<CPreviewTile> m_pPreviewTile;
+    CLandscape* m_pLand;
+    short m_tileBrushCommandId;
 };
 
 #endif // MYGLWIDGET_H

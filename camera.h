@@ -34,7 +34,8 @@ public:
     void enlarge(const bool bZoom = true);
     void reset();
     float step() const {return m_step;}
-    QVector3D& pos() {return m_pos;}
+    void getLocation(QVector3D& pos, QVector3D& pivot, QVector3D& rot);
+    void setLocation(const QVector3D& pos, const QVector3D& pivot, const QVector3D& rot);
     void move();
     void moveTo(QVector3D posTarget);
     void moveAwayOn(float distance);

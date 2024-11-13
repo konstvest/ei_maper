@@ -244,7 +244,7 @@ void CCreateObjectForm::on_buttonCreate_clicked()
     auto pMob = m_pView->currentMob();
     pMob->clearSelect();
     auto pos = QWidget::mapFromGlobal(QCursor::pos());
-    auto posOnLand = m_pView->getLandPos(pos.x(), pos.y());
+    auto posOnLand = m_pView->getTerrainPos(pos.x(), pos.y());
     ENodeType type = m_pNode->nodeType();
     switch (type)
     {

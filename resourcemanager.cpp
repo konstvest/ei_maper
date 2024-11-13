@@ -2,6 +2,13 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QtMath>
+#include <QDir>
+#include <QProcess>
+#include <QStandardPaths>
+#include <QJsonParseError>
+#include <QJsonObject>
+#include <QJsonArray>
+
 #include "res_file.h"
 #include "utils.h"
 #include "view.h"
@@ -10,6 +17,8 @@
 #include "log.h"
 
 CObjectList* CObjectList::m_pObjectContainer = nullptr;
+CTextureList* CTextureList::m_pTextureContainer = nullptr;
+CSessionDataManager* CSessionDataManager::m_pSessionDataManger = nullptr;
 
 CObjectList *CObjectList::getInstance()
 {
@@ -187,9 +196,6 @@ ei::CFigure *CObjectList::figureDefault()
     return m_aFigure["cannotDisplay.mod"];
 }
 
-
-
-CTextureList* CTextureList::m_pTextureContainer = nullptr;
 
 CTextureList *CTextureList::getInstance()
 {
@@ -505,6 +511,125 @@ void CTextureList::initResource()
     }
 }
 
+QImage convert_DXT(QDataStream& stream, int width, int height, bool DXT3 = false)
+{
+    QImage image(width, height, QImage::Format_RGBA8888);
+    uint16_t color[4][4] = {};
+
+    for (int i = 0; i < height / 4; i++) {
+        for (int j = 0; j < width / 4; j++) {
+            if (DXT3) {
+                for (int x = 0; x < 4; x++) {
+                    uint16_t row;
+                    stream >> row;
+                    for (int y = 0; y < 4; y++) {
+                        int alpha = (row & 15) * 17;
+                        row >>= 4;
+                        image.setPixel(j * 4 + y, i * 4 + x, QColor(0, 0, 0, alpha).rgba());
+                    }
+                }
+            }
+
+            uint16_t gen_c1, gen_c2;
+            stream >> gen_c1;
+            stream >> gen_c2;
+
+            color[0][0] = extractColor(gen_c1, 63488, 11);
+            color[0][1] = extractColor(gen_c1, 2016, 5);
+            color[0][2] = extractColor(gen_c1, 31, 0);
+
+            color[1][0] = extractColor(gen_c2, 63488, 11);
+            color[1][1] = extractColor(gen_c2, 2016, 5);
+            color[1][2] = extractColor(gen_c2, 31, 0);
+
+            if (gen_c1 > gen_c2 || DXT3) {
+                for (int k = 0; k < 3; k++) {
+                    color[2][k] = (2 * color[0][k] + color[1][k]) / 3;
+                    color[3][k] = (color[0][k] + 2 * color[1][k]) / 3;
+                }
+            } else {
+                for (int k = 0; k < 3; k++) {
+                    color[2][k] = (color[0][k] + color[1][k]) / 2;
+                    color[3][k] = 0;
+                }
+            }
+
+            for (int x = 0; x < 4; x++) {
+                uint8_t row;
+                stream >> row;
+                for (int y = 0; y < 4; y++) {
+                    int idx = row & 3;
+                    QColor pixelColor(color[idx][0], color[idx][1], color[idx][2], (DXT3 ? image.pixelColor(j * 4 + y, i * 4 + x).alpha() : 255));
+                    image.setPixel(j * 4 + y, i * 4 + x, pixelColor.rgba());
+                    row >>= 2;
+                }
+            }
+        }
+    }
+
+    return image;
+}
+
+int CTextureList::extractMmpToDxt1(QVector<QImage>& outArrImage, const QStringList& inArrTextureName)
+{
+    outArrImage.clear();
+    outArrImage.resize(inArrTextureName.size());
+    QStringList arrPath;
+
+    auto pOpt = dynamic_cast<COptStringList*>(m_pSettings->opt(eOptSetResource, "texPaths"));
+    if(pOpt && !(pOpt->value().isEmpty()))
+        arrPath = QStringList::fromVector(pOpt->value());
+
+    int nCount(0);
+    for(auto& path: arrPath)
+    {
+        if(nCount == inArrTextureName.size()) //all textures already found
+            break;
+        CResFile res(path);
+        QMap<QString, QByteArray> aFile = res.bufferOfFiles();
+
+        for(const auto& texName: inArrTextureName)
+        {
+            if(!aFile.contains(texName))
+                continue;
+
+            QDataStream stream(aFile[texName]);
+            util::formatStream(stream);
+
+            SMmpHeader header;
+            stream >> header;
+            if(header.m_signature != 0x00504D4D)
+            {
+                Q_ASSERT("incorrect texture signature" && false);
+                return -1;
+            }
+            if(header.m_format != ETextureFormat::eMMP_DXT1)
+            {
+                ei::log(eLogWarning, "texture has a different format than dxt1 or dxt3");
+                continue;
+            }
+
+            stream.device()->seek(header.size());
+            QImage& img = outArrImage[inArrTextureName.indexOf(texName)];
+            img =  convert_DXT(stream, header.m_width, header.m_height);
+            img = img.mirrored(false, true);
+            ++nCount;
+        }
+    }
+    return nCount == inArrTextureName.size();
+}
+
+int CTextureList::extractMmpToDxt1(QImage& outImage, const QString textureName)
+{
+    QVector<QImage> arrImage;
+    QStringList arrTexName;
+    arrTexName.append(textureName);
+    int res = extractMmpToDxt1(arrImage, arrTexName);
+    if(res == 0)
+        outImage = arrImage.front();
+    return res;
+}
+
 struct STexSpecified
 {
     STexSpecified(): startPos(76){}
@@ -630,16 +755,6 @@ QOpenGLTexture* CTextureList::buildLandTex(QString& name, int& texCount)
     return texture;
 }
 
-CResourceManager::CResourceManager()
-{
-
-}
-
-void CResourceManager::loadResources()
-{
-    QSet<QString> aEmpty;
-    CTextureList::getInstance()->loadTexture(aEmpty);
-}
 
 bool isDIfferent(const QString &value)
 {
@@ -675,6 +790,11 @@ bool CResourceStringList::getPropList(QMap<uint, QString>& map, const EObjParam 
 
     map = m_propValueName[propType];
     return true;
+}
+
+const char* CResourceStringList::noLiquidIndexName()
+{
+    return "-1 (No liquid)";
 }
 
 //todo: move string outside hard code to localization file
@@ -874,4 +994,294 @@ void CResourceStringList::initResourceString()
     map[49] = "Reserved";
     map[50] = "Reserved";
     m_propValueName[eObjParam_UNIT_STATS] = map;
+
+    m_tileType[ETileType::eGrass]     = "Grass";
+    m_tileType[ETileType::eGround]    = "Ground";
+    m_tileType[ETileType::eStone]     = "Stone";
+    m_tileType[ETileType::eSand]      = "Sand";
+    m_tileType[ETileType::eRock]      = "Rock";
+    m_tileType[ETileType::eField]     = "Field";
+    m_tileType[ETileType::eWater]     = "Water";
+    m_tileType[ETileType::eRoad]      = "Road";
+    m_tileType[ETileType::eUndefined] = "Undefined";
+    m_tileType[ETileType::eSnow]      = "Snow";
+    m_tileType[ETileType::eIce]       = "Ice";
+    m_tileType[ETileType::eDrygrass]  = "Drygrass";
+    m_tileType[ETileType::eSnowballs] = "Snowballs";
+    m_tileType[ETileType::eLava]      = "Lava";
+    m_tileType[ETileType::eSwamp]     = "Swamp";
+    m_tileType[ETileType::eHighrock]  = "Highrock";
+
+    m_materialType[ETerrainType::eTerrainNoWater] = "Liquid type 1";
+    m_materialType[ETerrainType::eTerrainWater] = "Liquid type 3";
+
+}
+
+CNvttManager::CNvttManager(QString appDir):
+    m_bInit(false)
+{
+    m_nvcompress = appDir + QDir::separator() + "nvtt" + QDir::separator() + "nvcompress.exe";
+    if(!QFile::exists(m_nvcompress))
+    {
+        ei::log(eLogFatal, "Cannot find nvcompress.exe for dxt converting");
+    }
+    m_bInit = true;
+}
+
+int CNvttManager::dxtToBmp(QString pathToDxt, QString pathToBmp)
+{
+    if(!m_bInit)
+    {
+        ei::log(eLogWarning, "Cannot convert dxt data. CNvttManager not initialized. Check nvcompress.exe");
+        return -1;
+    }
+    // nvcompress params
+    QStringList arguments;
+    arguments << "-d" << pathToDxt << pathToBmp;
+
+    QProcess process;
+    //process.start(m_nvcompress, arguments);
+    QString cmd = QString("\"%1\" \"%3\" \"%4\"").arg(m_nvcompress, pathToDxt, pathToBmp);
+    process.start(cmd);
+
+    // check if process running
+    if (!process.waitForStarted()) {
+        qDebug() << "Cannot initialise process!";
+        return -1;
+    }
+
+    if (!process.waitForFinished()) {
+        qDebug() << "process suspended";
+        return -1;
+    }
+
+    QString output = process.readAllStandardOutput();
+    ei::log(eLogDebug, "NVTT conversion: " + output);
+
+    QString errorOutput = process.readAllStandardError();
+    if (!errorOutput.isEmpty()) {
+        qDebug() << "conversion error: " << errorOutput;
+    }
+    return 0;
+}
+
+CSessionDataManager* CSessionDataManager::getInstance()
+{
+    if(nullptr == m_pSessionDataManger)
+        m_pSessionDataManger = new CSessionDataManager();
+    return m_pSessionDataManger;
+}
+
+void CSessionDataManager::getLastSession(QString& mprPath, QVector<QString>& arrMobPath)
+{
+    mprPath.clear();
+    arrMobPath.clear();
+
+    QFile sessionFile(sessionDataFile());
+    if(!sessionFile.open(QIODevice::ReadOnly))
+        return;
+
+    if(sessionFile.size() == 0)
+        return;
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(sessionFile.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        ei::log(eLogWarning, "Error parsing last session file:" + parseError.errorString());
+        sessionFile.close();
+        return;
+    }
+    sessionFile.close();
+
+
+    QJsonObject obj = doc.object();
+    if(!obj.contains("Last Session"))
+        return;
+
+    QJsonObject lastSession = obj["Last Session"].toObject();
+    if(!lastSession.contains("MPR"))
+        return;
+
+    mprPath = lastSession["MPR"].toString();
+
+    if(!lastSession.contains("arrMOB"))
+        return;
+
+    QJsonArray arrMob = lastSession["arrMOB"].toArray();
+    for(auto it = arrMob.begin(); it < arrMob.end(); ++it)
+        arrMobPath.append(it->toString());
+
+    return;
+}
+
+void CSessionDataManager::addZoneData(const QString& mprPath, const QVector<QString>& arrMobPath)
+{
+    if(mprPath.isEmpty())
+        return;
+
+    QJsonObject zone;
+    zone.insert("mpr", mprPath);
+    if(!arrMobPath.isEmpty())
+    {
+        QJsonArray arrMob;
+        for(const auto& mobPath : arrMobPath)
+            arrMob.append(mobPath);
+
+        zone.insert("mob list", arrMob);
+    }
+
+    m_lastSession["zone"] = zone;
+}
+
+bool CSessionDataManager::getZoneData(QString& mprPath, QVector<QString>& arrMobPath)
+{
+    if(!m_lastSession.contains("zone"))
+        return false;
+
+    QJsonObject zone = m_lastSession["zone"].toObject();
+    if(!zone.contains("mpr"))
+        return false;
+
+    mprPath = zone["mpr"].toString();
+
+    if(!zone.contains("mob list"))
+        return true;
+
+    QJsonArray arrMob = zone["mob list"].toArray();
+    for(auto it = arrMob.begin(); it < arrMob.end(); ++it)
+        arrMobPath.append(it->toString());
+
+    return true;
+}
+
+void CSessionDataManager::addCameraData(const QVector3D& position, const QVector3D& pivot, const QVector3D& rotation)
+{
+    QJsonObject camera;
+    QJsonArray vec;
+    vec.append(position.x());
+    vec.append(position.y());
+    vec.append(position.z());
+    camera.insert("position", vec);
+
+    QJsonArray piv;
+    piv.append(pivot.x());
+    piv.append(pivot.y());
+    piv.append(pivot.z());
+    camera.insert("pivot", piv);
+
+    QJsonArray rot;
+    rot.append(rotation.x());
+    rot.append(rotation.y());
+    rot.append(rotation.z());
+    camera.insert("rotation", rot);
+    m_lastSession["camera"] = camera;
+}
+
+bool CSessionDataManager::getCameraData(QVector3D& position, QVector3D& pivot, QVector3D& rotation)
+{
+    if(!m_lastSession.contains("camera"))
+        return false;
+
+    QJsonObject camera = m_lastSession["camera"].toObject();
+    if(!camera.contains("position"))
+        return false;
+
+    QJsonArray pos = camera["position"].toArray();
+    if(pos.size() != 3)
+        return false;
+
+    position.setX(pos[0].toDouble());
+    position.setY(pos[1].toDouble());
+    position.setZ(pos[2].toDouble());
+
+    if(!camera.contains("pivot"))
+        return false;
+
+    QJsonArray piv = camera["pivot"].toArray();
+    if(piv.size() != 3)
+        return false;
+
+    pivot.setX(piv[0].toDouble());
+    pivot.setY(piv[1].toDouble());
+    pivot.setZ(piv[2].toDouble());
+
+    if(!camera.contains("rotation"))
+        return false;
+    QJsonArray rot = camera["rotation"].toArray();
+    if(rot.size() != 3)
+        return false;
+
+    rotation.setX(rot[0].toDouble());
+    rotation.setY(rot[1].toDouble());
+    rotation.setZ(rot[2].toDouble());
+    return true;
+}
+
+void CSessionDataManager::addQuickTileIndices(const QVector<int>& arrInd)
+{
+    QJsonArray arr;
+    for(auto& ind: arrInd)
+        arr.append(ind);
+    m_lastSession["quick tile indices"] = arr;
+}
+
+bool CSessionDataManager::getdQuickTileIndices(QVector<int>& arrInd)
+{
+    if(!m_lastSession.contains("quick tile indices"))
+        return false;
+
+    QJsonArray arr = m_lastSession["quick tile indices"].toArray();
+    arrInd.clear();
+    for(int i(0); i<arr.size(); ++i)
+        arrInd.append(arr[i].toInt());
+
+    return true;
+}
+
+void CSessionDataManager::saveSession()
+{
+    QFile sessionFile(sessionDataFile());
+    QJsonDocument jsonDdoc;
+    jsonDdoc.setObject(m_lastSession);
+    sessionFile.open(QIODevice::WriteOnly | QIODevice::Text);
+    sessionFile.resize(0);
+    sessionFile.write(jsonDdoc.toJson(QJsonDocument::Indented));
+    sessionFile.close();
+}
+
+void CSessionDataManager::reset()
+{
+    m_lastSession = QJsonObject();
+}
+
+void CSessionDataManager::loadSession()
+{
+    QFile sessionFile(sessionDataFile());
+    if(!sessionFile.open(QIODevice::ReadOnly))
+        return;
+
+    if(sessionFile.size() == 0)
+        return;
+
+    QJsonParseError parseError;
+    QJsonDocument doc = QJsonDocument::fromJson(sessionFile.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        ei::log(eLogWarning, "Error parsing last session file:" + parseError.errorString());
+        sessionFile.close();
+        return;
+    }
+    sessionFile.close();
+
+
+    m_lastSession = doc.object();
+}
+
+CSessionDataManager::CSessionDataManager()
+{
+
+}
+
+QString CSessionDataManager::sessionDataFile()
+{
+    return QString("%1%2%3").arg(QDir::tempPath()).arg(QDir::separator()).arg("ei_maper_session.json");
 }

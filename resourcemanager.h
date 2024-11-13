@@ -6,6 +6,7 @@
 #include <QMap>
 #include <QImage>
 #include <QOpenGLTexture>
+#include <QJsonObject>
 #include "figure.h"
 #include "types.h"
 
@@ -114,6 +115,8 @@ public:
     void attachSettings(CSettings* pSettings) {m_pSettings = pSettings;};
     void initResource();
     const QList<QString>& textureList() const {return m_arrCellComboBox;}
+    int extractMmpToDxt1(QVector<QImage>& outArrImage, const QStringList& inArrTextureName);
+    int extractMmpToDxt1(QImage& outImage, const QString textureName);
 
 private:
     CTextureList();
@@ -139,6 +142,9 @@ public:
     CResourceStringList(CResourceStringList const&) = delete;
     void operator=(CResourceStringList const&)  = delete;
     bool getPropList(QMap<uint, QString>& map, const EObjParam propType);
+    const QMap<ETileType, QString>& tileTypes() {return m_tileType;}
+    const QMap<ETerrainType, QString>& materialType() {return m_materialType;}
+    const char* noLiquidIndexName();
 
 private:
     CResourceStringList();
@@ -148,17 +154,51 @@ private:
 private:
     static CResourceStringList* m_pResourceStringContainer;
     QMap<EObjParam, QMap<uint, QString>> m_propValueName;
-};
-
-class CResourceManager
-{
-public:
-    CResourceManager();
-    void loadResources();
+    QMap<ETileType, QString> m_tileType;
+    QMap<ETerrainType, QString> m_materialType;
 };
 
 bool isDIfferent(const QString& value);
 QString valueDifferent();
 
+
+class CNvttManager
+{
+public:
+    CNvttManager(QString appDir);
+    CNvttManager() = delete;
+    ~CNvttManager() {}
+    int dxtToBmp(QString pathToDxt, QString pathToBmp);
+    QString bmpFromTexture(QString textureName);
+
+private:
+    QString m_nvcompress;
+    bool m_bInit;
+};
+
+class CSessionDataManager
+{
+public:
+    static CSessionDataManager* getInstance();
+    void getLastSession(QString& mprPath, QVector<QString>& arrMobPath);
+    void addZoneData(const QString& mprPath, const QVector<QString>& arrMobPath);
+    bool getZoneData(QString& mprPath, QVector<QString>& arrMobPath);
+    void addCameraData(const QVector3D& position, const QVector3D& pivot, const QVector3D& rotation);
+    bool getCameraData(QVector3D& position, QVector3D& pivot, QVector3D& rotation);
+    void addQuickTileIndices(const QVector<int>& arrInd);
+    bool getdQuickTileIndices(QVector<int>& arrInd);
+    void saveSession();
+    void reset();
+    void loadSession();
+
+private:
+    CSessionDataManager();
+    ~CSessionDataManager();
+    QString sessionDataFile();
+
+private:
+    static CSessionDataManager* m_pSessionDataManger;
+    QJsonObject m_lastSession;
+};
 
 #endif // CRESOURCEMANAGER_H

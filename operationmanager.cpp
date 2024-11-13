@@ -12,6 +12,7 @@
 #include "scene.h"
 #include "undo.h"
 #include "round_mob_form.h"
+#include "scene.h"
 
 void strToOperValue(QVector3D& vec, const EOperateAxis axis, const QString& value)
 {
@@ -68,6 +69,12 @@ void CSelect::keyPress(COperation *pOp, EKeyCode key)
         delete this;
         break;
     }
+    case eKey_B:
+    {
+        pOp->setCurrent(new CTileBrush(m_pView));
+        delete this;
+        break;
+    }
     case eKey_T:
     {
         if (pOp->keyManager()->isPressed(eKey_Ctrl))
@@ -120,7 +127,7 @@ void CSelect::keyPress(COperation *pOp, EKeyCode key)
             m_pView->addLogicPoint(true);
         break;
     }
-    case  eKey_U:
+    case eKey_U:
     {
         m_pView->execUnloadCommand();
         break;
@@ -169,7 +176,10 @@ void CSelect::mousePressEvent(COperation *pOp, QMouseEvent *pEvent)
 //        m_pView->viewParameters();
         break;
     }
-
+    case Qt::RightButton:
+    {
+        break;
+    }
     }
     m_lastPos = pEvent->pos();
 }
@@ -198,6 +208,19 @@ void CSelect::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
     m_lastPos = pEvent->pos();
 }
 
+void rotateAroundPivot(CCamera* pCam, int dx, int dy, int senseX, int senseY)
+{
+    // rotate around pivot
+;
+    float coef = 12.0f-senseY/10.0f;
+    float angle = float(dy)/coef;
+    pCam->xRotate(angle);
+    coef = 12.0f-senseX/10.0f;
+    angle = float(dx)/coef;
+    pCam->zRotate(angle);
+
+}
+
 void CSelect::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
 {
     const int dx = pEvent->x() - m_lastPos.x();
@@ -206,16 +229,9 @@ void CSelect::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
     if (pEvent->buttons() & Qt::MiddleButton)
     {
         // rotate around pivot
-        auto pOpt = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"));
-        Q_ASSERT(pOpt);
-        float coef = 12.0f-pOpt->value()/10.0f;
-        float angle = float(dy)/coef;
-        pOp->camera()->xRotate(angle);
-        pOpt = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseX"));
-        Q_ASSERT(pOpt);
-        coef = 12.0f-pOpt->value()/10.0f;
-        angle = float(dx)/coef;
-        pOp->camera()->zRotate(angle);
+        int senseX = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseX"))->value();
+        int senseY = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
+        rotateAroundPivot(pOp->camera(), dx, dy, senseX, senseY);
         m_lastPos = pEvent->pos();
     }
     else if (pEvent->buttons() & Qt::LeftButton)
@@ -230,11 +246,16 @@ void CSelect::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
         m_pView->drawSelectFrame(rect);
 
     }
-    QVector3D mouseCoord (m_pView->getLandPos(pEvent->x(), pEvent->y()));
+    QVector3D mouseCoord (m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
     QString text = "not defined";
     if(mouseCoord.z() > -0.1f && mouseCoord.z() < 100.0f)
         text = util::makeString(mouseCoord, true);
     pOp->updateMouseCoords(text);
+}
+
+void CSelect::wheelEvent(COperation *pOp, QWheelEvent* pEvent)
+{
+    pOp->camera()->enlarge(pEvent->delta() > 0);
 }
 
 CMoveAxis::CMoveAxis(CView *pView, EOperateAxis ax)
@@ -243,7 +264,7 @@ CMoveAxis::CMoveAxis(CView *pView, EOperateAxis ax)
     qDebug()<< "CMoveAxis init with: " << ax;
     axis = ax;
     m_lastPos = m_pView->mapFromGlobal(QCursor::pos());
-    lastLandPos = m_pView->getLandPos(m_lastPos.x(), m_lastPos.y());
+    lastLandPos = m_pView->getTerrainPos(m_lastPos.x(), m_lastPos.y());
     pView->operationSetBackup(EOperationAxisType::eMove);
     CStatusConnector::getInstance()->updateStatus("move.ico", "shift+Z(x,y) = exclude Z(x,y,) axis, X(y,z) - move X(y,z), Esc - Cancel, LMB - apply");
     CButtonConnector::getInstance()->pressButton(EButtonOpMove);
@@ -439,7 +460,7 @@ void CMoveAxis::mouseReleaseEvent(COperation *pOp, QMouseEvent *pEvent)
 void CMoveAxis::mouseMoveEvent(COperation *pOp, QMouseEvent *pEvent)
 {
     Q_UNUSED(pOp);
-    QVector3D newPos = m_pView->getLandPos(pEvent->x(), pEvent->y());
+    QVector3D newPos = m_pView->getTerrainPos(pEvent->x(), pEvent->y());
     QVector3D moveDir = newPos - lastLandPos;
     switch (axis) {
     case EOperateAxisX:
@@ -989,6 +1010,16 @@ void COperation::mouseMoveEvent(QMouseEvent *pEvent)
     current->mouseMoveEvent(this, pEvent);
 }
 
+void COperation::wheelEvent(QWheelEvent* pEvent)
+{
+    current->wheelEvent(this, pEvent);
+}
+
+EOperationMethod COperation::operationMethod()
+{
+    return current->operationMethod();
+}
+
 void COperation::attachCam(CCamera *pCam)
 {
     m_pCam = pCam;
@@ -1007,6 +1038,169 @@ CSelect::CSelect(CView *pView):
     if(CScene::getInstance()->getMode()==eEditModeLogic)
         CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, P-Add Patrol(trap zone), L-Add look(cast point), CTLR+Tab-change mode");
     else
-        CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, T-Scale, R-Rotate, CTLR+Tab-change mode, CTRL+T-switch active Mob");
+        CStatusConnector::getInstance()->updateStatus("select.ico", "LMB-Select object, Shift+LMB-Add to select, MMB-camera rotation, G-Move, T-Scale, R-Rotate, B-Tile brush, CTLR+Tab-change mode, CTRL+T-switch active Mob");
     CButtonConnector::getInstance()->pressButton(EButtonOpSelect);
+}
+
+CTileBrush::CTileBrush(CView* pView)
+    :CState(pView)
+    ,m_bDrawWater(true)
+    ,m_bDrawLand(true)
+{
+    qDebug()<< "CTileBrush init ";
+    CStatusConnector::getInstance()->updateStatus("brush.ico", "Esc - Cancel, LMB - draw selected tile. RMB - pick tile under cursor, Wheel - rotate tile, M/J - draw land/water");
+    CButtonConnector::getInstance()->pressButton(EButtonOpTilebrush);
+    m_pView->setDrawLand(m_bDrawLand);
+    m_pView->setDrawWater(m_bDrawWater);
+    m_pView->setPreviewTile(true);
+    m_pView->showOutliner(false);
+}
+
+void CTileBrush::keyPress(COperation* pOp, EKeyCode key)
+{
+    switch (key) {
+    case eKey_Esc:
+    {
+        qDebug() << "exit CTileBrush operation";
+        m_pView->onRestoreCursor();
+        m_pView->setPreviewTile(false);
+        m_pView->showOutliner(true);
+        m_pView->setDrawLand(true);
+        m_pView->setDrawWater(true);
+        pOp->setCurrent(new CSelect(m_pView));
+        delete this;
+        break;
+    }
+    case eKey_T:
+    { // change tile type editing (land/water)
+        CScene::getInstance()->switchTileEditMode();
+        break;
+    }
+    case eKey_J:
+    {
+        m_bDrawWater = !m_bDrawWater;
+        m_pView->setDrawWater(m_bDrawWater);
+        break;
+    }
+    case eKey_M:
+    {
+        m_bDrawLand = !m_bDrawLand;
+        m_pView->setDrawLand(m_bDrawLand);
+        break;
+    }
+    case eKey_1 ... eKey_8:
+    {
+        m_pView->pickQuickAccessTile(key-eKey_1);
+        bool bLand = CScene::getInstance()->isLandTileEditMode();
+
+        m_pView->updatePreviewTile(m_pView->getTerrainPos(bLand), bLand);
+        break;
+    }
+    default:
+    {
+        pOp->keyManager()->press(key);
+        break;
+    }
+    }
+}
+
+void CTileBrush::keyRelease(COperation* pOp, EKeyCode key)
+{
+    switch (key) {
+    default:
+    {
+        pOp->keyManager()->release(key);
+        break;
+    }
+    }
+}
+
+void CTileBrush::mousePressEvent(COperation* pOp, QMouseEvent* pEvent)
+{
+    Q_UNUSED(pOp);
+    m_lastPos = pEvent->pos();
+    bool bLand = CScene::getInstance()->isLandTileEditMode();
+    m_lastLandPos = m_pView->getTerrainPos(pEvent->x(), pEvent->y(), bLand);
+    //m_lastLandPos = QVector3D(0.0f, 0.0f, 0.0f);// make sure that next mouse move apply tile brushing
+
+    switch (pEvent->buttons()) {
+    case Qt::LeftButton:
+    {
+        m_pView->setTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
+        break;
+    }
+    case Qt::RightButton:
+    {
+        m_pView->pickTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
+        break;
+    }
+    }
+}
+
+void CTileBrush::mouseReleaseEvent(COperation* pOp, QMouseEvent* pEvent)
+{
+    Q_UNUSED(pOp);
+    Q_UNUSED(pEvent);
+    if (pEvent->button() == Qt::LeftButton) {
+        m_pView->endTileBrushGroup();
+    }
+    if(!m_pView->isPreviewTile()) // if we finished brushing, we will come here
+    {
+        bool bLand = CScene::getInstance()->isLandTileEditMode();
+        QVector3D landPos(m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
+        m_pView->updatePreviewTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
+        m_lastLandPos = landPos;
+        m_pView->setPreviewTile();
+    }
+}
+
+void CTileBrush::mouseMoveEvent(COperation* pOp, QMouseEvent* pEvent)
+{
+    const int dx = pEvent->x() - m_lastPos.x();
+    const int dy = pEvent->y() - m_lastPos.y();
+
+    if (pEvent->buttons() & Qt::MiddleButton)
+    {
+        int senseX = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseX"))->value();
+        int senseY = dynamic_cast<COptInt*>(m_pView->settings()->opt(eOptSetGeneral, "mouseSenseY"))->value();
+        rotateAroundPivot(pOp->camera(), dx, dy, senseX, senseY);
+        m_lastPos = pEvent->pos();
+    }
+    else if (pEvent->buttons() & Qt::LeftButton)
+    {
+        if(m_pView->isPreviewTile())
+            m_pView->setPreviewTile(false);
+
+        bool bLand = CScene::getInstance()->isLandTileEditMode();
+        QVector3D landPos(m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
+        if(landPos.distanceToPoint(m_lastLandPos) > 1.0f) // avoid re-brushing single tile of each movement.
+        {
+            m_pView->setTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
+            m_lastLandPos = landPos;
+        }
+
+    }
+    else
+    {// just moving mouse. Set tile preview mode
+//        if(!m_pView->isPreviewTile())
+//            m_pView->setPreviewTile();
+
+        bool bLand = CScene::getInstance()->isLandTileEditMode();
+        QVector3D landPos(m_pView->getTerrainPos(pEvent->x(), pEvent->y()));
+        if(landPos.distanceToPoint(m_lastLandPos) > 1.0f) // avoid re-brushing single tile of each movement.
+        {
+            m_pView->updatePreviewTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
+            m_lastLandPos = landPos;
+        }
+
+    }
+    m_lastPos = pEvent->pos();
+}
+
+void CTileBrush::wheelEvent(COperation* pOp, QWheelEvent* pEvent)
+{
+    Q_UNUSED(pOp);
+    m_pView->addTileRotation(pEvent->delta() > 0 ? 1 : -1);
+    bool bLand = CScene::getInstance()->isLandTileEditMode();
+    m_pView->updatePreviewTile(m_pView->getTerrainPos(pEvent->pos().x(), pEvent->pos().y(), bLand), bLand);
 }

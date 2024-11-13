@@ -34,6 +34,10 @@ public:
     bool applyChanges(const QString& text);
     const QSharedPointer<IPropertyBase>& value() {return m_pValue;}
     void skipNextCheck() {bSkip = true;} //skip checking value for reverting (on lost focus)
+    void renewValue(QString value);
+
+private:
+    //void setValue()
 
 signals:
     void onParamChange(const QSharedPointer<IPropertyBase>&);
@@ -176,9 +180,12 @@ class CColorButtonItem : public QToolButton
     Q_OBJECT
 public:
     CColorButtonItem() = delete;
+    ~CColorButtonItem();
     CColorButtonItem(const QSharedPointer<IPropertyBase>& prop);
+    void renewColor(const QVector3D& prop); // for usage in tile form
 private:
     void updateColor(const QColor& color);
+    void setColor(QVector3D clr);
 
 signals:
     void onColorChange(const QSharedPointer<IPropertyBase>);

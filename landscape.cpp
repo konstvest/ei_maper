@@ -1,10 +1,12 @@
 #include <QFileInfo>
+#include <QRandomGenerator>
 
 #include "landscape.h"
 #include "res_file.h"
 #include "utils.h"
 #include "resourcemanager.h"
 #include "node.h"
+#include "sector.h"
 
 CLandscape* CLandscape::m_pLand = nullptr;
 
@@ -23,9 +25,14 @@ void CLandscape::unloadMpr()
             delete ySec;
     }
     m_aSector.clear();
+    m_aMaterial.clear();
+    m_aTileTypes.clear();
+    m_aAnimTile.clear();
+    m_bDirty = false;
 }
 
-CLandscape::CLandscape()
+CLandscape::CLandscape():
+  m_bDirty(false)
 {
     m_aSector.clear();
     m_aAnimTile.clear();
@@ -56,10 +63,15 @@ bool CLandscape::readHeader(QDataStream& stream)
     }
 
     int type;
-    for(uint i(0); i<m_header.nTileType; ++i)
+    for(uint i(0); i<m_header.nTile; ++i)
     {
         stream >> type;
-        m_aTileTypes.append(type);
+        if(type > 15 || type < 0)
+        {
+            ei::log(eLogWarning, "incorrect tile type at index: " + QString::number(i));
+            m_arrIncorectTiles.append(i);
+        }
+        m_aTileTypes.append((ETileType)type);
     }
 
     SAnimTile animTile;
@@ -67,6 +79,47 @@ bool CLandscape::readHeader(QDataStream& stream)
     {
         stream >> animTile;
         m_aAnimTile.append(animTile);
+    }
+    return true;
+}
+
+bool CLandscape::serializeMpr(const QString& zoneName, CResFile& mprFile)
+{
+    QByteArray mpData;
+    QDataStream mpStream(&mpData, QIODevice::WriteOnly);
+    util::formatStream(mpStream);
+
+    //write map header data (*.mp)
+    m_header.nAnimTile = m_aAnimTile.size();
+    m_header.nMaterial = m_aMaterial.size();
+    mpStream << m_header;
+    for(auto& mat: m_aMaterial)
+    {
+        mpStream << mat;
+    }
+
+    int type;
+    for(auto& tileTyle: m_aTileTypes)
+    {
+        type = int(tileTyle);
+        mpStream << type;
+    }
+
+    for(auto& animTile: m_aAnimTile)
+    {
+        mpStream << animTile;
+    }
+    // end of header data
+    mprFile.addFiledata(zoneName + ".mp", mpData);
+
+    for(int row(0); row < m_aSector.size(); ++row)
+    {
+        for(int col(0); col<m_aSector[row].size(); ++col)
+        {
+            QByteArray secData = m_aSector[row][col]->serializeSector();
+            QString secName = QString("%1%2%3.sec").arg(zoneName).arg(col, 3, 10, QChar('0')).arg(row, 3, 10, QChar('0'));
+            mprFile.addFiledata(secName, secData);
+        }
     }
     return true;
 }
@@ -96,13 +149,14 @@ QString genSectorSuffix(int x, int y)
     return name;
 }
 
-void CLandscape::readMap(QFileInfo& path)
+void CLandscape::readMap(const QFileInfo& path)
 {
     if (!path.exists())
         return;
 
     m_filePath = path;
 
+    ei::log(eLogInfo, "Start read terrain: " + m_filePath.absoluteFilePath());
     CResFile map(path.filePath());
     QMap<QString, QByteArray> aTmp =  map.bufferOfFiles();  // map contains DIfferentCaseName
     QMap<QString, QByteArray> aComponent;
@@ -136,9 +190,34 @@ void CLandscape::readMap(QFileInfo& path)
             CSector* sector = new CSector(secStream, m_header.maxZ, texCount);
             sector->setIndex(secIndex);
             xSec.append(sector);
+            if(sector->existsTileIndices(m_arrIncorectTiles))
+            {
+                qDebug() << "sector (" << x << "," << y << ")";
+            }
         }
         m_aSector.append(xSec);
     }
+
+    ei::log(eLogInfo, "End read terrain");
+}
+
+void CLandscape::save()
+{
+    saveMapAs(m_filePath);
+}
+
+void CLandscape::saveMapAs(const QFileInfo& path)
+{
+    // TODO: check if source texture has correct textureSize and tileSize with map header
+
+    //QString filePath = path.filePath();
+    //QFile file(filePath);
+    QString zoneName(path.completeBaseName());
+    CResFile mprFile;
+    serializeMpr(zoneName, mprFile);
+    QByteArray data = mprFile.generateResData();
+    mprFile.saveToFile(path.filePath());
+    m_bDirty = false;
 }
 
 void CLandscape::draw(QOpenGLShaderProgram* program)
@@ -204,6 +283,66 @@ void CLandscape::projectPosition(CNode* pNode)
         landPos -= pNode->minPosition();
     projectPt(landPos);
     pNode->setDrawPosition(landPos);
+}
+
+bool CLandscape::pickTile(QVector3D& point, CTile*& pTileOut, STileLocation& tileLoc, bool bLand)
+{
+    int xIndex = int(point.x()/32.0f);
+    int yIndex = int(point.y()/32.0f);
+    if(yIndex < 0 || yIndex > m_aSector.size()
+        || xIndex < 0 || xIndex > m_aSector.first().size())
+    {
+        return false;
+    }
+
+    point.setZ(-1.0f);
+    int row, col;
+    if(yIndex < m_aSector.size() && xIndex < m_aSector.first().size())
+        if(m_aSector[yIndex][xIndex]->pickTile(row, col, point, bLand))
+        {
+            tileLoc = STileLocation{xIndex, yIndex, row, col, bLand};
+            if(bLand)
+                pTileOut = &(m_aSector[yIndex][xIndex]->arrTileEdit()[row][col]);
+            else
+                pTileOut = &(m_aSector[yIndex][xIndex]->arrWaterEdit()[row][col]);
+
+            return true;
+        }
+
+    return false;
+}
+
+void CLandscape::setTile(const QMap<STileLocation, STileInfo>& arrTileInfo)
+{
+    int xSec(-1), ySec(-1);
+    QMap<STileLocation, STileInfo> arrSecTileInfo;
+    for(auto& tile: arrTileInfo.toStdMap())
+    {
+        if(xSec != tile.first.xSec)
+        {
+            if(xSec != -1 && ySec != -1 && !arrSecTileInfo.isEmpty())
+                m_aSector[ySec][xSec]->setTile(arrSecTileInfo);
+            xSec = tile.first.xSec;
+            arrSecTileInfo.clear();
+        }
+        if(ySec != tile.first.ySec)
+        {
+            if(xSec != -1 && ySec != -1 && !arrSecTileInfo.isEmpty())
+                m_aSector[ySec][xSec]->setTile(arrSecTileInfo);
+            ySec = tile.first.ySec;
+            arrSecTileInfo.clear();
+        }
+
+        arrSecTileInfo[tile.first] = tile.second;
+    }
+    //draw last tile data
+    if(!arrSecTileInfo.isEmpty())
+        m_aSector[ySec][xSec]->setTile(arrSecTileInfo);
+}
+
+void CLandscape::updateSectorDrawData(int xSec, int ySec)
+{
+    m_aSector[ySec][xSec]->updateDrawData();
 }
 
 void CLandscape::projectPositions(QList<CNode*>& aNode)

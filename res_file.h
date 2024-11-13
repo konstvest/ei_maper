@@ -70,11 +70,14 @@ class CResFile
 {
 public:
     CResFile(QString path);
+    CResFile() {};
     ~CResFile();
     CResFile(const QByteArray& data);
 
     QMap<QString, QByteArray>& bufferOfFiles() {return m_aFiles;}
     void saveToFile(QString path);
+
+    void addFiledata(const QString name, const QByteArray data);
     QByteArray generateResData();
 
 private:

@@ -41,6 +41,12 @@ enum EEditMode
     ,eCount
 };
 
+enum ETileEditMode
+{
+    eTileEditModeLand = 0
+    ,eTileEditModeWater
+};
+
 enum EOperationType
 {
     EOperationTypeObjects = 1
@@ -54,6 +60,7 @@ enum EButtonOp
     ,EButtonOpMove
     ,EButtonOpRotate
     ,EButtonOpScale
+    ,EButtonOpTilebrush
 };
 
 enum EReadState
@@ -225,6 +232,76 @@ enum EWsType
     ,eWsTypeCount
 };
 
+enum ETerrainType : quint8
+{
+    eTerrainNoWater = 1 // ..001 ?
+    ,eTerrainWater = 3  // ..011 ?
+};
+
+
+enum ETileType
+{
+    eGrass = 0
+    , eGround = 1
+    , eStone = 2
+    , eSand = 3
+    , eRock = 4
+    , eField = 5
+    , eWater = 6
+    , eRoad = 7
+    , eUndefined = 8
+    , eSnow = 9
+    , eIce = 10
+    , eDrygrass = 11
+    , eSnowballs = 12
+    , eLava = 13
+    , eSwamp = 14
+    , eHighrock = 15
+    , eLast = 16
+};
+
+struct SMaterial
+{
+    ETerrainType type;
+    float R, G, B, A;
+    float selfIllumination;
+    float waveMultiplier;
+    float warpSpeed;
+    float reserved1;
+    float reserved2;
+    float reserved3;
+
+    friend QDataStream& operator<< (QDataStream& os, const SMaterial& mat)
+    {
+        return os << int(mat.type) << mat.R << mat.G << mat.B << mat.A <<
+                     mat.selfIllumination << mat.waveMultiplier << mat.warpSpeed <<
+                     mat.reserved1 << mat.reserved2 << mat.reserved3;
+    }
+
+    friend QDataStream& operator>> (QDataStream &is, SMaterial &mat)
+    {
+        return is >> (qint32&)mat.type >> mat.R >> mat.G >> mat.B >> mat.A >>
+                     mat.selfIllumination >> mat.waveMultiplier >> mat.warpSpeed >>
+                     mat.reserved1 >> mat.reserved2 >> mat.reserved3;
+    }
+};
+
+struct SAnimTile
+{
+    ushort tileIndex;
+    ushort nPhase;
+
+    friend QDataStream& operator>> (QDataStream& st, SAnimTile& tile)
+    {
+        return st >> tile.tileIndex >> tile.nPhase;
+    }
+
+    friend QDataStream& operator<< (QDataStream& st, const SAnimTile& tile)
+    {
+        return st << tile.tileIndex << tile.nPhase;
+    }
+};
+
 class CWorldSet
 {
 public:
@@ -280,6 +357,32 @@ struct SVertexData
     QVector3D position;
     QVector3D normal;
     QVector2D texCoord;
+};
+
+struct STileInfo
+{
+    int index, rotNum, matIndex;
+    bool operator==(const STileInfo& other) const
+    {
+        return index == other.index &&
+               rotNum == other.rotNum &&
+               matIndex == other.matIndex;
+    }
+
+};
+
+struct STileLocation
+{
+    int xSec, ySec, row, col;
+    bool bLand;
+    bool operator<(const STileLocation& other) const
+    {
+        if (xSec != other.xSec) return xSec < other.xSec;
+        if (ySec != other.ySec) return ySec < other.ySec;
+        if (row != other.row) return row < other.row;
+        if (col != other.col) return col < other.col;
+        return bLand < other.bLand;
+    }
 };
 
 template <class T> class TValue {
@@ -458,8 +561,9 @@ enum eTitleTypeData
 {
     eTitleTypeDataUnknown = 0
     ,eTitleTypeDataMpr
+    ,eTitleTypeDataMprDirtyFlag
     ,eTitleTypeDataActiveMob
-    ,eTitleTypeDataDurtyFlag
+    ,eTitleTypeDataDirtyFlag
     ,eTitleTypeDataCount
 };
 

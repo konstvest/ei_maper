@@ -70,6 +70,8 @@ void CButtonConnector::addButton(EButtonOp btnType, QToolButton *pButton)
         pButton->setIcon(*(ei::icon("rotate.ico"))); break;
     case EButtonOpScale:
         pButton->setIcon(*(ei::icon("scale.ico"))); break;
+    case EButtonOpTilebrush:
+        pButton->setIcon(*(ei::icon("brush.ico"))); break;
     }
 }
 

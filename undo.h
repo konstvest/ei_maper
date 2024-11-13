@@ -355,4 +355,27 @@ private:
     QMap<uint, uint> m_reconnectId;
 };
 
+class CBrushTileCommand: public QUndoCommand
+{
+public:
+    enum { Id = 118 };
+
+    CBrushTileCommand(CView* pView, STileInfo tileInfoNew, STileLocation tileLoc, STileInfo tileInfoOld, short tileBrushCommandId, QUndoCommand *parent = nullptr);
+
+    void undo() override;
+    void redo() override;
+    bool mergeWith(const QUndoCommand *command) override;
+    int id() const override { return Id; }
+
+private:
+    CView *m_pView;
+    STileInfo m_tileInfoNew;
+    STileLocation m_tileLoc;
+    STileInfo m_tileInfoOld;
+    short m_tileBrushCommandId;
+    QMap<STileLocation, STileInfo> m_arrTileBrushNew;
+    QMap<STileLocation, STileInfo> m_arrTileBrushOld;
+};
+
+
 #endif // UNDO_H

@@ -147,7 +147,7 @@ void CBodyPartEditForm::on_toolPaste_clicked()
             continue;
 
         auto pBox = dynamic_cast<QCheckBox*>(ui->tablePart->cellWidget(i, 1));
-        pBox->setChecked(arrPart[partName].toBool()? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+        pBox->setCheckState(arrPart[partName].toBool()? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
     }
 
 }

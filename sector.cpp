@@ -578,7 +578,7 @@ bool CSector::projectPt(QVector3D& point)
 {
     QVector3D origin(point.x()-m_index.x*32.0f, point.y()-m_index.y*32.0f, 0.0f); // point in sector local coords
 
-    int approxDeviation = 1;
+    int approxDeviation = 2;
     int xApprox = origin.x()/2;
     int xMin = qMax(0, xApprox-approxDeviation);
     int xMax = qMin(16, xApprox+approxDeviation);

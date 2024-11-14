@@ -410,7 +410,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Save active MOB</string>
+    <string>Save Active MOB</string>
    </property>
    <property name="autoRepeat">
     <bool>false</bool>
@@ -424,7 +424,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Save active MOB as...</string>
+    <string>Save Active MOB As...</string>
    </property>
   </action>
   <action name="actionClose_all">
@@ -432,7 +432,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Close all</string>
+    <string>Close All</string>
    </property>
   </action>
   <action name="actionExit">
@@ -457,7 +457,7 @@
   </action>
   <action name="actionCreate_new_object">
    <property name="text">
-    <string>Create &amp;new object</string>
+    <string>Create &amp;New Object</string>
    </property>
    <property name="toolTip">
     <string>Create new object</string>
@@ -465,12 +465,12 @@
   </action>
   <action name="actionShow_undo_redo">
    <property name="text">
-    <string>Show &amp;history</string>
+    <string>Show &amp;History</string>
    </property>
   </action>
   <action name="action_Mob_parameters">
    <property name="text">
-    <string>&amp;Mob parameters</string>
+    <string>&amp;Mob Parameters</string>
    </property>
   </action>
   <action name="actionUndo">
@@ -485,22 +485,22 @@
   </action>
   <action name="actionSave_all_MOB_s">
    <property name="text">
-    <string>Save all MOB's</string>
+    <string>Save All MOB's</string>
    </property>
   </action>
   <action name="actionReset_cam_position">
    <property name="text">
-    <string>Reset &amp;cam position</string>
+    <string>Reset &amp;Camera Position</string>
    </property>
   </action>
   <action name="actionChange_mod_e">
    <property name="text">
-    <string>Change mod&amp;e</string>
+    <string>Change Mod&amp;e</string>
    </property>
   </action>
   <action name="actionCopy_IDs_to_clipboard">
    <property name="text">
-    <string>Copy &amp;IDs to clipboard</string>
+    <string>Copy &amp;IDs To Clipboard</string>
    </property>
   </action>
   <action name="actionOpen_2">
@@ -537,7 +537,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Open &amp;last session</string>
+    <string>Open &amp;Last Session</string>
    </property>
   </action>
   <action name="actionReset_logic_paths">
@@ -547,7 +547,7 @@
   </action>
   <action name="actionRandomize_parameter">
    <property name="text">
-    <string>Randomize parameter</string>
+    <string>Randomize Parameter</string>
    </property>
   </action>
   <action name="actionReset_selected_IDs">
@@ -555,7 +555,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Reset selected IDs</string>
+    <string>&amp;Reset Selected IDs</string>
    </property>
   </action>
   <action name="action_About">
@@ -570,12 +570,12 @@
   </action>
   <action name="actionSave_landscape_MPR_as">
    <property name="text">
-    <string>Save MPR as...</string>
+    <string>Save MPR As...</string>
    </property>
   </action>
   <action name="actionMap_parameters">
    <property name="text">
-    <string>Map parameters</string>
+    <string>Tiles Parameters</string>
    </property>
   </action>
  </widget>

@@ -85,7 +85,7 @@ void CTileForm::fitTable()
     int nRow = m_nTilePerRow * m_nTextureAtlas;
     for(int row(0); row<nRow; ++row)
     {
-        ui->tableTile->setRowHeight(row, cellWidth);
+        ui->tableTile->setRowHeight(row, (row+1)%8 == 0 ? (cellWidth + 6) : cellWidth);
         for(int col(0); col<m_nTilePerRow; ++col)
         {
             ui->tableTile->setColumnWidth(col, cellWidth);
@@ -231,17 +231,28 @@ public:
     // Переопределяем метод для рисования иконки
     void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
         QIcon icon = index.data(Qt::DecorationRole).value<QIcon>();
+        QRect icoRect;
+        icoRect.setTopLeft(option.rect.topLeft());
+        icoRect.setRight(option.rect.right());
+        icoRect.setHeight(option.rect.width());
         if (!icon.isNull()) {
             // Получаем размер ячейки и рисуем иконку во всю ее область
-            QRect rect = option.rect;
-            QPixmap pixmap = icon.pixmap(rect.size());
-            painter->drawPixmap(rect, pixmap);
+
+            QPixmap pixmap = icon.pixmap(icoRect.size());
+            painter->drawPixmap(icoRect, pixmap);
         }
         if (option.state & QStyle::State_Selected) {
             // Настройка кисти и пера для рисования рамки
             QPen pen(Qt::green, 2);  // Зеленая рамка толщиной 4 пикселя
             painter->setPen(pen);
-            painter->drawRect(option.rect);
+            painter->drawRect(icoRect);
+        }
+        if((index.row()+1)%8==0)
+        {
+            int size = (option.rect.height() - option.rect.width())*2-2;
+            QPen pen(QColor(63, 63, 63), size);  // Зеленая рамка толщиной 4 пикселя
+            painter->setPen(pen);
+            painter->drawLine(option.rect.left(), option.rect.bottom(), option.rect.right(), option.rect.bottom());
         }
     }
 };
@@ -299,7 +310,7 @@ void CTileForm::fillTable(QString mapName, int textureAtlasNumber)
             QTableWidgetItem *item = new QTableWidgetItem;
             item->setIcon(m_icoList[iIco]);
             item->setText("");
-            item->setTextAlignment(Qt::AlignCenter);
+            item->setTextAlignment(Qt::AlignTop);
             item->setFlags(item->flags() & ~Qt::ItemIsEditable);
             ui->tableTile->setItem(row, col, item);
             ++iIco;

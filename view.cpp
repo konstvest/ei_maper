@@ -732,7 +732,7 @@ void CView::drawTilePreview(QOpenGLShaderProgram* program)
 void CView::updateTileForm(bool bGenerateNewTable)
 {
     if(bGenerateNewTable)
-        m_pTileForm->fillTable(m_pLand->filePath().baseName(), m_pLand->textureNum());
+        m_pTileForm->fillTable(m_pLand->mapName(), m_pLand->textureNum());
     m_pTileForm->setTileTypes(m_pLand->tileTypes());
     m_pTileForm->setMaterial(m_pLand->materials());
     m_pTileForm->setAnimTile(m_pLand->animTiles());

@@ -124,6 +124,11 @@ bool CLandscape::serializeMpr(const QString& zoneName, CResFile& mprFile)
     return true;
 }
 
+QString CLandscape::mapName() const
+{
+    return m_map_name;
+}
+
 // Generates sector suffix by number: 001002 - sector x:1 y:2
 QString genSectorSuffix(int x, int y)
 {
@@ -168,6 +173,8 @@ void CLandscape::readMap(const QFileInfo& path)
         if(fName.endsWith(".mp"))
             innerMapName = fName.split(".").front(); //todo: dont split multiple dot names (zone.1.gipath.mp)
     }
+    //in some cases map has diffrent name then file name so we need this inner mp name
+    m_map_name = innerMapName;
 
     int texCount;
     m_texture = CTextureList::getInstance()->buildLandTex(innerMapName, texCount);

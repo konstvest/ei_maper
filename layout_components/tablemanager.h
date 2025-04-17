@@ -10,6 +10,10 @@
 #include <QLineEdit>
 #include <QStringListModel>
 
+
+#include <QEvent>
+#include <QKeyEvent>
+
 #include "types.h"
 #include "undo.h"
 #include "property.h"

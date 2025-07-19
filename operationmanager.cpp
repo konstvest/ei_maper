@@ -1048,7 +1048,7 @@ CTileBrush::CTileBrush(CView* pView)
     ,m_bDrawLand(true)
 {
     qDebug()<< "CTileBrush init ";
-    CStatusConnector::getInstance()->updateStatus("brush.ico", "Esc - Cancel, LMB - draw selected tile. RMB - pick tile under cursor, Wheel - rotate tile, M/J - draw land/water");
+    CStatusConnector::getInstance()->updateStatus("brush.ico", "Esc - Cancel, LMB - draw selected tile. RMB - pick tile under cursor, Wheel - rotate tile, T - change land/water tyle type, M/J - draw land/water");
     CButtonConnector::getInstance()->pressButton(EButtonOpTilebrush);
     m_pView->setDrawLand(m_bDrawLand);
     m_pView->setDrawWater(m_bDrawWater);

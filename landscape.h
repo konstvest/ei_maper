@@ -84,6 +84,8 @@ public:
     void setDirty(bool bDirty) {m_bDirty = bDirty;}
     bool isDirty() const {return m_bDirty;}
 
+    QString mapName() const;
+
 private:
     CLandscape();
     ~CLandscape();
@@ -100,6 +102,7 @@ private:
     QOpenGLTexture* m_texture;
     QFileInfo m_filePath;
     QVector<int> m_arrIncorectTiles;
+    QString m_map_name;
     bool m_bDirty;
 };
 
